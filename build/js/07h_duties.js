@@ -1,27 +1,25 @@
 'use strict';
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
- * - 手代：出貨價小幅加成、穩定供貨線略降。 番頭：進貨折扣、大盤進貨額度加大。
- * - 大番頭：自動補貨規則、壓低其他店員私吞。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
+ * - 手代：出貨價小幅加成（上限 +4%）、穩定供貨線略降。 番頭：只加大大盤進貨上限。
+ * - 大番頭：自動補貨、代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
 const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你跑 1 趟拜訪／送禮，不扣行動點數，好感只得約六到八成。',
-  手代:'店頭：出貨成交價小幅加成（商才越高越多），穩定供貨線略降。',
-  番頭:'採購：進貨價折扣、大盤進貨額度加大（商才越高越多）。',
-  大番頭:'總管：可開「自動補貨」；也壓低其他店員私吞，查帳更準。'
+  手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
+  番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
+  大番頭:'總管：代你管進貨（可開「自動補貨」）、代出席公會例會、每旬七成機率自動登門問候一到三人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
 const empsOf=rk=>G.emps.filter(e=>e.rank===rk);
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
-/** 手代：出貨加成（最多 +6%）。 */
-function tellerBonus(){return Math.min(0.06,empsOf('手代').reduce((a,e)=>a+0.01+0.02*statsOfEmp(e).commerce_skill/100,0))}
-/** 番頭：進貨價係數（最多 −10%）。 */
-function buyDiscount(){return 1-Math.min(0.10,empsOf('番頭').reduce((a,e)=>a+0.02+0.04*statsOfEmp(e).commerce_skill/100,0))}
-/** 番頭：大盤進貨額度倍率。 */
-const buyLimitMult=()=>1+0.15*nEmp('番頭');
+/** 手代：出貨加成（最多 +4%）。 */
+function tellerBonus(){return Math.min(0.04,empsOf('手代').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0))}
+/** 大盤進貨上限倍數（公會配額的幾倍）：基本 0.8，每名番頭依商才加成。 */
+const buyLimitMult=()=>ODDS.buyLimit.mult+empsOf('番頭').reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0);
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*nEmp('手代'));
 /** 大番頭：壓低其他店員私吞的係數。 */
@@ -86,6 +84,71 @@ function autoRestock(log){
     if(q>0){const r=buyGoods(c.name,q);if(r.ok)got.push(c.short+'×'+q)}
   });
   if(got.length)log.push(NEWS('autoRestock.1',{got:got.join('、')}));
+}
+/* ---------- 大番頭：代出席公會例會、每旬自動問候（皆於旬報回報，不扣行動點數、不花錢） ---------- */
+/** 每旬由大番頭處理的事務：照常代出席例會；其餘依機率——自動問候（可能結識新朋友）、意外之財、或無事。 */
+function chiefTick(log){
+  if(!nEmp('大番頭'))return;
+  chiefGuild(log);chiefUneasy(log);
+  const C=ODDS.chief,x=rnd();
+  if(x<C.visitP)chiefVisit(log);
+  else if(x<C.visitP+C.windfallP)chiefWindfall(log);
+}
+/** 人心不穩：大番頭累計賺得的意外之財超過當前白銀（現金吃緊），下一旬必定捲款潛逃。 */
+function chiefUneasy(log){
+  const b=empsOf('大番頭')[0];
+  if(!b||b.fleeAt!==undefined||!((b.wind||0)>Math.max(0,G.silver)))return;
+  b.fleeAt=G.turn+1;
+  const t=NEWS('chief.uneasy',{name:b.name});pushNews(t);log.push(t);
+}
+/** 意外之財：當前白銀的 1～10%。 */
+function chiefWindfall(log){
+  const C=ODDS.chief,amt=Math.round(Math.max(0,G.silver)*(C.windfallMin+rnd()*(C.windfallMax-C.windfallMin)));
+  if(amt<=0)return;
+  G.silver+=amt;G.lastRev+=amt;sfx.coin();
+  const b=empsOf('大番頭')[0];if(b)b.wind=(b.wind||0)+amt;
+  const t=NEWS('chief.windfall',{amt:fmt(amt)});pushNews(t);log.push(t);
+}
+/** 代出席例會：到期的例會自動出席；尚未表態則表態守配額，並照常提案提高配額一次。 */
+function chiefGuild(log){
+  if(G.turn-(G.guildAt===undefined?-99:G.guildAt)<GUILD_GAP)return;
+  const C=G.cartel,b=empsOf('大番頭')[0];
+  G.guildAt=G.turn;C.tried=false;C.paid=true;
+  let stance;
+  if(C.state==='none'||!C.state){C.state='pledged';C.comp=Math.min(90,C.comp+3);G.rep=clamp(G.rep+1,0,100);stance='表態遵守配額'}
+  else stance=C.state==='secret'?'維持暗約立場':'重申遵守配額';
+  let t=NEWS('chief.guild',{stance});pushNews(t);log.push(t);
+  C.tried=true;
+  if(rnd()<quotaRaiseChance()){
+    C.quotaPct=Math.min(0.5,Math.round(C.quotaPct*1.1*10000)/10000);G.rep=clamp(G.rep+1,0,100);
+    t=NEWS('chief.raise.ok',{pct:(C.quotaPct*100).toFixed(1)});
+  }else t=NEWS('chief.raise.fail');
+  pushNews(t);log.push(t);
+}
+/** 自動問候：挑 1～3 位已結識、尚未滿格的人登門閒話，好感 +5～10（不送禮、不花錢，交情較淺者優先）；另有機率結識城中新朋友。 */
+function chiefVisit(log){
+  const C=ODDS.chief,pool=Object.entries(G.rel).filter(([cid,r])=>r.bond&&r.aff>=1&&r.aff<100&&npc(cid)&&!isEnemy(cid));
+  const got=[];
+  const n=pool.length?Math.min(pool.length,C.visitMin+Math.floor(rnd()*(C.visitMax-C.visitMin+1))):0;
+  for(let i=0;i<n;i++){
+    const w=pool.map(([cid,r])=>100-r.aff);let tot=w.reduce((a,b)=>a+b,0),x=rnd()*tot,k=0;
+    for(;k<w.length-1;k++){x-=w[k];if(x<=0)break}
+    const [cid,r]=pool.splice(k,1)[0];
+    const gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
+    r.aff=clamp(r.aff+gain,0,100);logRel(cid,'大番頭代為登門問候，好感 +'+gain+'。');
+    got.push(nameOf(cid)+' +'+gain);
+  }
+  if(got.length){const t=NEWS('chief.visit',{list:got.join('、')});pushNews(t);log.push(t)}
+  if(chance(C.newFriendP)){
+    const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)});
+    if(cand.length){
+      const m=pick(cand),cid=m.cid,r=R(cid),gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
+      r.aff=clamp(r.aff+gain,0,100);r.met=true;r.seen=true;addKnown(cid);
+      r.bond={mult:0.6,label:'大番頭代為結識',introId:null};
+      logRel(cid,'大番頭代為登門結識，好感 +'+gain+'。');
+      const t=NEWS('chief.friend',{who:nameOf(cid),gain});pushNews(t);log.push(t);
+    }
+  }
 }
 /* ======================= 點人閒談 ======================= */
 const CHAT_LINES=LINES.chat;                                   // 台詞在 01d_lines.js

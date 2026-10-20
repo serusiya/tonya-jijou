@@ -202,7 +202,7 @@ SHEETS.residences=()=>{
 /** 碼頭倉庫面板。 */
 SHEETS.warehouse=()=>{
   let h='<div class="grid3 small" style="text-align:center"><div class="card" style="margin:0">倉庫<br><b>'+G.wh.n+' 棟</b></div><div class="card" style="margin:0">容量<br><b>'+invUsed()+' / '+invCap()+'</b></div><div class="card" style="margin:0">保鏢<br><b>'+guardCount()+' 名</b></div></div>';
-  h+='<div class="card" style="margin-top:6px"><b class="small">庫存</b>'+(Object.keys(G.inv).filter(k=>G.inv[k]>0).map(k=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(COMM_MAP[k].short)+(COMM_MAP[k].flam?' <span class="tag red">易燃</span>':'')+'</span><b>'+G.inv[k]+'</b></div>').join('')||'<div class="tiny muted">空空如也</div>')+(G.lastSpoil?'<div class="tiny muted" style="margin-top:3px">'+esc(G.lastSpoil)+'</div>':'')+'</div>';
+  h+='<div class="card" style="margin-top:6px"><b class="small">庫存</b>'+(Object.keys(G.inv).filter(k=>G.inv[k]>0).map(k=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(COMM_MAP[k].short)+(COMM_MAP[k].flam?' <span class="tag red">易燃</span>':'')+'</span><b>'+G.inv[k]+'</b></div>').join('')||'<div class="tiny muted">空空如也</div>')+(G.lastSpoil?'<div class="tiny muted" style="margin-top:3px">'+esc(G.lastSpoil)+'</div>':'')+'<div class="tiny muted" style="margin-top:3px">庫存貨值約 '+fmt(Math.round(Object.keys(G.inv).reduce((a,k)=>a+(G.inv[k]||0)*listValue(k),0)))+' 兩·上旬倉儲保險費 '+fmt(G.holdFee||0)+' 兩（貨值越高，費用與失竊風險越大）</div></div>';
   h+=xgoodsCard();
   h+='<div class="notice tiny">🛡️ 倉庫由<b>保鏢</b>平時巡守（降低失火與盜賊風險），你出門時他們隨行護身。到「商號」頁聘用保鏢。</div>';
   const wc=1500*G.wh.n;

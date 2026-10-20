@@ -10,6 +10,20 @@ const NEWS_TXT={
   /* —— newGame —— */
   "newGame.1":"📜【開業】{name}接掌家業，於【{CITY}】懸掛「{firm}」暖簾。",
   /* —— receiveOrders —— */
+  "rivalDump":"🏪【同業】「{who}」大舉拋售「{name}」，存貨傾巢而出，近日行情恐怕被壓低。",
+  "luxDry":"🏮【行情】近來「{name}」門庭冷落，達官貴人不再問津，不知何時才有買家。",
+  "luxBurst":"🎎【行情】大名與豪商競相採買「{name}」，買盤湧入，行情暴漲！",
+  "holdTheft.1":"🥷【失竊】庫房中價值不菲的「{name}」遭人潛入盜走 {l} 單位！",
+  "holdTheft.2":"🐀【損失】受潮與蟲鼠侵擾，高價的「{name}」報損 {l} 單位。",
+  "holdTheft.3":"📜【查扣】官差以『來路不明』為由，扣押了庫中的「{name}」{l} 單位。",
+  "holdFee":"本旬倉儲與保險費 {fee} 兩。",
+  "chief.guild":"🏛️【大番頭】代你出席株仲間例會，{stance}。",
+  "chief.raise.ok":"🏛️【大番頭】在例會上提案增加配額，獲同行首肯，配額提高為需求的 {pct}%。",
+  "chief.raise.fail":"🏛️【大番頭】在例會上提案增加配額，被同行擱置。",
+  "chief.uneasy":"😟【人心不穩】庫裡現銀見底，大番頭「{name}」數日來神色不安，頻頻望向門外。",
+  "chief.friend":"🤝【大番頭】代你結識了新朋友：{who}，好感 +{gain}。",
+  "chief.windfall":"💰【大番頭】替店裡談成一筆意外的買賣，進帳 {amt} 兩。",
+  "chief.visit":"🚶【大番頭】代你登門問候：{list}。",
   "receiveOrders.1":"📦【到貨】{items} 已入倉。",
   /* —— setEv —— */
   "setEv.1":"🔥【火災急報】千代田町夜起狂風，大火焚毀民房數百戶，建材與薪炭行情狂飆！",

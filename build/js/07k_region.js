@@ -148,7 +148,7 @@ function applyFavor(cid,n,r,f){
 function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
   let msg;
-  if(A.key==='direct'){G.flags.direct=true;msg='取得產地直採特許！進貨價降為 85%。'}
+  if(A.key==='direct'){G.flags.direct=true;msg='取得產地直採特許！進貨價降為行情指數的 '+Math.round(ODDS.rivalShip.directMult*100)+'%。'}
   else msg=REG_FAVOR[A.key](n);
   logRel(A.cid,'申請「'+A.name+'」獲准。');
   const t=NEWS('appGrant.1',{name:A.name,msg});pushNews(t);log.push(t);sfx.fanfare();

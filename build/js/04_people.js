@@ -181,7 +181,7 @@ const FAVORS={
     {k:'contract',name:'承攬官辦工程',thr:40,rank:2,cost:{silver:costOf('favorContract')},cd:6,desc:'投標承攬城郭修繕與橋樑疏浚，賺取工程利潤。'}
   ],
   finance:[
-    {k:'direct',apply:true,name:'產地直採特許',thr:60,rank:3,cost:{gold:'r3'},once:true,desc:'繞過大盤商，進貨價由 110% 降為 85%。'},
+    {k:'direct',apply:true,name:'產地直採特許',thr:60,rank:3,cost:{gold:'r3'},once:true,desc:'繞過大盤商，進貨價由行情指數的 '+Math.round(ODDS.rivalShip.buyMult*100)+'% 降為 '+Math.round(ODDS.rivalShip.directMult*100)+'%。'},
     {k:'loan',name:'官倉平準貸款',thr:35,rank:2,cost:{},cd:12,desc:'官府低息借款，十二旬後須連本帶利歸還 130%。'}
   ],
   judiciary:[
@@ -217,7 +217,7 @@ function doFavor(cid,key){
   let msg='';
   if(key==='contract'){const inc=Math.round(n.pos.rank*220*(0.8+rnd()*0.6));G.silver+=inc;G.rep=clamp(G.rep+2,0,100);G.life.contracts++;msg='標得官辦工程，入帳 '+fmt(inc)+' 兩（扣除投標費淨賺 '+fmt(inc-silver)+'），聲譽 +2。'}
   else if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
-  else if(key==='direct'){G.flags.direct=true;msg='取得產地直採特許！進貨價降為 85%，大盤商對你恨得牙癢癢。'}
+  else if(key==='direct'){G.flags.direct=true;msg='取得產地直採特許！進貨價降為行情指數的 '+Math.round(ODDS.rivalShip.directMult*100)+'%，大盤商對你恨得牙癢癢。'}
   else if(key==='loan'){const amt=1200*(n.pos.rank-1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+12,amt:Math.round(amt*1.3)});msg='獲准官倉平準貸款 '+fmt(amt)+' 兩，十二旬後須還 '+fmt(amt*1.3)+' 兩。'}
   else if(key==='exempt'){G.flags.exempt=12;msg='買通免檢旗，十二旬內關稅全免。'}
   else if(key==='blind'){G.flags.blind=12;msg='袖之下遞過去，同心心領神會：十二旬內搜查時會睜一隻眼。'}
@@ -301,7 +301,7 @@ const RANKS=['丁稚','手代','番頭','大番頭'];
 /** 各職位基準月例。 */
 const RANK_WAGE={丁稚:2,手代:6,番頭:12,大番頭:24};
 /** 各職位對出貨收益的加成權重。 */
-const RANK_W={丁稚:0.01,手代:0.03,番頭:0.05,大番頭:0.08};
+const RANK_W={丁稚:0,手代:0,番頭:0,大番頭:0};   // 職位不再直接加成賣價：手代只靠 tellerBonus，番頭加大進貨上限
 /** 各職位私吞傾向。 */
 const RANK_SKIM={丁稚:0.2,手代:0.6,番頭:0.9,大番頭:1.2};
 /** 各職位名額。 */
@@ -333,11 +333,7 @@ function hireEmp(cid,rank,free){
   addFame(0.3);G.emps.push(e);return e;
 }
 /** 員工對出貨收益的總加成（0.9～1.3）。 */
-function empMult(){
-  let m=1;G.emps.forEach(e=>{m+=RANK_W[e.rank]*(statsOfEmp(e).commerce_skill-50)/100});
-  m+=tellerBonus();
-  return clamp(m,0.9,1.36);
-}
+function empMult(){return clamp(1+tellerBonus(),1,1.04)}
 /** 每旬員工結算：私吞、番頭捲款潛逃判定。 */
 function empTick(log){
   const rm=[];
@@ -348,7 +344,7 @@ function empTick(log){
       const amt=Math.round(Math.max(0,G.lastRev)*(0.005+rnd()*0.015)+(({丁稚:1,手代:4,番頭:10,大番頭:25,船長:6,飛腳:3,保鏢:3})[e.rank]||3));
       e.skim+=amt;G.silver-=amt;
     }
-    if((e.rank==='大番頭'||e.rank==='番頭')&&s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*(G.turn-e.audited>ODDS.skim.lateTurns?ODDS.flee.lateMul:1))){
+    if((e.rank==='大番頭'||e.rank==='番頭')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*(G.turn-e.audited>ODDS.skim.lateTurns?ODDS.flee.lateMul:1)))){
       const take=Math.round(Math.max(0,G.silver)*0.3);G.silver-=take;rm.push(e);
       const t=NEWS('empTick.1',{rank:e.rank,name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();
     }

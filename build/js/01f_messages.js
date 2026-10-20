@@ -10,7 +10,7 @@ const MSG_TXT={
   'buyGoods.1':'請輸入進貨數量',
   'buyGoods.2':'倉庫容量不足（庫存 {invUsed}＋在途 {transitQty} / {invCap}）',
   'buyGoods.3':'「{name}」庫存已達上限（本城需求的 {capMult} 倍＝{itemCap} 單位，含在途）。還能進 {itemRoom} 單位。',
-  'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（公會配額的 2.5 倍），還能進 {buyLeft} 單位。要大量進貨請走商路從產地運入。',
+  'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（公會配額的 {mult} 倍），還能進 {buyLeft} 單位。要大量進貨請走商路從產地運入。',
   'buyGoods.5':'白銀不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
   /* —— sellGoods —— */
