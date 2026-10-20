@@ -79,6 +79,6 @@ python3 -I build.py        # 產生單一 HTML 檔
 
 你可以自由遊玩、分享、修改，也可以用於商業用途，只要**保留作者署名與授權聲明**。
 
-署名範例：「《問屋事情》，https://github.com/serusiya/tonya-jijou，採 MIT / CC BY 4.0 授權」。
+署名範例：「《問屋事情》，https://github.com/serusiya/tonya-jijou ，採 MIT / CC BY 4.0 授權」。
 
 > 本作含有 AI 生成的內容，其著作權歸屬在各法域尚無定論。上述授權是在作者可主張權利的範圍內給予你的許可。
