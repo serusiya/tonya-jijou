@@ -1,6 +1,6 @@
 'use strict';
 /* ★檔案總覽：市場與時間推進
- * - 價格：priceNow＝基準價×城市係數×季節×(近三旬需求/近三旬總出貨)^α×事件；總出貨＝同業實際出貨（含隨機超賣）＋我方出貨。
+ * - 價格：priceNow＝基準價×城市係數×季節×(近九旬需求/近九旬總出貨)^α×事件；總出貨＝同業實際出貨（含隨機超賣）＋我方出貨。
  * - 買賣：buyGoods（下單、隔旬到貨、每旬上限）、sellGoods（出貨）、autoShip 在 06_ui.js。
  * - 公會：evalCartel（配額與偷跑）；riotTick（主食鹽價過高→打毀）；EVENTS 隨機事件。
  * - 同業：marketShares/msTick（本城同業市佔率）。
@@ -73,12 +73,12 @@ const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lu
 const demandEff=(c,m,noLux)=>m.D*festMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
 /** 本旬同業有效供給（本業受株仲間減供）。 */
 const supplyEff=(c,m)=>m.so*(c.sys===G.sysKey?1-0.22*G.cartel.comp/100:1);
-/** 近兩旬的需求/同業供給/我方出貨紀錄（舊存檔或開局缺資料時，以基準值補齊）。 */
+/** 前（視窗旬數−1）旬的需求/同業供給/我方出貨紀錄（舊存檔或開局缺資料時，以基準值補齊）。 */
 function pastOf(m){
   if(m.past&&m.past.length)return m.past;
-  return [{d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0},{d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0}];
+  return Array.from({length:ODDS.rivalShip.win-1},()=>({d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0}));
 }
-/** 【核心定價】市價＝基準×城市係數×季節×(近三旬需求÷近三旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
+/** 【核心定價】市價＝基準×城市係數×季節×(近九旬需求÷近九旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
 function priceNow(name,ship,noLux){
   const c=COMM_MAP[name],m=G.mk[name],P=pastOf(m);
   const Dw=demandEff(c,m,noLux)+P.reduce((a,x)=>a+(noLux&&x.d0!==undefined?x.d0:x.d),0);
@@ -89,9 +89,9 @@ function priceNow(name,ship,noLux){
 }
 /** 參考出貨量（需求的 30%），用於打毀指數與行情指數。 */
 const refShip=name=>G.mk[name].D*0.3;
-/** 目前行情指數（近三旬供需，我方出貨量至少以參考量計）。 */
+/** 目前行情指數（近九旬供需，我方出貨量至少以參考量計）。 */
 function marketIndex(name,noLux){
-  /* 行情指數：假設近三旬我方每旬至少出貨參考量（需求的 30%）；實際出得更多才會把指數壓得更低。noLux＝不計奢侈品冷熱（大盤牌價） */
+  /* 行情指數：假設近九旬我方每旬至少出貨參考量（需求的 30%）；實際出得更多才會把指數壓得更低。noLux＝不計奢侈品冷熱（大盤牌價） */
   const m=G.mk[name],ref=refShip(name);
   return priceNow(name,ref+pastOf(m).reduce((a,x)=>a+Math.max(0,ref-x.my),0),noLux);
 }
@@ -130,7 +130,7 @@ function rivalSupply(c,m,first){
 function refreshMarket(first){
   Object.entries(G.mk).forEach(([name,m])=>{
     const c=COMM_MAP[name];
-    if(!first){m.past=(m.past||pastOf(m)).concat([{d:demandEff(c,m),so:supplyEff(c,m),my:m.shipped}]).slice(-2)}
+    if(!first){m.past=(m.past||pastOf(m)).concat([{d:demandEff(c,m),so:supplyEff(c,m),my:m.shipped}]).slice(-(ODDS.rivalShip.win-1))}
     else m.past=[];
     m.D=cityD(homeCity(),c);
     if(c.luxury)luxTick(c,m,first);
@@ -145,7 +145,7 @@ function refreshMarket(first){
 }
 /** 進貨價係數（相對行情指數）：一般與直採係數見 ODDS.rivalShip.buyMult／directMult。 */
 const empBuyMult=()=>G.flags.direct?ODDS.rivalShip.directMult:ODDS.rivalShip.buyMult;
-/** 大盤進貨單價＝行情指數（近三旬供需＋參考出貨量）×進貨係數÷事件^0.4（事件只傳導六成），遇公會斷貨×1.4、守配額×0.96，再乘進貨壓力。 */
+/** 大盤進貨單價＝行情指數（近九旬供需＋參考出貨量）×進貨係數÷事件^0.4（事件只傳導六成），遇公會斷貨×1.4、守配額×0.96，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
   let p=marketIndex(name,true)*empBuyMult()/Math.pow(m.ev,0.4);
