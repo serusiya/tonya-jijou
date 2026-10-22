@@ -1,26 +1,20 @@
 /* ======================= 官員運作：司法官員栽贓、行政官員打壓 =======================
  *  - 官員好感 100：司法官員可「栽贓」隨機一家同業（成功＝該同業被查抄，市佔分數剩 40%）；
  *    行政官員可「打壓」隨機一家同業（成功＝該同業行情 ×0.6，持續數旬）。
- *  - 機制同放火：500 兩私房錢、1 行動、熱度 +3；成功後可能被查辦（官員撤職，可能供出你）；
+ *  - 好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。機制同放火：500 兩私房錢、熱度 +3；成功後可能被查辦（官員撤職，可能供出你）；
  *    失手則官員與你決裂、該同業成為仇人。 */
 const SCHEME={frame:{court:'judiciary',icon:'⚖️',name:'栽贓'},suppress:{court:'administration',icon:'📛',name:'打壓'}};
 function schemeKind(n){const c=n&&n.pos&&n.pos.court;return c==='judiciary'?'frame':c==='administration'?'suppress':null}
 function schemeOK(cid){const n=npc(cid),k=schemeKind(n);return !!(k&&n.role==='official'&&alive(cid)&&R(cid).bond&&R(cid).aff>=100&&!isEnemy(cid))}
 function schemeChance(n,k){const s=CH(n.cid).derived_stats,A_=ODDS[k];return clamp(A_.base+s.audacity_courage/A_.courageDiv+s.commerce_skill/A_.commerceDiv-A_.rank*A_.perRank,A_.min,A_.max)}
 const schemeTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!n.raided);
-function schemeHtml(cid){
-  if(!schemeOK(cid))return '';
-  const n=npc(cid),k=schemeKind(n),S=SCHEME[k];
-  return '<div class="card warn" style="margin:4px 0"><b class="small">'+S.icon+' '+S.name+'</b><div class="tiny muted">他與你交情至深，願對隨機一家同業'+S.name+'。'+costTxt(k)+'、耗 1 行動；成功約 '+Math.round(schemeChance(n,k)*100)+'%，事後可能被查辦。失手則兩人決裂，同業成為仇人。</div>'
-    +'<div style="margin-top:3px"><button class="pixel-btn btn-sm btn-red" data-act="scheme" data-cid="'+cid+'">'+UT('btn.'+k)+'</button></div></div>';
-}
-ACT.scheme=el=>{
-  const cid=el.dataset.cid;if(!schemeOK(cid))return;
+/** 拜訪請託中選了「栽贓／打壓」（好感 100、每位官員一次；行動點數已在拜訪時扣過）。 */
+function startScheme(cid){
   const n=npc(cid),k=schemeKind(n),S=SCHEME[k],off=nameOf(cid);
+  if(!n||!k)return;
   if((G.exile||0)>0){toast(MSG('scheme.exile'));return}
   const ts=schemeTargets();if(!ts.length){toast(MSG('scheme.noRival'));return}
   if(!afford(k)){toast(shortMsg(k));return}
-  if(!spendAP())return;
   spend(k);G.heat=(G.heat||0)+3;
   const tg=pick(ts),p=schemeChance(n,k),name=nameOf(tg.cid),log=[];
   playFx('walk',MSG(k==='frame'?'scheme.fxFrame':'scheme.fxSuppress',{off}),MSG(k==='frame'?'scheme.fxTitleFrame':'scheme.fxTitleSuppress'),()=>{
@@ -48,4 +42,4 @@ ACT.scheme=el=>{
     }
     UI.render();refreshSheet();
   },1000);
-};
+}

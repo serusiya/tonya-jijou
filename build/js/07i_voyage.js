@@ -11,21 +11,22 @@ const idleCaptains=mode=>{
   return G.emps.filter(e=>e.rank===MODE_CAPT[mode]&&!used.has(e.id));
 };
 const ownNameSet=()=>new Set(ownComms().map(c=>c.name));
+/** 本業中已可交易的貨（委託採買時船長只買這些）。 */
+const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
 /** 風險：每旬約 3%（海）／2.2%（陸），乘船長膽識與商才的倍數；陸路有保鏢可再降。 */
 const voyRisk=(cap,d,mode)=>{const V_=ODDS.voyageRisk;return clamp((mode==='sea'?V_.sea:V_.land)*d*crewRiskMult(cap)-(mode==='land'?V_.guardLand*guardCount():0),V_.min,V_.max)};
 const voyFee=d=>clamp(0.04+0.01*d,0.06,0.14);
 /** 可前往的目的地：海運＝雙方皆為港灣；陸運＝同地區且 2 旬內。 */
 function destList(mode){
-  const a=homeCity(),own=ownNameSet();
+  const a=homeCity(),own=tradeNameSet(),all=ownNameSet();
   const ok=mode==='sea'?(ct=>canSea(a)&&canSea(ct)):(ct=>canLand(a,ct));
   return CITIES.filter(ct=>ct.id!==a.id&&ok(ct)).map(ct=>({ct,d:distTurns(a,ct,mode),
-    own:ct.connected_commodities.filter(n=>own.has(n)&&COMM_MAP[n]),oth:ct.connected_commodities.filter(n=>!own.has(n)&&COMM_MAP[n])}))
+    own:ct.connected_commodities.filter(n=>own.has(n)&&COMM_MAP[n]),oth:ct.connected_commodities.filter(n=>!all.has(n)&&COMM_MAP[n])}))
     .sort((x,y)=>(y.own.length>0)-(x.own.length>0)||x.d-y.d||y.own.length-x.own.length);
 }
 /** 出發：free＝開局贈送（不扣委託金）。 */
 function sendVoyage(captId,budget,destId,mode,free){
   mode=mode||'sea';
-  if(G.ships.length+(G.smug||[]).length>=G.fleet)return {ok:false,msg:MSG('sendVoyage.1',{smug:(G.ships.length+(G.smug||[]).length),fleet:G.fleet})};
   const cap=idleCaptains(mode).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:MODE_CAPT[mode]})};
   const dest=CITY(destId),dl=destList(mode).find(x=>x.ct.id===destId);if(!dest||!dl)return {ok:false,msg:MSG('sendVoyage.3')};
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?'進港泊位許可':'關所通行手形')})};
@@ -40,9 +41,9 @@ function sendVoyage(captId,budget,destId,mode,free){
 /** 歸來結算。 */
 function resolveVoyage(s,log){
   const mode=s.mode,cs=s.cs||50,budget=s.budget||0,wreck=chance(s.risk),keep=wreck?0.3:1;
-  const dest=CITY(s.origId),own=ownNameSet();
+  const dest=CITY(s.origId),own=tradeNameSet(),all=ownNameSet();
   const prod=(dest?dest.connected_commodities:[]).filter(n=>COMM_MAP[n]);
-  const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!own.has(n));
+  const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
   const spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
   let kind=(()=>{const r=rnd();return r<0.05?'contra':r<0.30?'cross':'own'})(),note='';
@@ -91,7 +92,6 @@ function voyagePanel(){
   if(mode==='sea'&&!anySea())return '<div class="notice">尚未取得任何地區的「進港泊位許可」。請到「遠國奉行所」請託（津口番所役／船奉行）。</div>';
   const caps=idleCaptains(mode);
   if(!caps.length)return '<div class="notice">沒有空閒的'+MODE_CAPT[mode]+'。到私宅請介紹人物色，聘為「'+MODE_CAPT[mode]+'」。</div>';
-  if(G.ships.length+(G.smug||[]).length>=G.fleet)return '<div class="notice">船隊都在外面，請等返航或擴編。</div>';
   const dl=destList(mode).slice(0,10);
   if(!dl.length)return '<div class="notice">'+(mode==='land'?'陸路只通同一地區、2 旬內的城市；跨地區或島嶼須走海運。':'本城或對方不是港灣，海運無路可走。')+'</div>';
   if(!caps.some(e=>e.id===R_.capt))R_.capt=caps[0].id;

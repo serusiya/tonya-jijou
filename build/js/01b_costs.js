@@ -16,19 +16,10 @@ const COSTS={
   scout:{name:'探聽性向',cur:'silver',amt:25,per:'目標官階'},
   weakness:{name:'打聽軟肋（已停用）',cur:'gold',amt:60,per:'目標官階（另加每階 20）'},
   befriend:{name:'設宴款待',cur:'silver',amt:60},
-  /* —— 贈禮（官員／人物） —— */
-  gift_art:{name:'名家字畫',cur:'silver',amt:75},gift_antique:{name:'古董珍奇',cur:'silver',amt:90},
-  gift_wine:{name:'灘之美酒',cur:'silver',amt:25},gift_geisha:{name:'花街設宴',cur:'silver',amt:45},
-  gift_charm:{name:'祈福神符',cur:'silver',amt:20},gift_toy:{name:'童玩點心',cur:'silver',amt:15},
-  gift_safe:{name:'陸路護送',cur:'silver',amt:30},gift_alms:{name:'以其名義義賑',cur:'silver',amt:35},
-  gift_wife:{name:'禮敬夫人',cur:'silver',amt:40},gift_grudge:{name:'替其打壓宿敵',cur:'silver',amt:60},
-  gift_fame:{name:'捐匾揚名',cur:'silver',amt:65},gift_gamble:{name:'設局賭宴',cur:'silver',amt:50},
+  /* —— 贈禮：六種禮物不花錢，拜訪時的賄賂由三檔出價決定（07u_battle.js） —— */
   /* —— 官員請託·許可申請 —— */
-  favorContract:{name:'請託：承攬官辦工程',cur:'silver',amt:100},
-  favorWarn:{name:'請託：緝私通告',cur:'silver',amt:80},
   favorRank3:{name:'請託：直採特許（賄賂）',cur:'silver',amt:45,per:'依官階而定'},
   favorRank1:{name:'請託：免檢旗／睜眼（賄賂）',cur:'silver',amt:15,per:'官階−1'},
-  favor_raid:{name:'請託：借官府查抄對手（賄賂）',cur:'silver',amt:90},
   favor_rpass:{name:'請託：關所通行手形（賄賂）',cur:'silver',amt:60},favor_rport:{name:'請託：進港泊位許可（賄賂）',cur:'silver',amt:60},
   favor_rhorse:{name:'請託：驛馬優先（賄賂）',cur:'silver',amt:45},favor_rcheap:{name:'請託：產地買付便宜（賄賂）',cur:'silver',amt:90},
   favor_rescort:{name:'請託：船手組護送（賄賂）',cur:'silver',amt:90},favor_rtax:{name:'請託：勘定所免稅狀（賄賂）',cur:'silver',amt:90},
@@ -41,9 +32,9 @@ const COSTS={
   recruitIntro:{name:'請介紹人物色人才禮金',cur:'silver',amt:40},
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
   allowance:{name:'雇員零用錢',cur:'silver',amt:5},
-  encounter:{name:'路遇應酬',cur:'silver',amt:10},
+  encounter:{name:'路遇應酬',cur:'silver',amt:50},
   /* —— 產業·設施 —— */
-  fleetUp:{name:'擴編船隊',cur:'silver',amt:900,per:'現有船隊數'},
+  shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
   guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},

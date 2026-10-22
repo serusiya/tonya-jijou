@@ -1,6 +1,6 @@
 'use strict';
 /* ★檔案總覽：像素場景與動畫
- * - 家宅畫布（320×180）：drawScene 每幀繪製；SCENE.ents 為角色（主角、員工、護衛、家人）。
+ * - 家宅畫布（320×180）：drawScene 每幀繪製；SCENE.ents 為角色：每種職位、夫人、側室、子女各畫一人（不畫主角），點選時從同類隨機挑一名聊天。
  * - playFx：全螢幕轉場（走路/馬車/船/時節流轉）。coinFx：金幣飛舞。
  * - visitFx：置中小視窗的情境化拜訪動畫（投帖／交禮／締約／暗盤），所有「與人往來」都會呼叫。 */
 /* ======================= 05 宅邸場景（像素 Canvas）與過場動畫 ======================= */
@@ -132,11 +132,11 @@ function sceneSync(force){
   const sig=entSig();if(!force&&sig===SCENE.sig)return;SCENE.sig=sig;
   const old={};SCENE.ents.forEach(e=>old[e.id]=e);
   const out=[];const keep=(kind,id,extra)=>{const e=old[id]||newEnt(kind,id,extra);Object.assign(e,extra||{});out.push(e);return e};
-  keep('proto','proto',{x:old.proto?old.proto.x:SPOTS.proto.x,y:old.proto?old.proto.y:SPOTS.proto.y,label:'掌櫃本人：'+G.me.name,spd:10});
-  G.emps.forEach((e,i)=>{const x={rank:e.rank,label:'【'+e.rank+'】'+e.name,patrol:i};if(e.rank==='保鏢')x.spd=16;keep('emp','emp_'+e.id,x)});
-  if(G.family.spouse)keep('wife','wife',{label:'夫人：'+G.family.spouse.name,spd:6});
-  (G.family.conc||[]).forEach(x=>keep('wife','conc_'+x.cid,{label:'側室：'+x.name,spd:6}));
-  G.family.kids.forEach(k=>{const a=kidAge(k);keep('kid','kid_'+k.id,{label:(a>=8?'':'幼')+'子女：'+k.name+'（'+a+'歲）',spd:14,age:a})});
+  /* 每種職位、每類家人只畫一人（不畫主角）；點選時才從同類中隨機挑一名（見 sceneMember） */
+  [...RANKS,...SPECIAL].forEach((rk,i)=>{if(!G.emps.some(e=>e.rank===rk))return;const x={rank:rk,label:'【'+rk+'】',patrol:i,group:'emp'};if(rk==='保鏢')x.spd=16;keep('emp','rank_'+rk,x)});
+  if(G.family.spouse)keep('wife','wife',{label:'夫人：'+G.family.spouse.name,spd:6,group:'wife'});
+  if((G.family.conc||[]).length)keep('wife','conc',{label:'側室',spd:6,group:'conc'});
+  if(G.family.kids.length){const k=G.family.kids[0],a=kidAge(k);keep('kid','kids',{label:'子女：'+k.name+'（'+kidStage(a)+'）',spd:14,age:a,girl:k.gender==='女',group:'kid'})}
   SCENE.ents=out;
 }
 /** 為角色挑下一個漫步目標。 */
@@ -164,7 +164,7 @@ function entLook(e){
     case 'proto':return {cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true,abacus:true,hair:(G&&myAge()>=55)?'#c8c8c8':'#1a1612'};
     case 'guard':return {cloth:'#3a3a44',cloth2:'#8a8a98',sword:true,hat:'#1a1612',pants:'#222'};
     case 'wife':return {cloth:'#c46a8a',cloth2:'#e0b030',woman:true};
-    case 'kid':return {cloth:e.label.includes('女')||e.label.includes('阿')?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,woman:false,noKnot:true};
+    case 'kid':return {cloth:e.girl?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,woman:false,noKnot:true};
     default:return RANK_LOOK[e.rank]||RANK_LOOK['手代'];
   }
 }
@@ -211,10 +211,18 @@ function sceneStart(){
   cv.addEventListener('click',ev=>{
     const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*320,y=(ev.clientY-r.top)/r.height*180;
     let best=null,bd=14;SCENE.ents.forEach(e=>{const d=Math.hypot(e.x-x,(e.y-6)-y);if(d<bd){bd=d;best=e}});
-    if(best){sfx.tap();if(['emp','guard','wife','kid'].includes(best.kind))openChat(best);else say(best.label)}
+    if(best){sfx.tap();const m=sceneMember(best);if(m)openChat(m)}
     else if(x>=8&&x<=118&&y>=26&&y<=100){sfx.tap();UI.go('estate')}
     else if(x>=126&&y>=40&&y<=116){sfx.tap();UI.openSheet('warehouse')}
   });
+}
+/** 點到場景中的代表人物：從同一類（同職位的員工、側室、子女）隨機挑一名，回傳聊天用的角色資料。 */
+function sceneMember(ent){
+  if(ent.group==='emp'){const L=G.emps.filter(e=>e.rank===ent.rank);if(!L.length)return null;const e=pick(L);return {kind:'emp',id:'emp_'+e.id,label:'【'+e.rank+'】'+e.name}}
+  if(ent.group==='conc'){const L=G.family.conc||[];if(!L.length)return null;const x=pick(L);return {kind:'wife',id:'conc_'+x.cid,label:'側室：'+x.name}}
+  if(ent.group==='kid'){const L=G.family.kids;if(!L.length)return null;const k=pick(L);return {kind:'kid',id:'kid_'+k.id,label:'子女：'+k.name+'（'+kidStage(kidAge(k))+'）'}}
+  if(ent.group==='wife')return {kind:'wife',id:'wife',label:ent.label};
+  return null;
 }
 /* 主角心聲 */
 /** 主角頭上的對話泡泡。 */
@@ -298,6 +306,7 @@ function visitSetup(o){
   return o;
 }
 function visitPropName(o){
+  if(o.propName)return o.propName;
   const fixed={letter:'名帖',petition:'請託文書',contract:'契約',gold:'銀兩',marriage:'婚書與聘禮',crate:'貨箱'};
   return fixed[o.prop]||(typeof GIFT_MAP!=='undefined'&&GIFT_MAP[o.prop]?GIFT_MAP[o.prop].name:'禮物');
 }

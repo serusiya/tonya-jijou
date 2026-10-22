@@ -22,7 +22,6 @@ const UI_TXT={
   'btn.allow':'零用錢 {c}',
   'btn.allowDone':'本旬已給',
   'btn.allowFull':'好感已滿',
-  'btn.appTop':'補賄賂 {c} 兩',
   'btn.apprentice':'+ 招丁稚（{c}）',
   'btn.assassinate':'下令',
   'btn.arson':'下令放火',
@@ -45,7 +44,6 @@ const UI_TXT={
   'btn.fire':'辭退',
   'btn.fireConfirm':'⚠ 確認辭退',
   'btn.fireDock':'辭退',
-  'btn.fleetUp':'{c} 兩',
   'btn.go':'前往名門商邸 ▶',
   'btn.hire':'聘為{r}',
   'btn.inspBribe':'🧧 賄賂（{c} 兩）',
@@ -86,7 +84,7 @@ const UI_TXT={
   'btn.succeedGo':'託付家業',
   'btn.succeedGo2':'接掌',
   'btn.vGo':'託付出發 ▶',
-  'btn.visit':'帶禮親自拜訪 ▶',
+  'btn.visit':'親自登門拜訪 ▶',
   'btn.whMax':'已達上限',
   'btn.whUp':'{c} 兩',
   'btn.xoAccept':'借給他',
@@ -108,7 +106,6 @@ const UI_TXT={
   'opt.nf_other':'其他',
   'opt.nf_rival':'同業',
   'opt.noFavor':'💬 不請託',
-  'opt.noGift':'🙌 不送禮（空手拜訪）',
   'opt.noIntro':'（尚無介紹人）',
   'opt.rankShort':'·官階不足'
 };

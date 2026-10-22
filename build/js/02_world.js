@@ -149,8 +149,8 @@ function newGame(sysKey,regionPref){
     sysKey,firm:S.firm+'·'+S.name,
     me:{family:S.firm.replace('屋',''),given:'',name:'',birthYear:-20,gen:1},
     silver:S.silver,gold:S.gold,
-    wh:{n:2,cap:200},guards:0,fleet:S.key==='textile'?3:2,
-    inv:{},mk:{},flags:{direct:false,port:false,pass:false,exempt:0,warned:0,info:null},
+    wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
+    inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
     cartel:{state:'none',comp:65,sanction:0,quotaPct:0.06,cheated:0},
     staple:{streak:0,peak:1},ships:[],
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
@@ -167,6 +167,7 @@ function newGame(sysKey,regionPref){
   G.cityId=pick(cs).id;
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
+  G.trade=startTrade(sysKey);                     // 名望三、四階的流派開局送第二貴貨物的交易許可
   initMarket();
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳

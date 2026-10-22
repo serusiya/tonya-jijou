@@ -36,7 +36,6 @@ const NEWS_TXT={
   "setEv.8":"📉【同業傾銷】同行大舉拋貨，本業行情走軟。",
   "setEv.9":"📈【買氣回升】近日城中買氣旺盛，本業行情回暖。",
   /* —— inspection —— */
-  "inspection.1":"🕵️【欽差突查】中央巡按突查關卡與帳目，幸得司法官員事先通風，你的帳冊早已整理妥當，平安度過。",
   "inspection.2":"🕵️【欽差突查】中央巡按徹查官商往來，查獲你的私房錢往來痕跡！罰銀 {fine} 兩，知名度 -6，靠山受牽連。",
   "inspection.3":"🕵️【欽差巡視】中央巡按入城巡視，所幸你向來謹慎，無事。",
   /* —— officialFall —— */
@@ -74,7 +73,7 @@ const NEWS_TXT={
   "marry.1":"💍【喜事】{name}娶得{name2}，宅邸添了女主人。",
   /* —— yearTick —— */
   "yearTick.1":"🎍【新年】{year}到來，你今年 {myAge} 歲。",
-  "yearTick.2":"🕯️【訃報】「{name}」於本年病逝，享年 {birth_year} 歲。",
+  "yearTick.2":"🕯️【訃報】「{name}」於本年病逝。",
   "yearTick.3":"🕯️【訃報】{rank}「{name}」病逝，商號失一臂助。",
   "yearTick.4":"👶【天賦】「{name}」漸漸顯露天賦，似乎擅長「{top3Of}」。",
   "yearTick.5":"😞【敗家子】「{name}」沉迷賭坊，欠下鉅額賭債，債主上門索討！",
@@ -109,7 +108,6 @@ const NEWS_TXT={
   "smugTick.4":"⛓️【船長入獄】船長「{captName}」守口如瓶，獨自扛下了罪名。",
   "smugTick.5":"🏴‍☠️【走私到貨】「{name}」{q} 單位悄悄入了密庫{q2}。",
   /* —— raidTick —— */
-  "raidTick.1":"🕵️【搜查風聲】奉行所本要搜查商號，因事先得到通告，你已把東西藏妥，平安過關。",
   /* —— exileTick —— */
   "exileTick.1":"⛓️【遠島】主人在島上，由大番頭「{name}」代理一切商務。",
   "exileTick.2":"⛓️【遠島】主人不在、無人坐鎮，商號亂成一團，損失 {loss} 兩。",
@@ -118,6 +116,7 @@ const NEWS_TXT={
   "doRaid.1":"👀【睜一隻眼】同心前來搜查，卻對你的密庫視而不見——袖之下沒有白給。",
   /* —— seize —— */
   "seize.1":"🚨【{replace}】{g}",
+  "seize.lessen":"減罪狀派上用場，刑罰減輕一等。",
   /* —— autoRestock —— */
   "autoRestock.1":"🧾【大番頭補貨】{got} 已下單。",
   /* —— kind —— */

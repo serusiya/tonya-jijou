@@ -12,11 +12,11 @@ const ODDS={
   officialTransfer:{name:'本城官員與外地官員互調（每旬）',p:0.10},
   residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）',p:0.10},
   fallScapegoat:{name:'靠山失勢（好感<10）連帶被查帳',p:0.6},
-  thiefRepel:{name:'盜賊夜探，保鏢≥3 名當場擊退',p:0.7},
+  thiefRepel:{name:'盜賊夜探，保鏢≥2 名當場擊退',p:0.7},
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
-  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9,directMult:0.65},
+  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數（產地直採已取消）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
   buyLimit:{name:'大盤進貨上限（公會配額的倍數；番頭每人加成）',mult:0.8,perBantou:0.3},
   chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},

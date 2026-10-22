@@ -1,7 +1,7 @@
 'use strict';
 /* ★檔案總覽：人物互動、員工、家族
- * - 引薦與拜訪：introPower（性向相容×信任）、visitRoll（拒見/不在家/成功）、meetVia/meetCold、resolveVisit。
- * - 送禮與請託：GIFTS、FAVORS、doFavor（好感≥80辦理、50～79擱置、<50拒絕）。
+ * - 引薦與拜訪：introPower（性向相容×信任）、visitRoll（拒見/不在家/成功）、meetVia/meetCold（初見）。之後的拜訪戰鬥在 07u_battle.js。
+ * - 請託：FAVORS、doFavor（拜訪打勝、好感 ≥60 才出現；辦成扣好感）。
  * - 風評：rumorsOf。 員工：hireEmp/empTick（私吞、潛逃）、船長/飛腳專職。
  * - 家族與傳承：marry、newKid、yearTick（年度結算）、endLife/succeed（二代）。 */
 /* ======================= 04 人物：介紹人、性向、贈禮、風評、僱員、家族、傳承 ======================= */
@@ -26,11 +26,11 @@ function introPower(introCid,targetCid){
   const cp=compat(introCid,targetCid);const aff=R(introCid).aff;const tf=trustFactor(aff);
   return {cp,tf,score:cp.m*tf,aff};
 }
-/** 系統自動挑介紹人：有目標時選性向最相近者（同分取交情高者），無目標時選交情最高者；仇人與知名度不夠的人排後面。結果寫入 G.introId。 */
+/** 系統自動挑介紹人：目標的性向已探聽過時，選性向最相近者（同分取交情高者），否則選交情最高者；仇人與知名度不夠的人排後面。結果寫入 G.introId。 */
 function autoIntro(targetCid){
   sanitizeIntros();
   const L=(G.intros||[]).filter(i=>CH(i.cid));if(!L.length){G.introId=null;return null}
-  const sc=i=>{const cid=i.cid;let s=R(cid).aff/1000;if(isEnemy(cid))s-=100;if(fameTier()<introTier(cid))s-=10;if(targetCid)s+=compat(cid,targetCid).matches;return s};
+  const sc=i=>{const cid=i.cid;let s=R(cid).aff/1000;if(isEnemy(cid))s-=100;if(fameTier()<introTier(cid))s-=10;if(targetCid&&R(targetCid).topKnown)s+=compat(cid,targetCid).matches;return s};   // 只有探聽過性向的對象才比對性向
   let best=L[0];L.forEach(i=>{if(sc(i)>sc(best))best=i});G.introId=best.cid;return best.cid;
 }
 /** 目標的官階（非官員視為 1），決定禮金與探聽成本。 */
@@ -65,10 +65,10 @@ function meetCheck(cid,viaIntro){
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return '才剛請託過，三旬內不宜再度叨擾';
   /* 知名度階級：有介紹人時視同 +1 階；私房錢每千兩 +1 階已含在 fameTier */
   const need=meetTierNeed(cid),have=fameTier()+(viaIntro?1:0);
-  if(have<need)return '知名度不足：要見'+(n.role==='oiran'?'這位名伶':'這位官員')+'需知名度 '+TIER_NAME[need]+'（你目前 '+TIER_NAME[fameTier()]+(viaIntro?'，有介紹人 +1':'，請介紹人引薦可 +1')+'）';
+  if(have<need)return n.role==='oiran'?'她身價甚高，以你眼下的名氣還指名不到。':'對方位高權重，以你眼下的名氣還見不到。';
   if(viaIntro){
     const it=introOf(G.introId);if(!it)return '你還沒有介紹人';
-    if(fameTier()<introTier(G.introId))return '知名度不足以委託這位介紹人（他是'+TIER_NAME[introTier(G.introId)]+'介紹人，你目前 '+TIER_NAME[fameTier()]+'）';
+    if(fameTier()<introTier(G.introId))return '介紹人覺得你的名氣還不夠，不肯替你出面。';
     if(!affordAmt('introFee',introFee(cid)))return shortMsg('introFee',Math.max(1,targetTier(cid)));
   }else if(!afford('selfIntro'))return shortMsg('selfIntro');
   return null;
@@ -140,131 +140,51 @@ function revealWeakness(cid){
   return {ok:true,msg:TX('flower.scoutTip',{n:nameOf(cid),w:CH(cid).weakness})};
 }
 
-/* ---------- 贈禮：投其所好（軟肋）才有三倍效果 ---------- */
-/** 禮物表：weak 對應名冊『軟肋』文字，命中×3；silver/gold 為價格（已折半）。新增禮物在此加一筆。 */
-const GIFTS=[
-  {k:'gold',name:'賄賂金封',icon:'🟨',weak:null,gold:true,desc:'以現款包的紅包，通用，但貪欲高者才吃這一套；留下黑帳痕跡。'},
-  {k:'art',name:'名家字畫',icon:'🖼️',weak:'喜好收受罕見字畫',silver:costOf('gift_art')},
-  {k:'antique',name:'古董珍奇',icon:'🏺',weak:'癡迷古代珍奇異寶',silver:costOf('gift_antique')},
-  {k:'wine',name:'灘之美酒',icon:'🍶',weak:'好美酒佳釀',silver:costOf('gift_wine')},
-  {k:'geisha',name:'花街設宴',icon:'🌸',weak:'沉迷吉原風月名妓',silver:costOf('gift_geisha')},
-  {k:'charm',name:'祈福神符',icon:'⛩️',weak:'篤信神佛與方術',silver:costOf('gift_charm')},
-  {k:'toy',name:'童玩點心',icon:'🎎',weak:'溺愛幼子幼女',silver:costOf('gift_toy')},
-  {k:'safe',name:'陸路護送',icon:'🐎',weak:'天生畏懼水路遠航',silver:costOf('gift_safe')},
-  {k:'alms',name:'以其名義義賑',icon:'🍚',weak:'憐憫落魄流民乞丐',silver:costOf('gift_alms')},
-  {k:'wife',name:'禮敬夫人',icon:'🎀',weak:'懼內且聽信枕邊風',silver:costOf('gift_wife')},
-  {k:'grudge',name:'替其打壓宿敵',icon:'🗡️',weak:'心胸狹隘睚眥必報',silver:costOf('gift_grudge')},
-  {k:'fame',name:'捐匾揚名',icon:'🏷️',weak:'貪圖聲名愛好虛榮',silver:costOf('gift_fame')},
-  {k:'gamble',name:'設局賭宴',icon:'🎲',weak:'賭性深重難以自拔',silver:costOf('gift_gamble')}
-];
-const GIFT_MAP={};GIFTS.forEach(g=>GIFT_MAP[g.k]=g);
-/** 官階越高禮物越貴的倍率。 */
-const RANK_COST_MULT=[0,1,1,1.3,2,3,5];
-/** 某禮物對某人的實際價格。 */
-function giftCost(g,cid){
-  const t=targetTier(cid),mult=RANK_COST_MULT[t]||1;
-  /* 賄賂一律用現款：原『金』單位 × BRIBE_RATE 換算 */
-  if(g.gold){const gc=npc(cid)&&npc(cid).pos?giftGoldCost(t):1;return {silver:(gc>1?Math.max(1,Math.round(gc/2)):gc)*BRIBE_RATE}}
-  return {silver:Math.round(g.silver*mult)};
-}
-/** 賄賂換算：舊制『1 兩金』＝ 15 兩現款（賄賂、拜訪都花現款）。 */
+/* ---------- 贈禮：六種禮物與拜訪戰鬥在 07u_battle.js ---------- */
+/** 賄賂換算：舊制『1 兩金』＝ 15 兩現款（索賄進獻等仍沿用）。 */
 const BRIBE_RATE=15;
-/** 送禮：扣費、依是否命中軟肋與羈絆倍率計算好感，賄賂金封會累積黑帳 heat。 */
-function giveGift(cid,key){
-  const r=R(cid),c=CH(cid),g=GIFT_MAP[key],n=npc(cid);
-  if(!r.bond)return {ok:false,msg:MSG('giveGift.1')};
-  const cost=giftCost(g,cid);
-  if(cost.silver&&G.silver<cost.silver)return {ok:false,msg:MSG('giveGift.2',{cost:fmt(cost.silver)})};
-  if(cost.silver)payPublic('禮物：'+g.name,cost.silver);
-  let mult,reaction;
-  const matched=g.weak&&c.weakness===g.weak;
-  if(g.gold){
-    mult=clamp(0.5+c.derived_stats.greed_index/70,0.5,2);
-    reaction=MSG(mult>=1.4?'giveGift.reactGreedy':mult<0.8?'giveGift.reactCold':'giveGift.reactPlain');
-    G.life.gold+=Math.round(cost.silver/BRIBE_RATE);if(n&&n.role==='official')G.heat=(G.heat||0)+1;
-  }else if(matched){mult=3;reaction=MSG('giveGift.3');r.verified=true}
-  else{mult=0.5;reaction=MSG('giveGift.reactBlah')}
-  if(g.k==='alms'){G.life.charity++}
-  const gain=Math.max(1,Math.round(8*mult*Math.max(0.5,r.bond.mult)));
-  r.aff=clamp(r.aff+gain,0,100);r.gifts++;G.life.gifts++;
-  logRel(cid,'贈「'+g.name+'」，'+reaction.replace(/！|。/g,'')+'，好感 +'+gain+'。');
-  sfx.gift();addFame(0.15);
-  return {ok:true,gain,matched,mult,msg:MSG('giveGift.result',{reaction,gain,mult:fmt1(r.bond.mult)}),cost};
-}
 
 /* ---------- 官員請託 ---------- */
 /** 官員請託項目（依院別）：rank 所需官階、cost 成本、once 一次性、cd 冷卻。含運入許可 port/pass。新增請託在此加一筆並在 doFavor 實作效果。 */
 const FAVORS={
   administration:[
-    {k:'contract',name:'承攬官辦工程',thr:40,rank:2,cost:{silver:costOf('favorContract')},cd:6,desc:'承攬城郭橋樑工程，賺工程利潤。'}
+    {k:'licWh',apply:true,lic:'wh',name:'河岸倉地拜領',rank:1,desc:'核准增建倉庫的建地，官階越高給得越多。'},
+    {k:'licShip',apply:true,lic:'ship',name:'船株鑑札',rank:2,desc:'核准多聘船長，一名船長帶一艘船。'},
+    {k:'licStaff',apply:true,lic:'staff',name:'人別帳增補',rank:2,desc:'核准多雇丁稚、手代與番頭。'}
   ],
   finance:[
-    {k:'direct',apply:true,name:'產地直採特許',thr:60,rank:3,cost:{gold:'r3'},once:true,desc:'繞過大盤商，進貨價大降。'},
-    {k:'loan',name:'官倉平準貸款',thr:35,rank:2,cost:{},cd:12,desc:'官府低息借款，到期連本帶利歸還。'}
+    {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
+    {k:'trade1',apply:true,trade:0,name:'交易許可',rank:4,desc:'核准買賣本業最貴的貨。'},
+    {k:'licHorse',apply:true,lic:'horse',name:'馬幫株',rank:2,desc:'核准多聘飛腳，一名飛腳帶一支馬幫。'},
+    {k:'loan',name:'官倉平準貸款',rank:2,cd:12,desc:'官府低息借款，九旬後連本帶利歸還。'}
   ],
   judiciary:[
-    {k:'exempt',name:'買通免檢旗',thr:45,rank:2,cost:{gold:'r1'},cd:12,desc:'十二旬內關稅全免。'},
-    {k:'blind',name:'袖之下',thr:50,rank:2,cost:{gold:'r1'},cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
-    {k:'warn',name:'緝私通告',thr:30,rank:2,cost:{silver:costOf('favorWarn')},cd:6,desc:'事先得知中央突查，免受處罰。'},
-    {k:'raid',name:'借官府查抄對手',thr:65,rank:4,cost:{gold:6},cd:12,desc:'同業遭查抄，本業行情走強。'}
+    {k:'licGuard',apply:true,lic:'guard',name:'帶刀護衛許可',rank:2,desc:'核准多聘保鏢。'},
+    {k:'blind',name:'袖之下',rank:2,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
+    {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'}
   ]
 };
-/** 請託的黃金成本（r3/r1 依官階計算）。 */
-function favorGoldCost(f,n){const g=f.cost.gold;return g==='r3'?costOf('favorRank3',n.pos.rank-1):g==='r1'?costOf('favorRank1',n.pos.rank-1):costOf('favor_'+f.k)}
-/** 某官員可受理的請託清單。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>!f.pos||f.pos.includes(n.pos.posId)):[]}
-/* 請託：好感 ≥80 才會辦理；50～79 擱置；<50 直接拒絕 */
-/** 請託門檻：好感 ≥80 才辦理，50～79 擱置，<50 拒絕。 */
-const FAVOR_OK=80,FAVOR_HOLD=50;
-/** 執行請託：先看官階、好感門檻、冷卻、成本，再套用各項效果（工程、許可、直採、貸款、免檢旗…）。 */
+/** 某官員可受理的請託清單（已取得的交易許可不再列出；交易許可帶上貨名）。 */
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&!(f.trade!==undefined&&favorDone(f,n))).map(resolveFavor):[]}
+/** 執行請託（只在拜訪打勝、好感 ≥60 時出現）：看官階、冷卻與是否已辦妥；不另收錢。辦成後好感：一般 −10、許可 −20（申請受理時扣）、減罪狀 −30。 */
 function doFavor(cid,key){
-  const n=npc(cid),r=R(cid),f=FAVORS[n.pos.court].find(x=>x.k===key);
+  const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key));
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank)return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
-  if(r.aff<FAVOR_HOLD){r.aff=Math.max(0,r.aff-3);logRel(cid,'請託「'+f.name+'」被一口回絕，彼此關係也冷了幾分。');return {ok:true,status:'refused',msg:MSG('doFavor.refuse',{say:TX('favor.refuse')})}}
-  if(r.aff<FAVOR_OK){logRel(cid,'請託「'+f.name+'」被擱置：'+TX('favor.holdLog'));return {ok:true,status:'held',msg:MSG('doFavor.hold',{say:TX('favor.hold')})}}
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
-  if(f.once&&(key==='direct'?G.flags.direct:regionHeld(key,n)))return {ok:true,status:'held',msg:MSG('doFavor.3')};
-  const gold=f.cost.gold?favorGoldCost(f,n):0,silver=f.cost.silver||0;
-  /* favorGoldCost 現在回傳現款金額（賄賂走現款） */
-  const bribe=gold,total=gold+silver;
-  if(G.silver<total)return {ok:true,status:'held',msg:MSG('doFavor.4',{total:fmt(total)})};
-  payPublic((bribe?'賄賂：':'請託：')+f.name,total);if(bribe){G.life.gold+=Math.round(bribe/BRIBE_RATE);G.heat=(G.heat||0)+1}
-  r.aff=Math.max(0,r.aff-4);if(f.cd)r.cd[key]=G.turn+f.cd;
+  if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
+  if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
+  const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
+  r.aff=Math.max(0,r.aff-drop);if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
-  if(key==='contract'){const inc=Math.round(n.pos.rank*220*(0.8+rnd()*0.6));G.silver+=inc;G.life.contracts++;const gf=addFame(0.5*n.pos.rank);msg='標得工程，入帳 '+fmt(inc)+' 兩，知名度 +'+gf+'。'}
-  else if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
-  else if(key==='direct'){G.flags.direct=true;msg='取得產地直採特許，進貨價大降。'}
-  else if(key==='loan'){const amt=1200*(n.pos.rank-1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+12,amt:Math.round(amt*1.3)});msg='獲准官倉貸款 '+fmt(amt)+' 兩，十二旬後須還 '+fmt(amt*1.3)+' 兩。'}
-  else if(key==='exempt'){G.flags.exempt=12;msg='十二旬內關稅全免。'}
+  if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
+  else if(key==='loan'){const amt=1200*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='blind'){G.flags.blind=12;msg='十二旬內搜查時多半睜隻眼。'}
-  else if(key==='warn'){G.flags.warned=1;msg='下次中央突查可安然躲過。'}
-  else if(key==='raid'){
-    const rivals=cityNpcs(G.cityId,'rival').filter(x=>!x.raided);
-    if(rivals.length){const v=pick(rivals);v.raided=true;msg='官府查抄了同行「'+nameOf(v.cid)+'」的商號！';}else msg='官府借故查抄了一家同行。';
-    setEv(c=>c.sys===G.sysKey,1.2);msg+=MSG('doFavor.5');const lf=loseFame('raidRival');if(lf)msg+='風聲外傳，知名度 -'+lf+'。';
-  }
-  logRel(cid,'請託「'+f.name+'」：'+msg);
-  return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg};
+  else if(key==='lessen'){G.lessen=1;msg='取得減罪狀，下次被定罪時刑罰減輕一等。'}
+  logRel(cid,'請託「'+f.name+'」：'+msg+'好感 -'+drop+'。');
+  return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg+'（好感 -'+drop+'）'};
 }
-/* 一次登門：備禮、請託（可以什麼都不說）。roll 為先前決定的拜訪結果 */
-/** 【一次登門的完整結算】不在家/拒見/成功；成功則先送禮，再請託（或什麼都不說）。回傳要顯示的訊息。 */
-function resolveVisit(cid,giftKey,favorKey,roll){
-  const r=R(cid);
-  if(roll.outcome==='absent'){logRel(cid,'備禮登門，主人恰好外出。');return {ok:false,msg:MSG('resolveVisit.1',{cid:nameOf(cid)})}}
-  if(roll.outcome==='refuse'){const c=Math.min(G.silver,costOf('visitRefused'));spendAmt('visitRefused',c);r.lastOk=false;logRel(cid,'備禮登門，對方稱病不見。');return {ok:false,msg:MSG('resolveVisit.2',{c})}}
-  const parts=[];r.lastOk=true;addFame(0.2);
-  if(giftKey!=='none'){const g=giveGift(cid,giftKey);if(!g.ok)return g;parts.push(g.msg)}
-  const n=npc(cid);
-  if(favorKey!=='none'&&n&&n.pos){const f=doFavor(cid,favorKey);parts.push(f.msg)}
-  else{
-    if(giftKey==='none'){const gain=Math.max(1,Math.round(2*Math.max(0.5,r.bond?r.bond.mult:1)));r.aff=clamp(r.aff+gain,0,100);logRel(cid,'空手登門閒話家常，好感 +'+gain+'。');parts.push('什麼都沒說，只是閒話家常，喝了杯茶。（好感 +'+gain+'）')}
-    else parts.push('臨走時什麼也沒提，主人反倒對你多了幾分好感。')
-  }
-  return {ok:true,msg:parts.join(' ')};
-}
-
 /* ---------- 風評（真假參半）---------- */
 /** 風評用語：性格→傳聞。 */
 const TRAIT_G={忠誠:'為人一諾千金，從不食言',貪婪:'聽說錢到他手裡就沒有再吐出來的',狡黠:'心思深沉，千萬不可輕信',復仇:'有仇必報，得罪不起',嚴謹:'做事一板一眼，帳目分毫不差',豪爽:'出手闊綽，最愛結交朋友',狂妄:'目中無人，不把同行放在眼裡',嗜賭:'聽說是賭坊的常客',仁慈:'待人寬厚，時有善舉',固執:'認死理，九頭牛也拉不回',懦弱:'遇事優柔，容易被人左右',猜忌:'疑心極重，誰也不信',護短:'極護自家人，吃不得半點虧',寡言:'沉默寡言，心思難測',享樂:'講究吃穿，愛享受',好色:'風流成性，花街常客'};
@@ -357,7 +277,7 @@ const RANK_W={丁稚:0,手代:0,番頭:0,大番頭:0};   // 職位不再直接�
 /** 各職位私吞傾向。 */
 const RANK_SKIM={丁稚:0.2,手代:0.6,番頭:0.9,大番頭:1.2};
 /** 各職位名額。 */
-const RANK_SLOTS={丁稚:6,手代:6,番頭:2,大番頭:1};
+const RANK_SLOTS={丁稚:1,手代:1,番頭:1,大番頭:1};   // 基本名額；實際上限由許可決定（slotCap）
 /* 專職：船長（海運）、飛腳（陸路）——不在晉升階梯內，由商路調度 */
 /** 專職（船長、飛腳）：不在晉升階梯，供商路派用。 */
 const SPECIAL=['船長','飛腳','保鏢'];
@@ -427,7 +347,8 @@ function fireEmp(id){
   return isEnemy(e.cid)?'「'+nameOf(e.cid)+'」記恨在心，成了你的仇人。':'「'+nameOf(e.cid)+'」好感 -'+FIRE_AFF+'。';
 }
 /** 某職位是否還有名額。 */
-function slotFree(rank){return G.emps.filter(e=>e.rank===rank).length<RANK_SLOTS[rank]}
+/** 某職位是否還有名額（名額由許可決定，見 07t_permits.js 的 slotCap）。 */
+function slotFree(rank){return G.emps.filter(e=>e.rank===rank).length<slotCap(rank)}
 /** 名冊的 suitable_roles → 可聘職位；丁稚只由 hireApprentice 另行招收。 */
 const EMP_SUITABLE=[
   ['大番頭候選',['手代','番頭','大番頭']],
@@ -498,12 +419,14 @@ function hireCandidate(cid,rank){
   if(!slotFree(rank))return {ok:false,msg:MSG('slotFull',{rank})};
   const ri=RANKS.indexOf(rank),max=RANKS.indexOf(G.recruit?G.recruit.rank:'丁稚');
   if(!SPECIAL.includes(rank)&&ri>max)return {ok:false,msg:MSG('hireCandidate.1',{rank:G.recruit.rank})};
-  const wage=Math.round(RANK_WAGE[rank]*(0.8+CH(cid).derived_stats.commerce_skill/150)),fee=costOf('hireMonths',wage);
-  if(!affordAmt('hireMonths',fee))return {ok:false,msg:shortMsg('hireMonths',wage)};
-  spendAmt('hireMonths',fee);hireEmp(cid,rank);
+  const wage=Math.round(RANK_WAGE[rank]*(0.8+CH(cid).derived_stats.commerce_skill/150)),fee=costOf('hireMonths',wage),ship=rank==='船長'?shipCost():0;
+  if(G.silver<fee+ship)return {ok:false,msg:ship?MSG('hireCandidate.shipShort',{c:fmt(fee+ship),ship:fmt(ship)}):shortMsg('hireMonths',wage)};
+  spendAmt('hireMonths',fee);if(ship)spendAmt('shipBuild',ship);hireEmp(cid,rank);
   if(G.recruit)G.recruit.cands=G.recruit.cands.filter(x=>x!==cid);
-  return {ok:true,msg:MSG('hireCandidate.2',{cid:nameOf(cid),rank,wage})};
+  return {ok:true,msg:MSG('hireCandidate.2',{cid:nameOf(cid),rank,wage})+(ship?MSG('hireCandidate.ship',{ship:fmt(ship)}):'')};
 }
+/** 聘船長時另付的造船費：600 × 聘後的船長數。 */
+const shipCost=()=>costOf('shipBuild',G.emps.filter(e=>e.rank==='船長').length+1);
 /** 招丁稚（需介紹人）。 */
 function hireApprentice(){
   if(!G.introId||!introOf(G.introId))return {ok:false,msg:MSG('hireApprentice.1')};
@@ -555,6 +478,8 @@ function newKid(){
 }
 /** 子女年齡。 */
 const kidAge=k=>G.year-k.birthYear;
+/** 子女年齡層文字（畫面不顯示歲數）：未滿 8 年幼、8～15 少年（可安排歷練）、16 起成年（可繼承）。 */
+const kidStage=a=>a<8?'年幼':a<16?'少年':'成年';
 /** 子女歷練路線。 */
 const PATHS={shop:{name:'跟老掌櫃學商',cost:costOf('pathShop'),stat:{commerce_skill:1.8,integrity_loyalty:0.6}},sea:{name:'上海運船歷練',cost:costOf('pathSea'),stat:{audacity_courage:1.8,commerce_skill:0.6}},court:{name:'入官邸當侍童',cost:costOf('pathCourt'),stat:{diplomacy_charm:1.8,greed_index:0.3}}};
 /** 設定子女歷練。 */

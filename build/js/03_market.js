@@ -48,7 +48,7 @@ function initMarket(){
   names.forEach(n=>{G.mk[n]={D:cityD(city,COMM_MAP[n]),so:0,ev:1,shipped:0,hist:[],price:0,press:1}});
   refreshMarket(true);
   // 開局庫存
-  commsOfSys(G.sysKey).forEach(c=>{G.inv[c.name]=Math.max(2,Math.round(G.mk[c.name].D*0.18))});
+  commsOfSys(G.sysKey).filter(c=>tradeOK(c.name)).forEach(c=>{G.inv[c.name]=Math.max(2,Math.round(G.mk[c.name].D*0.18))});   // 未許可的貨沒有開局庫存
 }
 /** 本業物品清單。 */
 const ownComms=()=>commsOfSys(G.sysKey);
@@ -148,9 +148,9 @@ function refreshMarket(first){
     m.hist.push(Math.round(m.price*10)/10);if(m.hist.length>12)m.hist.shift();
   });
 }
-/** 進貨價係數（相對市價）：一般與直採係數見 ODDS.rivalShip.buyMult／directMult。 */
-const empBuyMult=()=>G.flags.direct?ODDS.rivalShip.directMult:ODDS.rivalShip.buyMult;
-/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（0.93；直採 0.65），遇公會斷貨×1.4、守配額×0.96，再乘進貨壓力。 */
+/** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
+const empBuyMult=()=>ODDS.rivalShip.buyMult;
+/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（0.93），遇公會斷貨×1.4、守配額×0.96，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
   let p=marketIndex(name,true)*empBuyMult();
@@ -174,6 +174,7 @@ const pendingQty=()=>(G.orders||[]).reduce((a,o)=>a+o.qty,0);
 /** 向大盤『下單』：檢查每旬上限/庫存上限/倉庫容量/現款；先付款、下一旬到貨；進貨量會推高進貨價（上限 1.3 倍）。 */
 function buyGoods(name,qty,manual){
   qty=Math.floor(qty);if(qty<=0)return {ok:false,msg:MSG('buyGoods.1')};
+  if(!tradeOK(name))return {ok:false,msg:tradeLockMsg(name)};
   if(!G.orders)G.orders=[];
   if(invUsed()+pendingQty()+transitQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),transitQty:(pendingQty()+transitQty()),invCap:invCap()})};
   if(qty>itemRoom(name))return {ok:false,msg:MSG('buyGoods.3',{name:COMM_MAP[name].short,capMult:fmt1(capMult(name)),itemCap:itemCap(name),itemRoom:itemRoom(name)})};
@@ -211,6 +212,7 @@ function receiveOrders(log){
 function sellGoods(name,qty){
   qty=Math.floor(qty);const have=G.inv[name]||0;
   if(qty<=0)return {ok:false,msg:MSG('sellGoods.1')};
+  if(!tradeOK(name))return {ok:false,msg:tradeLockMsg(name)};
   if(qty>have)return {ok:false,msg:MSG('sellGoods.2')};
   const q=quoteSale(name,qty);addFame(Math.min(0.4,q.revenue/5000));
   G.inv[name]-=qty;G.silver+=q.revenue;G.mk[name].shipped+=qty;G.lastRev+=q.revenue;
@@ -252,7 +254,6 @@ function randomEvent(log){
 }
 /** 事件：中央欽差突查（黑帳 heat 高會被罰、靠山受牽連）。 */
 function inspection(){
-  if(G.flags.warned>0){G.flags.warned=0;return NEWS('inspection.1')}
   if(G.heat>3){
     const fine=Math.round(Math.max(0,G.silver)*clamp(0.05+G.heat*0.012,0.06,0.2));
     G.silver-=fine;loseFame('inspect');sfx.bad();
@@ -293,7 +294,7 @@ function officialExtort(){
 }
 /** 事件：盜賊潛入倉庫（保鏢可降低損失）。 */
 function thieves(){
-  if(guardCount()>=3&&roll('thiefRepel'))return NEWS('thieves.1');
+  if(guardCount()>=2&&roll('thiefRepel'))return NEWS('thieves.1');
   const loss=Math.min(invUsed(),Math.max(1,Math.round(invUsed()*0.05)));
   const keys=Object.keys(G.inv).filter(k=>G.inv[k]>0);if(!keys.length)return null;
   const k=pick(keys);const l=Math.min(G.inv[k],loss);G.inv[k]-=l;
@@ -340,7 +341,7 @@ function invUpkeep(log){
   // 火災：易燃品（油、硫磺、樟腦、木、炭）
   let flam=0;Object.keys(G.inv).forEach(n=>{if(COMM_MAP[n].flam)flam+=G.inv[n]});
   if(flam>0){
-    const F_=ODDS.fire,p=F_.base*(1+flam/F_.flamDiv)*(season()==='冬'?F_.winter:1)*(1-F_.guardCut*guardCount())+ENEMY_FIRE*enemyCount();   // 每位仇人 +2% 縱火
+    const F_=ODDS.fire,p=F_.base*(1+flam/F_.flamDiv)*(season()==='冬'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount();   // 每位仇人 +2% 縱火
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));G.inv[n]-=l;tot+=l});
@@ -360,7 +361,7 @@ function holdTick(log){
   if(fee>0){G.silver-=fee;G.holdFee=fee}
   Object.keys(G.inv).forEach(n=>{
     const q=G.inv[n];if(!(q>0))return;
-    const p=clamp(q*listValue(n)/H.riskDiv,0,H.riskMax)*(1-H.guardCut*guardCount());
+    const p=clamp(q*listValue(n)/H.riskDiv,0,H.riskMax)*(1-Math.min(0.4,H.guardCut*guardCount()));
     if(p>0&&chance(p)){
       const l=Math.max(1,Math.floor(q*(H.lossMin+rnd()*(H.lossMax-H.lossMin))));
       G.inv[n]-=l;sfx.bad();
@@ -385,7 +386,7 @@ function riotTick(log){
 /** 打毀：倉庫被搶、行情回落，可能拿你當替罪羊（靠山強則逃過）。 */
 function riot(log){
   const S=G.staple;S.streak=0;S.cool=6;G.life.riots++;sfx.bad();
-  const gf=1-0.12*guardCount();let tot=0;
+  const gf=1-Math.min(0.4,0.12*guardCount());let tot=0;
   Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.staple?0.5:0.25)*gf);G.inv[n]-=l;tot+=l});
   Object.keys(G.mk).forEach(n=>{if(COMM_MAP[n].staple)G.mk[n].ev=Math.max(1,G.mk[n].ev*0.7)});
   let t=NEWS('riot.1',{tot});
@@ -409,7 +410,7 @@ function msOf(n){
 }
 /** 我方庫存水位（庫存/需求×0.6，上限 1.5）。 */
 function ownStockLevel(){
-  const own=ownComms();let inv=0,d=0;own.forEach(c=>{inv+=G.inv[c.name]||0;d+=(G.mk[c.name]?G.mk[c.name].D:cityD(homeCity(),c))*0.6});
+  const own=tradeComms();let inv=0,d=0;own.forEach(c=>{inv+=G.inv[c.name]||0;d+=(G.mk[c.name]?G.mk[c.name].D:cityD(homeCity(),c))*0.6});
   return d>0?clamp(inv/d,0,1.5):0;
 }
 /** 我方市佔率的事件係數：節慶↑、被斷貨↓、剛打毀↓、免檢旗微↑。 */
@@ -529,9 +530,9 @@ function dispatchShip(name,qty,origId,mode){
   qty=Math.floor(qty);const a=homeCity(),b=CITY(origId);
   if(!b||origId===G.cityId)return {ok:false,msg:MSG('dispatchShip.1')};
   if(!b.connected_commodities.includes(name))return {ok:false,msg:MSG('dispatchShip.2',{name:b.name,name2:COMM_MAP[name].short})};
+  if(!tradeOK(name))return {ok:false,msg:tradeLockMsg(name)};
   if(qty<=0)return {ok:false,msg:MSG('dispatchShip.3')};
   if(!permitOf(mode))return {ok:false,msg:MSG('dispatchShip.4',{mode:PERMIT_NAME[mode]})};
-  if(G.ships.length+(G.smug||[]).length>=G.fleet)return {ok:false,msg:MSG('dispatchShip.5',{smug:(G.ships.length+(G.smug||[]).length),fleet:G.fleet})};
   const cap=captainFor(mode);
   if(!cap)return {ok:false,msg:MSG('dispatchShip.noCrew',{crew:mode==='sea'?'船長':'飛腳'})};
   if(mode==='sea'&&!(canSea(a)&&canSea(b)))return {ok:false,msg:MSG('dispatchShip.6')};
@@ -579,7 +580,6 @@ function upkeep(log){
   if(G.silver<0){interest=Math.round(-G.silver*0.02);G.silver-=interest}
   if(TURNRP)TURNRP.cost={wages,guards:0,wh:G.wh.n*6,fam,interest};
   if(G.flags.exempt>0)G.flags.exempt--;regionTick(log);appsTick(log);tributeTick(log);oiranTick(log);
-  if(G.flags.warned>0&&G.turn%6===0)G.flags.warned=Math.max(0,G.flags.warned-1);
   G.heat=Math.max(0,(G.heat||0)-0.15);
 }
 

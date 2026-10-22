@@ -80,7 +80,6 @@ function raidChance(){
 function raidTick(log){
   if(G.flags.blind>0)G.flags.blind--;
   const p=raidChance();if(p<=0||!chance(p))return;
-  if(G.flags.warned>0){G.flags.warned=0;const t=NEWS('raidTick.1');pushNews(t);log.push(t);return}
   doRaid('random',log);
 }
 /** 遠島中每旬結算：有大番頭代理則無事，否則商號亂成一團。 */
@@ -111,16 +110,21 @@ function doRaid(kind,log){
   const had=Object.keys(contra()).filter(k=>contra()[k]>0);
   const maxDanger=had.reduce((a,k)=>Math.max(a,SMUG_BY[k].danger),0);
   const seize=()=>{const n=contraQty();G.contra={};return n};
-  let title;
-  if(S<0.9){
+  let title,t0=S<0.9?1:S<1.9?2:(S<3.2||maxDanger<3)?3:4,lessened=false;
+  if((G.lessen||0)>0){G.lessen=0;t0--;lessened=true;lines.push(NEWS('seize.lessen'))}   // 減罪狀：刑罰減輕一等
+  if(t0<=0){
+    tier=0;title='搜查：沒收了事';
+    const n=seize();
+    lines.push((n?'密庫貨物 '+n+' 單位全數沒收，':'')+'免於罰銀。');
+  }else if(t0===1){
     tier=1;title='搜查：從輕發落';
     const n=seize(),fine=Math.round(Math.max(0,G.silver)*0.05);G.silver-=fine;loseFame('raid1');
     lines.push((n?'密庫貨物 '+n+' 單位全數沒收，':'')+'罰銀 '+fmt(fine)+' 兩，知名度 −'+ODDS.fameLoss.raid1+'。'+(jb>=60?'（與司法官員交情不錯，從輕發落）':''));
-  }else if(S<1.9){
+  }else if(t0===2){
     tier=2;title='搜查：查封罰款';
     const n=seize(),fine=Math.round(V*0.8+Math.max(0,G.silver)*0.08);G.silver-=fine;loseFame('raid2');
     lines.push((n?'沒收違禁品 '+n+' 單位，':'')+'罰銀 '+fmt(fine)+' 兩，知名度 −'+ODDS.fameLoss.raid2+'。');
-  }else if(S<3.2||maxDanger<3){
+  }else if(t0===3){
     tier=3;title='搜查：遠島';
     const n=seize(),fine=Math.round(Math.max(0,G.silver)*0.15),yrs=3+Math.floor(rnd()*(S>2.8?10:6));
     G.silver-=fine;loseFame('raid3');G.exile=yrs;G.ap=0;G.life.scapegoat++;
@@ -156,8 +160,8 @@ const smugSel=()=>{const s=UI.s.smug||(UI.s.smug={dest:'nagasaki',k:'wine',qty:2
 SHEETS.smuggle=()=>{
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
   const p=raidChance(),lv=p<=0?'無':p<0.05?'低':p<0.12?'中':'高';
-  const free=G.fleet-G.ships.length-smugList().length,cap=smugCaptain();
-  let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私房錢<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船隻<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
+  const free=idleCaptains('sea').length,cap=smugCaptain();
+  let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私房錢<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船長<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
   h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海，回來進密庫，再託介紹人賣出，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
   // 下單
   h+='<div class="card"><b class="small">⛵ 出海採買</b>';
@@ -189,7 +193,6 @@ CHG.smugQty=el=>{smugSel().qty=+el.value;refreshSheet()};
 ACT.smugGo=()=>{
   if((G.exile||0)>0){toast(MSG('smugGo.1'));return}
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
-  if(G.ships.length+smugList().length>=G.fleet){toast(MSG('smugGo.2'));return}
   const cap=smugCaptain();if(!cap){toast(MSG('smugGo.3'));return}
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);

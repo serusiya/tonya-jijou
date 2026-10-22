@@ -26,11 +26,11 @@ ACT.allow=el=>{
 /* ---------- 河岸碼頭：船長名單 ---------- */
 function dockCrewHtml(){
   const cs=G.emps.filter(e=>e.rank==='船長');
-  let h='<div class="small bold" style="margin:8px 0 2px">⚓ 船長（'+cs.length+'／'+RANK_SLOTS['船長']+'）</div>';
+  let h='<div class="small bold" style="margin:8px 0 2px">⚓ 船長（'+cs.length+'／'+slotCap('船長')+'）</div>';
   if(!cs.length)return h+'<div class="notice tiny">還沒有船長。到「商號」頁請介紹人物色，聘為專職。</div>'+smuggleButton();
   return h+smuggleButton()+cs.map(e=>{
     const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
-    return '<div class="card" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【船長】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">出海中</span>':'<span class="tag green">在港</span>')+'<div class="tiny muted">'+(e.cid?ageOf(e.cid)+'歲·':'')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬</div></div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
+    return '<div class="card" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【船長】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">出海中</span>':'<span class="tag green">在港</span>')+'<div class="tiny muted">月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬</div></div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
       +empAffHtml(e,'dock')+'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
   }).join('');
 }

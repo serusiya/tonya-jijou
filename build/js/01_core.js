@@ -18,8 +18,8 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 let G=null;                       // 遊戲狀態（可序列化）
-/** 遊戲版本。存檔版本與此不同就不相容（0.6 起不再讀舊存檔）。 */
-const GAME_VER='0.6';
+/** 遊戲版本。存檔版本與此不同就不相容（0.7 起改為許可制，舊存檔不相容）。 */
+const GAME_VER='0.7';
 const SAVE_KEY='tonya_jijou_save';
 const OLD_SAVE_KEYS=['tenka_gomen_v2_save','toiya_jijou_save'];   // 舊版存檔鍵（0.6 起不再讀取，只在啟動時清掉）
 

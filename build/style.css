@@ -216,3 +216,7 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .ibtn{position:relative;display:inline-block;padding:3px 6px}
 .ibtn::after{content:'';position:absolute;inset:-8px -6px}
 .mkt-row{min-height:36px}
+/* 可點頭像：點了開啟完整人物資訊 */
+.pt-btn{cursor:pointer;display:contents}
+.pt-btn img.pt:active{filter:brightness(1.15);border-color:#c8963e}
+.card.locked .pt-btn{pointer-events:auto}

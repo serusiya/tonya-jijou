@@ -7,10 +7,10 @@
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
 const DUTY_DESC={
-  丁稚:'跑腿：每名丁稚每旬可代你跑 1 趟拜訪／送禮，不扣行動點數，好感只得約六到八成。',
+  丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
-  大番頭:'總管：代你管進貨（可開「自動補貨」）、代出席公會例會、每旬七成機率自動登門問候一到三人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
+  大番頭:'總管：代你管進貨（可開「自動補貨」）、代出席公會例會、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
@@ -49,8 +49,9 @@ function errandTrim(cid,a0,r){
 }
 /** 派丁稚按鈕：無丁稚或本旬次數用完就半透明不可按。 */
 function errandBtn(cid){
+  if(R(cid).aff>=FRIEND_AFF)return '<button class="pixel-btn btn-sm" style="flex:1" disabled title="交情已深，要你親自登門">👦 交情已深，須親自登門</button>';
   const left=errandLeft(),off=left<=0;
-  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚'+(nEmp('丁稚')?'（剩 '+left+'）':'')+'</button>';
+  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+fmt(btTiers(cid)[1])+' 兩·剩 '+left+'）':'')+'</button>';
 }
 /* ---------- 大番頭自動補貨 ---------- */
 ACT.toggleRestock=()=>{G.restock=!G.restock;toast(MSG(G.restock?'toggleRestock.on':'toggleRestock.off'));save();UI.render()};
@@ -61,7 +62,7 @@ function restockRow(){
 function autoRestock(log){
   if(!G.restock||!nEmp('大番頭'))return;
   const got=[];
-  ownComms().forEach(c=>{
+  tradeComms().forEach(c=>{
     if((G.buyPlan&&G.buyPlan[c.name])>0)return;
     const need=quotaOf(c.name)-(G.inv[c.name]||0)-itemOnOrder(c.name);
     const q=Math.min(need,maxBuy(c.name));
@@ -115,18 +116,18 @@ function chiefGuild(log){
   }else t=NEWS('chief.raise.fail');
   pushNews(t);log.push(t);
 }
-/** 自動問候：挑 1～3 位已結識、尚未滿格的人登門閒話，好感 +5～10（不送禮、不花錢，交情較淺者優先）；另有機率結識城中新朋友。 */
+/** 自動問候：挑 1～3 位已結識、好感未滿 60 的人登門閒話，好感 +5～10（不送禮、不花錢，交情較淺者優先）；另有機率結識城中新朋友。 */
 function chiefVisit(log){
-  const C=ODDS.chief,pool=Object.entries(G.rel).filter(([cid,r])=>r.bond&&r.aff>=1&&r.aff<100&&npc(cid)&&!isEnemy(cid));
+  const C=ODDS.chief,pool=Object.entries(G.rel).filter(([cid,r])=>r.bond&&r.aff>=1&&r.aff<FRIEND_AFF&&npc(cid)&&!isEnemy(cid));   // 只補到 60
   const got=[];
   const n=pool.length?Math.min(pool.length,C.visitMin+Math.floor(rnd()*(C.visitMax-C.visitMin+1))):0;
   for(let i=0;i<n;i++){
-    const w=pool.map(([cid,r])=>100-r.aff);let tot=w.reduce((a,b)=>a+b,0),x=rnd()*tot,k=0;
+    const w=pool.map(([cid,r])=>FRIEND_AFF-r.aff);let tot=w.reduce((a,b)=>a+b,0),x=rnd()*tot,k=0;
     for(;k<w.length-1;k++){x-=w[k];if(x<=0)break}
     const [cid,r]=pool.splice(k,1)[0];
     const gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
-    r.aff=clamp(r.aff+gain,0,100);logRel(cid,'大番頭代為登門問候，好感 +'+gain+'。');
-    got.push(nameOf(cid)+' +'+gain);
+    const g0=Math.min(gain,FRIEND_AFF-r.aff);r.aff=clamp(r.aff+g0,0,100);logRel(cid,'大番頭代為登門問候，好感 +'+g0+'。');
+    got.push(nameOf(cid)+' +'+g0);
   }
   if(got.length){const t=NEWS('chief.visit',{list:got.join('、')});pushNews(t);log.push(t)}
   if(chance(C.newFriendP)){

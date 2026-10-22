@@ -102,76 +102,45 @@ SHEETS.regional=()=>{
 ACT.regSel=el=>{UI.s.regSel=el.dataset.id;refreshSheet()};
 
 /* ======================= 許可·權利的申請審理 =======================
- * 審理旬數（好感 ≥80 才受理，否則擱置）：
- *   一般官員：6 旬（賄賂無用）。
- *   貪官（貪婪高）：賄賂夠＝3 旬；不夠（含沒給）＝12 旬。
- *   清官（貪婪低）：不賄賂＝6 旬；敢賄賂＝反遭刁難，12 旬。
- *   好感不夠：一直擱置，需把賄賂補齊到該申請基準金額的 2 倍，金額夠了再等 2 旬。 */
-var BRIBE_X=0;
-const APP_GRANT_HIGH=80;
+ * 申請只在拜訪打勝、好感 ≥60 時出現；賄賂已在拜訪戰鬥中付過，不另附。
+ * 受理時好感 −20（REQ_AFF.apply），審理旬數：貪官 3 旬、一般與清官 6 旬。 */
+/** 官員類型（在官員之間相對比較）：貪欲 ≥85 貪官；貪欲 ≤72 且忠誠 ≥50 清官；其餘一般。 */
 function officialKind(n){
   const s=CH(n.cid).derived_stats;
-  return s.greed_index>=60?'greedy':(s.greed_index<=40&&s.integrity_loyalty>=50)?'clean':'plain';
+  return s.greed_index>=85?'greedy':(s.greed_index<=72&&s.integrity_loyalty>=50)?'clean':'plain';
 }
-const appNeedGreedy=(B,n)=>Math.round(B*(0.6+0.8*CH(n.cid).derived_stats.greed_index/100));
-function appDuration(n,B,offer){
-  const k=officialKind(n);
-  if(k==='greedy')return offer>=appNeedGreedy(B,n)?3:12;
-  if(k==='clean')return offer>0?12:6;
-  return 6;
-}
+function appDuration(n){return officialKind(n)==='greedy'?3:6}
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
 function applyFavor(cid,n,r,f){
-  if(f.once&&(f.k==='direct'?G.flags.direct:regionHeld(f.k,n)))return {ok:true,status:'held',msg:MSG('doFavor.3')};
+  if(favorDone(f,n))return {ok:true,status:'held',msg:MSG(f.lic?'doFavor.licHeld':'doFavor.3')};
   if(appsList().some(a=>a.key===f.k&&a.cid===cid))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
-  const B=favorGoldCost(f,n),offer=Math.round(B*(BRIBE_X||0));
-  if(G.silver<offer)return {ok:true,status:'held',msg:MSG('applyFavor.2',{offer:fmt(offer)})};
-  if(offer>0){payPublic('申請賄賂：'+f.name,offer);G.life.gold+=Math.round(offer/BRIBE_RATE);G.heat=(G.heat||0)+1}
-  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,B,paid:offer,start:G.turn};
-  let msg;
-  if(r.aff<APP_GRANT_HIGH){
-    A.state='held';A.left=0;
-    msg=TX('apply.held',{cost:fmt(B*2)});
-  }else{
-    const k=officialKind(n);A.state='wait';A.left=appDuration(n,B,offer);r.aff=Math.max(0,r.aff-4);
-    msg=k==='clean'&&offer>0?TX('apply.cleanBribed'):
-        k==='greedy'?(offer>=appNeedGreedy(B,n)?TX('apply.greedyEnough'):TX('apply.greedyShort')):
-        TX('apply.plain');
-  }
-  appsList().push(A);logRel(cid,'遞出申請「'+f.name+'」。');
-  return {ok:true,status:'done',msg:MSG('applyFavor.3',{msg})};
+  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n)};
+  r.aff=Math.max(0,r.aff-REQ_AFF.apply);
+  const k=officialKind(n),msg=TX(k==='greedy'?'apply.greedyEnough':'apply.plain');
+  appsList().push(A);logRel(cid,'遞出申請「'+f.name+'」，好感 -'+REQ_AFF.apply+'。');
+  return {ok:true,status:'done',msg:MSG('applyFavor.3',{msg})+'（好感 -'+REQ_AFF.apply+'）'};
 }
 function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
   let msg;
-  if(A.key==='direct'){G.flags.direct=true;msg='取得產地直採特許，進貨價大降。'}
-  else msg=REG_FAVOR[A.key](n);
+  msg=grantFavorApp(A);
+  if(msg===null)msg=REG_FAVOR[A.key](n);
   logRel(A.cid,'申請「'+A.name+'」獲准。');
   const t=NEWS('appGrant.1',{name:A.name,msg});pushNews(t);log.push(t);sfx.fanfare();
 }
-/** 每旬：審理倒數；擱置中的案子，好感升到 80 就轉入審理。 */
+/** 每旬：審理倒數，到期獲准。 */
 function appsTick(log){
   const L=appsList();
   L.forEach(A=>{
-    const n=npc(A.cid);
-    if(A.state==='held'&&n&&R(A.cid).aff>=APP_GRANT_HIGH){A.state='wait';A.left=appDuration(n,A.B,A.paid);log.push(NEWS('appsTick.1',{name:A.name,left:A.left}))}
-    else if(A.state==='wait'){A.left--;if(A.left<=0){A.done=true;appGrant(A,log)}}
+    if(A.state==='wait'){A.left--;if(A.left<=0){A.done=true;appGrant(A,log)}}
   });
   G.apps=L.filter(a=>!a.done);
 }
 function appsCard(){
   const L=appsList();if(!L.length)return '';
   return '<div class="card"><b class="small">📬 申請案件</b>'+L.map(A=>{
-    const n=npc(A.cid),top=Math.max(0,A.B*2-A.paid);
-    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·'+(A.state==='held'?'<b style="color:#b3261e">擱置中（尚無回音）</b>':'審理中，剩 <b>'+A.left+'</b> 旬')+'</div></div>'+(A.state==='held'?'<button class="pixel-btn btn-sm btn-gold" data-act="appTop" data-id="'+A.id+'">'+UT('btn.appTop',{c:fmt(top)})+'</button>':'')+'</div>';
+    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·審理中，剩 <b>'+A.left+'</b> 旬</div></span></div>';
   }).join('')+'</div>';
 }
-ACT.appTop=el=>{
-  const A=appsList().find(a=>a.id===el.dataset.id);if(!A||A.state!=='held')return;
-  const top=Math.max(0,A.B*2-A.paid);
-  if(G.silver<top){toast(MSG('appTop.1',{top:fmt(top)}));return}
-  payPublic('補賄賂：'+A.name,top);A.paid+=top;G.life.gold+=Math.round(top/BRIBE_RATE);G.heat=(G.heat||0)+1;
-  A.state='wait';A.left=2;logRel(A.cid,'補齊賄賂，申請「'+A.name+'」轉入審理。');
-  sfx.coin();toast(TX('apply.topUp'));UI.render();refreshSheet();
-};
+

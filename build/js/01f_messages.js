@@ -22,7 +22,6 @@ const MSG_TXT={
   'dispatchShip.2':'【{name}】並非「{name2}」的產地',
   'dispatchShip.3':'請輸入數量',
   'dispatchShip.4':'尚未取得「{mode}」。請向官員請託（行政院）。',
-  'dispatchShip.5':'船隊已滿載出航（{smug} / {fleet}），請等船隊返航或擴編',
   'dispatchShip.6':'此航線不通海運（起訖需為港灣或水路要衝）',
   'dispatchShip.7':'陸路只通陸地相連的同一地區（行程 2 旬內）；跨地區或島嶼只能走海運',
   'dispatchShip.8':'倉庫容量不足（庫存、在途訂單與在途貨物合計不能超過倉庫容量）',
@@ -48,11 +47,13 @@ const MSG_TXT={
   'doFavor.1':'無此項目',
   'doFavor.2':'此事剛辦過，還需 {key} 旬。',
   'doFavor.3':'此事早已辦妥。',
+  'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
+  'doFavor.lessenHeld':'你手上已有一張減罪狀，用掉之前不必再求。',
   'doFavor.4':'現款不足（需 {total} 兩）。',
   'doFavor.5':'本業行情走強。',
   'doFavor.6':'應允！{msg}',
   /* —— resolveVisit —— */
-  'resolveVisit.1':'「{cid}」恰巧不在家，禮物原樣帶回。（未花費）',
+  'resolveVisit.1':'「{cid}」恰巧不在家，改日再訪吧。（未花費）',
   'resolveVisit.2':'門房回說主人身體不適，不見客，白跑一趟。（車馬費 {c} 兩）',
   /* —— payPromise —— */
   'payPromise.1':'無此承諾',
@@ -71,6 +72,8 @@ const MSG_TXT={
   'hireCandidate.2':'已聘「{cid}」為{rank}，月例 {wage} 兩／旬。',
   'hireCandidate.3':'此人的適任職務不包含「{rank}」。',
   'hireCandidate.4':'此人不在本次物色名冊中。',
+  'hireCandidate.ship':'另付造船費 {ship} 兩，新船一艘下水。',
+  'hireCandidate.shipShort':'現款不足：聘金加造船費共需 {c} 兩（造船費 {ship} 兩）。',
   'hireCandidate.5':'丁稚不從人物名冊聘用，請使用私宅的「招收丁稚」。',
   /* —— hireApprentice —— */
   'hireApprentice.1':'找人要靠介紹人——先結識一位肯為你引薦的介紹人。',
@@ -87,22 +90,19 @@ const MSG_TXT={
   'marry.4':'說親未成，白費了聘禮。（成功率約 {p}%）',
   'marry.5':'禮成！{extra}',
   /* —— setKidPath —— */
-  'setKidPath.1':'年紀尚幼，滿 8 歲才能安排歷練',
+  'setKidPath.1':'年紀尚幼，還不能安排歷練',
   'setKidPath.2':'安排「{name}」{path}（每年花費 {path2} 兩）。',
   /* —— kidFixProdigal —— */
   'kidFixProdigal.1':'替「{name}」還清賭債，他發誓痛改前非（但誰知道呢）。',
   'kidFixProdigal.2':'寫下義絕書，將「{name}」逐出家門。',
   /* —— ship —— */
   'ship.1':'出貨量為 0：惜售壓倉，本旬不出貨。',
-  /* —— fleetUp —— */
-  'fleetUp.1':'船隊已達上限',
-  'fleetUp.2':'新造商船一支，船隊擴編為 {fleet} 支。',
   /* —— meet —— */
   'meet.1':'對方視你為仇人，拒不見面。',
   /* —— visit —— */
   'visit.1':'對方視你為仇人，拒不見面，也不收禮。',
   /* —— makeIntro —— */
-  'makeIntro.1':'知名度不足：當他的介紹人對象需知名度 {cid}',
+  'makeIntro.1':'對方覺得你的名氣還撐不起他的引薦，婉拒了。',
   'makeIntro.2':'「{cid}」答應當你的介紹人！往後僱人、拜官、說媒都能請他引薦。',
   'makeIntro.3':'此人的身分不適合擔任介紹人。',
   'makeIntro.4':'此人已是介紹人，或介紹人名額已滿。',
@@ -118,6 +118,7 @@ const MSG_TXT={
   'cartel.3':'退出株仲間協議。',
   /* —— whUp —— */
   'whUp.1':'新建倉庫一棟！庫容增至 {invCap}。',
+  'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向行政官員申請「河岸倉地拜領」。',
   /* —— charity —— */
   'charity.1':'施粥賑濟！百姓感念，名聲遠播。{famine}',
   /* —— setIntro —— */
@@ -141,11 +142,10 @@ const MSG_TXT={
   'injuredBlock.1':'⛓️ 你正在遠島服刑，還需 {exile} 旬，無法出門。',
   'injuredBlock.2':'🤕 你身上有傷，還需靜養 {injured} 旬，無法出門。',
   /* —— encGive —— */
-  'encGive.1':'「{cid}」感激涕零，從此記住你的恩情。（已結識，好感 30）',
-  'encGive.2':'「{cid}」感激不盡，交情更深了。（好感 +30）',
+  'encGive.1':'「{cid}」感激涕零，從此記住你的恩情。（已結識，好感 10）',
+  'encGive.2':'「{cid}」感激不盡，交情更深了。（好感 +10）',
   /* —— smugGo —— */
   'smugGo.1':'⛓️ 遠島中，無法出海。',
-  'smugGo.2':'船隊都在外面，沒有空閒的船。',
   'smugGo.3':'沒有好感滿格的空閒船長。',
   'smugGo.4':'密庫放不下這麼多。',
   'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
@@ -156,8 +156,9 @@ const MSG_TXT={
   'smugSell.3':'「{introId}」出手賣掉「{name}」{q} 單位，私房錢增加 {net} 兩（介紹費 {fee}，交情 −{d}）。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
+  'errand.done':'丁稚替你把 {amt} 兩禮金送到「{cid}」府上，對方收下了。（好感 +{gain}）',
+  'errand.friend':'交情已深，這種事要你親自登門才算數。',
   /* —— sendVoyage —— */
-  'sendVoyage.1':'船隊都在外面（{smug} / {fleet}），請等返航或擴編',
   'sendVoyage.2':'請選一位空閒的{mode}。',
   'sendVoyage.3':'請選擇目的地',
   'sendVoyage.4':'尚未取得【{REG_NAME}】的{sea}。請到「遠國奉行所」請託。',

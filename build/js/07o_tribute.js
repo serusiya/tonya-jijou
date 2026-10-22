@@ -1,30 +1,23 @@
 /* ======================= 上貢：財務官員（好感 100）=======================
- *  官員開口要一批本業貨：限期內自己備妥庫存，數量取公會配額的數倍（合理可達）。
+ *  好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。官員開口要一批本業貨：限期內自己備妥庫存，數量取公會配額的數倍（合理可達）。
  *  到期若庫存足夠，自動上貢＝賣出，作價市價 × 倍數，並增加知名度與市佔率；
  *  備不齊則失約：交情、知名度受損。同時只能有一筆上貢。 */
 const tributeOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='official'&&n.pos&&n.pos.court==='finance'&&alive(cid)&&r&&r.bond&&r.aff>=100&&!isEnemy(cid))};
-function tributeHtml(cid){
-  if(!tributeOK(cid))return '';
-  const T=G.tribute,A=ODDS.tribute;
-  let h='<div class="card warn" style="margin:4px 0"><b class="small">🎁 上貢</b>';
-  if(T&&T.cid===cid){
-    const have=G.inv[T.name]||0,left=Math.max(0,T.due-G.turn);
-    return h+'<div class="tiny">你答應替他準備「'+esc(COMM_MAP[T.name].short)+'」<b>'+T.qty+'</b> 單位，還有 <b>'+left+'</b> 旬。目前手上有 '+have+(have>=T.qty?'，已經備齊了 ✅':'，還差 '+(T.qty-have)+' 單位 ⚠️')+'。</div></div>';
-  }
-  h+='<div class="tiny muted">他想請你幫忙備一批本業貨。答應後有 '+A.turns+' 旬可以準備；到期若數量足夠，他會用<b>高價收下</b>，你的知名度與市佔率也會提高。若沒備齊，他可不會高興。耗 1 行動。</div>';
-  h+='<div style="margin-top:3px"><button class="pixel-btn btn-sm btn-gold" data-act="tribute" data-cid="'+cid+'" '+(T?'disabled':'')+'>'+UT('btn.tribute')+'</button></div></div>';
-  return h;
+/** 人物卡上的上貢進度（答應過這位官員時才顯示）。 */
+function tributeStatus(cid){
+  const T=G.tribute;if(!T||T.cid!==cid)return '';
+  const have=G.inv[T.name]||0,left=Math.max(0,T.due-G.turn);
+  return '<div class="card warn" style="margin:4px 0"><b class="small">🎁 上貢</b><div class="tiny">你答應替他準備「'+esc(COMM_MAP[T.name].short)+'」<b>'+T.qty+'</b> 單位，還有 <b>'+left+'</b> 旬。目前手上有 '+have+(have>=T.qty?'，已經備齊了 ✅':'，還差 '+(T.qty-have)+' 單位 ⚠️')+'。</div></div>';
 }
-ACT.tribute=el=>{
-  const cid=el.dataset.cid;if(!tributeOK(cid))return;
+/** 拜訪請託中選了「上貢」（好感 100、每位官員一次；行動點數已在拜訪時扣過）。 */
+function startTribute(cid){
   if(G.tribute){toast(MSG('tribute.busy'));return}
-  const cs=ownComms();if(!cs.length){toast(MSG('tribute.noGoods'));return}
-  if(!spendAP())return;
+  const cs=tradeComms();if(!cs.length){toast(MSG('tribute.noGoods'));return}
   const A=ODDS.tribute,c=pick(cs),qty=Math.max(A.min,Math.min(Math.round(quotaOf(c.name)*A.quotaMult),itemCap(c.name)));
   G.tribute={cid,name:c.name,qty,due:G.turn+A.turns};
   toast(MSG('tribute.start',{off:nameOf(cid),turns:A.turns,item:c.short,qty,mul:A.priceMul}),5200);
   UI.render();refreshSheet();
-};
+}
 /** 每旬結算：到期則自動上貢或失約。 */
 function tributeTick(log){
   const T=G.tribute;if(!T||G.turn<T.due)return;

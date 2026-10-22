@@ -1,8 +1,8 @@
 /* =====================================================================
  * 07e_encounter.js — 路遇急難
- *  - 「出門前往」沒遇襲時，有 10% 機率路上遇到一個人向你求助 10 兩救急。
+ *  - 「出門前往」沒遇襲時，有 10% 機率路上遇到一個人向你求助 50 兩救急。
  *  - 抽人：官階 1～2（含非官員）佔 50%，官階越高機率越低；認識／不認識各 50%。
- *  - 給錢：不認識者變成認識、好感直接 30（不論性向）；認識者好感 +30。不給：什麼都不發生。
+ *  - 給錢：不認識者變成認識、好感 10；認識者好感 +10。不給：什麼都不發生。
  *  - 不扣行動點數；金額由現款支付。
  * ===================================================================== */
 
@@ -54,11 +54,11 @@ ACT.encGive=()=>{
   spend('encounter');
   if(!r.bond){
     r.bond={mult:0.6,label:'雪中送炭',introId:null};r.met=true;r.seen=true;addKnown(cid);
-    r.aff=Math.max(r.aff,30);
+    r.aff=Math.max(r.aff,10);
     if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?0.5*n.pos.rank:0.4)}
     toast(MSG('encGive.1',{cid:nameOf(cid)}));
   }else{
-    r.aff=clamp(r.aff+30,0,100);toast(MSG('encGive.2',{cid:nameOf(cid)}));
+    r.aff=clamp(r.aff+10,0,100);toast(MSG('encGive.2',{cid:nameOf(cid)}));
   }
   logRel(cid,'路遇急難，贈銀 '+ENC_COST+' 兩救急，好感提升。');addFame(0.2);sfx.coin();
   UI.render();encFinish();

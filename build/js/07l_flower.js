@@ -51,10 +51,10 @@ function oiranBlock(cid){
   autoIntro(cid);const via=(G.introId&&introOf(G.introId))?1:0;
   const locked=!r.bond&&meetTierNeed(cid)>fameTier()+via;
   const nom=r.nomT===G.turn;
-  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitHtml(cid,56);
-  h+='<div class="row"><div><b>'+esc(c.name)+'</b> <span class="tag" style="background:#f6d5e1;color:#a2315f">🌸 名伶</span></div><span class="tiny muted">'+ageOf(cid)+' 歲</span></div>';
+  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56);
+  h+='<div class="row"><div><b>'+esc(c.name)+'</b> <span class="tag" style="background:#f6d5e1;color:#a2315f">🌸 名伶</span></div></div>';
   h+='<div class="tiny muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
-  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 名氣不夠，指名要知名度 '+TIER_NAME[meetTierNeed(cid)]+'（你 '+TIER_NAME[fameTier()]+'）</div></div>';
+  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 她身價甚高，以你眼下的名氣還指名不到。</div></div>';
   if(r.bond){
     h+='<div class="row small"><span>好感：<span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span> '+Math.round(r.aff)+'／100</span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     h+='<div class="tiny muted">'+(r.nomT!==undefined?'上回指名在 '+(G.turn-r.nomT)+' 旬前。':'')+'每 2 旬沒再指名，好感 -4（最低 1）。</div>';
