@@ -248,8 +248,8 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
     </div>
     <div class="stats">
       <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
-      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k">白銀（公款）📈</div><div class="v" id="d-silver">0</div></div>
-      <div class="stat"><div class="k">黃金點心（私款） <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私款：偷公款／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k">現款 📈</div><div class="v" id="d-silver">0</div></div>
+      <div class="stat"><div class="k">私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
     <div class="row small" style="background:#1c1921;border:1px solid var(--line);padding:2px 6px">
@@ -539,7 +539,7 @@ function addFame(x){if(!G)return 0;const f=G.fame||0;G.fame=clamp(f+x*Math.max(O
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */
 const fameCut=()=>clamp((G.fame||0)/ODDS.fame.cap*0.30,0,0.30);
 /** 更新頂部知名度顯示。 */
-/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers），再加私款每滿 1000 兩 +1 階（上限 4）。 */
+/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers），再加私房錢每滿 1000 兩 +1 階（上限 4）。 */
 function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+Math.floor((G.gold||0)/1000))}
 /** 見官員所需知名度階：官階 1～2 免限制(1)，3→2，4→3，5 以上→4。 */
 const needTierOfRank=rk=>rk<=2?1:Math.min(4,rk-1);
@@ -555,12 +555,12 @@ function updateFame(){const e=document.getElementById('d-fame');if(e&&G)e.textCo
 /* =====================================================================
  * 01b_costs.js — 費用總表
  *  所有「貿易商品以外」的物品與任務花費，都集中在 COSTS：
- *    cur：'silver' 公款（商號帳上白銀）／'gold' 私款（主人私房黃金）
+ *    cur：'silver' 現款（商號帳上資金）／'gold' 私房錢（主人自己的錢）
  *    amt：基本金額（兩）；有 per 者，實付 = amt × 倍數（官階、船隊數…），倍數由呼叫處給。
- *  用法：costOf(k,倍數)、costTxt(k,倍數)→「公款 20 兩」、afford(k,倍數)、spend(k,倍數)、shortMsg(k,倍數)。
+ *  用法：costOf(k,倍數)、costTxt(k,倍數)→「現款 20 兩」、afford(k,倍數)、spend(k,倍數)、shortMsg(k,倍數)。
  *  罰款、利息、薪資等「按比例或變動」的支出不在此表。貿易商品的進貨款、運費、關稅也不在此表。
  * ===================================================================== */
-const CUR_NAME={silver:'公款',gold:'私款'};
+const CUR_NAME={silver:'現款',gold:'私房錢'};
 const COSTS={
   /* —— 拜訪·結交 —— */
   selfIntro:{name:'毛遂自薦備禮',cur:'silver',amt:20},
@@ -588,7 +588,6 @@ const COSTS={
   favor_rescort:{name:'請託：船手組護送（賄賂）',cur:'silver',amt:90},favor_rtax:{name:'請託：勘定所免稅狀（賄賂）',cur:'silver',amt:90},
   favor_rroad:{name:'請託：五街道通行狀（賄賂）',cur:'silver',amt:150},favor_rshuin:{name:'請託：朱印狀（賄賂）',cur:'silver',amt:150},
   favor_rcharter:{name:'請託：地區通商特許狀（賄賂）',cur:'silver',amt:225},favor_rvisit:{name:'請託：請巡見使美言（賄賂）',cur:'silver',amt:90},
-  applyFeeRate:{name:'許可申請規費（佔基本賄賂比率）',cur:'silver',amt:0.5},
   inspectBribe:{name:'查貨賄賂',cur:'silver',amt:30,per:'官階'},
   /* —— 商號·人事 —— */
   audit:{name:'查帳',cur:'silver',amt:10},
@@ -613,7 +612,7 @@ const COSTS={
   /* —— 吉原 —— */
   feast:{name:'包場花金夜宴',cur:'gold',amt:80},
   nominate:{name:'指名名伶',cur:'gold',amt:20},
-  oiranGiftMul:{name:'名伶禮物價格倍率（指名後）',cur:'silver',amt:2},
+  oiranGiftMul:{name:'名伶禮物價格倍率（指名後）',cur:'gold',amt:2},
   ransom:{name:'名伶贖身（基本價，±100）',cur:'gold',amt:1000},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺',cur:'gold',amt:500},
@@ -625,7 +624,7 @@ const COSTS={
 };
 /** 名伶專屬禮物（首飾與化妝品），價格也在總表。 */
 [['o1','銀簪',100],['o2','京白粉',110],['o3','紅花口脂',120],['o4','鬢付髮油',130],['o5','眉黛',150],['o6','蒔繪梳',180],['o7','螺鈿手鏡',220],['o8','琥珀頸飾',250],['o9','翡翠玉鐲',280],['o10','珊瑚簪',300]]
-  .forEach(([k,name,amt])=>{COSTS['oiranGift_'+k]={name:'名伶禮物：'+name,cur:'silver',amt}});
+  .forEach(([k,name,amt])=>{COSTS['oiranGift_'+k]={name:'名伶禮物：'+name,cur:'gold',amt}});
 
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
 const costTxt=(k,mul)=>CUR_NAME[COSTS[k].cur]+' '+costOf(k,mul)+' 兩';
@@ -634,12 +633,19 @@ const walletOf=k=>COSTS[k].cur;
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
 const affordAmt=(k,amt)=>G[COSTS[k].cur]>=amt;
 /** 扣款，回傳實扣金額。 */
-function spend(k,mul){const a=costOf(k,mul);G[COSTS[k].cur]-=a;return a}
-function spendAmt(k,amt){G[COSTS[k].cur]-=amt;return amt}
+function notePublicSpend(label,amt){
+  if(!(amt>0))return amt;
+  G.publicSpend=G.publicSpend||{};
+  G.publicSpend[label]=(G.publicSpend[label]||0)+amt;
+  return amt;
+}
+function payPublic(label,amt){G.silver-=amt;notePublicSpend(label,amt);return amt}
+function spend(k,mul){const c=COSTS[k],a=costOf(k,mul);if(c.cur==='silver')payPublic(c.name,a);else G[c.cur]-=a;return a}
+function spendAmt(k,amt){const c=COSTS[k];if(c.cur==='silver')payPublic(c.name,amt);else G[c.cur]-=amt;return amt}
 /** 統一的不足訊息。 */
 function shortMsg(k,mul){
   const c=COSTS[k],a=costOf(k,mul);
-  return (c.cur==='silver'?'公款白銀不足':'私款（黃金點心）不足')+'，「'+c.name+'」需 '+fmt(a)+' 兩'+(c.cur==='gold'?'（可按上方「＋」補充）':'');
+  return (c.cur==='silver'?'現款不足':'私房錢不足')+'，「'+c.name+'」需 '+fmt(a)+' 兩'+(c.cur==='gold'?'（可按上方「＋」補充）':'');
 }
 
 /* =====================================================================
@@ -653,15 +659,17 @@ const ODDS={
   /* —— 每旬隨機事件（旬報）—— */
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
   eventW:{name:'當季事件抽選權重（相對值）',fire:3,famine:2,harvest:2,typhoon:2,plague:2,sword:2,flower:2,dump:2,boom:2,inspect:2,fall:1.5,greed:1.5,thief:1.2,renqing:1.2},
+  officialTransfer:{name:'本城官員與外地官員互調（每旬）',p:0.10},
+  residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）',p:0.10},
   fallScapegoat:{name:'靠山失勢（好感<10）連帶被查帳',p:0.6},
   thiefRepel:{name:'盜賊夜探，保鏢≥3 名當場擊退',p:0.7},
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
-  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數',base:0.58,others:0.45,lo:0.7,hi:1.1,overP:0.1,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9,directMult:0.65},
+  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9,directMult:0.65},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
   buyLimit:{name:'大盤進貨上限（公會配額的倍數；番頭每人加成）',mult:0.8,perBantou:0.3},
-  chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前白銀，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
+  chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
@@ -782,17 +790,19 @@ const LINES={
   /* —— 官員回應請託 —— */
   favor:{
     outOfRank:'對方搖頭：「這不歸我管。」',
-    refuse:'對方回絕：「恕難從命。」',
-    hold:'對方說：「容我再想想。」被擱置了。',
-    holdLog:'「容我再想想。」'
+    refuse:['對方臉色一沉：「此事休要再提。」','對方把茶盞重重一放：「你我還沒熟到能談這種事。」','對方冷冷打斷：「恕難從命，請回吧。」','對方連文書也不肯碰：「不必說了。」'],
+    hold:['對方沒有接話，只把茶慢慢飲完：「容我再想想。」','對方把文書壓在案角：「此事牽連不少，日後再議吧。」','對方含糊應了一聲：「我先留著看看，眼下不好答覆。」','對方沉吟片刻：「話我聽見了，只是現在還不能說準。」'],
+    holdLog:['「容我再想想。」','「此事日後再議。」','「眼下還不好答覆。」'],
+    accept:['對方略一沉吟，點頭道：「既是你的事，我設法便是。」','對方把文書收進袖中：「此處不便多說，你回去等消息吧。」','對方壓低聲音：「我不能明著答應，不過這件事會有人料理。」','對方緩緩頷首：「此事有些難辦，但我願替你走一趟。」']
   },
   /* —— 許可申請（地區官員）—— */
   apply:{
-    cleanBribed:'對方臉色一沉：「你這是行賄？」收下申請，卻刻意拖延。',
-    greedyEnough:'對方收下了錢：「好說，盡快替你辦。」',
-    greedyShort:'對方掂了掂分量：「手續繁雜，且等著吧。」',
-    plain:'對方收下申請：「照規矩辦，等通知。」',
-    topUp:'賄賂補齊了，對方鬆口：「再等兩旬。」'
+    held:['對方沒有翻開文書，只用指尖壓住封口：「先擱在這裡吧。」若要再作表示，需將賄賂補至 {cost} 兩。','對方把申請移到案牘最下方：「此事我眼下不好作主。」若要再作表示，需將賄賂補至 {cost} 兩。','對方看了你一眼，語氣模稜兩可：「容後再說。」若要再作表示，需將賄賂補至 {cost} 兩。'],
+    cleanBribed:['對方看向別處，臉色忽然冷了幾分，只叫人把申請留下。','對方沒有碰那包現款，反而把文書挪到案角，淡淡說會依次審看。','對方眉頭微皺，沉默許久才命人收下申請。'],
+    greedyEnough:['對方盯著你看了一會兒，嘴角似乎略微鬆動：「文書留下吧。」','對方掂了掂分量，將申請收入袖中：「我知道了。」','對方把目光移開，說話的語氣卻比方才和緩許多。'],
+    greedyShort:['對方掂了掂分量，神色仍舊難測：「手續繁雜，且等著吧。」','對方只掃了一眼，便把申請擱到一旁：「上頭還有許多案子。」','對方收下現款，手指仍在桌面輕敲，似乎並不急著處理。'],
+    plain:['對方把申請逐頁看過：「文書先留下，往後等消息吧。」','對方收下申請，神色沒有明顯變化，只說會依次審看。','對方將文書交給書吏，沒有再多作表示。'],
+    topUp:['對方重新翻開文書，淡淡道：「我會再看看。」','對方終於把申請放到手邊：「先回去等消息吧。」','對方收起現款，朝書吏使了個眼色，沒有再說什麼。']
   },
   /* —— 公會 —— */
   guild:{rejected:'提案被同行否決：「再增加配額，價就守不住了。」'},
@@ -830,7 +840,7 @@ const Ls=path=>{const v=_lineAt(path);return Array.isArray(v)?v:[v]};
  * 01e_ui_text.js — 指令·按鈕·選項文字總表
  *  所有按鈕、指令、下拉選項、頁籤的顯示文字都集中在 UI_TXT。
  *  鍵名：nav.* 導覽與頂部按鈕｜btn.<指令名>* 面板內按鈕（<指令名> 即 data-act）｜opt.* 選項與標籤。
- *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:'公款 10 兩'}) 會把 {c} 換成值。
+ *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:'現款 10 兩'}) 會把 {c} 換成值。
  *  body.html 的固定按鈕以 data-t="鍵名" 標記，開機時由 08_boot 套用。
  *  費用數字不寫死在這裡：由呼叫處依 01b_costs.js 算出再代入。
  * ===================================================================== */
@@ -854,7 +864,7 @@ const UI_TXT={
   'btn.apprentice':'+ 招丁稚（{c}）',
   'btn.assassinate':'下令',
   'btn.arson':'下令放火',
-  'btn.tribute':'接下上貢',
+  'btn.tribute':'答應幫忙',
   'btn.frame':'請他栽贓',
   'btn.suppress':'請他打壓',
   'btn.audit':'查帳（{c}）',
@@ -863,7 +873,7 @@ const UI_TXT={
   'btn.buyClear':'清除',
   'btn.buyMax':'📦 選擇最大進貨量',
   'btn.cartel':'🤝 表態遵守配額',
-  'btn.cartel2':'🤫 簽署暗約偷跑（私款30）',
+  'btn.cartel2':'🤫 簽署暗約偷跑（私房錢 30）',
   'btn.cartel3':'退出協議，各憑本事',
   'btn.charity':'施粥',
   'btn.encGive':'💰 給他 {c} 兩',
@@ -896,7 +906,7 @@ const UI_TXT={
   'btn.punish':'追討',
   'btn.quotaDone':'本次例會已提案',
   'btn.quotaUp':'提案增加配額 10%',
-  'btn.ransom':'💍 贖身納為側室（私款 {c} 兩）',
+  'btn.ransom':'💍 贖身納為側室（私房錢 {c} 兩）',
   'btn.recruit':'物色',
   'btn.recruitView':'查看',
   'btn.restockOff':'🧾 大番頭自動補貨：關',
@@ -921,10 +931,10 @@ const UI_TXT={
   'btn.xoDecline':'婉拒',
   'btn.xsell':'請介紹人賣出',
   /* —— 下拉選單與切換標籤的選項文字 —— */
-  'opt.bribe0':'不賄賂',
-  'opt.bribe1':'基本賄賂',
-  'opt.bribe15':'加碼賄賂',
-  'opt.bribe2':'重金賄賂',
+  'opt.bribe0':'不賄賂（0 兩）',
+  'opt.bribe1':'送上 {c} 兩',
+  'opt.bribe15':'送上 {c} 兩',
+  'opt.bribe2':'送上 {c} 兩',
   'opt.introLabel':'🤝 介紹人',
   'opt.modeLand':'🐎 陸運（飛腳）',
   'opt.modeSea':'⛵ 海運（船長）',
@@ -959,7 +969,7 @@ const MSG_TXT={
   'buyGoods.2':'倉庫容量不足（已存 {invUsed}，在途 {transitQty}，倉庫共可放 {invCap}）',
   'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含在途）。還能進 {itemRoom} 單位。',
   'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（依公會配額與番頭人手而定），還能進 {buyLeft} 單位。要大量進貨請走商路從產地運入。',
-  'buyGoods.5':'白銀不足，需 {cost} 兩',
+  'buyGoods.5':'現款不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
   /* —— sellGoods —— */
   'sellGoods.1':'出貨量為 0（惜售壓倉）',
@@ -975,7 +985,7 @@ const MSG_TXT={
   'dispatchShip.7':'陸路只通陸地相連的同一地區（行程 2 旬內）；跨地區或島嶼只能走海運',
   'dispatchShip.8':'倉庫容量不足（庫存、在途訂單與在途貨物合計不能超過倉庫容量）',
   'dispatchShip.9':'「{name}」庫存已達上限（{itemCap} 單位，含在途）。還能運 {itemRoom} 單位。',
-  'dispatchShip.10':'白銀不足，貨款、運費與關稅共需 {q} 兩',
+  'dispatchShip.10':'現款不足，貨款、運費與關稅共需 {q} 兩',
   /* —— meetVia —— */
   'meetVia.1':'「{targetCid}」恰巧外出，改日再訪吧。（未花費）',
   'meetVia.2':'對方稱病不見客——與介紹人【{label}】，吃了閉門羹。（損失禮金 {cost} 兩、交情 -{dd}）',
@@ -987,16 +997,16 @@ const MSG_TXT={
   'scout.2':'探聽所得：性向偏重「{top3}」',
   /* —— revealWeakness —— */
   'revealWeakness.1':'此人的軟肋已經證實',
-  'revealWeakness.2':'私款（黃金點心）不足，花街打聽需 {c} 兩',
+  'revealWeakness.2':'私房錢不足，花街打聽需 {c} 兩',
   /* —— giveGift —— */
   'giveGift.1':'尚無往來，須先經介紹人引薦',
-  'giveGift.2':'公款白銀不足，需 {cost} 兩',
+  'giveGift.2':'現款不足，需 {cost} 兩',
   'giveGift.3':'對方眼睛一亮，愛不釋手——顯然正中其軟肋！',
   /* —— doFavor —— */
   'doFavor.1':'無此項目',
   'doFavor.2':'此事剛辦過，還需 {key} 旬。',
   'doFavor.3':'此事早已辦妥。',
-  'doFavor.4':'公款白銀不足（需 {total} 兩）。',
+  'doFavor.4':'現款不足（需 {total} 兩）。',
   'doFavor.5':'本業行情走強。',
   'doFavor.6':'應允！{msg}',
   /* —— resolveVisit —— */
@@ -1004,8 +1014,8 @@ const MSG_TXT={
   'resolveVisit.2':'門房回說主人身體不適，不見客，白跑一趟。（車馬費 {c} 兩）',
   /* —— payPromise —— */
   'payPromise.1':'無此承諾',
-  'payPromise.2':'公款白銀不足，需 {amtS} 兩',
-  'payPromise.3':'已進獻 {amtS} 兩白銀，官員態度回暖。',
+  'payPromise.2':'現款不足，需 {amtS} 兩',
+  'payPromise.3':'已拿出現款 {amtS} 兩進獻，官員態度回暖。',
   'payPromise.4':'已兌現承諾',
   /* —— auditEmp —— */
   'auditEmp.1':'查出帳目有出入，疑似被私吞約 {e} 兩。',
@@ -1083,7 +1093,7 @@ const MSG_TXT={
   /* —— succeedGo —— */
   'succeedGo.1':'第 {gen} 代「{name}」接掌家業（{myAge} 歲）',
   /* —— skim —— */
-  'skim.1':'公款不足',
+  'skim.1':'現款不足',
   'skim.2':'你從帳上抹去 {amt} 兩，悄悄收進私囊。',
   /* —— injuredBlock —— */
   'injuredBlock.1':'⛓️ 你正在遠島服刑，還需 {exile} 旬，無法出門。',
@@ -1096,12 +1106,12 @@ const MSG_TXT={
   'smugGo.2':'船隊都在外面，沒有空閒的船。',
   'smugGo.3':'沒有好感滿格的空閒船長。',
   'smugGo.4':'密庫放不下這麼多。',
-  'smugGo.5':'私款不足，需 {cost} 兩（可按上方「＋」補充）。',
+  'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
   'smugGo.6':'船長「{name}」趁夜出港，{d} 旬後回航。',
   /* —— smugSell —— */
   'smugSell.1':'⛓️ 遠島中，無法交易。',
   'smugSell.2':'賣禁品要靠介紹人牽線，請先選一位介紹人。',
-  'smugSell.3':'「{introId}」出手賣掉「{name}」{q} 單位，入私款 {net} 兩（介紹費 {fee}，交情 −{d}）。',
+  'smugSell.3':'「{introId}」出手賣掉「{name}」{q} 單位，私房錢增加 {net} 兩（介紹費 {fee}，交情 −{d}）。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
   /* —— sendVoyage —— */
@@ -1110,22 +1120,22 @@ const MSG_TXT={
   'sendVoyage.3':'請選擇目的地',
   'sendVoyage.4':'尚未取得【{REG_NAME}】的{sea}。請到「遠國奉行所」請託。',
   'sendVoyage.5':'委託金至少 100 兩',
-  'sendVoyage.6':'白銀不足，委託金需 {budget} 兩',
+  'sendVoyage.6':'現款不足，委託金需 {budget} 兩',
   /* —— xsell —— */
   'xsell.1':'要請介紹人幫忙脫手——先結識一位介紹人。',
   'xsell.2':'這位介紹人視你為仇人，不肯出面。',
   /* —— xoAccept —— */
-  'xoAccept.1':'公款白銀不足，需 {O} 兩',
+  'xoAccept.1':'現款不足，需 {O} 兩',
   'xoAccept.2':'倉庫放不下抵押品，只好婉拒。',
   'xoAccept.3':'借出 {O} 兩，收下「{xName}」{q} 單位抵押（入倉）。',
   /* —— xoDecline —— */
   'xoDecline.1':'婉拒了借款。',
   /* —— applyFavor —— */
   'applyFavor.1':'這件申請還在審理或擱置中，請看上方「申請案件」。',
-  'applyFavor.2':'公款白銀不足：規費 {fee} 兩{offer}。',
-  'applyFavor.3':'已繳規費 {fee} 兩。{msg}{left}',
+  'applyFavor.2':'現款不足：賄賂需 {offer} 兩。',
+  'applyFavor.3':'申請已遞交。{msg}',
   /* —— appTop —— */
-  'appTop.1':'公款白銀不足，需 {top} 兩',
+  'appTop.1':'現款不足，需 {top} 兩',
   /* —— nomOiran —— */
   'nomOiran.1':'她視你為仇人，不肯見面。',
   'nomOiran.2':'這位名伶今旬不在席。',
@@ -1135,9 +1145,10 @@ const MSG_TXT={
   /* —— oGift —— */
   'oGift.1':'須先指名，才能送禮。',
   'oGift.2':'她欣然收下「{name}」（好感 +{gain}）。{tip}{note}',
+  'oGift.3':'這次指名已經送過禮了，下次再帶新的來吧。',
   /* —— ransom —— */
   'ransom.1':'好感未滿，她還不肯跟你走。',
-  'ransom.2':'私款不足，贖身需 {price} 兩',
+  'ransom.2':'私房錢不足，贖身需 {price} 兩',
   'ransom.3':'「{name}」贖身入府，成了你的側室。轟動全城，知名度 +20。（不能生育，與家人無異）{note}',
   /* —— feast —— */
   'feast.1':'本旬已設過夜宴了，下旬再來。',
@@ -1171,9 +1182,9 @@ const MSG_TXT={
   'scheme.fxTitleFrame':'栽贓',
   'scheme.fxTitleSuppress':'打壓',
   /* —— tribute（上貢）—— */
-  'tribute.busy':'已有一筆上貢在辦，先完成它。',
-  'tribute.noGoods':'本業沒有可上貢的貨品。',
-  'tribute.start':'官員「{off}」開口：{turns} 旬內備妥「{item}」{qty} 單位，屆時以高於市價的價錢收購上貢。',
+  'tribute.busy':'手上已經答應一筆上貢了，先把那一筆辦完吧。',
+  'tribute.noGoods':'目前沒有適合拿來辦這件事的本業貨品。',
+  'tribute.start':'「{off}」低聲請你幫個忙：{turns} 旬內準備好「{item}」{qty} 單位。貨備齊後，他會照約定用高價收下。',
   /* —— 手動補充：含條件分支或組合敘述的訊息 —— */
   'arson.fx':'夜深人靜，{rank}提著火種悄然出門……',
   'arson.fxTitle':'放火',
@@ -1186,13 +1197,13 @@ const MSG_TXT={
   'giveGift.reactPlain':'對方客氣地收下了。',
   'giveGift.reactBlah':'對方禮貌道謝，卻興趣缺缺。',
   'giveGift.result':'{reaction}（好感 +{gain}）',
-  'doFavor.refuse':'{say}（好感不足，好感 -3）',
-  'doFavor.hold':'{say}（好感還不夠）',
+  'doFavor.refuse':'{say}',
+  'doFavor.hold':'{say}',
   'recruitVia.found':'{flavor}（覓得 {n} 位人選）',
   'slotFull':'{rank}的名額已滿',
   'promote.special':'{rank}是專職，不在晉升階梯內。',
   'buyMax.ok':'已排入最大進貨量，共 {tot} 單位。',
-  'buyMax.none':'目前無法再進貨（倉庫、額度或公款已到上限）。',
+  'buyMax.none':'目前無法再進貨（倉庫、額度或現款已到上限）。',
   'route.depart':'出發前往產地！',
   'sell.shipping':'出貨中……',
   'encGive.noMoney':'{short}，只能不理會。',
@@ -1251,12 +1262,14 @@ const NEWS_TXT={
   "setEv.9":"📈【買氣回升】近日城中買氣旺盛，本業行情回暖。",
   /* —— inspection —— */
   "inspection.1":"🕵️【欽差突查】中央巡按突查關卡與帳目，幸得司法官員事先通風，你的帳冊早已整理妥當，平安度過。",
-  "inspection.2":"🕵️【欽差突查】中央巡按徹查官商往來，查獲你的黃金點心往來痕跡！罰銀 {fine} 兩，知名度 -6，靠山受牽連。",
+  "inspection.2":"🕵️【欽差突查】中央巡按徹查官商往來，查獲你的私房錢往來痕跡！罰銀 {fine} 兩，知名度 -6，靠山受牽連。",
   "inspection.3":"🕵️【欽差巡視】中央巡按入城巡視，所幸你向來謹慎，無事。",
   /* —— officialFall —— */
   "officialFall.1":"📜【官場】三院官署人事微調，一批吏員調任他處。",
   "officialFall.2":"⚡【政爭】靠山「{nm}」失勢遭免職，連帶你被株連查帳，罰銀 {fine} 兩，知名度 -3。{rep}",
   "officialFall.3":"⚡【政爭】「{nm}」因政爭失勢遭免職，多年交情大打折扣。{rep}",
+  "peopleMove.official":"📜【官員調任】「{out}」調往【{dest}】；「{in}」自【{from}】調來本城，接掌{post}。",
+  "peopleMove.residence":"🏯【宅邸異動】{kind}「{out}」遷往【{dest}】；「{in}」自【{from}】遷入本城。",
   /* —— officialExtort —— */
   "officialExtort.1":"📜【官場】近日官員多有請託，皆言「些許心意即可」。",
   "officialExtort.2":"🤝【索賄】官員「{n}」暗示需再「表示心意」，不然恐生變數。（見筆記·往來實錄）",
@@ -1281,7 +1294,7 @@ const NEWS_TXT={
   "peopleTick.1":"⏰【失信】對「{cid}」的承諾已逾期，對方頗為不快。",
   "peopleTick.2":"🏦【還款】官倉平準貸款到期，償還 {d} 兩。",
   /* —— empTick —— */
-  "empTick.1":"💸【捲款潛逃】{rank}「{name}」捲走 {take} 兩白銀不告而別！",
+  "empTick.1":"💸【捲款潛逃】{rank}「{name}」捲走現款 {take} 兩，不告而別！",
   /* —— marry —— */
   "marry.1":"💍【喜事】{name}娶得{name2}，宅邸添了女主人。",
   /* —— yearTick —— */
@@ -1300,7 +1313,7 @@ const NEWS_TXT={
   /* —— charity —— */
   "charity.1":"🍚【義舉】{name}於{homeCity}開倉施粥，百姓感念。",
   /* —— skimTick —— */
-  "skimTick.1":"🟨【私款】本旬盈餘 {surplus} 兩，按 {p}% 抽 {amt} 兩入私款。",
+  "skimTick.1":"🟨【私房錢】本旬盈餘 {surplus} 兩，按 {p}% 抽出 {amt} 兩存入私房錢。",
   /* —— injuryTick —— */
   "injuryTick.1":"💪【傷癒】傷勢痊癒，可以再度出門。",
   /* —— rollAmbush —— */
@@ -1338,7 +1351,7 @@ const NEWS_TXT={
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
   "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩。",
   "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
-  "kind.6":"⚠️ {mode}自作主張，私買違禁品「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要賣請走私頁（用私款交易），也要小心搜查。",
+  "kind.6":"⚠️ {mode}自作主張，私買違禁品「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要賣請走私頁（用私房錢交易），也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
   /* —— xsell —— */
@@ -1355,7 +1368,7 @@ const NEWS_TXT={
   /* —— appGrant —— */
   "appGrant.1":"📜【獲准】{name}：{msg}",
   /* —— appsTick —— */
-  "appsTick.1":"📬【申請】「{name}」因交情夠了，開始審理（約 {left} 旬）。",
+  "appsTick.1":"📬【申請】先前擱置的「{name}」終於送入審理（約 {left} 旬）。",
   /* —— ransom —— */
   "ransom.1":"💍【贖身】{name}為吉原名伶「{name2}」贖身，納為側室，轟動全城，知名度 +20。",
   /* —— assassinate —— */
@@ -1363,8 +1376,8 @@ const NEWS_TXT={
   /* —— arson —— */
   "scheme.frame":"⚖️【查抄】同業「{name}」被官府查抄，傳聞涉及不法，商號元氣大傷。",
   "scheme.suppress":"📛【打壓】同業「{name}」遭官府刁難，批文遲遲不下，生意受阻。",
-  "tribute.ok":"🎁【上貢】依約向「{off}」呈上「{item}」{qty} 單位，作價 {rev} 兩入帳，知名度 +{fame}，商號聲勢大振。",
-  "tribute.fail":"💢【上貢失約】「{off}」要的「{item}」{qty} 單位沒備齊（庫存僅 {have}），他大為不快，交情 -{aff}，知名度 -1。",
+  "tribute.ok":"🎁【上貢】你把答應的「{item}」{qty} 單位送到「{off}」手上。對方爽快付了 {rev} 兩，知名度 +{fame}，商號的名聲也更響亮了。",
+  "tribute.fail":"💢【上貢失約】約定的日子到了，「{item}」卻只備了 {have} 單位，離答應「{off}」的 {qty} 單位還差一截。對方臉色很難看，交情 -{aff}，知名度 -1。",
   "arson.1":"🔥【縱火】同業「{name}」的倉庫深夜失火，庫存付之一炬，市面風聲鶴唳。",
 };
 function NEWS(key,vars){
@@ -1399,7 +1412,7 @@ const OFF_POS={};
 Object.entries(OFFICIALS.systems).forEach(([court,sys])=>sys.positions.forEach(p=>{OFF_POS[p.id]=Object.assign({court},p)}));
 /** 官階 1～6 的待遇與權力說明。 */
 const RANK_INFO={};OFFICIALS.ranks.forEach(r=>RANK_INFO[r.rank]=r);
-/** 對該官階送『黃金點心』的基準金額（已折半，最少 1 兩）。 */
+/** 對該官階送賄賂金封的基準金額（已折半，最少 1 兩）。 */
 const giftGoldCost=rank=>Math.max(1,Math.round(RANK_INFO[rank].bribe_base_gold*0.08));
 
 /** 從某院某官階隨機挑一個職位。 */
@@ -1531,7 +1544,7 @@ function newGame(sysKey,regionPref){
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
-    fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,histDone:{},encounterTurn:-1};
+    fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1};
   G.me.given=pick(GIVEN);G.me.name=G.me.family+'屋 '+G.me.given;
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；本店所在城市不能是本業貨品的產地
   const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
@@ -1670,8 +1683,8 @@ function luxTick(c,m,first){
 function rivalSupply(c,m,first){
   const R=ODDS.rivalShip,base=m.D*R.base,rv=rivalsHere();
   if(!rv.length)return Math.round(base*(R.lo+rnd()*(R.hi-R.lo)));
-  const sc=marketShares().rows,tot=sc.reduce((a,r)=>a+r.score,0),others=R.others;
-  const frac=tot/(tot+others);let sum=base*(1-frac)*(0.95+rnd()*0.1),big=null;
+  const sc=marketShares().rows,tot=sc.reduce((a,r)=>a+r.score,0),frac=1-R.otherShare;
+  let sum=base*R.otherShare*(0.95+rnd()*0.1),big=null;
   sc.forEach(r=>{
     const w=tot>0?r.score/tot:0;let f=R.lo+rnd()*(R.hi-R.lo);
     f*=clamp(r.stock/0.9,0.5,1.3);if(r.raided)f*=0.4;
@@ -1725,8 +1738,8 @@ const buyLimit=name=>Math.max(1,Math.floor(quotaOf(name)*buyLimitMult()));      
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
 const pendingQty=()=>(G.orders||[]).reduce((a,o)=>a+o.qty,0);
-/** 向大盤『下單』：檢查每旬上限/庫存上限/倉庫容量/白銀；先付款、下一旬到貨；進貨量會推高進貨價（上限 1.3 倍）。 */
-function buyGoods(name,qty){
+/** 向大盤『下單』：檢查每旬上限/庫存上限/倉庫容量/現款；先付款、下一旬到貨；進貨量會推高進貨價（上限 1.3 倍）。 */
+function buyGoods(name,qty,manual){
   qty=Math.floor(qty);if(qty<=0)return {ok:false,msg:MSG('buyGoods.1')};
   if(!G.orders)G.orders=[];
   if(invUsed()+pendingQty()+transitQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),transitQty:(pendingQty()+transitQty()),invCap:invCap()})};
@@ -1735,7 +1748,7 @@ function buyGoods(name,qty){
   if(qty>buyLeft(name))return {ok:false,msg:MSG('buyGoods.4',{name:COMM_MAP[name].short,buyLimit:buyLimit(name),buyLeft:buyLeft(name),mult:fmt1(buyLimitMult())})};
   const cost=Math.round(unitBuyCost(name)*qty);
   if(G.silver<cost)return {ok:false,msg:MSG('buyGoods.5',{cost:fmt(cost)})};
-  G.silver-=cost;sfx.coin();addFame(0.05);
+  G.silver-=cost;if(manual)notePublicSpend('大盤進貨：'+COMM_MAP[name].short,cost);sfx.coin();addFame(0.05);
   G.bought=G.bought||{};G.bought[name]=(G.bought[name]||0)+qty;
   mk.press=Math.min(1.3,(mk.press||1)+0.15*qty/Math.max(1,itemCap(name)));   // 進貨量推高大盤價
   const o=G.orders.find(x=>x.name===name&&x.unit===+unitBuyCost(name).toFixed(2));
@@ -1840,8 +1853,9 @@ function officialExtort(){
   const n=pick(offs);const r=R(n.cid);
   const amt=giftGoldCost(n.pos.rank);
   if(r.promises.some(p=>p.kind==='tribute'&&!p.done))return null;
-  r.promises.push({kind:'tribute',text:'「'+nameOf(n.cid)+'」胃口漸大，暗示三旬內需進獻白銀 '+amt*BRIBE_RATE+' 兩',due:G.turn+3,amount:amt,done:false,by:'官方'});
-  logRel(n.cid,'暗示需再進獻白銀 '+amt*BRIBE_RATE+' 兩，限三旬內。');
+  r.promises.push({kind:'tribute',text:'「'+nameOf(n.cid)+'」胃口漸大，暗示三旬內需進獻現款 '+amt*BRIBE_RATE+' 兩',due:G.turn+3,amount:amt,done:false,by:'官方'});
+  logRel(n.cid,'暗示需再進獻現款 '+amt*BRIBE_RATE+' 兩，限三旬內。');
+  queueFaceEvent({type:'extort',cid:n.cid,amt:amt*BRIBE_RATE,due:G.turn+3});
   return NEWS('officialExtort.2',{n:nameOf(n.cid)});
 }
 /** 事件：盜賊潛入倉庫（保鏢可降低損失）。 */
@@ -1970,24 +1984,23 @@ function myEventFactor(){
   let f=1;if(festActive())f*=1.15;if(G.cartel.sanction>0)f*=0.7;if(G.staple&&G.staple.cool>0)f*=0.85;if(G.flags&&G.flags.exempt>0)f*=1.03;
   return f;
 }
-/** 【市佔率】分數＝(0.2＋0.25×知名度＋0.25×庫存)×臨時波動×事件，再與零星散商一起正規化；換算『本業需求倍率』0.6～1.5。 */
+/** 【市佔率】具名中盤商依知名度、庫存、臨時波動與事件分配 99.5%；未列名的零星供貨固定為 0.5% 誤差。 */
 function marketShares(){
   const sc=(stock,fame,tmp,ev)=>(0.2+0.25*clamp(fame/ODDS.fame.cap,0,1)+0.25*clamp(stock/1.5,0,1))*tmp*ev;
   const rows=rivalsHere().map(n=>{const m=msOf(n);return {cid:n.cid,name:nameOf(n.cid),stock:m.stock,fame:m.fame,ev:m.ev,raided:!!n.raided,score:sc(m.stock,m.fame,m.tmp,m.ev)*(n.raided?0.4:1),prev:m.prev}});
   G.mytmp=G.mytmp||1;
   const st=ownStockLevel(),ev=myEventFactor();
   const me={me:true,name:'你的商號',stock:st,fame:G.fame||0,ev,score:sc(st,G.fame||0,G.mytmp,ev)};
-  const others=0.45;
-  /* 初始市佔率校準為 5%：第一次計算時求出倍率 G.mybias；之後穩定供貨會微幅調高它 */
-  if(G.mybias===undefined){const T0=rows.reduce((a,r)=>a+r.score,0)+others;G.mybias=me.score>0?0.05/0.95*T0/me.score:1}
+  const otherShare=ODDS.rivalShip.otherShare,named=rows.reduce((a,r)=>a+r.score,0);
+  /* 初始市佔率校準為 5%：先扣除固定的零星誤差，再求出倍率 G.mybias；之後穩定供貨會微幅調高它 */
+  if(G.mybias===undefined){const target=0.05;G.mybias=me.score>0&&named>0?target*named/(1-otherShare-target)/me.score:1}
   me.score*=G.mybias;
-  const tot=rows.reduce((a,r)=>a+r.score,0)+me.score+others;
-  rows.forEach(r=>r.share=r.score/tot);me.share=me.score/tot;
-  const base=1/(rows.length+2);
-  return {me:me.share,rows,mine:me,others:others/tot,factor:clamp(1+3*(me.share-0.05),0.85,1.5),turn:G.turn};
+  const known=named+me.score,scale=known>0?(1-otherShare)/known:0;
+  rows.forEach(r=>r.share=r.score*scale);me.share=me.score*scale;
+  return {me:me.share,rows,mine:me,others:otherShare,factor:clamp(1+3*(me.share-0.05),0.85,1.5),turn:G.turn};
 }
-/** 取本旬市佔率倍率（必要時重算）；priceNow 用它放大/縮小本業需求。 */
-function shareFactor(){if(!G.share||G.share.turn!==G.turn)G.share=marketShares();return G.share.factor}
+/** 取本旬市佔率倍率；舊存檔若仍帶著舊制零星供貨比例，也立即重算。 */
+function shareFactor(){if(!G.share||G.share.turn!==G.turn||G.share.others!==ODDS.rivalShip.otherShare)G.share=marketShares();return G.share.factor}
 /** 每旬更新同行狀態（庫存隨機漫步、臨時波動、偶發事件與新聞）後重算市佔率。 */
 function msTick(log){
   const prevRows={};if(G.share)G.share.rows.forEach(r=>prevRows[r.cid]=r.share);
@@ -2078,7 +2091,7 @@ function routeQuote(name,qty,origId,mode){
   const sell=Math.round(home*qty*empMult());
   return {d,unit,cost,freight,duty,total:cost+freight+duty,risk,sell,margin:sell-(cost+freight+duty),cap};
 }
-/** 下單運入：檢查產地、許可、船隊、船長/飛腳、運量、庫存上限、白銀；一次付清貨款＋運費＋關稅；到貨後入倉。 */
+/** 下單運入：檢查產地、許可、船隊、船長/飛腳、運量、庫存上限、現款；一次付清貨款＋運費＋關稅；到貨後入倉。 */
 function dispatchShip(name,qty,origId,mode){
   qty=Math.floor(qty);const a=homeCity(),b=CITY(origId);
   if(!b||origId===G.cityId)return {ok:false,msg:MSG('dispatchShip.1')};
@@ -2095,7 +2108,7 @@ function dispatchShip(name,qty,origId,mode){
   if(qty>itemRoom(name))return {ok:false,msg:MSG('dispatchShip.9',{name:COMM_MAP[name].short,itemCap:itemCap(name),itemRoom:itemRoom(name)})};
   const q=routeQuote(name,qty,origId,mode);
   if(G.silver<q.total)return {ok:false,msg:MSG('dispatchShip.10',{q:fmt(q.total)})};
-  G.silver-=q.total;
+  payPublic('商路運貨：'+COMM_MAP[name].short,q.total);
   G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),name,qty,origId,mode,eta:q.d,risk:q.risk,cost:q.total,unit:q.total/Math.max(1,qty),start:G.turn,capt:cap.id,captName:cap.name});
   sfx.step();return {ok:true,msg:MSG('dispatchShip.depart',{crew:mode==='sea'?'船長':'飛腳',who:cap.name,origin:b.name,d:q.d,total:fmt(q.total),cost:fmt(q.cost),freight:fmt(q.freight),duty:fmt(q.duty)})};
 }
@@ -2121,18 +2134,17 @@ function shipsTick(log){
 }
 
 /* ---------- 開銷 ---------- */
-/** 每旬開銷：夥計薪水、倉庫、家用，加上財大氣粗的冥加金；負債計息。 */
+/** 每旬開銷：夥計薪水、倉庫與家用；負債另計利息。 */
 /** 本旬收支報告暫存（autoShip 開頭建立，upkeep/skimTick 補充，doTurn 讀取）。 */
 var TURNRP=null;
 function upkeep(log){
   let wages=0;G.emps.forEach(e=>wages+=e.wage);
   const fam=12+(G.family.spouse?8:0)+(G.family.conc||[]).length*8+G.family.kids.length*4;
   const cost=wages+G.wh.n*6+fam;
-  const levy=Math.round(Math.max(0,G.silver-5000)*0.006);                 // 冥加金：財大氣粗，官府與町內自然來打秋風
-  G.silver-=cost+levy;G.lastCost=cost+levy;
+  G.silver-=cost;G.lastCost=cost;
   let interest=0;
   if(G.silver<0){interest=Math.round(-G.silver*0.02);G.silver-=interest}
-  if(TURNRP)TURNRP.cost={wages,guards:0,wh:G.wh.n*6,fam,levy,interest};
+  if(TURNRP)TURNRP.cost={wages,guards:0,wh:G.wh.n*6,fam,interest};
   if(G.flags.exempt>0)G.flags.exempt--;regionTick(log);appsTick(log);tributeTick(log);oiranTick(log);
   if(G.flags.warned>0&&G.turn%6===0)G.flags.warned=Math.max(0,G.flags.warned-1);
   G.heat=Math.max(0,(G.heat||0)-0.15);
@@ -2162,12 +2174,13 @@ function cityTick(){
 }
 
 /* ---------- 旬推進 ---------- */
-/** 【每旬推進的唯一入口】順序：自動出貨→日期前進→訂單到貨→公會結算→同業市佔率→市場刷新→庫存損耗→商路→員工→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
+/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→同業市佔率→市場刷新→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
 function advanceTurn(){
   syncPeaks();
-  const log=[],s0=G.silver;                       // 旬初公款                       // s0：本旬開頭的公款，供『每旬盈餘』計算
+  const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   autoShip(log);
   autoBuy(log);
+  chiefGuildTick(log);                            // 玩家整旬未出席例會，才由大番頭於旬末代席
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
   G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};
@@ -2197,7 +2210,7 @@ function advanceTurn(){
   inspectTick(log);
   xgoodsTick(log);
   skimTick(log,s0);
-  if(TURNRP){TURNRP.net=G.silver-s0;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
+  if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0);TURNRP.net=G.silver-s0-ps;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
   injuryTick(log);
   G.life.peak=Math.max(G.life.peak,G.silver);
@@ -2265,13 +2278,13 @@ function visitRoll(cid){
   const outcome=x<pRef?'refuse':x<pRef+0.05?'absent':'ok';
   return {outcome,m,pRef};
 }
-/** 結識前檢查（人情額度、白銀、是否已結識…），回傳錯誤字串或 null。 */
+/** 結識前檢查（人情額度、現款、是否已結識…），回傳錯誤字串或 null。 */
 function meetCheck(cid,viaIntro){
   const n=npc(cid),r=R(cid);
   if(!n)return '此人已不在此地';
   if(isEnemy(cid))return '對方視你為仇人，拒不見面。';
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return '才剛請託過，三旬內不宜再度叨擾';
-  /* 知名度階級：有介紹人時視同 +1 階；私款每千兩 +1 階已含在 fameTier */
+  /* 知名度階級：有介紹人時視同 +1 階；私房錢每千兩 +1 階已含在 fameTier */
   const need=meetTierNeed(cid),have=fameTier()+(viaIntro?1:0);
   if(have<need)return '知名度不足：要見'+(n.role==='oiran'?'這位名伶':'這位官員')+'需知名度 '+TIER_NAME[need]+'（你目前 '+TIER_NAME[fameTier()]+(viaIntro?'，有介紹人 +1':'，請介紹人引薦可 +1')+'）';
   if(viaIntro){
@@ -2351,7 +2364,7 @@ function revealWeakness(cid){
 /* ---------- 贈禮：投其所好（軟肋）才有三倍效果 ---------- */
 /** 禮物表：weak 對應名冊『軟肋』文字，命中×3；silver/gold 為價格（已折半）。新增禮物在此加一筆。 */
 const GIFTS=[
-  {k:'gold',name:'賄賂金封',icon:'🟨',weak:null,gold:true,desc:'以公款（白銀）包的紅包，通用，但貪欲高者才吃這一套；留下黑帳痕跡。'},
+  {k:'gold',name:'賄賂金封',icon:'🟨',weak:null,gold:true,desc:'以現款包的紅包，通用，但貪欲高者才吃這一套；留下黑帳痕跡。'},
   {k:'art',name:'名家字畫',icon:'🖼️',weak:'喜好收受罕見字畫',silver:costOf('gift_art')},
   {k:'antique',name:'古董珍奇',icon:'🏺',weak:'癡迷古代珍奇異寶',silver:costOf('gift_antique')},
   {k:'wine',name:'灘之美酒',icon:'🍶',weak:'好美酒佳釀',silver:costOf('gift_wine')},
@@ -2371,19 +2384,19 @@ const RANK_COST_MULT=[0,1,1,1.3,2,3,5];
 /** 某禮物對某人的實際價格。 */
 function giftCost(g,cid){
   const t=targetTier(cid),mult=RANK_COST_MULT[t]||1;
-  /* 賄賂一律用公款白銀：原『金』單位 × BRIBE_RATE 換算 */
+  /* 賄賂一律用現款：原『金』單位 × BRIBE_RATE 換算 */
   if(g.gold){const gc=npc(cid)&&npc(cid).pos?giftGoldCost(t):1;return {silver:(gc>1?Math.max(1,Math.round(gc/2)):gc)*BRIBE_RATE}}
   return {silver:Math.round(g.silver*mult)};
 }
-/** 賄賂換算：舊制『1 兩金』＝ 15 兩白銀（賄賂、拜訪都花公款白銀）。 */
+/** 賄賂換算：舊制『1 兩金』＝ 15 兩現款（賄賂、拜訪都花現款）。 */
 const BRIBE_RATE=15;
-/** 送禮：扣費、依是否命中軟肋與羈絆倍率計算好感，黃金點心會累積黑帳 heat。 */
+/** 送禮：扣費、依是否命中軟肋與羈絆倍率計算好感，賄賂金封會累積黑帳 heat。 */
 function giveGift(cid,key){
   const r=R(cid),c=CH(cid),g=GIFT_MAP[key],n=npc(cid);
   if(!r.bond)return {ok:false,msg:MSG('giveGift.1')};
   const cost=giftCost(g,cid);
   if(cost.silver&&G.silver<cost.silver)return {ok:false,msg:MSG('giveGift.2',{cost:fmt(cost.silver)})};
-  if(cost.silver)G.silver-=cost.silver;
+  if(cost.silver)payPublic('禮物：'+g.name,cost.silver);
   let mult,reaction;
   const matched=g.weak&&c.weakness===g.weak;
   if(g.gold){
@@ -2430,15 +2443,15 @@ function doFavor(cid,key){
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank)return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
-  if(r.aff<FAVOR_HOLD){r.aff=Math.max(0,r.aff-3);logRel(cid,'請託「'+f.name+'」被一口回絕（好感不足），好感 -3。');return {ok:true,status:'refused',msg:MSG('doFavor.refuse',{say:TX('favor.refuse'),aff:Math.round(r.aff)})}}
-  if(r.aff<FAVOR_OK){logRel(cid,'請託「'+f.name+'」被擱置：'+TX('favor.holdLog'));return {ok:true,status:'held',msg:MSG('doFavor.hold',{say:TX('favor.hold'),aff:Math.round(r.aff)})}}
+  if(r.aff<FAVOR_HOLD){r.aff=Math.max(0,r.aff-3);logRel(cid,'請託「'+f.name+'」被一口回絕，彼此關係也冷了幾分。');return {ok:true,status:'refused',msg:MSG('doFavor.refuse',{say:TX('favor.refuse')})}}
+  if(r.aff<FAVOR_OK){logRel(cid,'請託「'+f.name+'」被擱置：'+TX('favor.holdLog'));return {ok:true,status:'held',msg:MSG('doFavor.hold',{say:TX('favor.hold')})}}
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&(key==='direct'?G.flags.direct:regionHeld(key,n)))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   const gold=f.cost.gold?favorGoldCost(f,n):0,silver=f.cost.silver||0;
-  /* favorGoldCost 現在回傳『白銀』金額（賄賂走公款） */
+  /* favorGoldCost 現在回傳現款金額（賄賂走現款） */
   const bribe=gold,total=gold+silver;
   if(G.silver<total)return {ok:true,status:'held',msg:MSG('doFavor.4',{total:fmt(total)})};
-  G.silver-=total;if(bribe){G.life.gold+=Math.round(bribe/BRIBE_RATE);G.heat=(G.heat||0)+1}
+  payPublic((bribe?'賄賂：':'請託：')+f.name,total);if(bribe){G.life.gold+=Math.round(bribe/BRIBE_RATE);G.heat=(G.heat||0)+1}
   r.aff=Math.max(0,r.aff-4);if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(key==='contract'){const inc=Math.round(n.pos.rank*220*(0.8+rnd()*0.6));G.silver+=inc;G.life.contracts++;const gf=addFame(0.5*n.pos.rank);msg='標得工程，入帳 '+fmt(inc)+' 兩，知名度 +'+gf+'。'}
@@ -2454,7 +2467,7 @@ function doFavor(cid,key){
     setEv(c=>c.sys===G.sysKey,1.2);msg+=MSG('doFavor.5');const lf=loseFame('raidRival');if(lf)msg+='風聲外傳，知名度 -'+lf+'。';
   }
   logRel(cid,'請託「'+f.name+'」：'+msg);
-  return {ok:true,status:'done',msg:MSG('doFavor.6',{msg})};
+  return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg};
 }
 /* 一次登門：備禮、請託（可以什麼都不說）。roll 為先前決定的拜訪結果 */
 /** 【一次登門的完整結算】不在家/拒見/成功；成功則先送禮，再請託（或什麼都不說）。回傳要顯示的訊息。 */
@@ -2499,8 +2512,42 @@ function rumorsOf(cid){
 }
 
 /* ---------- 承諾 ---------- */
+/** 每旬人物流動：本城與同一座外地城市各交換一人，不增減各城職缺與宅邸人數。 */
+function peopleMoveTick(log){
+  if(roll('officialTransfer')){
+    const local=officialsOf(G.cityId);
+    const foreign=Object.values(G.world.npcs).filter(n=>n.role==='official'&&n.cityId!==G.cityId&&n.pos&&n.pos.court!=='region'&&alive(n.cid));
+    if(local.length&&foreign.length){
+      const out=pick(local),incoming=pick(foreign),foreignId=incoming.cityId;
+      const homePos=out.pos,foreignPos=incoming.pos;
+      out.cityId=foreignId;out.pos=foreignPos;
+      incoming.cityId=G.cityId;incoming.pos=homePos;
+      addKnown(incoming.cid);
+      logRel(out.cid,'奉官府調令離開本城，調往'+CITY(foreignId).name+'。');
+      logRel(incoming.cid,'自'+CITY(foreignId).name+'調來本城，接掌'+posTitle(incoming)+'。');
+      const t=NEWS('peopleMove.official',{out:nameOf(out.cid),dest:CITY(foreignId).name,in:nameOf(incoming.cid),from:CITY(foreignId).name,post:posTitle(incoming)});
+      pushNews(t);log.push(t);
+    }
+  }
+  if(roll('residenceTransfer')){
+    const employed=n=>n.hired||(G.emps||[]).some(e=>e.cid===n.cid);
+    const movable=n=>n.role!=='official'&&n.role!=='oiran'&&n.role!=='guard'&&n.role!=='rival'&&!introOf(n.cid)&&!employed(n)&&alive(n.cid);
+    const foreign=Object.values(G.world.npcs).filter(n=>n.cityId!==G.cityId&&movable(n));
+    const local=resident().filter(movable).filter(n=>foreign.some(x=>x.role===n.role));
+    if(local.length){
+      const out=pick(local),incoming=pick(foreign.filter(n=>n.role===out.role)),foreignId=incoming.cityId;
+      out.cityId=foreignId;incoming.cityId=G.cityId;
+      addKnown(incoming.cid);
+      logRel(out.cid,'離開本城宅邸，遷往'+CITY(foreignId).name+'。');
+      logRel(incoming.cid,'自'+CITY(foreignId).name+'遷入本城宅邸。');
+      const t=NEWS('peopleMove.residence',{kind:ROLE_LABEL[out.role]||'名士',out:nameOf(out.cid),dest:CITY(foreignId).name,in:nameOf(incoming.cid),from:CITY(foreignId).name});
+      pushNews(t);log.push(t);
+    }
+  }
+}
 /** 每旬人際結算：承諾逾期扣好感、逾期失信會扣好感。 */
 function peopleTick(log){
+  peopleMoveTick(log);
   Object.entries(G.rel).forEach(([cid,r])=>{
     r.promises.forEach(p=>{
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;r.aff=Math.max(0,r.aff-10);logRel(cid,'逾期未兌現：'+p.text+'，交情 -10。');const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
@@ -2515,7 +2562,7 @@ function payPromise(cid,idx){
   if(p.kind==='tribute'){
     const amtS=p.amount*BRIBE_RATE;
     if(G.silver<amtS)return {ok:false,msg:MSG('payPromise.2',{amtS:fmt(amtS)})};
-    G.silver-=amtS;G.life.gold+=p.amount;G.heat=(G.heat||0)+1;p.done=true;r.aff=clamp(r.aff+3,0,100);logRel(cid,'依約進獻黃金 '+p.amount+' 兩，官員稍感滿意。');
+    payPublic('進獻現款：'+nameOf(cid),amtS);G.life.gold+=p.amount;G.heat=(G.heat||0)+1;p.done=true;r.aff=clamp(r.aff+3,0,100);logRel(cid,'依約進獻現款 '+amtS+' 兩，官員稍感滿意。');
     return {ok:true,msg:MSG('payPromise.3',{amtS:fmt(amtS)})};
   }
   p.done=true;return {ok:true,msg:MSG('payPromise.4')};
@@ -2772,7 +2819,7 @@ function yearTick(log){
 }
 
 /* ---------- 蓋棺評語與傳承 ---------- */
-/** 淨資產估算（白銀＋庫存市值等）。 */
+/** 淨資產估算（現款＋庫存市值等）。 */
 function netWorth(){let v=G.silver;Object.entries(G.inv).forEach(([n,q])=>v+=q*COMM_MAP[n].base);return Math.round(v)}
 /** 生平總結評語（高/中/低好感）。 */
 const QUOTE_HI=Ls('eulogy.hi'),QUOTE_MID=Ls('eulogy.mid'),QUOTE_LO=Ls('eulogy.lo');          // 台詞在 01d_lines.js
@@ -2791,7 +2838,7 @@ function obituary(){
     const pool=r.aff>=70?QUOTE_HI:r.aff>=45?QUOTE_MID:QUOTE_LO;
     return {name:nameOf(id),aff:r.aff,txt:pool[Math.floor(rd()*pool.length)].replace('{n}',G.me.given)};
   });
-  const facts=['在世 '+age+' 載，歷經 '+(G.year-0)+' 個寒暑','經手貨殖，淨資產約 '+fmt(nw)+' 兩','打點官場，進獻黃金點心 '+L.gold+' 兩','施粥賑濟 '+L.charity+' 次，違約偷跑 '+L.cheats+' 次','經歷火災 '+L.fires+' 次、打毀 '+L.riots+' 次','膝下 '+G.family.kids.length+' 名子女'];
+  const facts=['在世 '+age+' 載，歷經 '+(G.year-0)+' 個寒暑','經手貨殖，淨資產約 '+fmt(nw)+' 兩','打點官場，動用私房錢 '+L.gold+' 兩','施粥賑濟 '+L.charity+' 次，違約偷跑 '+L.cheats+' 次','經歷火災 '+L.fires+' 次、打毀 '+L.riots+' 次','膝下 '+G.family.kids.length+' 名子女'];
   return {wealth,moral,pol,sum,quotes,facts,nw,age};
 }
 /** 結束這一世（破產/病逝/退隱）。 */
@@ -3097,7 +3144,7 @@ function playFx(kind,cap,sub,done,ms){
   const fin=()=>{clearInterval(iv);clearTimeout(FX.timer);fx.classList.remove('on');FX.busy=false;fx.onclick=null;done&&done()};
   fx.onclick=fin;FX.timer=setTimeout(fin,ms);
 }
-/* 金幣飛向白銀 */
+/* 金幣飛向現款 */
 /** 金幣飛舞效果。 */
 function coinFx(from){
   try{
@@ -3520,7 +3567,7 @@ UI.render=function(){
   const od=Object.values(G.rel).some(r=>r.promises.some(p=>!p.done&&G.turn>p.due-1));
   $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if(b.dataset.tab==='notes'&&od){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
-/** 更新頂部資訊（日期、白銀、黃金、知名度、行動點數）。 */
+/** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
   $('#d-date').textContent=yearStr(G.year)+' '+G.month+'月'+CYCLE_NAMES[G.cycle-1];
   $('#k-date').textContent='曆法·'+season()+'季';
@@ -3626,7 +3673,7 @@ function shareCard(){
   const line=r=>{const pct=(r.v*100).toFixed(1);const tr=r.pv!==null&&r.pv!==undefined?(r.v>r.pv+0.002?'<span class="up">▲</span>':r.v<r.pv-0.002?'<span class="down">▼</span>':''):'';return '<div style="margin-top:3px"><div class="row tiny"><span'+(r.me?' style="font-weight:bold;color:#9b2c3a"':'')+'>'+esc(r.n)+r.tag+' '+tr+'</span><b>'+pct+'%</b></div>'+bar(r.v,0.5,r.me?'gold':'gray')+'</div>'};
   const m=sh.mine;
   return '<div class="card"><div class="row"><b class="small">🏪 本城同業市佔率（本業）</b><span class="tag '+(sh.factor>=1?'green':'red')+'">'+(sh.factor>=1.25?'本業買氣旺':sh.factor>=1.05?'本業買氣不錯':sh.factor>=0.95?'本業買氣持平':'本業買氣偏弱')+'</span></div>'+rows.map(line).join('')
-   +'<div class="tiny muted" style="margin-top:4px">另有零星散商約 '+(sh.others*100).toFixed(0)+'%。</div>'
+   +'<div class="tiny muted" style="margin-top:4px">未列名的零星供貨約 '+(sh.others*100).toFixed(1)+'%（市占估計誤差）。</div>'
    +'</div>';
 }
 /** 本旬進貨列表（只列「預定」進貨；推進一旬後清空，不顯示已到貨／在途數量）。 */
@@ -3654,7 +3701,7 @@ function maxBuy(name){
   return Math.max(0,Math.min(buyLeft(name),itemRoom(name),invCap()-invUsed()-pendingQty()-transitQty()-oq,Math.floor((G.silver-oc)/u)));
 }
 function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(G.buyPlan[name]||0,0,maxBuy(name))}
-/** 一次把所有本業貨品排到進貨上限（依序分配，受倉容、品項上限、本旬額度與公款限制）。 */
+/** 一次把所有本業貨品排到進貨上限（依序分配，受倉容、品項上限、本旬額度與現款限制）。 */
 ACT.buyMax=()=>{
   G.buyPlan={};let room=invCap()-invUsed()-pendingQty()-transitQty(),cash=G.silver,tot=0;
   ownComms().forEach(c=>{
@@ -3675,7 +3722,7 @@ function autoBuy(log){
 ACT.buy=el=>{
   const name=UI.s.focus;let q=el.dataset.q;
   q=+q;
-  const r=buyGoods(name,q);toast(r.msg);if(r.ok)coinFx(el.getBoundingClientRect());UI.render();
+  const r=buyGoods(name,q,true);toast(r.msg);if(r.ok)coinFx(el.getBoundingClientRect());UI.render();
 };
 /** 按下『出貨』：以目前預設/滑桿量出貨並標記本旬已出貨。 */
 ACT.ship=el=>{
@@ -3725,10 +3772,12 @@ ACT.fleetUp=()=>{
 document.addEventListener('change',e=>{if(e.target.id==='r-qty'){UI.s.route.qty=Math.max(1,Math.floor(+e.target.value||1));renderRoutes()}});
 
 /* ---------- 說明視窗：官吏職位、貿易物品 ---------- */
+/** 關閉目前視窗後要接續執行的動作（例如旬報後依序顯示人物事件）。 */
+var INFO_AFTER=null;
 /** 顯示置中的說明視窗（官吏職位、貿易物品）。 */
 UI.showInfo=(title,html)=>{$('#info-title').textContent=title;$('#info-body').innerHTML=html;$('#info-bd').classList.remove('hidden');$('#info-body').scrollTop=0};
 /** 關閉說明視窗。 */
-UI.hideInfo=()=>$('#info-bd').classList.add('hidden');
+UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
 /** 說明視窗的欄位格式。 */
 const ik=(k,v)=>v?'<div class="ik">'+k+'</div><div class="iv">'+esc(v)+'</div>':'';
 /** 官吏職位說明內容（職掌、貪腐破口、升遷等，資料來自 OFFICIALS）。 */
@@ -3739,7 +3788,7 @@ function posInfoHtml(id){
   return '<div class="small"><span class="tag '+COURTS[p.court].cls+'">'+COURTS[p.court].name+'</span> <span class="tag gold">'+esc(rk.title)+'</span></div>'
    +ik('所屬',sys.name+'·'+sys.department)+ik('職掌',p.duties)+ik('官階權力',rk.influence)+ik('與商人的關係',sys.merchant_interaction)
    +ik('貪腐破口',p.corruption_hooks)+ik('可升遷至',(p.promotes_to||[]).map(nm).join('、')||'（已達頂點）')+ik('升遷條件',p.promotion_conditions)
-   +'<div class="ik">官階待遇</div><div class="iv">年俸 '+rk.salary_koku+' 石·黃金點心基準 '+rk.bribe_base_gold+' 兩金</div>';
+   +'<div class="ik">官階待遇</div><div class="iv">年俸 '+rk.salary_koku+' 石·賄賂基準 '+rk.bribe_base_gold+' 兩金</div>';
 }
 /** 顯示單一官吏職位說明。 */
 ACT.posInfo=el=>{const p=OFF_POS[el.dataset.id];UI.showInfo('官吏職位：'+(p?p.title:''),posInfoHtml(el.dataset.id))};
@@ -3771,7 +3820,8 @@ function supplyLine(name){const sh=(G.share&&G.share.me)||0.05;return Math.max(1
 /** 推進一旬前，對本旬沒按『出貨』的物品自動按預定量出貨，並清空本旬計畫。 */
 function autoShip(log){
   G.sold=G.sold||{};G.plan=G.plan||{};
-  const rep={rev:0,ship:[],fame:0};
+  const rep={rev:0,ship:[],fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
+  G.publicSpend={};
   const own=ownComms();let short=[],allMet=own.length>0;
   own.forEach(c=>{
     const quota=quotaOf(c.name),have=G.inv[c.name]||0;
@@ -3843,16 +3893,7 @@ function personBlock(cid,ctx){
     else h+='<div class="tiny muted" style="margin:2px 0">🤫 軟肋未明</div>';
     h+='<div class="small bold" style="margin-top:5px">🎁 備禮拜訪</div>';
     h+='<div class="row" style="gap:4px;margin-top:2px"><span class="tiny">禮物</span><select class="gift-sel" style="flex:1;font-size:11px">'+giftOptions(cid)+'</select></div>';
-    if(isOff){
-      const fl=favorList(cid);
-      h+='<div class="row" style="gap:4px;margin-top:3px"><span class="tiny">請託</span><select class="favor-sel" style="flex:1;font-size:11px"><option value="none">'+UT('opt.noFavor')+'</option>'+fl.map(f=>{
-        const g=f.cost.gold?favorGoldCost(f,n):0,sv=f.cost.silver||0;
-        const ct=f.apply?'規費 '+fmt(appFee(g))+' 兩':([g+sv?fmt(g+sv)+' 兩銀':''].filter(Boolean).join('＋')||'免費');
-        return '<option value="'+f.k+'">'+f.name+'（'+ct+(n.pos.rank<f.rank?UT('opt.rankShort'):'')+'）</option>';
-      }).join('')+'</select></div>';
-      if(fl.some(f=>f.apply))h+='<div class="row" style="gap:4px;margin-top:3px"><span class="tiny">賄賂</span><select class="bribe-sel" style="flex:1;font-size:11px"><option value="0">'+UT('opt.bribe0')+'</option><option value="1">'+UT('opt.bribe1')+'</option><option value="1.5">'+UT('opt.bribe15')+'</option><option value="2">'+UT('opt.bribe2')+'</option></select></div><div class="tiny muted">申請要繳規費（不退），可另附賄賂。有人愛錢，有人最恨收賄。</div>';
-      h+='<div class="tiny muted" style="margin-top:2px">好感夠高才肯辦，普通擱置，太低拒絕。先送禮，再開口。</div>';
-    }
+    if(isOff)h+='<div class="tiny muted" style="margin-top:3px">拜訪見到本人後，再看場合開口請託。</div>';
     h+='<div style="margin-top:4px;display:flex;gap:4px"><button class="pixel-btn btn-sm btn-gold" style="flex:2" data-act="visit" data-cid="'+cid+'">'+UT('btn.visit')+'</button>'+errandBtn(cid)+'</div>';
     h+=promiseLines(cid);if(typeof schemeHtml==='function')h+=schemeHtml(cid);if(typeof tributeHtml==='function')h+=tributeHtml(cid);
     const ithr=G.intros.length?55:40,canIntro=canBeIntro(cid);if(ctx==='res'&&canIntro&&r.aff>=ithr&&!introOf(cid)&&G.intros.length<4)h+='<div style="margin-top:5px"><button class="pixel-btn btn-sm btn-green" data-act="makeIntro" data-cid="'+cid+'">'+UT('btn.makeIntro')+'</button></div>';else if(ctx==='res'&&canIntro&&!introOf(cid)&&G.intros.length<4)h+='<div class="tiny muted" style="margin-top:4px">好感達 '+ithr+' 以上，才能請他當介紹人。</div>';
@@ -3861,6 +3902,62 @@ function personBlock(cid,ctx){
 }
 /** 統一顯示結果訊息、重繪。 */
 function rr(r){toast(r.msg,Math.max(3200,r.msg.length*120));if(r.ok===false)sfx.bad();UI.render();refreshSheet()}
+/** 請託第二階段：先選事情，只有許可申請才展開可選賄賂。 */
+function favorHintPick(cid,lines,salt){
+  const s=String(cid)+':'+String(G.turn)+':'+String(salt||'');let h=0;
+  for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  return lines[h%lines.length];
+}
+function favorBribeHint(cid,mult){
+  const k=officialKind(npc(cid)),has=mult>0;
+  const lines=!has?(k==='greedy'?
+    ['對方指尖輕敲桌面，目光在你的袖口停了一瞬。','對方把文書擱在一旁，似乎還在等你表示些什麼。']:
+    k==='clean'?['對方端坐案前，只示意你把文書留下。','對方逐字看過申請，神色端正，沒有多說什麼。']:
+    ['對方翻了翻文書，一時看不出心中打算。','對方收下申請，只淡淡說會照章處理。']):
+    (k==='greedy'?['對方盯著你看，嘴角似乎略微鬆動。','對方掂了掂分量，目光仍在你臉上打轉。','對方把視線移向袖袋，說話的語氣稍稍和緩。']:
+     k==='clean'?['對方看向別處，神色似乎冷了幾分。','對方沒有碰那包現款，只抬眼沉默地看著你。','對方眉頭微皺，把文書往案角挪了挪。']:
+     ['對方看了一眼，隨即把注意力移回文書。','對方把現款與申請一併收下，神色沒有明顯變化。','對方略一停頓，仍只說會依次審看。']);
+  return favorHintPick(cid,lines,mult);
+}
+function favorFixedHint(cid){
+  const k=officialKind(npc(cid));
+  return favorHintPick(cid,k==='greedy'?
+    ['你才提到此事，對方的目光便在你的袖口停了一瞬。','對方壓低聲音，手指在桌面上輕輕點了兩下。']:
+    k==='clean'?['對方神色謹慎，似乎不願讓旁人聽見這番話。','對方沒有接話，只端起茶盞掩住神色。']:
+    ['對方環顧左右，示意你把話說得小聲些。','對方聽完來意，沉吟片刻，沒有立刻表態。'],'fixed');
+}
+function favorStageDetail(cid,key){
+  const n=npc(cid),f=favorList(cid).find(x=>x.k===key);
+  if(!f)return '<div class="notice tiny">先選一件想商量的事情。</div>';
+  if(n.pos.rank<f.rank)return '<div class="notice tiny">對方聽完來意，神色有些為難，似乎此事並不在其職權之內。</div>';
+  const bribe=f.cost.gold?favorGoldCost(f,n):0,fee=f.cost.silver||0;
+  if(f.apply){const B=favorGoldCost(f,n);return '<div class="card" style="margin-top:5px"><div class="tiny muted">申請本身不收費。若想另作表示，可備下：</div><select class="favor-bribe-sel" data-chg="favorBribePick" data-cid="'+cid+'" style="width:100%;margin-top:4px"><option value="0">不附賄賂（0 兩）</option><option value="1">賄賂 '+fmt(B)+' 兩</option><option value="1.5">賄賂 '+fmt(Math.round(B*1.5))+' 兩</option><option value="2">賄賂 '+fmt(B*2)+' 兩</option></select><div class="favor-bribe-hint tiny" style="margin-top:5px;color:#6b4327">'+esc(favorBribeHint(cid,0))+'</div></div>'}
+  const cost=bribe?'<b style="color:#9b2c3a">賄賂 '+fmt(bribe)+' 兩</b>':fee?'<b>現款 '+fmt(fee)+' 兩</b>':'<b>不需現款</b>';
+  return '<div class="card" style="margin-top:5px"><div class="small">若對方答應，將支付：'+cost+'</div>'+(bribe?'<div class="tiny" style="margin-top:5px;color:#6b4327">'+esc(favorFixedHint(cid))+'</div>':'')+'</div>';
+}
+function favorStageHtml(cid,visitMsg){
+  const fl=favorList(cid);
+  return '<div data-favor-stage="1" data-cid="'+cid+'">'+portraitHtml(cid,56)+'<div class="notice tiny">'+esc(visitMsg||'寒暄過後，對方等著你說明來意。')+'</div><div class="small bold" style="margin-top:7px">想請對方幫什麼忙？</div><select class="favor-stage-sel" data-chg="favorStagePick" style="width:100%;margin-top:4px"><option value="none">暫不請託</option>'+fl.map(f=>'<option value="'+f.k+'">'+esc(f.name)+'</option>').join('')+'</select><div class="favor-stage-detail">'+favorStageDetail(cid,'none')+'</div><div class="row" style="margin-top:7px;gap:5px"><button class="pixel-btn btn-sm" data-act="favorDone">今日只敘舊</button><button class="pixel-btn btn-sm btn-gold" data-act="favorAsk" data-cid="'+cid+'">開口請託</button></div></div>';
+}
+function openFavorStage(cid,visitMsg){UI.showInfo('當面請託·'+nameOf(cid),favorStageHtml(cid,visitMsg))}
+CHG.favorStagePick=el=>{
+  const root=el.closest('[data-favor-stage]'),cid=root.dataset.cid,detail=root.querySelector('.favor-stage-detail');
+  detail.innerHTML=favorStageDetail(cid,el.value);
+};
+CHG.favorBribePick=el=>{
+  const root=el.closest('[data-favor-stage]'),hint=root.querySelector('.favor-bribe-hint');
+  if(hint)hint.textContent=favorBribeHint(root.dataset.cid,+el.value);
+};
+ACT.favorDone=()=>UI.hideInfo();
+ACT.favorAsk=el=>{
+  const root=el.closest('[data-favor-stage]'),cid=el.dataset.cid,sel=root.querySelector('.favor-stage-sel'),key=sel&&sel.value;
+  if(!key||key==='none'){toast('先選一件想商量的事情。');return}
+  const f=favorList(cid).find(x=>x.k===key),bs=root.querySelector('.favor-bribe-sel');
+  BRIBE_X=f&&f.apply&&bs?+bs.value:0;
+  const r=doFavor(cid,key);BRIBE_X=0;
+  UI.showInfo('請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(r.msg)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="favorDone">告辭</button></div>');
+  if(r.ok===false)sfx.bad();else if(r.status==='done')sfx.coin();UI.render();refreshSheet();
+};
 /** 請引薦/自薦登門：扣行動點數→擲 visitRoll→播拜訪動畫→結算。 */
 ACT.meet=el=>{
   autoIntro(el.dataset.cid);
@@ -3881,19 +3978,20 @@ ACT.visit=el=>{
   autoIntro(el.dataset.cid);
   if(isEnemy(el.dataset.cid)){toast(MSG('visit.1'));return}
   const cid=el.dataset.cid,card=el.closest('.card');
-  const gift=card.querySelector('.gift-sel').value,fv=card.querySelector('.favor-sel'),favor=fv?fv.value:'none';
-  const bs=card.querySelector('.bribe-sel');BRIBE_X=bs?+bs.value:0;
+  const gift=card.querySelector('.gift-sel').value;
   if(gift!=='none'){const g=GIFT_MAP[gift],cost=giftCost(g,cid);
         if(cost.silver&&G.silver<cost.silver){toast(MSG('buyGoods.5',{cost:fmt(cost.silver)}));return}}
   ERR_REQ=el.dataset.err==='1';
   if(!spendVisitAP())return;
   const roll=visitRoll(cid);
-  const kind=favor!=='none'||BRIBE_X>0?'favor':gift!=='none'?'gift':'meet',prop=gift!=='none'?gift:(BRIBE_X>0?'gold':favor!=='none'?'petition':'letter');
+  const kind=gift!=='none'?'gift':'meet',prop=gift!=='none'?gift:'letter';
   visitFx({cid,outcome:roll.outcome,kind,prop,actor:ERR_ACTIVE?'apprentice':'player'},()=>{
     const a0=R(cid).aff;
-    const r=resolveVisit(cid,gift,favor,roll);errandTrim(cid,a0,r);
+    const r=resolveVisit(cid,gift,'none',roll);errandTrim(cid,a0,r);
     if(r.ok&&gift!=='none')coinFx();
-    rr(r);
+    UI.render();refreshSheet();
+    if(r.ok&&npc(cid)&&npc(cid).pos){toast(r.msg,Math.max(2800,r.msg.length*90));openFavorStage(cid,'寒暄與交禮已畢，對方端坐等你說明來意。')}
+    else rr(r);
   });
 };
 /** 探聽性向。 */
@@ -3949,7 +4047,7 @@ function goTo(k){const i=GO_INFO[k];
 /** 町奉行所面板：三院官員（人物卡）。 */
 SHEETS.yamen=()=>{
   const offs=officialsOf(G.cityId);
-  let h=introSel()+appsCard()+'<div class="notice tiny">奉行所分行政、財務、司法三院。第一次拜謁官員要靠介紹人引薦；送禮要投其所好，請託要好感夠高。<br>查帳風聲：'+(G.heat>6?'<b style="color:#b3261e">很緊</b>':G.heat>3?'<b style="color:#c18a00">偏緊</b>':'平靜')+'</div>';
+  let h=introSel()+appsCard()+'<div class="notice tiny">奉行所分行政、財務、司法三院。第一次拜謁官員要靠介紹人引薦；送禮要投其所好，有事相求也得看彼此交情與對方態度。<br>查帳風聲：'+(G.heat>6?'<b style="color:#b3261e">很緊</b>':G.heat>3?'<b style="color:#c18a00">偏緊</b>':'平靜')+'</div>';
   return {title:'🏛️ 町奉行所·三院府衙（'+homeCity().name+'）',html:h+'<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList')+'</button></div>'+(offs.map(n=>personBlock(n.cid,'yamen')).join('')||'<div class="notice">此城官署暫無人在值。</div>')};
 };
 /** 公會面板：配額、提案、表態。 */
@@ -4035,7 +4133,7 @@ SHEETS.city=()=>{
 SHEETS.menu=()=>{
   let h='<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+='<div class="notice tiny" style="margin-top:6px">每旬推進時自動存檔於此瀏覽器。</div>';
-  h+='<div class="card tiny"><b>📖 遊戲規則摘要</b><br>• <b>公款／私款</b>：白銀是公款（進貨、薪資、賄賂、拜訪）；黃金點心是私款（花街、走私），點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
+  h+='<div class="card tiny"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
   if(G.legacy.length)h+='<div class="card tiny"><b>🏯 家系</b>'+G.legacy.map(l=>'<div>第 '+l.gen+' 代·'+esc(l.name)+'·'+l.age+' 歲·'+({death:'壽終',bankrupt:'家業傾覆',executed:'伏法處刑'})[l.cause]+'（'+yearStr(l.year)+'）</div>').join('')+'</div>';
   return {title:'☰ 選單',html:h};
 };
@@ -4316,30 +4414,30 @@ ACT.begin=()=>{
 ACT.resume=()=>{G=loadSave();sanitizeIntros();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};
 
 /* =====================================================================
- * 07b_purse.js — 公款／私款、保鏢遇襲
- *  - 公款 = G.silver（白銀）：貨款、賄賂、拜訪、薪資皆用公款。
- *  - 私款 = G.gold（黃金點心）：花街、走私（暗約偷跑）專用。
- *  - 私款來源：①偷公款（每次最多 50 兩，扣 1 行動點數）②每旬盈餘抽成（0～3%）。
+ * 07b_purse.js — 現款／私房錢、保鏢遇襲
+ *  - 現款 = G.silver：貨款、賄賂、拜訪、薪資皆用現款。
+ *  - 私房錢 = G.gold：花街、走私（暗約偷跑）專用。
+ *  - 私房錢來源：①從商號帳上挪用（每次最多 50 兩，扣 1 行動點數）②每旬盈餘抽成（0～3%）。
  *  - 保鏢（SPECIAL 職位）：出門前往時 0.5～3% 遇襲，見 rollAmbush。
  * ===================================================================== */
 
-/** 單次偷公款上限（兩）。 */
+/** 單次從現款挪用的上限（兩）。 */
 const SKIM_MAX=50,SKIM_MIN=30;
 /** 每旬盈餘抽成上限（比例）。 */
 const SKIM_PCT_MAX=0.03;
 
-/** 私款面板（點最上方黃金點心旁的「＋」）：偷公款／設定每旬抽成。 */
+/** 私房錢面板（點最上方私房錢旁的「＋」）：從現款挪用／設定每旬抽成。 */
 SHEETS.purse=()=>{
   const pct=(G.skimPct||0)*100;
-  let h='<div class="notice tiny"><b>公款</b>＝白銀（頂部中央），商號的帳：進貨、薪資、賄賂與拜訪都花它。<b>私款</b>＝黃金點心，你自己的口袋：只用在<b>花街</b>與<b>走私（暗約偷跑）</b>。兩邊要分清楚，被抓到動公款可是大罪。</div>';
-  h+='<div class="card"><b>1. 從公款偷錢</b><div class="tiny muted">每次偷走 '+SKIM_MIN+'～'+SKIM_MAX+' 兩（隨機），扣 1 行動點數。</div>'
+  let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，只用在<b>吉原</b>與<b>走私（暗約偷跑）</b>。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
+  h+='<div class="card"><b>1. 從現款挪用</b><div class="tiny muted">每次挪走 '+SKIM_MIN+'～'+SKIM_MAX+' 兩（隨機），扣 1 行動點數。</div>'
     +'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="skim">'+UT('btn.skim')+'</button></div></div>';
-  h+='<div class="card"><b>2. 每旬盈餘自動抽成</b><div class="tiny muted">每旬若有盈餘，按此比例撥入私款（0～3%），目前 <b id="skim-pct-v">'+pct.toFixed(1)+'%</b>。</div>'
+  h+='<div class="card"><b>2. 每旬盈餘自動抽成</b><div class="tiny muted">每旬若有盈餘，按此比例撥入私房錢（0～3%），目前 <b id="skim-pct-v">'+pct.toFixed(1)+'%</b>。</div>'
     +'<input type="range" min="0" max="30" step="1" value="'+Math.round(pct*10)+'" data-chg="skimPct" style="width:100%"></div>';
-  h+='<div class="tiny muted">私款現有 <b>'+Math.round(G.gold)+'</b> 兩；公款 '+fmt(G.silver)+' 兩。</div>';
-  return {title:'🟨 私款·黃金點心',html:h};
+  h+='<div class="tiny muted">私房錢現有 <b>'+Math.round(G.gold)+'</b> 兩；現款 '+fmt(G.silver)+' 兩。</div>';
+  return {title:'🟨 私房錢',html:h};
 };
-/** 偷公款：隨機 30～50 兩，扣 1 行動點數。 */
+/** 從現款挪用：隨機 30～50 兩，扣 1 行動點數。 */
 ACT.skim=()=>{
   const amt=Math.min(Math.floor(G.silver),SKIM_MIN+Math.floor(rnd()*(SKIM_MAX-SKIM_MIN+1)));
   if(amt<1){toast(MSG('skim.1'));return}
@@ -4351,7 +4449,7 @@ ACT.skim=()=>{
 };
 /** 設定每旬抽成比例（滑桿 0～30 → 0～3.0%）。 */
 CHG.skimPct=el=>{G.skimPct=Math.min(SKIM_PCT_MAX,Math.max(0,(+el.value||0)/1000));const v=$('#skim-pct-v');if(v)v.textContent=(G.skimPct*100).toFixed(1)+'%';save()};
-/** 每旬結算：盈餘（公款較旬初的增加量）按比例撥入私款。s0＝旬初公款。 */
+/** 每旬結算：盈餘（現款較旬初的增加量）按比例撥入私房錢。s0＝旬初現款。 */
 function skimTick(log,s0){
   G.lastSkim=0;
   const p=G.skimPct||0;if(p<=0)return;
@@ -4407,13 +4505,14 @@ function rollAmbush(){
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,levy:0,interest:0},skim:0,fame:0,net:0,short:[]};
+  const T={voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0},publicSpend:{},skim:0,fame:0,net:0,short:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
     T.rev+=r.rev||0;T.skim+=r.skim||0;T.fame+=r.fame||0;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
+    Object.entries(r.publicSpend||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});
     (r.short||[]).forEach(s=>{if(!T.short.includes(s))T.short.push(s)});
   });
   return T;
@@ -4428,14 +4527,15 @@ var LASTREP=null;
 function showTurnReport(reps,logs,n){
   LASTREP={reps,logs,n};
   const T=mergeReports(reps);
-  const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🏠','家計開銷',T.cost.fam],['🏮','冥加金',T.cost.levy],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
+  const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🏠','家計開銷',T.cost.fam],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
+  const publicSpend=Object.entries(T.publicSpend).filter(x=>x[1]>0),publicSpendTotal=publicSpend.reduce((a,x)=>a+x[1],0);
   const exp=costs.reduce((a,x)=>a+x[2],0);
-  const other=T.net-(T.rev-exp-T.skim);                       // 其餘：貨款、運費、事件、請託…
-  const inc=T.rev+Math.max(0,other),outl=exp+T.skim+Math.max(0,-other);
+  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim);      // 其餘：自動進貨、事件、罰款等
+  const inc=T.rev+Math.max(0,other),outl=exp+publicSpendTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
-  const max=Math.max(1,T.rev,...costs.map(x=>x[2]),T.skim,Math.abs(other));
+  const max=Math.max(1,T.rev,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
-  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">公款餘額 '+fmt(G.silver)+' 兩</div></div>';
+  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">現款餘額 '+fmt(G.silver)+' 兩</div></div>';
   h+=raidCard();
   h+=inspectCard();
   h+=xofferCard();
@@ -4445,14 +4545,17 @@ function showTurnReport(reps,logs,n){
   }else h+='<div class="rp-sec">📤 出貨收入</div><div class="rp-empty">本旬沒有出貨</div>';
   if(other>0)h+=repRow('✨','其他進帳',other,max,'in');
   h+='<div class="rp-sec">🧾 固定支出</div>'+(costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||'<div class="rp-empty">無</div>');
+  if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
   if(other<0)h+=repRow('📦','進貨·運費·其他',-other,max,'out');
-  if(T.skim>0)h+='<div class="rp-sec">🟨 私款</div>'+repRow('🟨','盈餘抽成入私款',T.skim,max,'out');
+  if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
   if(T.fame!==0||T.short.length){
     const chips=T.short.slice(0,6).map(x=>'<span class="tag red">'+esc(x.slice(0,5))+'</span>').join('')+(T.short.length>6?'<span class="tag gray">…共 '+T.short.length+' 項</span>':'');
     h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">未達供貨線：'+chips+'</div>':'')+'</div>';
   }
   if(T.voy.length)h+='<div class="rp-sec">⛵ 船隻歸航</div>'+T.voy.map(v=>'<div class="card" style="margin:3px 0"><b class="small">船長「'+esc(v.capt)+'」·委託金 '+fmt(v.budget)+' 兩'+(v.wreck?' <span class="tag red">遇海難</span>':'')+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('');
-  const ev=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢/.test(t)).slice(0,10);
+  const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢/.test(t));
+  const moveEv=allEv.filter(t=>/【官員調任】|【宅邸異動】/.test(t));
+  const ev=moveEv.concat(allEv.filter(t=>!/【官員調任】|【宅邸異動】/.test(t)).slice(0,Math.max(0,10-moveEv.length))).slice(0,10);
   if(ev.length)h+='<div class="rp-sec">📰 本旬大事</div>'+ev.map(t=>'<div class="rp-ev">'+esc(t)+'</div>').join('');
   h+='</div>';
   UI.showInfo('📅 旬報',h);
@@ -4467,7 +4570,7 @@ function showTurnReport(reps,logs,n){
 
 /** 查貨機率：知名度 0 → 30%，知名度 100 → 5%。 */
 const inspectChance=()=>clamp(ODDS.inspect.base-ODDS.inspect.perFame*(G.fame||0)/ODDS.fame.cap,ODDS.inspect.min,ODDS.inspect.max);
-/** 賄賂金額（白銀）：官階 1 → 30、官階 2 → 60。 */
+/** 賄賂金額（現款）：官階 1 → 30、官階 2 → 60。 */
 const inspectBribe=rk=>costOf('inspectBribe',rk);
 
 /** 推進一旬時呼叫：先結算上一次沒處理的查貨，再擲新的查貨。 */
@@ -4489,7 +4592,7 @@ function inspectResolve(bribe,log){
     spendAmt('inspectBribe',cost);G.heat=(G.heat||0)+0.5;
     const gain=8+rk*2;r.aff=clamp(r.aff+gain,0,100);
     if(!r.bond){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk)}}
-    addKnown(I.cid);logRel(I.cid,'查貨時奉上 '+cost+' 兩白銀，好感 +'+gain+'。');
+    addKnown(I.cid);logRel(I.cid,'查貨時奉上現款 '+cost+' 兩，好感 +'+gain+'。');
     return '奉上 '+cost+' 兩，對方收下，態度和緩。好感 +'+gain+'，已結識「'+nameOf(I.cid)+'」。';
   }
   const fine=Math.round(10*rk*(1+rnd()));G.silver-=fine;
@@ -4500,7 +4603,7 @@ function inspectResolve(bribe,log){
 function inspectCard(){
   const I=G.inspect;if(!I)return '';
   const n=npc(I.cid),rk=n&&n.pos?n.pos.rank:1;
-  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn"><div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:inspectBribe(rk)})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
+  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn" style="display:flow-root">'+portraitHtml(I.cid,56)+'<div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:inspectBribe(rk)})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
 }
 ACT.inspBribe=()=>{const t=inspectResolve(true);toast(t);if(!G.inspect){UI.hideInfo();sfx.coin();UI.render()}};
 ACT.inspPass=()=>{const t=inspectResolve(false);toast(t);UI.hideInfo();UI.render()};
@@ -4510,12 +4613,12 @@ ACT.inspPass=()=>{const t=inspectResolve(false);toast(t);UI.hideInfo();UI.render
  *  - 「出門前往」沒遇襲時，有 10% 機率路上遇到一個人向你求助 10 兩救急。
  *  - 抽人：官階 1～2（含非官員）佔 50%，官階越高機率越低；認識／不認識各 50%。
  *  - 給錢：不認識者變成認識、好感直接 30（不論性向）；認識者好感 +30。不給：什麼都不發生。
- *  - 不扣行動點數；金額由公款（白銀）支付。
+ *  - 不扣行動點數；金額由現款支付。
  * ===================================================================== */
 
 /** 路遇機率。 */
 const ENC_CHANCE=ODDS.encounter.p;
-/** 救急金額（兩白銀）。 */
+/** 救急金額（現款）。 */
 const ENC_COST=costOf('encounter');
 /** 官階分組權重：官階 ≤2（含非官員）50%，3 階 22%，4 階 14%，5 階 9%，6 階 5%。 */
 const ENC_TIER_W={1:50,3:22,4:14,5:9,6:5};
@@ -4547,7 +4650,7 @@ function showEncounter(enc,cont){
   ENC={cid:enc.cid,cont};
   const n=npc(enc.cid),c=CH(enc.cid),r=R(enc.cid),known=!!r.bond;
   const role=n.pos?posTitle(n):(ROLE_LABEL[n.role]||'');
-  const h='<div class="card warn"><div><b style="font-size:15px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
+  const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:15px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
    +'<div class="small" style="margin:6px 0">'+esc(TX('enc.ask',{why:ENC_WHY[Math.floor(rnd()*ENC_WHY.length)],cost:ENC_COST}))+'</div>'
    +'<div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="encGive">'+UT('btn.encGive',{c:ENC_COST})+'</button><button class="pixel-btn btn-sm" data-act="encNo">'+UT('btn.encNo')+'</button></div></div>';
   UI.showInfo('🚶 路遇急難',h);
@@ -4620,7 +4723,7 @@ function enemyTick(log){
 
 /* =====================================================================
  * 07g_smuggle.js — 走私與搜查、刑罰
- *  走私：用「私款」向海外買違禁品，船隊＋船長出海，到貨進「密庫」，再經介紹人賣出，收入進私款。
+ *  走私：用私房錢向海外買違禁品，船隊＋船長出海，到貨進「密庫」，再經介紹人賣出，收入進私房錢。
  *  搜查：每旬有機率被奉行所搜查；打點同心（袖之下）、司法官員交情、風聲、持有違禁品價值都會影響結果。
  *  刑罰：由輕到重＝罰銀＋沒收 → 遠島（期間不能行動）→ 抄家 → 處刑（本代終結）。
  *  狀態：G.smug 在途航程、G.contra 密庫存量、G.smugP 今旬行情係數、G.exile 遠島旬數、G.raidNote 旬報用的搜查結果。
@@ -4777,15 +4880,15 @@ SHEETS.smuggle=()=>{
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
   const p=raidChance(),lv=p<=0?'無':p<0.05?'低':p<0.12?'中':'高';
   const free=G.fleet-G.ships.length-smugList().length,cap=smugCaptain();
-  let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私款<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船隻<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
-  h+='<div class="tiny muted" style="margin-bottom:6px">用私款向海外買禁品，船長出海，回來進密庫，再託介紹人賣出，收入歸私款。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
+  let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私房錢<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船隻<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
+  h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海，回來進密庫，再託介紹人賣出，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
   // 下單
   h+='<div class="card"><b class="small">⛵ 出海採買</b>';
   h+='<div class="row small" style="margin-top:4px"><span>目的地</span><select data-chg="smugDest">'+Object.keys(SMUG_DEST).map(k=>'<option value="'+k+'" '+(k===S.dest?'selected':'')+'>'+SMUG_DEST[k].name+'（'+SMUG_DEST[k].d+' 旬）</option>').join('')+'</select></div>';
   h+='<div class="row small" style="margin-top:4px"><span>品項</span><select data-chg="smugItem">'+d.items.map(k=>'<option value="'+k+'" '+(k===S.k?'selected':'')+'>'+SMUG_BY[k].icon+' '+SMUG_BY[k].name+'</option>').join('')+'</select></div>';
   h+='<div class="row small" style="margin-top:4px"><span>數量（最多 '+SMUG_CAP+'）</span><input type="number" class="inline-input" min="1" max="'+SMUG_CAP+'" value="'+S.qty+'" data-chg="smugQty"></div>';
   const cost=Math.round(it.cost*d.mult*S.qty);
-  h+='<div class="row small" style="margin-top:6px"><span>需私款 <b>'+cost+'</b> 兩·預計 '+Math.round(smugPrice(S.k,S.qty)*S.qty)+' 兩可賣</span><button class="pixel-btn btn-sm btn-gold" data-act="smugGo">'+UT('btn.smugGo')+'</button></div>';
+  h+='<div class="row small" style="margin-top:6px"><span>需私房錢 <b>'+cost+'</b> 兩·預計 '+Math.round(smugPrice(S.k,S.qty)*S.qty)+' 兩可賣</span><button class="pixel-btn btn-sm btn-gold" data-act="smugGo">'+UT('btn.smugGo')+'</button></div>';
   if(!cap)h+='<div class="tiny" style="color:#b3261e;margin-top:3px">沒有好感滿格的空閒船長。到河岸碼頭給船長零用錢，好感滿了才肯走私。</div>';
   h+='</div>';
   // 在途
@@ -4805,7 +4908,7 @@ CHG.smugDest=el=>{const s=smugSel();s.dest=el.value;refreshSheet()};
 CHG.smugItem=el=>{smugSel().k=el.value;refreshSheet()};
 CHG.smugQty=el=>{smugSel().qty=+el.value;refreshSheet()};
 
-/** 出海：檢查船、船長、私款，扣款派船。 */
+/** 出海：檢查船、船長、私房錢，扣款派船。 */
 ACT.smugGo=()=>{
   if((G.exile||0)>0){toast(MSG('smugGo.1'));return}
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
@@ -4819,7 +4922,7 @@ ACT.smugGo=()=>{
   sfx.step();toast(MSG('smugGo.6',{name:cap.name,d:d.d}));
   UI.render();refreshSheet();
 };
-/** 賣出密庫貨物：經介紹人銷售（扣行動、交情，抽一成），收入歸私款。 */
+/** 賣出密庫貨物：經介紹人銷售（扣行動、交情，抽一成），收入歸私房錢。 */
 ACT.smugSell=el=>{
   const k=el.dataset.k,have=contra()[k]||0;if(have<=0)return;
   const q=el.dataset.q==='all'?have:Math.min(have,+el.dataset.q);
@@ -4911,29 +5014,35 @@ function autoRestock(log){
   });
   if(got.length)log.push(NEWS('autoRestock.1',{got:got.join('、')}));
 }
-/* ---------- 大番頭：代出席公會例會、每旬自動問候（皆於旬報回報，不扣行動點數、不花錢） ---------- */
-/** 每旬由大番頭處理的事務：照常代出席例會；其餘依機率——自動問候（可能結識新朋友）、意外之財、或無事。 */
+/* ---------- 大番頭：旬末代出席公會例會；新旬處理自動問候等事務 ---------- */
+/** 新旬由大番頭處理的其他事務：依機率自動問候（可能結識新朋友）、意外之財、或無事。 */
 function chiefTick(log){
   if(!nEmp('大番頭'))return;
-  chiefGuild(log);chiefUneasy(log);
+  chiefUneasy(log);
   const C=ODDS.chief,x=rnd();
   if(x<C.visitP)chiefVisit(log);
   else if(x<C.visitP+C.windfallP)chiefWindfall(log);
 }
-/** 人心不穩：大番頭累計賺得的意外之財超過當前白銀（現金吃緊），下一旬必定捲款潛逃。 */
+/** 人心不穩：大番頭累計賺得的意外之財超過當前現款（現金吃緊），下一旬必定捲款潛逃。 */
 function chiefUneasy(log){
   const b=empsOf('大番頭')[0];
   if(!b||b.fleeAt!==undefined||!((b.wind||0)>Math.max(0,G.silver)))return;
   b.fleeAt=G.turn+1;
   const t=NEWS('chief.uneasy',{name:b.name});pushNews(t);log.push(t);
 }
-/** 意外之財：當前白銀的 1～10%。 */
+/** 意外之財：當前現款的 1～10%。 */
 function chiefWindfall(log){
   const C=ODDS.chief,amt=Math.round(Math.max(0,G.silver)*(C.windfallMin+rnd()*(C.windfallMax-C.windfallMin)));
   if(amt<=0)return;
   G.silver+=amt;G.lastRev+=amt;sfx.coin();
   const b=empsOf('大番頭')[0];if(b)b.wind=(b.wind||0)+amt;
+  if(b)queueFaceEvent({type:'windfall',empId:b.id,amt});
   const t=NEWS('chief.windfall',{amt:fmt(amt)});pushNews(t);log.push(t);
+}
+/** 旬末檢查代席：玩家已擁有整個可參加旬；推進下一旬時若仍未出席，才由大番頭代席。 */
+function chiefGuildTick(log){
+  if(!nEmp('大番頭'))return;
+  chiefGuild(log);
 }
 /** 代出席例會：到期的例會自動出席；尚未表態則表態守配額，並照常提案提高配額一次。 */
 function chiefGuild(log){
@@ -5048,7 +5157,7 @@ function openChat(ent){
 }
 
 /* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6：0 不變；1 介紹人＋兩名店員；2 再加妻小；3 再加海運；4 再加知名度三階；5 僅私款 1 萬；6 ＝ 4 加 5（資金為兩者相加）。 */
+/** 流派順序 0～6：0 不變；1 介紹人＋兩名店員；2 再加妻小；3 再加海運；4 再加知名度三階；5 僅私房錢 1 萬；6 ＝ 4 加 5（資金為兩者相加）。 */
 function applyStartBoost(sysKey){
   const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
   const eff=idx===6?[4,5]:[idx],has=f=>eff.some(f);
@@ -5113,7 +5222,7 @@ function sendVoyage(captId,budget,destId,mode,free){
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
   const st=statsOfEmp(cap);let d=dl.d;
   if(mode==='land'){if(G.flags.horse>0)d--;if(G.flags.road)d--;d=Math.max(1,d)}
-  if(!free)G.silver-=budget;
+  if(!free)payPublic('委託採買：'+dest.name,budget);
   G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,name:'',qty:0,origId:destId,mode,eta:d,eta0:d,risk:voyRisk(cap,d,mode)*(mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1),feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:budget,budget,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage});
   return {ok:true,msg:MSG('sendVoyage.ok',{crew:MODE_CAPT[mode],name:cap.name,budget:fmt(budget),dest:dest.name,d})};
 }
@@ -5205,7 +5314,7 @@ document.addEventListener('input',e=>{if(e.target.id==='slider-voy'){UI.s.route.
 /* ★檔案總覽：跨行貨物（趣味玩法，不是正式的賺錢途徑）
  * - 來源只有三種：①船長／飛腳在產地順手買回的便宜貨；②認識的商人拿貨物抵押向你借錢；③官吏硬塞給你的貨。
  *   不能主動買入。貨存在倉庫（G.xinv），佔用倉容，不影響大盤。
- * - 賣出只能請介紹人代為脫手：收白銀（公款）、扣介紹人交情 2～5；價格約為基準價的 45%～87%（交情越深越高）。
+ * - 賣出只能請介紹人代為脫手：收入現款、扣介紹人交情 2～5；價格約為基準價的 45%～87%（交情越深越高）。
  * - 這不是後期才開放的跨行批發功能。 */
 const xName=n=>COMM_MAP[n]?COMM_MAP[n].short:n;
 function otherComms(){const own=ownNameSet();return COMM.filter(c=>!own.has(c.name))}
@@ -5232,14 +5341,14 @@ ACT.xsell=el=>{
 /* ---------- 來源②：商人拿貨抵押借錢（旬報選項卡） ---------- */
 function xofferCard(){
   const O=G.xoffer;if(!O)return '';
-  return '<div class="rp-sec">🤝 商人借錢</div><div class="card warn"><div><b>'+esc(nameOf(O.cid))+'</b> <span class="tag gold">商人</span></div><div class="tiny muted" style="margin:3px 0">對方周轉不靈，想向你借 <b>'+fmt(O.loan)+' 兩</b>，押上「'+esc(xName(O.name))+'」'+O.qty+' 單位。他說還不出錢的話，貨就歸你。</div><div style="display:flex;gap:6px"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div></div>';
+  return '<div class="rp-sec">🤝 商人借錢</div><div class="card warn" style="display:flow-root">'+portraitHtml(O.cid,56)+'<div><b>'+esc(nameOf(O.cid))+'</b> <span class="tag gold">商人</span></div><div class="small" style="margin:5px 0">「掌櫃的，眼下周轉不靈。可否借我 <b>'+fmt(O.loan)+' 兩</b>？我拿『'+esc(xName(O.name))+'』'+O.qty+' 單位作抵押。」</div><div class="tiny muted" style="margin:3px 0">若他還不出錢，抵押的貨便歸你。</div><div style="display:flex;gap:6px"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div></div>';
 }
 ACT.xoAccept=()=>{
   const O=G.xoffer;if(!O)return;
   if(G.silver<O.loan){toast(MSG('xoAccept.1',{O:fmt(O.loan)}));return}
   const room=Math.max(0,invCap()-invUsed()),q=Math.min(O.qty,room);
   if(q<=0){toast(MSG('xoAccept.2'));G.xoffer=null;UI.hideInfo();return}
-  G.silver-=O.loan;G.xinv=G.xinv||{};G.xinv[O.name]=(G.xinv[O.name]||0)+q;
+  payPublic('商人週轉：'+xName(O.name),O.loan);G.xinv=G.xinv||{};G.xinv[O.name]=(G.xinv[O.name]||0)+q;
   const r=R(O.cid);r.aff=clamp(r.aff+6,0,100);logRel(O.cid,'借他 '+O.loan+' 兩，收下「'+xName(O.name)+'」作抵押。好感 +6。');
   toast(MSG('xoAccept.3',{O:fmt(O.loan),xName:xName(O.name),q}));G.xoffer=null;sfx.coin();UI.hideInfo();UI.render();
 };
@@ -5256,6 +5365,7 @@ function xgoodsTick(log){
     if(ms.length){
       const n=pick(ms),c=pick(oth),loan=rint(150,500),qty=Math.max(1,Math.round(1.25*loan/(c.base*0.6)));
       G.xoffer={cid:n.cid,name:c.name,qty,loan,turn:G.turn};
+      queueFaceEvent({type:'xloan',cid:n.cid,turn:G.turn});
       log.push(NEWS('xgoodsTick.1',{n:nameOf(n.cid)}));
     }
   }
@@ -5265,6 +5375,7 @@ function xgoodsTick(log){
     if(os.length){
       const n=pick(os),c=pick(oth),room=Math.max(0,invCap()-invUsed()),q=Math.min(rint(15,50),room);
       if(q>0){G.xinv[c.name]=(G.xinv[c.name]||0)+q;logRel(n.cid,'把一批「'+c.short+'」硬塞給你處理。');
+        queueFaceEvent({type:'xforce',cid:n.cid,name:c.name,qty:q});
         log.push(NEWS('xgoodsTick.2',{n:nameOf(n.cid),short:c.short,q}))}
     }
   }
@@ -5363,7 +5474,7 @@ function regionTick(log){
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   const ps=permitSummary(),P=permitsOf();
-  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。許可與權利的申請遞件即繳規費（不退），再等審理，通常約六旬。</div>';
+  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。許可與權利需要先遞件，再等審理，通常約六旬；可自行決定是否附上賄賂。</div>';
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?'（本地）':'')+'</span>').join('')+'</div>';
   h+='<div class="card"><div class="row small"><span>⛵ 海運許可：<b>'+esc(ps.sea)+'</b></span><span>🐎 陸運許可：<b>'+esc(ps.land)+'</b></span></div>'+((G.flags.horse>0||G.flags.escort>0||G.flags.taxfree>0||G.flags.cheap>0)?'<div class="tiny muted">效期：'+[['horse','驛馬'],['escort','護送'],['taxfree','免稅'],['cheap','便宜']].filter(x=>G.flags[x[0]]>0).map(x=>x[1]+' '+G.flags[x[0]]+' 旬').join('、')+'</div>':'')+'</div>';
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
@@ -5378,7 +5489,7 @@ ACT.regSel=el=>{UI.s.regSel=el.dataset.id;refreshSheet()};
  *   一般官員：6 旬（賄賂無用）。
  *   貪官（貪婪高）：賄賂夠＝3 旬；不夠（含沒給）＝12 旬。
  *   清官（貪婪低）：不賄賂＝6 旬；敢賄賂＝反遭刁難，12 旬。
- *   好感不夠：一直擱置，需把賄賂補齊到「基本賄賂的 2 倍」，金額夠了再等 2 旬。 */
+ *   好感不夠：一直擱置，需把賄賂補齊到該申請基準金額的 2 倍，金額夠了再等 2 旬。 */
 var BRIBE_X=0;
 const APP_GRANT_HIGH=80;
 function officialKind(n){
@@ -5392,22 +5503,19 @@ function appDuration(n,B,offer){
   if(k==='clean')return offer>0?12:6;
   return 6;
 }
-/** 規費：遞件即繳，不退還，與賄賂無關（基本賄賂的一半）。 */
-const appFee=B=>Math.round(B*COSTS.applyFeeRate.amt);
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
 function applyFavor(cid,n,r,f){
   if(f.once&&(f.k==='direct'?G.flags.direct:regionHeld(f.k,n)))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   if(appsList().some(a=>a.key===f.k&&a.cid===cid))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
-  const B=favorGoldCost(f,n),offer=Math.round(B*(BRIBE_X||0)),fee=appFee(B);
-  if(!affordAmt('applyFeeRate',fee+offer))return {ok:true,status:'held',msg:MSG('applyFavor.2',{fee:fmt(fee),offer:(offer?'＋賄賂 '+fmt(offer)+' 兩':'')})};
-  spendAmt('applyFeeRate',fee);
-  if(offer>0){spendAmt('applyFeeRate',offer);G.life.gold+=Math.round(offer/BRIBE_RATE);G.heat=(G.heat||0)+1}
+  const B=favorGoldCost(f,n),offer=Math.round(B*(BRIBE_X||0));
+  if(G.silver<offer)return {ok:true,status:'held',msg:MSG('applyFavor.2',{offer:fmt(offer)})};
+  if(offer>0){payPublic('申請賄賂：'+f.name,offer);G.life.gold+=Math.round(offer/BRIBE_RATE);G.heat=(G.heat||0)+1}
   const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,B,paid:offer,start:G.turn};
   let msg;
   if(r.aff<APP_GRANT_HIGH){
     A.state='held';A.left=0;
-    msg='申請被擱置了，對方說「容我再看看」。賄賂加碼到 '+fmt(B*2)+' 兩才有機會。';
+    msg=TX('apply.held',{cost:fmt(B*2)});
   }else{
     const k=officialKind(n);A.state='wait';A.left=appDuration(n,B,offer);r.aff=Math.max(0,r.aff-4);
     msg=k==='clean'&&offer>0?TX('apply.cleanBribed'):
@@ -5415,7 +5523,7 @@ function applyFavor(cid,n,r,f){
         TX('apply.plain');
   }
   appsList().push(A);logRel(cid,'遞出申請「'+f.name+'」。');
-  return {ok:true,status:'done',msg:MSG('applyFavor.3',{fee:fmt(fee),msg,left:(A.state==='wait'?'（審理約 '+A.left+' 旬）':'')})};
+  return {ok:true,status:'done',msg:MSG('applyFavor.3',{msg})};
 }
 function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
@@ -5439,14 +5547,14 @@ function appsCard(){
   const L=appsList();if(!L.length)return '';
   return '<div class="card"><b class="small">📬 申請案件</b>'+L.map(A=>{
     const n=npc(A.cid),top=Math.max(0,A.B*2-A.paid);
-    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·'+(A.state==='held'?'<b style="color:#b3261e">擱置中（交情不足）</b>':'審理中，剩 <b>'+A.left+'</b> 旬')+'</div></div>'+(A.state==='held'?'<button class="pixel-btn btn-sm btn-gold" data-act="appTop" data-id="'+A.id+'">'+UT('btn.appTop',{c:fmt(top)})+'</button>':'')+'</div>';
+    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·'+(A.state==='held'?'<b style="color:#b3261e">擱置中（尚無回音）</b>':'審理中，剩 <b>'+A.left+'</b> 旬')+'</div></div>'+(A.state==='held'?'<button class="pixel-btn btn-sm btn-gold" data-act="appTop" data-id="'+A.id+'">'+UT('btn.appTop',{c:fmt(top)})+'</button>':'')+'</div>';
   }).join('')+'</div>';
 }
 ACT.appTop=el=>{
   const A=appsList().find(a=>a.id===el.dataset.id);if(!A||A.state!=='held')return;
   const top=Math.max(0,A.B*2-A.paid);
-  if(!affordAmt('applyFeeRate',top)){toast(MSG('appTop.1',{top:fmt(top)}));return}
-  spendAmt('applyFeeRate',top);A.paid+=top;G.life.gold+=Math.round(top/BRIBE_RATE);G.heat=(G.heat||0)+1;
+  if(G.silver<top){toast(MSG('appTop.1',{top:fmt(top)}));return}
+  payPublic('補賄賂：'+A.name,top);A.paid+=top;G.life.gold+=Math.round(top/BRIBE_RATE);G.heat=(G.heat||0)+1;
   A.state='wait';A.left=2;logRel(A.cid,'補齊賄賂，申請「'+A.name+'」轉入審理。');
   sfx.coin();toast(TX('apply.topUp'));UI.render();refreshSheet();
 };
@@ -5454,8 +5562,8 @@ ACT.appTop=el=>{
 /* ======================= 吉原花街：夜宴、指名名伶、贖身成側室 =======================
  * 規則：
  *  - 城中名伶固定 8 人，每旬只有 4 人在席（以旬數雜湊決定，同一旬內固定）。
- *  - 包場花金夜宴：私款 80 兩，不扣行動點數，每旬一次；席間 1～3 名官吏／商人好感 +3～5，直接算結識，各講一句謝詞。
- *  - 指名：私款 20 兩，好感 +5；2 旬沒再指名，好感 -4（最低 1）。指名後送禮要花雙倍、什麼禮都收，好感 +5～10 並透露一人軟肋。
+ *  - 包場花金夜宴：私房錢 80 兩，不扣行動點數，每旬一次；席間 1～3 名官吏／商人好感 +3～5，直接算結識，各講一句謝詞。
+ *  - 指名：私房錢 20 兩，好感 +5；2 旬沒再指名，好感 -4（最低 1）。每次指名只能送一件禮物，花私房錢且價格加倍，好感 +5～10 並透露一人軟肋。
  *  - 好感滿（100）可贖身：約 1000 兩（±100）。贖後為側室，與家人無異，不能生育。
  *  - 吉原累計花費每滿 200 兩，知名度 -0.5。 */
 const FL_STAGE=4,FL_TOTAL=8,FL_UNIT=200;
@@ -5514,8 +5622,11 @@ function oiranBlock(cid){
   }else h+='<div class="tiny muted">素昧平生。第一次指名，即算相識。</div>';
   h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="nomOiran" data-cid="'+cid+'" '+(nom?'disabled':'')+'>'+(nom?UT('btn.nomDone'):UT('btn.nom',{c:costTxt('nominate')}))+'</button></div>';
   if(nom){
-    h+='<div class="row" style="gap:4px;margin-top:4px"><span class="tiny">送禮（花費加倍）</span><select class="og-sel" style="flex:1;font-size:11px">'+OIRAN_GIFTS.map(g=>'<option value="'+g.k+'">'+g.icon+' '+g.name+'（'+costTxt('oiranGift_'+g.k,COSTS.oiranGiftMul.amt)+'）</option>').join('')+'</select></div>';
-    h+='<div style="margin-top:3px"><button class="pixel-btn btn-sm" style="width:100%" data-act="oGift" data-cid="'+cid+'">'+UT('btn.oGift')+'</button></div>';
+    if(r.oGiftT===r.nomT)h+='<div class="tiny muted" style="margin-top:4px">這次指名已經送過禮了，下次指名才能再送。</div>';
+    else{
+      h+='<div class="row" style="gap:4px;margin-top:4px"><span class="tiny">送禮（私房錢，花費加倍）</span><select class="og-sel" style="flex:1;font-size:11px">'+OIRAN_GIFTS.map(g=>'<option value="'+g.k+'">'+g.icon+' '+g.name+'（'+costTxt('oiranGift_'+g.k,COSTS.oiranGiftMul.amt)+'）</option>').join('')+'</select></div>';
+      h+='<div style="margin-top:3px"><button class="pixel-btn btn-sm" style="width:100%" data-act="oGift" data-cid="'+cid+'">'+UT('btn.oGift')+'</button></div>';
+    }
   }
   if(r.bond&&r.aff>=100){
     const price=r.ransom||(r.ransom=costOf('ransom')+rint(-100,100));
@@ -5541,9 +5652,10 @@ ACT.nomOiran=el=>{
 ACT.oGift=el=>{
   const cid=el.dataset.cid,r=R(cid),card=el.closest('.card'),g=OG_MAP[card.querySelector('.og-sel').value];
   if(!g||r.nomT!==G.turn){toast(MSG('oGift.1'));return}
+  if(r.oGiftT===r.nomT){toast(MSG('oGift.3'));return}
   const gk='oiranGift_'+g.k,cost=costOf(gk,COSTS.oiranGiftMul.amt);
   if(!affordAmt(gk,cost)){toast(shortMsg(gk,COSTS.oiranGiftMul.amt));return}
-  spendAmt(gk,cost);const note=flowerSpend(cost);
+  spendAmt(gk,cost);r.oGiftT=r.nomT;const note=flowerSpend(cost);
   const gain=rint(5,10);r.aff=clamp(r.aff+gain,0,100);r.gifts++;G.life.gifts++;addFame(0.15);
   const cand=cityNpcs(G.cityId).filter(m=>m.cid!==cid&&!['guard','oiran'].includes(m.role)&&!R(m.cid).verified);
   let tip=TX('flower.tipNone');
@@ -5737,7 +5849,7 @@ ACT.arson=el=>{
 /* ======================= 官員運作：司法官員栽贓、行政官員打壓 =======================
  *  - 官員好感 100：司法官員可「栽贓」隨機一家同業（成功＝該同業被查抄，市佔分數剩 40%）；
  *    行政官員可「打壓」隨機一家同業（成功＝該同業行情 ×0.6，持續數旬）。
- *  - 機制同放火：500 兩私款、1 行動、熱度 +3；成功後可能被查辦（官員撤職，可能供出你）；
+ *  - 機制同放火：500 兩私房錢、1 行動、熱度 +3；成功後可能被查辦（官員撤職，可能供出你）；
  *    失手則官員與你決裂、該同業成為仇人。 */
 const SCHEME={frame:{court:'judiciary',icon:'⚖️',name:'栽贓'},suppress:{court:'administration',icon:'📛',name:'打壓'}};
 function schemeKind(n){const c=n&&n.pos&&n.pos.court;return c==='judiciary'?'frame':c==='administration'?'suppress':null}
@@ -5797,9 +5909,9 @@ function tributeHtml(cid){
   let h='<div class="card warn" style="margin:4px 0"><b class="small">🎁 上貢</b>';
   if(T&&T.cid===cid){
     const have=G.inv[T.name]||0,left=Math.max(0,T.due-G.turn);
-    return h+'<div class="tiny">上貢進行中：「'+esc(COMM_MAP[T.name].short)+'」<b>'+T.qty+'</b> 單位，剩 <b>'+left+'</b> 旬到期（目前庫存 '+have+(have>=T.qty?' ✅':' ⚠️ 還差 '+(T.qty-have))+'）。</div></div>';
+    return h+'<div class="tiny">你答應替他準備「'+esc(COMM_MAP[T.name].short)+'」<b>'+T.qty+'</b> 單位，還有 <b>'+left+'</b> 旬。目前手上有 '+have+(have>=T.qty?'，已經備齊了 ✅':'，還差 '+(T.qty-have)+' 單位 ⚠️')+'。</div></div>';
   }
-  h+='<div class="tiny muted">他願收你一批本業貨：'+A.turns+' 旬內備妥，到期以<b>高於市價的價錢</b>自動上貢入帳，並增加知名度與市佔率。備不齊則失約，交情與知名度受損。耗 1 行動。</div>';
+  h+='<div class="tiny muted">他想請你幫忙備一批本業貨。答應後有 '+A.turns+' 旬可以準備；到期若數量足夠，他會用<b>高價收下</b>，你的知名度與市佔率也會提高。若沒備齊，他可不會高興。耗 1 行動。</div>';
   h+='<div style="margin-top:3px"><button class="pixel-btn btn-sm btn-gold" data-act="tribute" data-cid="'+cid+'" '+(T?'disabled':'')+'>'+UT('btn.tribute')+'</button></div></div>';
   return h;
 }
@@ -5822,11 +5934,11 @@ function tributeTick(log){
     const rev=Math.round(quoteSale(T.name,T.qty).perUnit*T.qty*A.priceMul);
     G.inv[T.name]-=T.qty;G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
     const f0=G.fame||0;addFame(A.fame);const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));G.share=marketShares();
-    G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,'依約上貢「'+short+'」'+T.qty+' 單位。');
+    G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,'把答應的「'+short+'」'+T.qty+' 單位備齊送去，對方很滿意。');
     const t=NEWS('tribute.ok',{off,item:short,qty:T.qty,rev:fmt(rev),fame:gf});log.push(t);pushNews(t);sfx.coin();
   }else{
     const r=R(T.cid);r.aff=Math.max(0,r.aff-A.failAff);loseFame('tributeFail');
-    logRel(T.cid,'上貢失約，對方不悅。');
+    logRel(T.cid,'答應的貨沒備齊，對方很不高興。');
     const t=NEWS('tribute.fail',{off,item:short,qty:T.qty,have,aff:A.failAff});log.push(t);pushNews(t);sfx.bad();
   }
 }
@@ -5839,7 +5951,7 @@ function tributeTick(log){
 const WIKI_SECS=[['guide','📖 玩法'],['office','🏛️ 官吏'],['region','🗺️ 城市'],['goods','📦 物產']];
 /** 玩法簡介：[標題, 內文 HTML]（敘事式說明，不列公式）。 */
 const WIKI_GUIDE=[
-  ['🏮 你是誰、要做什麼','你是江戶中盤的一名「問屋」（批發商）。從一間小商號起家，向產地與同行進貨、賣給城裡的零售與工坊，累積白銀、聲望與人脈。年歲漸長，家業要傳給後人——每一代都有一生的故事，最後留下什麼，由你決定。'],
+  ['🏮 你是誰、要做什麼','你是江戶中盤的一名「問屋」（批發商）。從一間小商號起家，向產地與同行進貨、賣給城裡的零售與工坊，累積現款、聲望與人脈。年歲漸長，家業要傳給後人——每一代都有一生的故事，最後留下什麼，由你決定。'],
   ['📅 時間與行動','一個月分三旬，一年十二個月。每旬你有固定的行動點數，用來拜訪、請託、辦事；用完也可以直接「推進一旬」。推進時，預定的出貨與進貨會自動辦理，接著日期前進，旬報會告訴你這一旬的收支與大事。'],
   ['📊 大盤買賣','大盤的價格不能自訂，你只能決定出貨多少。總出貨越多，價格越低；而「總出貨」包含全城同業的出貨，同業偶爾還會大舉超賣。這些影響不會一旬就消失，約要三個月（九旬）才完全淡去，所以分批出貨比一次倒完划算。向大盤進貨的價格略低於市價，但每旬能進的量很有限——光靠大盤進出，大致只是打平；真正的利潤來自產地直採與商路。'],
   ['⚖️ 問屋公會（株仲間）','每三個月開一次例會。你可以表態遵守配額（公會會幫你穩住行情），或簽暗約偷跑（賺得快，但被發現後果嚴重），也可以提案提高配額。誓言守配額卻超量出貨，會被聯合斷貨。大番頭可以代你出席例會。'],
@@ -6048,17 +6160,17 @@ function regionMapSvg(rid,opts){
   return s+'</svg>';
 }
 
-/* 白銀走勢：記錄每旬開始時的公款白銀，點頂部「白銀」開啟近九旬折線圖。
- * - G.silverHist＝[{l:'3月上',v:白銀}]，最多 9 筆；開局記一筆，之後每推進一旬記一筆（advanceTurn 結尾）。 */
+/* 現款走勢：記錄每旬開始時的現款，點頂部「現款」開啟近九旬折線圖。
+ * - G.silverHist＝[{l:'3月上',v:現款}]，最多 9 筆；開局記一筆，之後每推進一旬記一筆（advanceTurn 結尾）。 */
 const SILVER_WIN=9;
-/** 記錄「此刻（新一旬開始）」的白銀。 */
+/** 記錄「此刻（新一旬開始）」的現款。 */
 function recordSilver(){
   G.silverHist=G.silverHist||[];
   G.silverHist.push({l:G.month+'月'+CYCLE_NAMES[G.cycle-1].slice(0,1),v:Math.round(G.silver)});
   while(G.silverHist.length>SILVER_WIN)G.silverHist.shift();
 }
 ACT.silverChart=()=>UI.openSheet('silver');
-/** 折線圖（SVG）：近九旬每旬開始時的白銀。 */
+/** 折線圖（SVG）：近九旬每旬開始時的現款。 */
 function silverChartSvg(pts){
   const W=340,H=190,L=46,R=14,T=22,B=34,n=pts.length;
   const vs=pts.map(p=>p.v);let lo=Math.min(...vs),hi=Math.max(...vs);
@@ -6081,7 +6193,7 @@ function silverChartSvg(pts){
 }
 SHEETS.silver=()=>{
   const pts=(G.silverHist||[]).slice(-SILVER_WIN);
-  let h='<div class="tiny muted" style="margin-bottom:5px">近九旬，每旬開始時的公款白銀。</div>';
+  let h='<div class="tiny muted" style="margin-bottom:5px">近九旬，每旬開始時的現款。</div>';
   if(pts.length<2)h+='<div class="notice tiny">紀錄還不夠，推進幾旬之後再來看。</div>';
   else{
     h+=silverChartSvg(pts);
@@ -6089,15 +6201,60 @@ SHEETS.silver=()=>{
     h+='<div class="row small" style="margin-top:6px"><span>最高 <b>'+fmt(Math.max(...pts.map(p=>p.v)))+'</b> 兩</span><span>最低 <b>'+fmt(Math.min(...pts.map(p=>p.v)))+'</b> 兩</span></div>'
       +'<div class="small" style="margin-top:3px">這'+pts.length+'旬 '+(dd>0?'<b class="up">增加約 '+fmt(dd)+' 兩</b>':dd<0?'<b class="down">減少約 '+fmt(-dd)+' 兩</b>':'<b>持平</b>')+'</div>';
   }
-  return {title:'📈 白銀走勢',html:h};
+  return {title:'📈 現款走勢',html:h};
 };
+
+'use strict';
+/* ======================= 旬報後的人物事件 =======================
+ * 具名人物親自帶來的事件不能只留在旬報文字裡：旬報關閉後依序顯示頭像與對話。
+ * 佇列存進 G，避免事件結算後重新整理頁面便完全遺失。 */
+function faceEventQueue(){return G.faceEvents||(G.faceEvents=[])}
+function queueFaceEvent(e){if(G&&e)faceEventQueue().push(e)}
+
+/** 人物事件卡；商人借錢保留原本的接受／婉拒操作，其餘事件用「知道了」接續。 */
+function faceEventCard(e){
+  let pt='',name='',tag='',line='',effect='',buttons='<button class="pixel-btn btn-sm btn-gold" data-act="faceNext">知道了</button>';
+  if(e.empId){
+    const b=(G.emps||[]).find(x=>x.id===e.empId);if(!b)return null;
+    pt=portraitEmp(b,56);name=b.name;tag=b.rank;
+  }else{
+    const n=npc(e.cid),c=CH(e.cid);if(!n||!c)return null;
+    pt=portraitHtml(e.cid,56);name=c.name;tag=n.pos?posTitle(n):(ROLE_LABEL[n.role]||'來客');
+  }
+  if(e.type==='windfall'){
+    line='東家，我談成一筆臨時買賣，替店裡添了 '+fmt(e.amt)+' 兩。';effect='現款增加 '+fmt(e.amt)+' 兩。';
+  }else if(e.type==='extort'){
+    line='近來替商家辦事不容易。三旬之內送來 '+fmt(e.amt)+' 兩，我自然記得你的心意。';effect='已記下承諾；到期前可在人物筆記中交付。';
+  }else if(e.type==='xforce'){
+    line='這批「'+xName(e.name)+'」是官府沒收來的。先放在你庫裡，替我處理乾淨。';effect='收到「'+xName(e.name)+'」'+e.qty+' 單位，列入跨行貨物。';
+  }else if(e.type==='xloan'){
+    const O=G.xoffer;if(!O||O.cid!==e.cid||O.turn!==e.turn)return null;
+    line='掌櫃的，眼下周轉不靈。可否借我 '+fmt(O.loan)+' 兩？我拿「'+xName(O.name)+'」'+O.qty+' 單位作抵押。';effect='若他還不出錢，抵押的貨便歸你。';
+    buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div>';
+  }else return null;
+  return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:15px">'+esc(name)+'</b> <span class="tag gray">'+esc(tag)+'</span></div><div class="small" style="margin:7px 0">「'+esc(line)+'」</div><div class="tiny muted" style="margin:4px 0 7px">'+esc(effect)+'</div>'+buttons+'</div>';
+}
+
+function showNextFaceEvent(){
+  if(!G)return;
+  const q=faceEventQueue();let e,h;
+  while(q.length&&!h){e=q.shift();h=faceEventCard(e)}
+  save();
+  if(!h)return;
+  INFO_AFTER=q.length?showNextFaceEvent:null;
+  const title={windfall:'💰 大番頭回報',extort:'🤝 官員來訪',xforce:'🎁 官吏來訪',xloan:'🤝 商人來訪'}[e.type]||'來客';
+  UI.showInfo(title,h);
+}
+/** 在旬報開啟後登記接續動作；玩家關閉旬報才開始逐件會面。 */
+function armFaceEvents(){if(G&&faceEventQueue().length)INFO_AFTER=showNextFaceEvent}
+ACT.faceNext=()=>UI.hideInfo();
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
  * - doTurn：「推進一旬/一月」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
  * - 以事件委派處理所有 data-act / data-chg；DOMContentLoaded 綁定頂部按鈕與開局。 */
 /* ======================= 08 啟動、事件委派、推進時間 ======================= */
-/** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次白銀變化。 */
+/** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次現款變化。 */
 function doTurn(n){
   if(!G||G.ended||FX.busy)return;
   /* 推進前先回到主畫面：關掉開著的面板與說明視窗，旬報才不會被擋住 */
@@ -6111,6 +6268,7 @@ function doTurn(n){
     if(!G.ended){
       const d=G.silver-before;
       showTurnReport(reps,logs.map(t=>t.replace(/^[^【]*/,'')?t:t),n);
+      armFaceEvents();
       say(thought());
       if(d>0)coinFx();
     }
