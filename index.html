@@ -263,7 +263,7 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
     </div>
     <div class="stats">
       <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
-      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div></div>
+      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div><div class="k hidden" id="d-debt"></div></div>
       <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
@@ -1057,6 +1057,7 @@ const MSG_TXT={
   'doFavor.2':'此事剛辦過，還需 {key} 旬。',
   'doFavor.3':'此事早已辦妥。',
   'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
+  'doFavor.sellAidFull':'倉庫放不下，這批貨沒法接手。',
   'doFavor.lessenHeld':'你手上已有一張減罪狀，用掉之前不必再求。',
   'doFavor.4':'現款不足（需 {total} 兩）。',
   'doFavor.5':'本業行情走強。',
@@ -1341,10 +1342,11 @@ const NEWS_TXT={
   /* —— shipsTick —— */
   "shipsTick.1":"⛵【到貨】{name}「{short}」{q} 單位運抵入倉{q2}。",
   /* —— cityTick —— */
-  "cityTick.1":"🏮【節慶】【{name}】「{festival}」開幕！宵禁解除，酒、油、布料需求暴增三倍，也是黑市接頭的高峰。",
+  "cityTick.1":"🏮【節慶】【{name}】「{festival}」開幕！宵禁解除，全城買氣大旺，酒、油、布料尤其搶手。",
   "cityTick.2":"📜【城史】【{name}】{title}。",
   /* —— peopleTick —— */
   "peopleTick.1":"⏰【失信】對「{cid}」的承諾已逾期，對方頗為不快。",
+  "peopleTick.due":"🏦【還款】有一筆 {d} 兩的借款，兩旬後到期。",
   "peopleTick.2":"🏦【還款】官倉平準貸款到期，償還 {d} 兩。",
   /* —— empTick —— */
   "empTick.1":"💸【捲款潛逃】{rank}「{name}」捲走現款 {take} 兩，不告而別！",
@@ -1662,8 +1664,8 @@ function festActive(){
   const city=homeCity();const f=parseFestival(city.special_festival&&city.special_festival.date);
   return !!(f&&f.month===G.month&&f.cycle===G.cycle);
 }
-/** 節慶需求倍率（相關物品×4）。 */
-const festMult=c=>(festActive()&&FEST_KW.some(k=>c.name.includes(k)))?4:1;
+/** 節慶需求倍率：本城節慶那一旬，所有貨物需求 ×3；酒、油、布料等節慶相關貨物 ×4。 */
+const festMult=c=>festActive()?(FEST_KW.some(k=>c.name.includes(k))?4:3):1;
 /** 公會配額（單位/旬）＝本城需求×配額比例（初始 6%，可在公會提案 +10%）。 */
 const quotaOf=name=>Math.max(1,Math.round(G.mk[name].D*G.cartel.quotaPct));
 
@@ -2436,10 +2438,12 @@ const FAVORS={
     {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
     {k:'trade1',apply:true,trade:0,name:'交易許可',rank:4,desc:'核准買賣本業最貴的貨。'},
     {k:'licHorse',apply:true,lic:'horse',name:'馬幫株',rank:2,desc:'核准多聘飛腳，一名飛腳帶一支馬幫。'},
+    {k:'smallLoan',name:'小額周轉',rank:1,cd:3,desc:'先借 750 兩應急，六旬後連本帶一成利息歸還。'},
     {k:'loan',name:'官倉平準貸款',rank:2,cd:12,desc:'官府低息借款，九旬後連本帶利歸還。'}
   ],
   judiciary:[
     {k:'licGuard',apply:true,lic:'guard',name:'帶刀護衛許可',rank:2,desc:'核准多聘保鏢。'},
+    {k:'sellAid',name:'協助銷貨',rank:1,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，請介紹人代賣）。'},
     {k:'blind',name:'袖之下',rank:2,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
     {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'}
   ]
@@ -2455,11 +2459,14 @@ function doFavor(cid,key){
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
+  if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
   const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
   r.aff=Math.max(0,r.aff-drop);if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
-  else if(key==='loan'){const amt=1200*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back});msg='借得 '+fmt(amt)+' 兩，六旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;G.heat=(G.heat||0)+0.5;msg='官府沒收的「'+L.c.short+'」'+L.q+' 單位交給你處理，已入倉；請介紹人代為脫手。'}
+  else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='blind'){G.flags.blind=12;msg='十二旬內搜查時多半睜隻眼。'}
   else if(key==='lessen'){G.lessen=1;msg='取得減罪狀，下次被定罪時刑罰減輕一等。'}
   logRel(cid,'請託「'+f.name+'」：'+msg+'好感 -'+drop+'。');
@@ -2532,6 +2539,7 @@ function peopleTick(log){
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;r.aff=Math.max(0,r.aff-10);logRel(cid,'逾期未兌現：'+p.text+'，交情 -10。');const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
   });
+  (G.debts||[]).forEach(d=>{if(!d.paid&&!d.warned&&d.due-G.turn===2){d.warned=true;const t=NEWS('peopleTick.due',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   (G.debts||[]).forEach(d=>{if(!d.paid&&G.turn>=d.due){d.paid=true;G.silver-=d.amt;const t=NEWS('peopleTick.2',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   if(G.debts)G.debts=G.debts.filter(d=>!d.paid);
 }
@@ -3568,6 +3576,7 @@ function updateTop(){
   $('#d-age').textContent=G.me.given+' '+myAge()+' 歲';
   $('#d-silver').textContent=fmt(G.silver)+' 兩';
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
+  {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent='欠'+fmt(tot)+'·'+(near?near+'旬':'本旬');e.title='欠款 '+fmt(tot)+' 兩，最近一筆'+(near?near+' 旬後':'本旬')+'到期';e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=Math.round(G.gold)+' 兩';
   $('#d-rep').textContent=Math.round(G.fame||0)+' / '+ODDS.fame.cap;
   $('#d-firm').textContent=G.firm;
@@ -3640,7 +3649,7 @@ function renderMarket(){
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:14px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">大盤商</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()&&FEST_KW.some(k=>c.name.includes(k))?' <span class="up">節慶需求大增</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
   // 進貨（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name)){h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';h+=orderCard()+shareCard()}
   else{
@@ -5267,6 +5276,13 @@ document.addEventListener('input',e=>{if(e.target.id==='slider-voy'){UI.s.route.
  * - 這不是後期才開放的跨行批發功能。 */
 const xName=n=>COMM_MAP[n]?COMM_MAP[n].short:n;
 function otherComms(){const own=ownNameSet();return COMM.filter(c=>!own.has(c.name))}
+/** 一批沒收貨（協助銷貨與官吏硬塞共用）：非本業、非奢侈品，總值約 300～600 兩（以基準價計），5～50 單位，受倉位限制；放不下 5 單位回傳 null。 */
+function xLot(){
+  const room=Math.max(0,invCap()-invUsed()-pendingQty()-transitQty());if(room<5)return null;
+  const pool=otherComms().filter(c=>!c.luxury);if(!pool.length)return null;
+  const c=pick(pool),q=Math.min(room,clamp(Math.round(rint(300,600)/c.base),5,50));
+  return {c,q};
+}
 function xgoodsCard(){
   const ks=Object.keys(G.xinv||{}).filter(k=>G.xinv[k]>0);
   if(!ks.length)return '';
@@ -5322,7 +5338,7 @@ function xgoodsTick(log){
   if(roll('xForce')){
     const os=npcs.filter(n=>n.role==='official'&&alive(n.cid)&&R(n.cid).met);
     if(os.length){
-      const n=pick(os),c=pick(oth),room=Math.max(0,invCap()-invUsed()),q=Math.min(rint(15,50),room);
+      const n=pick(os),L=xLot(),c=L&&L.c,q=L?L.q:0;
       if(q>0){G.xinv[c.name]=(G.xinv[c.name]||0)+q;logRel(n.cid,'把一批「'+c.short+'」硬塞給你處理。');
         queueFaceEvent({type:'xforce',cid:n.cid,name:c.name,qty:q});
         log.push(NEWS('xgoodsTick.2',{n:nameOf(n.cid),short:c.short,q}))}
@@ -5441,7 +5457,7 @@ function officialKind(n){
   const s=CH(n.cid).derived_stats;
   return s.greed_index>=85?'greedy':(s.greed_index<=72&&s.integrity_loyalty>=50)?'clean':'plain';
 }
-function appDuration(n){return officialKind(n)==='greedy'?3:6}
+function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;return officialKind(n)==='greedy'?3:6}   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
 function applyFavor(cid,n,r,f){
