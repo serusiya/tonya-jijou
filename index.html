@@ -233,6 +233,17 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .pt-btn img.pt:active{filter:brightness(1.15);border-color:#c8963e}
 .card.locked .pt-btn{pointer-events:auto}
 
+/* 金額記號：現款＝方孔銀幣、私房錢＝小判金幣（按鈕裡只寫記號＋數字） */
+.coin{display:inline-block;vertical-align:-1px;margin-right:2px;position:relative;box-sizing:border-box}
+.coin.zeni{width:11px;height:11px;border-radius:50%;background:#d3d9e1;border:2px solid #4a5868}
+.coin.zeni::after{content:'';position:absolute;left:2.5px;top:2.5px;width:2px;height:2px;background:#4a5868}
+.coin.koban{width:9px;height:13px;border-radius:50%;background:linear-gradient(#fbe08a,#d6981a);border:2px solid #8a5a00}
+.btn-red .coin,.btn-green .coin{border-color:#fff8e8}
+.money{font-weight:bold;white-space:nowrap}
+.money.ms{color:#34445a}
+.money.mg{color:#7a4a00}
+.btn-red .money,.btn-green .money,.btn-red .money.ms,.btn-green .money.mg{color:inherit}
+
 </style>
 </head>
 <body>
@@ -252,8 +263,8 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
     </div>
     <div class="stats">
       <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
-      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k">現款 📈</div><div class="v" id="d-silver">0</div></div>
-      <div class="stat"><div class="k">私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="coin zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div></div>
+      <div class="stat"><div class="k"><i class="coin koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
     <div class="row small" style="background:#1c1921;border:1px solid var(--line);padding:2px 6px">
@@ -553,8 +564,12 @@ const needTierOfRank=rk=>rk<=2?1:Math.min(4,rk-1);
 function introTier(cid){return needTierOfRank(targetTier(cid))}
 /** 名伶的知名度門檻：依人物 id 固定，約半數 2 階、四分之一 3 階。 */
 function oiranTier(cid){let h=0;String(cid).split('').forEach(ch=>h=(h*31+ch.charCodeAt(0))%97);return h%4===0?1:h%4===3?3:2}
-/** 見某人所需知名度階（官員看官階；名伶看固定門檻；其餘 1）。 */
-function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):1}
+/** 名門商邸人物的知名度門檻分布（知名度一～四階的機率 %）：依身分，每人以人物編號固定。 */
+const RES_TIER_W={guest:[70,30,0,0],broker:[60,40,0,0],manager:[40,40,20,0],smuggler:[0,70,30,0],rival:[0,40,40,20]};
+/** 名門商邸人物的知名度門檻（同一人每局都一樣）。 */
+function resTier(cid,role){const w=RES_TIER_W[role];if(!w)return 1;const x=seeded('res'+cid)()*100;let a=0;for(let i=0;i<4;i++){a+=w[i];if(x<a)return i+1}return 1}
+/** 見某人所需知名度階（官員看官階；名伶看固定門檻；名門商邸人物依身分與人物編號固定；其餘 1）。 */
+function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):resTier(cid,n.role)}
 const TIER_NAME=['','一階','二階','三階','四階'];
 function updateFame(){const e=document.getElementById('d-fame');if(e&&G)e.textContent='名望 '+TIER_NAME[fameTier()]}
 
@@ -625,6 +640,9 @@ const COSTS={
 
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
 const costTxt=(k,mul)=>CUR_NAME[COSTS[k].cur]+' '+costOf(k,mul)+' 兩';
+/** 按鈕用金額：記號＋數字，不寫「兩」。現款＝方孔銀幣（深藍灰數字），私房錢＝小判金幣（深琥珀數字）。訊息與說明文字仍用 costTxt。 */
+const coinHtml=(cur,amt)=>'<span class="money '+(cur==='gold'?'mg':'ms')+'"><i class="coin '+(cur==='gold'?'koban':'zeni')+'" aria-label="'+CUR_NAME[cur]+'"></i>'+fmt(amt)+'</span>';
+const costBtn=(k,mul)=>coinHtml(COSTS[k].cur,costOf(k,mul));
 const walletOf=k=>COSTS[k].cur;
 /** 錢夠不夠（amt 可自行指定，如依官階算出的金額）。 */
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
@@ -876,7 +894,7 @@ const Ls=path=>{const v=_lineAt(path);return Array.isArray(v)?v:[v]};
  * 01e_ui_text.js — 指令·按鈕·選項文字總表
  *  所有按鈕、指令、下拉選項、頁籤的顯示文字都集中在 UI_TXT。
  *  鍵名：nav.* 導覽與頂部按鈕｜btn.<指令名>* 面板內按鈕（<指令名> 即 data-act）｜opt.* 選項與標籤。
- *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:'現款 10 兩'}) 會把 {c} 換成值。
+ *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:costBtn('audit')}) 會把 {c} 換成值。
  *  body.html 的固定按鈕以 data-t="鍵名" 標記，開機時由 08_boot 套用。
  *  費用數字不寫死在這裡：由呼叫處依 01b_costs.js 算出再代入。
  * ===================================================================== */
@@ -908,10 +926,10 @@ const UI_TXT={
   'btn.buyClear':'清除',
   'btn.buyMax':'📦 選擇最大進貨量',
   'btn.cartel':'🤝 表態遵守配額',
-  'btn.cartel2':'🤫 簽署暗約偷跑（私房錢 30）',
+  'btn.cartel2':'🤫 簽署暗約偷跑（{c}）',
   'btn.cartel3':'退出協議，各憑本事',
   'btn.charity':'施粥',
-  'btn.encGive':'💰 給他 {c} 兩',
+  'btn.encGive':'💰 給他 {c}',
   'btn.encNo':'不理會',
   'btn.feast':'設宴',
   'btn.feastDone':'本旬已設',
@@ -920,7 +938,7 @@ const UI_TXT={
   'btn.fireDock':'辭退',
   'btn.go':'前往名門商邸 ▶',
   'btn.hire':'聘為{r}',
-  'btn.inspBribe':'🧧 賄賂（{c} 兩）',
+  'btn.inspBribe':'🧧 賄賂（{c}）',
   'btn.inspPass':'公事公辦',
   'btn.kidDebt':'替他還債（{c}）',
   'btn.kidPay':'寫義絕書逐出',
@@ -940,15 +958,15 @@ const UI_TXT={
   'btn.punish':'追討',
   'btn.quotaDone':'本次例會已提案',
   'btn.quotaUp':'提案增加配額 10%',
-  'btn.ransom':'💍 贖身納為側室（私房錢 {c} 兩）',
+  'btn.ransom':'💍 贖身納為側室（{c}）',
   'btn.recruit':'物色',
   'btn.recruitView':'查看',
   'btn.restockOff':'🧾 大番頭自動補貨：關',
   'btn.restockOn':'🧾 大番頭自動補貨：開',
   'btn.resume':'▶ 繼續上次的人生（{n}·{y}）',
   'btn.retire':'宣佈隱居交棒',
-  'btn.scout':'探聽（{c} 兩）',
-  'btn.scoutFull':'探聽性向（{c} 兩）',
+  'btn.scout':'探聽（{c}）',
+  'btn.scoutFull':'探聽性向（{c}）',
   'btn.sellAll':'全賣',
   'btn.sellN':'賣 {n}',
   'btn.setIntro':'選為目前介紹人',
@@ -960,7 +978,7 @@ const UI_TXT={
   'btn.vGo':'託付出發 ▶',
   'btn.visit':'親自登門拜訪 ▶',
   'btn.whMax':'已達上限',
-  'btn.whUp':'{c} 兩',
+  'btn.whUp':'{c}',
   'btn.xoAccept':'借給他',
   'btn.xoDecline':'婉拒',
   'btn.xsell':'請介紹人賣出',
@@ -1089,12 +1107,12 @@ const MSG_TXT={
   /* —— ship —— */
   'ship.1':'出貨量為 0：惜售壓倉，本旬不出貨。',
   /* —— meet —— */
-  'meet.1':'對方視你為仇人，拒不見面。',
+  'meet.1':'視你為仇，拒不見面。',
   /* —— visit —— */
-  'visit.1':'對方視你為仇人，拒不見面，也不收禮。',
-  'visit.snub':'對方覺得你不善言辭，這陣子不想見你。',
+  'visit.1':'視你為仇，拒不見面。',
+  'visit.snub':'嫌你不善言辭，暫不見客。',
   /* —— makeIntro —— */
-  'makeIntro.1':'對方覺得你的名氣還撐不起他的引薦，婉拒了。',
+  'makeIntro.1':'名氣不足，對方婉拒。',
   'makeIntro.2':'「{cid}」答應當你的介紹人！往後僱人、拜官、說媒都能請他引薦。',
   'makeIntro.3':'此人的身分不適合擔任介紹人。',
   'makeIntro.4':'此人已是介紹人，或介紹人名額已滿。',
@@ -1172,10 +1190,10 @@ const MSG_TXT={
   /* —— appTop —— */
   'appTop.1':'現款不足，需 {top} 兩',
   /* —— nomOiran —— */
-  'nomOiran.1':'她視你為仇人，不肯見面。',
-  'nomOiran.2':'這位名伶今旬不在席。',
+  'nomOiran.1':'視你為仇，不肯見面。',
+  'nomOiran.2':'今旬不在席。',
   'nomOiran.3':'今旬已指名過了。',
-  'nomOiran.4':'知名度不足，指名不到這位名伶。',
+  'nomOiran.4':'名氣不足，點不到她。',
   'nomOiran.5':'「{cid}」含笑相迎。好感 +5（現 {aff}）{note}',
   /* —— oGift —— */
   'oGift.1':'須先指名，才能送禮。',
@@ -1477,7 +1495,7 @@ function posTitle(n){const p=OFF_POS[n.pos.posId];return p?p.title:'官吏'}
 function rankLabel(n){return RANK_INFO[n.pos.rank].title}
 
 /* ---------- 抽樣：千人固定名冊，每局隨機抽 600~700 人 ---------- */
-/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三院官署（每院 2～4 階各一人）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
+/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三院官署（每院一～四階各一人，另一位五階）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
 function genWorld(homeId){
   const home=CITY(homeId);
   const pool=CHARS.filter(c=>c.birth_year<=0&&c.death_year>=2);   // 開局當下在世
@@ -1489,13 +1507,15 @@ function genWorld(homeId){
   };
   const add=(c,cityId,extra)=>{W.npcs[c.id]=Object.assign({cid:c.id,cityId,role:roleOf(c),pos:null},extra||{})};
   const age0=c=>-c.birth_year;
-  // 駐節地：三院官署（每院 2、3、4 階各一人）
-  CITY_COURTS.forEach(court=>[2,3,4].forEach(rank=>{
-    let o=take('official',1,c=>age0(c)>=30)[0]||take('official',1)[0];
+  // 駐節地：三院官署（每院一～四階各一人），另有一位五階官員隨機坐鎮其中一院
+  const homeSeats=[];CITY_COURTS.forEach(court=>[1,2,3,4].forEach(rank=>homeSeats.push([court,rank])));
+  homeSeats.push([pick(CITY_COURTS),5]);
+  homeSeats.forEach(([court,rank])=>{
+    let o=take('official',1,c=>age0(c)>=(rank>=3?30:22))[0]||take('official',1)[0];
     if(!o)return;
     const p=posPick(court,rank);
     add(o,homeId,{role:'official',pos:{court,rank,posId:p.id}});
-  }));
+  });
   addRegionOfficials(W,used,pool);                 // 五個地區各 10 位地區官員（遠國奉行所）
   take('oiran',8).forEach(c=>add(c,homeId,{role:'oiran'}));
   take('manager',4,c=>age0(c)>=22&&age0(c)<=62).forEach(c=>add(c,homeId,{role:'manager'}));
@@ -1514,7 +1534,7 @@ function genWorld(homeId){
     for(let i=0;i<list.length;i++){r-=w[i];if(r<=0){ct=list[i];break}}
     const role=roleOf(c);
     const extra={role};
-    if(role==='official'){const court=pick(CITY_COURTS);const rank=pick([1,1,2,2,2,3,3,4,5]);extra.pos={court,rank,posId:posPick(court,rank).id}}
+    if(role==='official'){const court=pick(CITY_COURTS);const rank=pick([1,1,2,2,2,3,3,4,5,6]);extra.pos={court,rank,posId:posPick(court,rank).id}}   // 其他城市的官員：一～六階都可能出現
     add(c,ct.id,extra);
   });
   return W;
@@ -2321,14 +2341,14 @@ function visitRoll(cid){
 function meetCheck(cid,viaIntro){
   const n=npc(cid),r=R(cid);
   if(!n)return '此人已不在此地';
-  if(isEnemy(cid))return '對方視你為仇人，拒不見面。';
+  if(isEnemy(cid))return '視你為仇，拒不見面。';
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return '才剛請託過，三旬內不宜再度叨擾';
   /* 知名度階級：有介紹人時視同 +1 階；私房錢每千兩 +1 階已含在 fameTier */
   const need=meetTierNeed(cid),have=fameTier()+(viaIntro?1:0);
-  if(have<need)return n.role==='oiran'?'她身價甚高，以你眼下的名氣還指名不到。':'對方位高權重，以你眼下的名氣還見不到。';
+  if(have<need)return n.role==='oiran'?'名氣不足，點不到她。':'名氣不足，對方不見。';
   if(viaIntro){
     const it=introOf(G.introId);if(!it)return '你還沒有介紹人';
-    if(fameTier()<introTier(G.introId))return '介紹人覺得你的名氣還不夠，不肯替你出面。';
+    if(fameTier()<introTier(G.introId))return '名氣不足，介紹人不肯出面。';
     if(!affordAmt('introFee',introFee(cid)))return shortMsg('introFee',Math.max(1,targetTier(cid)));
   }else if(!afford('selfIntro'))return shortMsg('selfIntro');
   return null;
@@ -3838,7 +3858,7 @@ function personBlock(cid,ctx){
   const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos;autoIntro(cid);
   /* 知名度不足（含介紹人 +1 階）而見不到的人：半透明、不可點選 */
   const lockNeed=meetTierNeed(cid),snub=snubbed(cid),locked=snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
-  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(snub?'<div class="tiny" style="color:#b3261e">🔒 對方覺得你不善言辭，這陣子不想見你。</div>':locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?'對方位高權重，以你眼下的名氣還見不到。':'對方眼界甚高，以你眼下的名氣還攀不上交情。')+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+' '+(isEnemy(c.id)?'<span class="tag red">⚔️ 仇人</span>':'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+empRole(cid)+'</span>':'');
+  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(snub?'<div class="tiny" style="color:#b3261e">🔒 嫌你不善言辭，暫不見客</div>':locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?'名氣不足，見不到':'名氣不足，攀不上')+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+' '+(isEnemy(c.id)?'<span class="tag red">⚔️ 仇人</span>':'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+empRole(cid)+'</span>':'');
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
   h+='<div class="tiny muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
@@ -3848,13 +3868,13 @@ function personBlock(cid,ctx){
     const pt=!pv?'尚無介紹人：貿然登門，容易被擋在門外。':pv.known?'性向判定：<b>'+pv.cp.label+'</b>（共通：'+(pv.cp.shared.join('、')||'無')+'）':'性向未知，需先探聽。';
     h+='<div class="notice tiny" style="margin:4px 0">'+pt+'</div>';
     const via=!!(G.introId&&introOf(G.introId));
-    h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?'請引薦·帶禮登門（禮金 '+introFee(cid)+' 兩·交情 -2～5）':'毛遂自薦·登門投帖（備禮 '+costTxt('selfIntro')+'）')+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:scoutCost(cid)})+'</button>')+'</div>';
+    h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?'請引薦·帶禮登門（禮金 '+coinHtml('silver',introFee(cid))+'·交情 -2～5）':'毛遂自薦·登門投帖（備禮 '+costBtn('selfIntro')+'）')+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:coinHtml('silver',scoutCost(cid))})+'</button>')+'</div>';
   }else if(isEnemy(cid)){
-    h+='<div class="notice tiny" style="margin:4px 0;border-color:#c0584f;background:#fde8e4">⚔️ 這人視你為仇人，拒不見面，也不收你的禮。曾經交情最高到 '+Math.round(r.peak||0)+'，如今只剩 '+Math.round(r.aff)+'。</div>';
+    h+='<div class="notice tiny" style="margin:4px 0;border-color:#c0584f;background:#fde8e4">⚔️ 視你為仇，拒不見面</div>';
   }else{
     h+='<div class="row small"><span>態度：<span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span> <span class="tag">'+esc(r.bond.label)+'</span></span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     if(r.topKnown){const pv=G.introId?introPower(G.introId,cid):null;h+='<div class="tiny" style="margin:2px 0">性向偏重：<b>'+top3(cid).join('、')+'</b>'+(pv?'　與介紹人：<span class="tag '+pv.cp.cls+'">'+pv.cp.label+'</span>':'')+'</div>'}
-    else h+='<div class="tiny muted" style="margin:2px 0">性向未明 <button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scout',{c:scoutCost(cid)})+'</button></div>';
+    else h+='<div class="tiny muted" style="margin:2px 0">性向未明 <button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scout',{c:coinHtml('silver',scoutCost(cid))})+'</button></div>';
     if(r.verified)h+='<div class="tiny" style="color:#9b2c3a;margin:2px 0">🤫 軟肋：<b>'+esc(c.weakness)+'</b></div>';
     else h+='<div class="tiny muted" style="margin:2px 0">🤫 軟肋未明</div>';
     h+=visitRowHtml(cid);
@@ -3967,7 +3987,7 @@ SHEETS.guild=()=>{
   h+='<div class="card"><b class="small">本旬配額（每項本城需求的 '+Math.round(C.quotaPct*100)+'%）</b>'+own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+quotaOf(c.name)+' 單位／旬</b></div>').join('')+'</div>';
   const qp=quotaRaiseChance();
   h+='<div class="card"><b class="small">📈 提案提高配額</b><div class="tiny muted" style="margin:2px 0">每次例會可提案一次，最多增加 10%。成敗看你與同行商人的交情。目前成功率 <b>'+Math.round(qp*100)+'%</b>。</div><button class="pixel-btn btn-sm btn-gold" data-act="quotaUp" '+(C.tried?'disabled':'')+'>'+UT(C.tried?'btn.quotaDone':'btn.quotaUp')+'</button></div>';
-  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged">'+UT('btn.cartel')+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret">'+UT('btn.cartel2')+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%">'+UT('btn.cartel3')+'</button></div>';
+  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged">'+UT('btn.cartel')+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret">'+UT('btn.cartel2',{c:costBtn('guildSecret')})+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%">'+UT('btn.cartel3')+'</button></div>';
   const rv=cityNpcs(G.cityId,'rival');
   h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.slice(0,6).map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
   return {title:'⚖️ 問屋公會·株仲間會所',html:h};
@@ -4011,7 +4031,7 @@ SHEETS.warehouse=()=>{
   h+=xgoodsCard();
   h+='<div class="notice tiny">🛡️ 倉庫由<b>保鏢</b>平時巡守（降低失火與盜賊風險），你出門時他們隨行護身。到「商號」頁聘用保鏢。</div>';
   const wc=costOf('whUp',G.wh.n),wm=G.wh.n>=whMax();
-  h+='<div class="card"><div class="row"><div><b class="small">🏚️ 增建倉庫</b><div class="tiny muted">每棟 +'+G.wh.cap+' 容量·每旬維持費 6 兩·許可上限 '+whMax()+' 棟'+(wm?'（再蓋要先申請「河岸倉地拜領」）':'')+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:fmt(wc)}))+'</button></div></div>';
+  h+='<div class="card"><div class="row"><div><b class="small">🏚️ 增建倉庫</b><div class="tiny muted">每棟 +'+G.wh.cap+' 容量·每旬維持費 6 兩·許可上限 '+whMax()+' 棟'+(wm?'（再蓋要先申請「河岸倉地拜領」）':'')+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:coinHtml('silver',wc)}))+'</button></div></div>';
   h+='<div class="card"><div class="row"><div><b class="small">🍚 開倉施粥賑濟</b><div class="tiny muted">花 '+costTxt('charity')+' 施粥；值凶年（米麥行情高漲）時，聲望收穫更大。</div></div><button class="pixel-btn btn-sm btn-green" data-act="charity">'+UT('btn.charity')+'</button></div></div>';
   return {title:'⛵ 河岸碼頭與問屋大倉庫',html:h};
 };
@@ -4149,17 +4169,17 @@ function renderEstate(){
   h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">淨資產<br><b>'+fmt(netWorth())+' 兩</b></div><div class="card" style="margin:0">每旬開銷<br><b>'+fmt(G.lastCost||0)+' 兩</b></div><div class="card" style="margin:0">黑帳風聲<br><b>'+(G.heat>6?'很緊':G.heat>3?'偏緊':'平靜')+'</b></div></div>';
   // 介紹人
   h+='<div class="small bold">🤝 介紹人（關係到僱人、拜官、說媒，所有跟人有關的事）</div>';
-  h+=G.intros.map(i=>{const cid=i.cid,r=R(cid),sel=cid===G.introId;return '<div class="card '+(sel?'good':'')+'"><div class="row"><div><b>'+esc(nameOf(cid))+'</b> <div class="tiny muted">志趣：<b>'+top3(cid).join('、')+'</b></div></div><div style="text-align:right" class="tiny">'+(r.aff>=75?'信任甚深':r.aff>=55?'信任可靠':r.aff>=35?'信任普通':'信任尚淺')+'</div></div><div style="margin:3px 0">'+bar(r.aff,100,'gold')+'</div><div class="row tiny"><span class="muted">交情 '+Math.round(r.aff)+'·'+affWord(r.aff)+'</span><span>'+'<button class="pixel-btn btn-sm btn-gold" data-act="befriend" data-cid="'+cid+'">'+UT('btn.befriend',{c:costTxt('befriend')})+'</button></span></div></div>'}).join('')||'<div class="card warn"><b>📌 你還沒有介紹人</b><div class="tiny" style="margin:3px 0">一切從這裡開始：到「名門商邸」登門投帖，與人往來、好感達 40 以上，就能請對方當介紹人。有了介紹人，才能物色人才、拜謁官員、說親。</div><button class="pixel-btn btn-sm btn-gold" data-act="go" data-go="residences">'+UT('btn.go')+'</button></div>';
+  h+=G.intros.map(i=>{const cid=i.cid,r=R(cid),sel=cid===G.introId;return '<div class="card '+(sel?'good':'')+'"><div class="row"><div><b>'+esc(nameOf(cid))+'</b> <div class="tiny muted">志趣：<b>'+top3(cid).join('、')+'</b></div></div><div style="text-align:right" class="tiny">'+(r.aff>=75?'信任甚深':r.aff>=55?'信任可靠':r.aff>=35?'信任普通':'信任尚淺')+'</div></div><div style="margin:3px 0">'+bar(r.aff,100,'gold')+'</div><div class="row tiny"><span class="muted">交情 '+Math.round(r.aff)+'·'+affWord(r.aff)+'</span><span>'+'<button class="pixel-btn btn-sm btn-gold" data-act="befriend" data-cid="'+cid+'">'+UT('btn.befriend',{c:costBtn('befriend')})+'</button></span></div></div>'}).join('')||'<div class="card warn"><b>📌 你還沒有介紹人</b><div class="tiny" style="margin:3px 0">一切從這裡開始：到「名門商邸」登門投帖，與人往來、好感達 40 以上，就能請對方當介紹人。有了介紹人，才能物色人才、拜謁官員、說親。</div><button class="pixel-btn btn-sm btn-gold" data-act="go" data-go="residences">'+UT('btn.go')+'</button></div>';
   h+='<div class="notice tiny">💡 <b>找志趣相合的介紹人去引薦對應的人</b>，是這個遊戲最重要的社交套利。</div>';
   // 夥計
-  h+='<hr class="sep"><div class="row"><b class="small">👥 商號夥計（丁稚 ➔ 手代 ➔ 番頭 ➔ 大番頭；另有船長、飛腳、保鏢）</b><button class="pixel-btn btn-sm" data-act="apprentice">'+UT('btn.apprentice',{c:costTxt('apprentice')})+'</button></div>';
+  h+='<hr class="sep"><div class="row"><b class="small">👥 商號夥計（丁稚 ➔ 手代 ➔ 番頭 ➔ 大番頭；另有船長、飛腳、保鏢）</b><button class="pixel-btn btn-sm" data-act="apprentice">'+UT('btn.apprentice',{c:costBtn('apprentice')})+'</button></div>';
   h+='<div class="notice tiny">'+RANKS.concat(['保鏢']).map(k=>'• <b>'+k+'</b>　'+DUTY_DESC[k]).join('<br>')+'</div>';
   h+=SPECIAL.filter(k=>k!=='船長').concat(RANKS.slice().reverse()).map(rk=>{
     const ls=G.emps.filter(e=>e.rank===rk);
     return ls.map(e=>{
       const s=statsOfEmp(e);const tag=e.flag?'<span class="tag red">疑似私吞 '+fmt(e.flag)+' 兩</span>':'';
       const idl=G.turn-e.audited>18;
-      return '<div class="card '+(e.flag?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+tag+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬'+(idl?'·<b style="color:#c18a00">久未查帳</b>':'')+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm" data-act="audit" data-id="'+e.id+'">'+UT('btn.audit',{c:costTxt('audit')})+'</button>'+(e.flag?'<button class="pixel-btn btn-sm btn-red" data-act="punish" data-id="'+e.id+'">'+UT('btn.punish')+'</button>':'')+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
+      return '<div class="card '+(e.flag?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+tag+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬'+(idl?'·<b style="color:#c18a00">久未查帳</b>':'')+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm" data-act="audit" data-id="'+e.id+'">'+UT('btn.audit',{c:costBtn('audit')})+'</button>'+(e.flag?'<button class="pixel-btn btn-sm btn-red" data-act="punish" data-id="'+e.id+'">'+UT('btn.punish')+'</button>':'')+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
   h+='<div class="card"><div class="row"><div><b class="small">🔎 請介紹人物色人才</b><div class="tiny muted">禮金 '+costTxt('recruitIntro')+'·交情 -2～5。介紹人愈信任你、與人才圈愈投契，聘得到的職階愈高、人選愈可靠。</div></div><button class="pixel-btn btn-sm btn-gold" data-act="recruit">'+UT('btn.recruit')+'</button></div></div>';
@@ -4171,7 +4191,7 @@ function renderEstate(){
   h+=(G.family.conc||[]).map(x=>'<div class="card" style="display:flow-root">'+portraitHtml(x.cid,48)+'<b>側室：'+esc(x.name)+'</b><div class="tiny muted">吉原贖身而來·與家人無異，不能生育。每旬家用 8 兩。</div></div>').join('');
   h+=kids.map(k=>{
     const a=kidAge(k);
-    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+(k.gender==='男'?'👦':'👧')+' '+esc(k.name)+'</b>（'+kidStage(a)+'）'+(k.prodigal?'<span class="tag red">敗家子</span>':'')+'<div class="tiny muted">'+(k.revealed?'天賦偏重：<b>'+top3Of(k.stats)[0]+'</b>':'天賦尚未顯露')+(k.path?'·歷練：'+PATHS[k.path].name:'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+P.name+'（'+P.cost+'/年）</span>').join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costTxt('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
+    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+(k.gender==='男'?'👦':'👧')+' '+esc(k.name)+'</b>（'+kidStage(a)+'）'+(k.prodigal?'<span class="tag red">敗家子</span>':'')+'<div class="tiny muted">'+(k.revealed?'天賦偏重：<b>'+top3Of(k.stats)[0]+'</b>':'天賦尚未顯露')+(k.path?'·歷練：'+PATHS[k.path].name:'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+P.name+'（'+P.cost+'/年）</span>').join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costBtn('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
   }).join('');
   // 隱居
   h+='<div class="card" style="background:#fff8eb"><b class="small" style="color:#9b2c3a">👴 退隱交棒（二代視角）</b><p class="tiny" style="margin:3px 0">主角退隱後切換為繼承人，承襲財富、人脈、黑帳、舊怨與老僕。繼承人可為已成年的子女，或招贅（收為義子）你的大番頭。</p><button class="pixel-btn btn-red btn-sm" data-act="retire">'+UT('btn.retire')+'</button></div>';
@@ -4223,7 +4243,7 @@ SHEETS.recruit=()=>{
   h+=rc.cands.map(cid=>{
     const c=CH(cid);
     const ranks=candidateHireRanks(cid,rc.rank).filter(slotFree);
-    const opts=ranks.map(rk=>'<button class="pixel-btn btn-sm" data-act="hire" data-cid="'+cid+'" data-rk="'+rk+'">'+UT('btn.hire',{r:rk+(rk==='船長'?'（造船 '+fmt(shipCost())+' 兩）':'')})+'</button>').join(' ');
+    const opts=ranks.map(rk=>'<button class="pixel-btn btn-sm" data-act="hire" data-cid="'+cid+'" data-rk="'+rk+'">'+UT('btn.hire',{r:rk+(rk==='船長'?'（造船 '+coinHtml('silver',shipCost())+'）':'')})+'</button>').join(' ');
     return '<div class="card" style="display:flow-root">'+portraitHtml(cid,56)+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+'<div class="tiny muted">'+esc(c.family_summary.slice(0,36))+'……</div></div><div class="tiny">評價 '+ratingStars(cid)+'</div></div><div style="margin-top:4px">'+(opts||'<span class="tiny muted">適任職位的名額已滿</span>')+'</div></div>';
   }).join('')||'<div class="notice">人選已聘完。</div>';
   return {title:'🔎 人才名冊',html:h};
@@ -4528,7 +4548,7 @@ function inspectResolve(bribe,log){
 function inspectCard(){
   const I=G.inspect;if(!I)return '';
   const n=npc(I.cid),rk=n&&n.pos?n.pos.rank:1;
-  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn" style="display:flow-root">'+portraitHtml(I.cid,56)+'<div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:inspectBribe(rk)})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
+  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn" style="display:flow-root">'+portraitHtml(I.cid,56)+'<div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:coinHtml('silver',inspectBribe(rk))})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
 }
 ACT.inspBribe=()=>{const t=inspectResolve(true);toast(t);if(!G.inspect){UI.hideInfo();sfx.coin();UI.render()}};
 ACT.inspPass=()=>{const t=inspectResolve(false);toast(t);UI.hideInfo();UI.render()};
@@ -4577,7 +4597,7 @@ function showEncounter(enc,cont){
   const role=n.pos?posTitle(n):(ROLE_LABEL[n.role]||'');
   const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:15px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
    +'<div class="small" style="margin:6px 0">'+esc(TX('enc.ask',{why:ENC_WHY[Math.floor(rnd()*ENC_WHY.length)],cost:ENC_COST}))+'</div>'
-   +'<div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="encGive">'+UT('btn.encGive',{c:ENC_COST})+'</button><button class="pixel-btn btn-sm" data-act="encNo">'+UT('btn.encNo')+'</button></div></div>';
+   +'<div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="encGive">'+UT('btn.encGive',{c:costBtn('encounter')})+'</button><button class="pixel-btn btn-sm" data-act="encNo">'+UT('btn.encNo')+'</button></div></div>';
   UI.showInfo('🚶 路遇急難',h);
 }
 /** 結束路遇並繼續出門。 */
@@ -4924,7 +4944,7 @@ function errandTrim(cid,a0,r){
 function errandBtn(cid){
   if(R(cid).aff>=FRIEND_AFF)return '<button class="pixel-btn btn-sm" style="flex:1" disabled title="交情已深，要你親自登門">👦 交情已深，須親自登門</button>';
   const left=errandLeft(),off=left<=0;
-  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+fmt(btTiers(cid)[1])+' 兩·剩 '+left+'）':'')+'</button>';
+  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+coinHtml('silver',btTiers(cid)[1])+'·剩 '+left+'）':'')+'</button>';
 }
 /* ---------- 大番頭自動補貨 ---------- */
 ACT.toggleRestock=()=>{G.restock=!G.restock;toast(MSG(G.restock?'toggleRestock.on':'toggleRestock.off'));save();UI.render()};
@@ -5513,12 +5533,12 @@ function oiranBlock(cid){
   let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56);
   h+='<div class="row"><div><b>'+esc(c.name)+'</b> <span class="tag" style="background:#f6d5e1;color:#a2315f">🌸 名伶</span></div></div>';
   h+='<div class="tiny muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
-  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 她身價甚高，以你眼下的名氣還指名不到。</div></div>';
+  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 名氣不足，點不到</div></div>';
   if(r.bond){
     h+='<div class="row small"><span>好感：<span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span> '+Math.round(r.aff)+'／100</span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     h+='<div class="tiny muted">'+(r.nomT!==undefined?'上回指名在 '+(G.turn-r.nomT)+' 旬前。':'')+'每 2 旬沒再指名，好感 -4（最低 1）。</div>';
   }else h+='<div class="tiny muted">素昧平生。第一次指名，即算相識。</div>';
-  h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="nomOiran" data-cid="'+cid+'" '+(nom?'disabled':'')+'>'+(nom?UT('btn.nomDone'):UT('btn.nom',{c:costTxt('nominate')}))+'</button></div>';
+  h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="nomOiran" data-cid="'+cid+'" '+(nom?'disabled':'')+'>'+(nom?UT('btn.nomDone'):UT('btn.nom',{c:costBtn('nominate')}))+'</button></div>';
   if(nom){
     if(r.oGiftT===r.nomT)h+='<div class="tiny muted" style="margin-top:4px">這次指名已經送過禮了，下次指名才能再送。</div>';
     else{
@@ -5528,7 +5548,7 @@ function oiranBlock(cid){
   }
   if(r.bond&&r.aff>=100){
     const price=r.ransom||(r.ransom=costOf('ransom')+rint(-100,100));
-    h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" style="width:100%" data-act="ransom" data-cid="'+cid+'">'+UT('btn.ransom',{c:fmt(price)})+'</button></div>';
+    h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" style="width:100%" data-act="ransom" data-cid="'+cid+'">'+UT('btn.ransom',{c:coinHtml('gold',price)})+'</button></div>';
   }
   return h+'</div>';
 }
@@ -5620,7 +5640,7 @@ const empAff=e=>{if(e.aff===undefined)e.aff=40;return e.aff};
 function empAffHtml(e,ctx){
   const a=empAff(e),full=a>=100,given=e.allowT===G.turn;
   let h='<div class="row small" style="margin-top:3px"><span>好感 <b>'+Math.round(a)+'</b>／100</span><div style="width:90px">'+bar(a,100,'gold')+'</div>'
-    +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costTxt('allowance')}))+'</button></div>';
+    +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costBtn('allowance')}))+'</button></div>';
   if(e.rank==='保鏢'&&full)h+=assassinHtml(e);
   if(arsonOK(e))h+=arsonHtml(e);
   if(e.rank==='船長'&&full)h+='<div class="tiny" style="color:#5b4a70;margin-top:2px">🏴‍☠️ 他對你死心塌地，肯替你跑「走私」（走私）。</div>';
@@ -6319,7 +6339,7 @@ function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
   let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?'該怎麼表示心意？':left===2?'對方還在聽。':'對方的耐性快到頭了。')+(B.spent?'　已奉上 '+fmt(B.spent)+' 兩。':'')+'</div>';
-  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+['小','中','大'].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+fmt(t[i])+' 兩</button>').join('')+'</div>';
+  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+['小','中','大'].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
   h+='<div style="margin-top:6px;text-align:right"><button class="pixel-btn btn-sm" data-act="btEnd">閒話家常，告辭</button></div>';
   return h;
 }
