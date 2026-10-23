@@ -61,14 +61,14 @@ function visitRoll(cid){
 function meetCheck(cid,viaIntro){
   const n=npc(cid),r=R(cid);
   if(!n)return '此人已不在此地';
-  if(isEnemy(cid))return '對方視你為仇人，拒不見面。';
+  if(isEnemy(cid))return '視你為仇，拒不見面。';
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return '才剛請託過，三旬內不宜再度叨擾';
   /* 知名度階級：有介紹人時視同 +1 階；私房錢每千兩 +1 階已含在 fameTier */
   const need=meetTierNeed(cid),have=fameTier()+(viaIntro?1:0);
-  if(have<need)return n.role==='oiran'?'她身價甚高，以你眼下的名氣還指名不到。':'對方位高權重，以你眼下的名氣還見不到。';
+  if(have<need)return n.role==='oiran'?'名氣不足，點不到她。':'名氣不足，對方不見。';
   if(viaIntro){
     const it=introOf(G.introId);if(!it)return '你還沒有介紹人';
-    if(fameTier()<introTier(G.introId))return '介紹人覺得你的名氣還不夠，不肯替你出面。';
+    if(fameTier()<introTier(G.introId))return '名氣不足，介紹人不肯出面。';
     if(!affordAmt('introFee',introFee(cid)))return shortMsg('introFee',Math.max(1,targetTier(cid)));
   }else if(!afford('selfIntro'))return shortMsg('selfIntro');
   return null;
@@ -156,10 +156,12 @@ const FAVORS={
     {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
     {k:'trade1',apply:true,trade:0,name:'交易許可',rank:4,desc:'核准買賣本業最貴的貨。'},
     {k:'licHorse',apply:true,lic:'horse',name:'馬幫株',rank:2,desc:'核准多聘飛腳，一名飛腳帶一支馬幫。'},
+    {k:'smallLoan',name:'小額周轉',rank:1,cd:3,desc:'先借 750 兩應急，六旬後連本帶一成利息歸還。'},
     {k:'loan',name:'官倉平準貸款',rank:2,cd:12,desc:'官府低息借款，九旬後連本帶利歸還。'}
   ],
   judiciary:[
     {k:'licGuard',apply:true,lic:'guard',name:'帶刀護衛許可',rank:2,desc:'核准多聘保鏢。'},
+    {k:'sellAid',name:'協助銷貨',rank:1,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，再請座客商人代售）。'},
     {k:'blind',name:'袖之下',rank:2,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
     {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'}
   ]
@@ -175,11 +177,14 @@ function doFavor(cid,key){
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
+  if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
   const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
   r.aff=Math.max(0,r.aff-drop);if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
-  else if(key==='loan'){const amt=1200*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back});msg='借得 '+fmt(amt)+' 兩，六旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;G.heat=(G.heat||0)+0.5;msg='官府沒收的「'+L.c.short+'」'+L.q+' 單位交給你處理，已入倉；可請座客商人代售。'}
+  else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='blind'){G.flags.blind=12;msg='十二旬內搜查時多半睜隻眼。'}
   else if(key==='lessen'){G.lessen=1;msg='取得減罪狀，下次被定罪時刑罰減輕一等。'}
   logRel(cid,'請託「'+f.name+'」：'+msg+'好感 -'+drop+'。');
@@ -252,6 +257,7 @@ function peopleTick(log){
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;r.aff=Math.max(0,r.aff-10);logRel(cid,'逾期未兌現：'+p.text+'，交情 -10。');const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
   });
+  (G.debts||[]).forEach(d=>{if(!d.paid&&!d.warned&&d.due-G.turn===2){d.warned=true;const t=NEWS('peopleTick.due',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   (G.debts||[]).forEach(d=>{if(!d.paid&&G.turn>=d.due){d.paid=true;G.silver-=d.amt;const t=NEWS('peopleTick.2',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   if(G.debts)G.debts=G.debts.filter(d=>!d.paid);
 }
@@ -504,7 +510,7 @@ function yearTick(log){
     if(r&&r.aff>=20&&r.seen){const tt=NEWS('yearTick.2',{name:c.name,birth_year:(c.death_year-c.birth_year)});pushNews(tt);log.push(tt)}
     if(introOf(n.cid)){G.intros=G.intros.filter(i=>i.cid!==n.cid);if(G.introId===n.cid)G.introId=G.intros[0]?G.intros[0].cid:null}
     const e=G.emps.find(x=>x.cid===n.cid);if(e){G.emps=G.emps.filter(x=>x!==e);pushNews(NEWS('yearTick.3',{rank:e.rank,name:e.name}))}
-    if(n.role==='official'&&n.pos){const rep=replaceOfficial(n);if(rep)addKnown(rep)}
+    if(n.role==='official'&&n.pos){const rep=replaceOfficial(n);if(rep)addKnown(rep);n.pos=null}   // 病重離職：職位交給遞補者，避免同一職位一年內兩人並列
   });
   // 子女
   G.family.kids.forEach(k=>{
@@ -548,6 +554,7 @@ function obituary(){
 /** 結束這一世（破產/病逝/退隱）。 */
 function endLife(cause){
   if(G.ended)return;
+  delete G.party;
   G.ended={cause,year:G.year,ob:obituary()};
   G.legacy.push({gen:G.me.gen,name:G.me.name,age:myAge(),cause,sum:G.ended.ob.sum,year:G.year});
   save();

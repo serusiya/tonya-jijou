@@ -1,11 +1,11 @@
 /* ======================= 官員運作：司法官員栽贓、行政官員打壓 =======================
- *  - 官員好感 100：司法官員可「栽贓」隨機一家同業（成功＝該同業被查抄，市佔分數剩 40%）；
+ *  - 四階以上官員好感 100：司法官員可「栽贓」隨機一家同業（成功＝該同業被查抄，市佔分數剩 40%）；
  *    行政官員可「打壓」隨機一家同業（成功＝該同業行情 ×0.6，持續數旬）。
  *  - 好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。機制同放火：500 兩私房錢、熱度 +3；成功後可能被查辦（官員撤職，可能供出你）；
  *    失手則官員與你決裂、該同業成為仇人。 */
 const SCHEME={frame:{court:'judiciary',icon:'⚖️',name:'栽贓'},suppress:{court:'administration',icon:'📛',name:'打壓'}};
 function schemeKind(n){const c=n&&n.pos&&n.pos.court;return c==='judiciary'?'frame':c==='administration'?'suppress':null}
-function schemeOK(cid){const n=npc(cid),k=schemeKind(n);return !!(k&&n.role==='official'&&alive(cid)&&R(cid).bond&&R(cid).aff>=100&&!isEnemy(cid))}
+function schemeOK(cid){const n=npc(cid),k=schemeKind(n);return !!(k&&n.role==='official'&&n.pos.rank>=SPECIAL_RANK&&alive(cid)&&R(cid).bond&&R(cid).aff>=100&&!isEnemy(cid))}
 function schemeChance(n,k){const s=CH(n.cid).derived_stats,A_=ODDS[k];return clamp(A_.base+s.audacity_courage/A_.courageDiv+s.commerce_skill/A_.commerceDiv-A_.rank*A_.perRank,A_.min,A_.max)}
 const schemeTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!n.raided);
 /** 拜訪請託中選了「栽贓／打壓」（好感 100、每位官員一次；行動點數已在拜訪時扣過）。 */

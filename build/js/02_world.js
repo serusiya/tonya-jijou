@@ -53,7 +53,7 @@ function posTitle(n){const p=OFF_POS[n.pos.posId];return p?p.title:'官吏'}
 function rankLabel(n){return RANK_INFO[n.pos.rank].title}
 
 /* ---------- 抽樣：千人固定名冊，每局隨機抽 600~700 人 ---------- */
-/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三院官署（每院 2～4 階各一人）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
+/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三院官署（每院一～六階各一人，五、六階巡迴）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
 function genWorld(homeId){
   const home=CITY(homeId);
   const pool=CHARS.filter(c=>c.birth_year<=0&&c.death_year>=2);   // 開局當下在世
@@ -65,13 +65,14 @@ function genWorld(homeId){
   };
   const add=(c,cityId,extra)=>{W.npcs[c.id]=Object.assign({cid:c.id,cityId,role:roleOf(c),pos:null},extra||{})};
   const age0=c=>-c.birth_year;
-  // 駐節地：三院官署（每院 2、3、4 階各一人）
-  CITY_COURTS.forEach(court=>[2,3,4].forEach(rank=>{
-    let o=take('official',1,c=>age0(c)>=30)[0]||take('official',1)[0];
+  // 駐節地：三院官署每院一～六階各一人；一～四階常駐，五、六階巡迴各城（見 touring）
+  const homeSeats=[];CITY_COURTS.forEach(court=>[1,2,3,4,5,6].forEach(rank=>homeSeats.push([court,rank])));
+  homeSeats.forEach(([court,rank])=>{
+    let o=take('official',1,c=>age0(c)>=(rank>=3?30:22))[0]||take('official',1)[0];
     if(!o)return;
     const p=posPick(court,rank);
     add(o,homeId,{role:'official',pos:{court,rank,posId:p.id}});
-  }));
+  });
   addRegionOfficials(W,used,pool);                 // 五個地區各 10 位地區官員（遠國奉行所）
   take('oiran',8).forEach(c=>add(c,homeId,{role:'oiran'}));
   take('manager',4,c=>age0(c)>=22&&age0(c)<=62).forEach(c=>add(c,homeId,{role:'manager'}));
@@ -90,10 +91,42 @@ function genWorld(homeId){
     for(let i=0;i<list.length;i++){r-=w[i];if(r<=0){ct=list[i];break}}
     const role=roleOf(c);
     const extra={role};
-    if(role==='official'){const court=pick(CITY_COURTS);const rank=pick([1,1,2,2,2,3,3,4,5]);extra.pos={court,rank,posId:posPick(court,rank).id}}
+    if(role==='official'&&ct.id===homeId){const alt=list.filter(x=>x.id!==homeId);ct=alt.length?pick(alt):pick(CITIES.filter(x=>x.id!==homeId))}   // 本城官署一階一人，抽樣到本城的官員改派他城
+    if(role==='official'){const court=pick(CITY_COURTS);const rank=pick([1,1,2,2,2,3,3,4,5,6]);extra.pos={court,rank,posId:posPick(court,rank).id}}   // 其他城市的官員：一～六階都可能出現
     add(c,ct.id,extra);
   });
   return W;
+}
+/* ---------- 巡迴官員：本城三院的五、六階官員每三個月來本城一個月 ----------
+ * 行政院一、四、七、十月；財務院二、五、八、十一月；司法院三、六、九、十二月。 */
+const TOUR_MONTH={administration:1,finance:2,judiciary:3};
+/** 是否為本城的巡迴官員（三院五階以上）。 */
+function touring(n){return !!(n&&n.pos&&TOUR_MONTH[n.pos.court]&&n.pos.rank>=5&&n.cityId===G.cityId)}
+/** 巡迴官員在某月（預設本月）是否在本城。 */
+function tourHere(n,m){return (((m||G.month)-TOUR_MONTH[n.pos.court])%3+3)%3===0}
+/** 巡迴在外（不在本城、不能拜訪）。 */
+function awayNow(n){return touring(n)&&!tourHere(n)}
+/** 下次來本城的月份。 */
+function tourNext(n){for(let k=1;k<=3;k++){const m=(G.month-1+k)%12+1;if(tourHere(n,m))return m}return G.month}
+/** 每旬：補上本城官署空缺；巡迴官員抵達（上旬）與啟程（下旬）的旬報。 */
+function tourTick(log){
+  officialMigrate();                              // 本城官署若有空缺（病故、遭害而無人遞補），由名冊補上
+  if(G.cycle!==1&&G.cycle!==3)return;
+  Object.values(G.world.npcs).filter(n=>touring(n)&&alive(n.cid)&&tourHere(n)).sort((a,b)=>b.pos.rank-a.pos.rank).forEach(n=>{
+    const t=NEWS(G.cycle===1?'tour.arrive':'tour.leave',{t:posTitle(n).replace(/（.*）/,''),n:nameOf(n.cid)});pushNews(t);log.push(t);
+  });
+}
+/** 舊存檔整理：已刪除的官職換成同院同階的官職；本城缺的三院官署（含五、六階）由名冊補上。 */
+function officialMigrate(){
+  Object.values(G.world.npcs).forEach(n=>{if(n.pos&&!OFF_POS[n.pos.posId]){const p=posPick(n.pos.court,n.pos.rank);if(p)n.pos.posId=p.id}});
+  CITY_COURTS.forEach(court=>[1,2,3,4,5,6].forEach(rank=>{
+    if(Object.values(G.world.npcs).some(n=>n.cityId===G.cityId&&n.pos&&n.pos.court===court&&n.pos.rank===rank&&alive(n.cid)))return;
+    const p=posPick(court,rank),free=a=>CHARS.filter(c=>!G.world.npcs[c.id]&&c.birth_year<=G.year-a&&c.death_year>G.year+2&&hasRole(c,'official'));
+    let pool=free(rank>=3?30:22);if(!pool.length)pool=free(18);              // 名冊裡年長的官員用完時，放寬年齡
+    if(pool.length){const c=pick(pool);G.world.npcs[c.id]={cid:c.id,cityId:G.cityId,role:'official',pos:{court,rank,posId:p.id}};addKnown(c.id);return}
+    const far=Object.values(G.world.npcs).filter(n=>n.role==='official'&&n.pos&&n.pos.court!=='region'&&n.cityId!==G.cityId&&alive(n.cid));   // 名冊也用完：從外地調一位官員來補
+    if(far.length){const n=pick(far);n.cityId=G.cityId;n.pos={court,rank,posId:p.id};addKnown(n.cid)}
+  }));
 }
 /* 官員病逝或離任後，由未入名冊的同名冊人物遞補 */
 /** 官員病逝/離任後，由尚未登場的名冊官員遞補同一職位。 */
@@ -174,6 +207,7 @@ function newGame(sysKey,regionPref){
   officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
   applyStartBoost(sysKey);
   recordSilver();
+  G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
   pushNews(G.emps.length?'🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。':'🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。');
   return G;

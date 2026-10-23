@@ -62,10 +62,11 @@ const NEWS_TXT={
   /* —— shipsTick —— */
   "shipsTick.1":"⛵【到貨】{name}「{short}」{q} 單位運抵入倉{q2}。",
   /* —— cityTick —— */
-  "cityTick.1":"🏮【節慶】【{name}】「{festival}」開幕！宵禁解除，酒、油、布料需求暴增三倍，也是黑市接頭的高峰。",
+  "cityTick.1":"🏮【節慶】【{name}】「{festival}」開幕！宵禁解除，全城買氣大旺，酒、油、布料尤其搶手。",
   "cityTick.2":"📜【城史】【{name}】{title}。",
   /* —— peopleTick —— */
   "peopleTick.1":"⏰【失信】對「{cid}」的承諾已逾期，對方頗為不快。",
+  "peopleTick.due":"🏦【還款】有一筆 {d} 兩的借款，兩旬後到期。",
   "peopleTick.2":"🏦【還款】官倉平準貸款到期，償還 {d} 兩。",
   /* —— empTick —— */
   "empTick.1":"💸【捲款潛逃】{rank}「{name}」捲走現款 {take} 兩，不告而別！",
@@ -79,6 +80,10 @@ const NEWS_TXT={
   "yearTick.5":"😞【敗家子】「{name}」沉迷賭坊，欠下鉅額賭債，債主上門索討！",
   "yearTick.6":"👶【添丁】家中添了{gender}孩「{name}」，宅邸裡多了孩子的笑聲。",
   /* —— succeed —— */
+  "tour.arrive":"🏯【巡察】{t}「{n}」抵達本城，停留一月。",
+  "tour.leave":"🏯【巡察】{t}「{n}」本旬過後啟程，往他城巡察。",
+  "party.held":"🏮【忘年會】{year}最後一夜，商號在大廣間設宴，{n} 人入席。",
+  "party.skip":"🏮【忘年會】主人遠在島上，今年的忘年會停辦。",
   "succeed.1":"🏯【交棒】{oldName}，由第 {gen} 代「{name}」（{myAge}歲）接掌家業，人脈與舊怨一併承襲。",
   /* —— autoBuy —— */
   "autoBuy.1":"📥【自動進貨】{got} 已下單。",
@@ -129,10 +134,12 @@ const NEWS_TXT={
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
   /* —— xsell —— */
-  "xsell.1":"💱【脫手】請「{introId}」把「{short}」{q} 單位賣給了別行的商人，得 {rev} 兩（約基準價的 {m}%），交情 −{d}。",
+  "xsell.1":"💱【代售】座客商人「{introId}」把「{short}」{q} 單位整批收下，得 {rev} 兩（約基準價的 {m}%），好感 −{d}。",
+  "smugglerArrest.talk":"⛓️【落網】私梟「{n}」在黑市交易時落網，熬不住拷問，把你供了出來。",
+  "smugglerArrest.silent":"⛓️【落網】私梟「{n}」在黑市交易時落網，咬緊牙關，始終沒提你的名字。",
   /* —— xgoodsTick —— */
   "xgoodsTick.1":"🤝【借錢】商人「{n}」上門，想拿貨物抵押借錢。",
-  "xgoodsTick.2":"🎁【官吏硬塞】「{n}」把一批沒收來的「{short}」{q} 單位塞進你的倉庫，要你「幫忙處理」。得自己請介紹人賣掉。",
+  "xgoodsTick.2":"🎁【官吏硬塞】「{n}」把一批沒收來的「{short}」{q} 單位塞進你的倉庫，要你「幫忙處理」。得自己找座客商人代售。",
   /* —— regionHeld —— */
   "regionHeld.1":"取得【{REG_NAME}】的關所通行手形，馬幫可在此地區通行。",
   "regionHeld.2":"取得【{REG_NAME}】的進港泊位許可，船隊可靠泊此地區各港。",

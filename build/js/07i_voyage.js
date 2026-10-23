@@ -2,7 +2,7 @@
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
- *   70% 買本業能賣的貨（入倉）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請介紹人賣掉）；5% 私買違禁品（入密庫）。
+ *   70% 買本業能賣的貨（入倉）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）；5% 私買違禁品（入密庫）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_CAPT={sea:'船長',land:'飛腳'};
@@ -67,7 +67,7 @@ function resolveVoyage(s,log){
     const q=Math.max(0,Math.min(Math.floor(spend/unit),capOf(c.name,mode),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
       L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));
-      L.push((wreck?'🌊 歸途'+wn+'，損失 '+(q-got)+' 單位，':'')+got+' 單位已入倉。這不是你的本業，得請介紹人幫忙賣掉（見碼頭倉庫）。')}
+      L.push((wreck?'🌊 歸途'+wn+'，損失 '+(q-got)+' 單位，':'')+got+' 單位已入倉。這不是你的本業，得請座客商人代售。')}
     else L.push(NEWS('kind.5',{short:c.short}));
   }else{
     const it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);

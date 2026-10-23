@@ -51,6 +51,7 @@ function updateTop(){
   $('#d-age').textContent=G.me.given+' '+myAge()+' 歲';
   $('#d-silver').textContent=fmt(G.silver)+' 兩';
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
+  {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent='欠'+fmt(tot)+'·'+(near?near+'旬':'本旬');e.title='欠款 '+fmt(tot)+' 兩，最近一筆'+(near?near+' 旬後':'本旬')+'到期';e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=Math.round(G.gold)+' 兩';
   $('#d-rep').textContent=Math.round(G.fame||0)+' / '+ODDS.fame.cap;
   $('#d-firm').textContent=G.firm;
@@ -92,7 +93,7 @@ function renderHome(){
   sceneSync();
 }
 /** 商邸可拜訪的人（同行、座客、掮客…，不含已聘者）。 */
-const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
+const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!jailed(n)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
 
 /* ---------- 大盤 ---------- */
 /** 迷你折線圖（行情走勢）。 */
@@ -123,7 +124,7 @@ function renderMarket(){
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:14px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">大盤商</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()&&FEST_KW.some(k=>c.name.includes(k))?' <span class="up">節慶需求大增</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
   // 進貨（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name)){h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';h+=orderCard()+shareCard()}
   else{
@@ -260,7 +261,7 @@ function posInfoHtml(id){
   const sys=OFFICIALS.systems[p.court],rk=RANK_INFO[p.rank];
   const nm=x=>OFF_POS[x]?OFF_POS[x].title+'（'+RANK_INFO[OFF_POS[x].rank].title.split(/[\u30FB\u00B7]/)[0]+'）':x;
   return '<div class="small"><span class="tag '+COURTS[p.court].cls+'">'+COURTS[p.court].name+'</span> <span class="tag gold">'+esc(rk.title)+'</span></div>'
-   +ik('所屬',sys.name+'·'+sys.department)+ik('職掌',p.duties)+ik('官階權力',rk.influence)+ik('與商人的關係',sys.merchant_interaction)
+   +ik('所屬',sys.name+'·'+sys.department)+ik('職掌',p.duties)+(p.court!=='region'?ik('駐地',p.rank>=5?'巡迴各城，每三個月來本城一個月（'+[TOUR_MONTH[p.court],TOUR_MONTH[p.court]+3,TOUR_MONTH[p.court]+6,TOUR_MONTH[p.court]+9].join('、')+'月）':'常駐城中'):'')+ik('官階權力',rk.influence)+ik('與商人的關係',sys.merchant_interaction)
    +ik('貪腐破口',p.corruption_hooks)+ik('可升遷至',(p.promotes_to||[]).map(nm).join('、')||'（已達頂點）')+ik('升遷條件',p.promotion_conditions)
    +'<div class="ik">官階待遇</div><div class="iv">年俸 '+rk.salary_koku+' 石·賄賂基準 '+rk.bribe_base_gold+' 兩金</div>';
 }
@@ -268,7 +269,7 @@ function posInfoHtml(id){
 ACT.posInfo=el=>{const p=OFF_POS[el.dataset.id];UI.pushInfo('官吏職位：'+(p?p.title:''),posInfoHtml(el.dataset.id))};
 /** 顯示 30 個職位一覽。 */
 ACT.posList=()=>{
-  let h='<div class="tiny muted">三院共 30 個職位，點選查看說明。</div>';
+  let h='<div class="tiny muted">三院每院一階一職，一～四階常駐城中，五階以上巡迴各城、每三個月來訪一個月。點選查看說明。</div>';
   Object.keys(COURTS).forEach(ct=>{const sys=OFFICIALS.systems[ct];h+='<div class="ik" style="font-size:13px">'+COURTS[ct].name+'系統·'+esc(sys.department)+'</div><div class="tiny muted">'+esc(sys.core_function)+'</div>'+sys.positions.map(p=>'<div class="irow" data-act="posInfo" data-id="'+p.id+'"><b>'+esc(p.title)+'</b> <span class="tag gold">'+RANK_INFO[p.rank].title.split(/[\u30FB\u00B7]/)[0]+'</span></div>').join('')});
   UI.showInfo('官吏職位一覽',h);
 };

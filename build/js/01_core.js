@@ -183,10 +183,12 @@ function clearSave(){try{localStorage.removeItem(SAVE_KEY);OLD_SAVE_KEYS.forEach
 /** WebAudio 內容（音效用，無法使用時為 null）。 */
 const AC=(window.AudioContext||window.webkitAudioContext)?new(window.AudioContext||window.webkitAudioContext)():null;
 let soundOn=true;
+/** 音效音量倍率（由 07w_music.js 依設定調整）。 */
+let SFX_VOL=1;
 /** 播放一個短音（方波/三角波）。 */
 function tone(f,type='square',d=0.08,v=0.08){
   if(!soundOn||!AC)return;
-  try{if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,AC.currentTime);g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}
+  try{if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,AC.currentTime);g.gain.setValueAtTime(Math.max(0.0001,v*SFX_VOL),AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}
 }
 /** 音效集合：coin 金幣、step 腳步、gift 送禮、bad 壞事、fanfare 喜事…（受 soundOn 控制）。 */
 const sfx={
@@ -235,7 +237,11 @@ const needTierOfRank=rk=>rk<=2?1:Math.min(4,rk-1);
 function introTier(cid){return needTierOfRank(targetTier(cid))}
 /** 名伶的知名度門檻：依人物 id 固定，約半數 2 階、四分之一 3 階。 */
 function oiranTier(cid){let h=0;String(cid).split('').forEach(ch=>h=(h*31+ch.charCodeAt(0))%97);return h%4===0?1:h%4===3?3:2}
-/** 見某人所需知名度階（官員看官階；名伶看固定門檻；其餘 1）。 */
-function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):1}
+/** 名門商邸人物的知名度門檻分布（知名度一～四階的機率 %）：依身分，每人以人物編號固定。 */
+const RES_TIER_W={guest:[70,30,0,0],broker:[60,40,0,0],manager:[40,40,20,0],smuggler:[0,70,30,0],rival:[0,40,40,20]};
+/** 名門商邸人物的知名度門檻（同一人每局都一樣）。 */
+function resTier(cid,role){const w=RES_TIER_W[role];if(!w)return 1;const x=seeded('res'+cid)()*100;let a=0;for(let i=0;i<4;i++){a+=w[i];if(x<a)return i+1}return 1}
+/** 見某人所需知名度階（官員看官階；名伶看固定門檻；名門商邸人物依身分與人物編號固定；其餘 1）。 */
+function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):resTier(cid,n.role)}
 const TIER_NAME=['','一階','二階','三階','四階'];
 function updateFame(){const e=document.getElementById('d-fame');if(e&&G)e.textContent='名望 '+TIER_NAME[fameTier()]}

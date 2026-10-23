@@ -48,6 +48,7 @@ const MSG_TXT={
   'doFavor.2':'此事剛辦過，還需 {key} 旬。',
   'doFavor.3':'此事早已辦妥。',
   'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
+  'doFavor.sellAidFull':'倉庫放不下，這批貨沒法接手。',
   'doFavor.lessenHeld':'你手上已有一張減罪狀，用掉之前不必再求。',
   'doFavor.4':'現款不足（需 {total} 兩）。',
   'doFavor.5':'本業行情走強。',
@@ -98,11 +99,13 @@ const MSG_TXT={
   /* —— ship —— */
   'ship.1':'出貨量為 0：惜售壓倉，本旬不出貨。',
   /* —— meet —— */
-  'meet.1':'對方視你為仇人，拒不見面。',
+  'meet.1':'視你為仇，拒不見面。',
   /* —— visit —— */
-  'visit.1':'對方視你為仇人，拒不見面，也不收禮。',
+  'visit.1':'視你為仇，拒不見面。',
+  'visit.away':'這位大人巡迴在外，{m}月才會來本城。',
+  'visit.snub':'嫌你不善言辭，暫不見客。',
   /* —— makeIntro —— */
-  'makeIntro.1':'對方覺得你的名氣還撐不起他的引薦，婉拒了。',
+  'makeIntro.1':'名氣不足，對方婉拒。',
   'makeIntro.2':'「{cid}」答應當你的介紹人！往後僱人、拜官、說媒都能請他引薦。',
   'makeIntro.3':'此人的身分不適合擔任介紹人。',
   'makeIntro.4':'此人已是介紹人，或介紹人名額已滿。',
@@ -123,8 +126,11 @@ const MSG_TXT={
   'charity.1':'施粥賑濟！百姓感念，名聲遠播。{famine}',
   /* —— setIntro —— */
   'setIntro.1':'已改請「{introId}」當介紹人。',
-  /* —— befriend —— */
-  'befriend.1':'宴請「{cid}」，好感 +6。',
+  /* —— banquet（宴會）—— */
+  'banquet.done':'本旬已經設過宴了，下旬再辦吧。',
+  'banquet.none':'還沒有介紹人，也沒有員工，無人可請。',
+  'banquet.fx':'私宅張燈設宴，杯盤交錯……',
+  'banquet.fxTitle':'宴會',
   /* —— needIntro —— */
   'needIntro.1':'找人要靠介紹人——先到「名門商邸」結識一位肯為你引薦的人。',
   /* —— fire —— */
@@ -150,10 +156,6 @@ const MSG_TXT={
   'smugGo.4':'密庫放不下這麼多。',
   'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
   'smugGo.6':'船長「{name}」趁夜出港，{d} 旬後回航。',
-  /* —— smugSell —— */
-  'smugSell.1':'⛓️ 遠島中，無法交易。',
-  'smugSell.2':'賣禁品要靠介紹人牽線，請先選一位介紹人。',
-  'smugSell.3':'「{introId}」出手賣掉「{name}」{q} 單位，私房錢增加 {net} 兩（介紹費 {fee}，交情 −{d}）。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
   'errand.done':'丁稚替你把 {amt} 兩禮金送到「{cid}」府上，對方收下了。（好感 +{gain}）',
@@ -164,9 +166,6 @@ const MSG_TXT={
   'sendVoyage.4':'尚未取得【{REG_NAME}】的{sea}。請到「遠國奉行所」請託。',
   'sendVoyage.5':'委託金至少 100 兩',
   'sendVoyage.6':'現款不足，委託金需 {budget} 兩',
-  /* —— xsell —— */
-  'xsell.1':'要請介紹人幫忙脫手——先結識一位介紹人。',
-  'xsell.2':'這位介紹人視你為仇人，不肯出面。',
   /* —— xoAccept —— */
   'xoAccept.1':'現款不足，需 {O} 兩',
   'xoAccept.2':'倉庫放不下抵押品，只好婉拒。',
@@ -180,10 +179,10 @@ const MSG_TXT={
   /* —— appTop —— */
   'appTop.1':'現款不足，需 {top} 兩',
   /* —— nomOiran —— */
-  'nomOiran.1':'她視你為仇人，不肯見面。',
-  'nomOiran.2':'這位名伶今旬不在席。',
+  'nomOiran.1':'視你為仇，不肯見面。',
+  'nomOiran.2':'今旬不在席。',
   'nomOiran.3':'今旬已指名過了。',
-  'nomOiran.4':'知名度不足，指名不到這位名伶。',
+  'nomOiran.4':'名氣不足，點不到她。',
   'nomOiran.5':'「{cid}」含笑相迎。好感 +5（現 {aff}）{note}',
   /* —— oGift —— */
   'oGift.1':'須先指名，才能送禮。',
@@ -258,6 +257,7 @@ const MSG_TXT={
   'feast.fxTitle':'花金之夜',
   'assassinate.fx':'夜色深沉，保鏢悄然出門……',
   'assassinate.fxTitle':'暗殺',
+  'party.effect':'宴席費 {cost} 兩。出席的友人 {f} 位好感 +{fg}，店員 {s} 位好感 +{sg}。',
   'turn.fx':'時節流轉……'
 };
 /** 取訊息並代入 {變數}。 */

@@ -24,8 +24,8 @@ function personBlock(cid,ctx){
   if(npc(cid)&&npc(cid).role==='oiran')return oiranBlock(cid,ctx);
   const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos;autoIntro(cid);
   /* 知名度不足（含介紹人 +1 階）而見不到的人：半透明、不可點選 */
-  const lockNeed=meetTierNeed(cid),locked=!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
-  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?'對方位高權重，以你眼下的名氣還見不到。':'對方眼界甚高，以你眼下的名氣還攀不上交情。')+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+' '+(isEnemy(c.id)?'<span class="tag red">⚔️ 仇人</span>':'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+empRole(cid)+'</span>':'');
+  const away=awayNow(n),lockNeed=meetTierNeed(cid),snub=snubbed(cid),locked=away||snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
+  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?'<div class="tiny" style="color:#7a5a1a">🏯 巡迴在外，'+tourNext(n)+'月來訪</div>':snub?'<div class="tiny" style="color:#b3261e">🔒 嫌你不善言辭，暫不見客</div>':locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?'名氣不足，見不到':'名氣不足，攀不上')+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+' '+(isEnemy(c.id)?'<span class="tag red">⚔️ 仇人</span>':'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+empRole(cid)+'</span>':'');
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
   h+='<div class="tiny muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
@@ -35,13 +35,13 @@ function personBlock(cid,ctx){
     const pt=!pv?'尚無介紹人：貿然登門，容易被擋在門外。':pv.known?'性向判定：<b>'+pv.cp.label+'</b>（共通：'+(pv.cp.shared.join('、')||'無')+'）':'性向未知，需先探聽。';
     h+='<div class="notice tiny" style="margin:4px 0">'+pt+'</div>';
     const via=!!(G.introId&&introOf(G.introId));
-    h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?'請引薦·帶禮登門（禮金 '+introFee(cid)+' 兩·交情 -2～5）':'毛遂自薦·登門投帖（備禮 '+costTxt('selfIntro')+'）')+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:scoutCost(cid)})+'</button>')+'</div>';
+    h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?'請引薦·帶禮登門（禮金 '+coinHtml('silver',introFee(cid))+'·交情 -2～5）':'毛遂自薦·登門投帖（備禮 '+costBtn('selfIntro')+'）')+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:coinHtml('silver',scoutCost(cid))})+'</button>')+'</div>';
   }else if(isEnemy(cid)){
-    h+='<div class="notice tiny" style="margin:4px 0;border-color:#c0584f;background:#fde8e4">⚔️ 這人視你為仇人，拒不見面，也不收你的禮。曾經交情最高到 '+Math.round(r.peak||0)+'，如今只剩 '+Math.round(r.aff)+'。</div>';
+    h+='<div class="notice tiny" style="margin:4px 0;border-color:#c0584f;background:#fde8e4">⚔️ 視你為仇，拒不見面</div>';
   }else{
     h+='<div class="row small"><span>態度：<span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span> <span class="tag">'+esc(r.bond.label)+'</span></span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     if(r.topKnown){const pv=G.introId?introPower(G.introId,cid):null;h+='<div class="tiny" style="margin:2px 0">性向偏重：<b>'+top3(cid).join('、')+'</b>'+(pv?'　與介紹人：<span class="tag '+pv.cp.cls+'">'+pv.cp.label+'</span>':'')+'</div>'}
-    else h+='<div class="tiny muted" style="margin:2px 0">性向未明 <button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scout',{c:scoutCost(cid)})+'</button></div>';
+    else h+='<div class="tiny muted" style="margin:2px 0">性向未明 <button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scout',{c:coinHtml('silver',scoutCost(cid))})+'</button></div>';
     if(r.verified)h+='<div class="tiny" style="color:#9b2c3a;margin:2px 0">🤫 軟肋：<b>'+esc(c.weakness)+'</b></div>';
     else h+='<div class="tiny muted" style="margin:2px 0">🤫 軟肋未明</div>';
     h+=visitRowHtml(cid);
@@ -54,6 +54,7 @@ function personBlock(cid,ctx){
 function rr(r){toast(r.msg,Math.max(3200,r.msg.length*120));if(r.ok===false)sfx.bad();UI.render();refreshSheet()}
 /** 請引薦/自薦登門：扣行動點數→擲 visitRoll→播拜訪動畫→結算。 */
 ACT.meet=el=>{
+  if(awayNow(npc(el.dataset.cid))){toast(MSG('visit.away',{m:tourNext(npc(el.dataset.cid))}));return}
   autoIntro(el.dataset.cid);
   if(isEnemy(el.dataset.cid)){toast(MSG('meet.1'));return}
   const cid=el.dataset.cid,via=!!(G.introId&&introOf(G.introId));
@@ -69,8 +70,10 @@ ACT.meet=el=>{
 };
 /** 拜訪：選禮物→扣行動點數（或派丁稚）→門口動畫（拒見／不在家）→見面進入對話框戰鬥（07u_battle.js）。 */
 ACT.visit=el=>{
+  if(awayNow(npc(el.dataset.cid))){toast(MSG('visit.away',{m:tourNext(npc(el.dataset.cid))}));return}
   autoIntro(el.dataset.cid);
   if(isEnemy(el.dataset.cid)){toast(MSG('visit.1'));return}
+  if(snubbed(el.dataset.cid)){toast(MSG('visit.snub'));return}
   const cid=el.dataset.cid,card=el.closest('.card'),sel=card&&card.querySelector('.gift-sel');
   const gift=sel?sel.value:(R(cid).aff>=FRIEND_AFF?'friend':GIFTS[0].k),g=GIFT_MAP[gift];
   const err=el.dataset.err==='1';
@@ -138,12 +141,21 @@ ACT.go=el=>{const k=el.dataset.go,i=GO_INFO[k];
 function goTo(k){const i=GO_INFO[k];
   if(k==='guild'){G.guildAt=G.turn;G.cartel.tried=false;G.cartel.paid=false}playFx('walk',i[0],i[1],()=>UI.openSheet(k),900)}
 
+/** 人物卡是否為「見不到」（巡迴在外、嫌你不善言辭、名氣不足）——與 personBlock 的判斷相同。 */
+function cardLocked(cid){const n=npc(cid),r=R(cid);return awayNow(n)||snubbed(cid)||(!r.bond&&meetTierNeed(cid)>fameTier()+((G.introId&&introOf(G.introId))?1:0))}
+/** 索引標籤列：tabs＝[[key,名稱,人數]]，cur＝目前選中，act＝點選時的動作。 */
+function tabPills(tabs,cur,act){return '<div class="tabrow">'+tabs.map(([k,nm,c])=>'<span class="pill '+(cur===k?'on':'')+'" data-act="'+act+'" data-k="'+k+'">'+nm+' '+c+'</span>').join('')+'</div>'}
+/** 分類小標題（「全部」頁用）。 */
+const groupHead=t=>'<div class="tiny muted bold" style="margin:8px 0 2px;text-align:center">── '+t+' ──</div>';
 /** 町奉行所面板：三院官員（人物卡）。 */
 SHEETS.yamen=()=>{
-  const offs=officialsOf(G.cityId);
+  const all=officialsOf(G.cityId),tab=UI.s.yamenTab||'all',offs=tab==='all'?all:all.filter(n=>n.pos.court===tab);
   let h=introSel()+appsCard()+licCard()+'<div class="notice tiny">奉行所分行政、財務、司法三院，倉庫、人手、船隻與買賣都要他們核發許可。第一次拜謁官員要靠介紹人引薦；送禮要投其所好，有事相求也得看彼此交情與對方態度。<br>查帳風聲：'+(G.heat>6?'<b style="color:#b3261e">很緊</b>':G.heat>3?'<b style="color:#c18a00">偏緊</b>':'平靜')+'</div>';
-  return {title:'🏛️ 町奉行所·三院府衙（'+homeCity().name+'）',html:h+'<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList')+'</button></div>'+(offs.map(n=>personBlock(n.cid,'yamen')).join('')||'<div class="notice">此城官署暫無人在值。</div>')};
+  return {title:'🏛️ 町奉行所·三院府衙（'+homeCity().name+'）',html:h+'<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList')+'</button></div>'
+    +tabPills([['all','全部',all.length]].concat(CITY_COURTS.map(k=>[k,COURTS[k].name,all.filter(n=>n.pos.court===k).length])),tab,'yamenTab')
+    +(offs.map((n,i)=>(tab==='all'&&(i===0||offs[i-1].pos.court!==n.pos.court)?groupHead(COURTS[n.pos.court].name+'院'):'')+personBlock(n.cid,'yamen')).join('')||'<div class="notice">此城官署暫無人在值。</div>')};
 };
+ACT.yamenTab=el=>{UI.s.yamenTab=el.dataset.k;refreshSheet()};
 /** 公會面板：配額、提案、表態。 */
 SHEETS.guild=()=>{
   const C=G.cartel,own=tradeComms();
@@ -153,7 +165,7 @@ SHEETS.guild=()=>{
   h+='<div class="card"><b class="small">本旬配額（每項本城需求的 '+Math.round(C.quotaPct*100)+'%）</b>'+own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+quotaOf(c.name)+' 單位／旬</b></div>').join('')+'</div>';
   const qp=quotaRaiseChance();
   h+='<div class="card"><b class="small">📈 提案提高配額</b><div class="tiny muted" style="margin:2px 0">每次例會可提案一次，最多增加 10%。成敗看你與同行商人的交情。目前成功率 <b>'+Math.round(qp*100)+'%</b>。</div><button class="pixel-btn btn-sm btn-gold" data-act="quotaUp" '+(C.tried?'disabled':'')+'>'+UT(C.tried?'btn.quotaDone':'btn.quotaUp')+'</button></div>';
-  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged">'+UT('btn.cartel')+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret">'+UT('btn.cartel2')+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%">'+UT('btn.cartel3')+'</button></div>';
+  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged">'+UT('btn.cartel')+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret">'+UT('btn.cartel2',{c:costBtn('guildSecret')})+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%">'+UT('btn.cartel3')+'</button></div>';
   const rv=cityNpcs(G.cityId,'rival');
   h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.slice(0,6).map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
   return {title:'⚖️ 問屋公會·株仲間會所',html:h};
@@ -187,9 +199,17 @@ ACT.cartel=el=>{
 };
 /** 名門商邸面板。 */
 SHEETS.residences=()=>{
-  const list=resident().sort((a,b)=>R(b.cid).aff-R(a.cid).aff);
-  return {title:'🏯 名門商邸·拜會名士',html:introSel()+'<div class="notice tiny">前往同行巨賈與名士寓所投名帖。經介紹人引薦後可送禮、結交；交情夠深的人，可以請他當你的介紹人。</div>'+(list.map(n=>personBlock(n.cid,'res')).join('')||'<div class="notice">城中暫無可訪之人。</div>')};
+  /* 依類型排序（同業→座客→好手→掮客→私梟）；同類中能見的在前、見不到與仇人在後，再按好感高低 */
+  const back=n=>isEnemy(n.cid)?2:cardLocked(n.cid)?1:0;
+  const all=resident().sort((a,b)=>RES_ORDER.indexOf(a.role)-RES_ORDER.indexOf(b.role)||back(a)-back(b)||R(b.cid).aff-R(a.cid).aff);
+  const tab=UI.s.resTab||'all',list=tab==='all'?all:all.filter(n=>n.role===tab);
+  const tabs=[['all','全部',all.length]].concat(RES_ORDER.map(k=>[k,RES_TAB[k],all.filter(n=>n.role===k).length]));
+  return {title:'🏯 名門商邸·拜會名士',html:introSel()+'<div class="notice tiny">前往同行巨賈與名士寓所投名帖。經介紹人引薦後可送禮、結交；交情夠深的人，可以請他當你的介紹人。</div>'+tabPills(tabs,tab,'resTab')
+    +(list.map((n,i)=>(tab==='all'&&(i===0||list[i-1].role!==n.role)?groupHead(ROLE_LABEL[n.role]):'')+personBlock(n.cid,'res')).join('')||'<div class="notice">城中暫無可訪之人。</div>')};
 };
+/** 名門商邸的類型順序與標籤名稱。 */
+const RES_ORDER=['rival','guest','manager','broker','smuggler'],RES_TAB={rival:'同業',guest:'座客',manager:'好手',broker:'掮客',smuggler:'私梟'};
+ACT.resTab=el=>{UI.s.resTab=el.dataset.k;refreshSheet()};
 /** 碼頭倉庫面板。 */
 SHEETS.warehouse=()=>{
   let h='<div class="grid3 small" style="text-align:center"><div class="card" style="margin:0">倉庫<br><b>'+G.wh.n+' 棟</b></div><div class="card" style="margin:0">容量<br><b>'+invUsed()+' / '+invCap()+'</b></div><div class="card" style="margin:0">保鏢<br><b>'+guardCount()+' 名</b></div></div>';
@@ -197,7 +217,7 @@ SHEETS.warehouse=()=>{
   h+=xgoodsCard();
   h+='<div class="notice tiny">🛡️ 倉庫由<b>保鏢</b>平時巡守（降低失火與盜賊風險），你出門時他們隨行護身。到「商號」頁聘用保鏢。</div>';
   const wc=costOf('whUp',G.wh.n),wm=G.wh.n>=whMax();
-  h+='<div class="card"><div class="row"><div><b class="small">🏚️ 增建倉庫</b><div class="tiny muted">每棟 +'+G.wh.cap+' 容量·每旬維持費 6 兩·許可上限 '+whMax()+' 棟'+(wm?'（再蓋要先申請「河岸倉地拜領」）':'')+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:fmt(wc)}))+'</button></div></div>';
+  h+='<div class="card"><div class="row"><div><b class="small">🏚️ 增建倉庫</b><div class="tiny muted">每棟 +'+G.wh.cap+' 容量·每旬維持費 6 兩·許可上限 '+whMax()+' 棟'+(wm?'（再蓋要先申請「河岸倉地拜領」）':'')+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:coinHtml('silver',wc)}))+'</button></div></div>';
   h+='<div class="card"><div class="row"><div><b class="small">🍚 開倉施粥賑濟</b><div class="tiny muted">花 '+costTxt('charity')+' 施粥；值凶年（米麥行情高漲）時，聲望收穫更大。</div></div><button class="pixel-btn btn-sm btn-green" data-act="charity">'+UT('btn.charity')+'</button></div></div>';
   return {title:'⛵ 河岸碼頭與問屋大倉庫',html:h};
 };
@@ -225,11 +245,11 @@ SHEETS.city=()=>{
 };
 /** 選單面板（說明、存檔、規則摘要）。 */
 SHEETS.menu=()=>{
-  let h='<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
+  let h=audioSettingsHtml()+'<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+='<div class="notice tiny" style="margin-top:6px">每旬推進時自動存檔於此瀏覽器。</div>';
   h+='<div class="card tiny"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
   if(G.legacy.length)h+='<div class="card tiny"><b>🏯 家系</b>'+G.legacy.map(l=>'<div>第 '+l.gen+' 代·'+esc(l.name)+'·'+l.age+' 歲·'+({death:'壽終',bankrupt:'家業傾覆',executed:'伏法處刑'})[l.cause]+'（'+yearStr(l.year)+'）</div>').join('')+'</div>';
-  return {title:'☰ 選單',html:h};
+  return {title:'⚙️ 設定',html:h};
 };
 /** 開關音效。 */
 /** 放棄並重開。 */
@@ -333,19 +353,21 @@ function renderEstate(){
   const sp=G.family.spouse,kids=G.family.kids;
   let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🏯 私宅內苑·商號與家族</b><div class="tiny muted">介紹人、夥計、家族與傳承。</div></div><span class="tag red">'+esc(G.me.name)+'·第'+G.me.gen+'代</span></div>';
   h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">淨資產<br><b>'+fmt(netWorth())+' 兩</b></div><div class="card" style="margin:0">每旬開銷<br><b>'+fmt(G.lastCost||0)+' 兩</b></div><div class="card" style="margin:0">黑帳風聲<br><b>'+(G.heat>6?'很緊':G.heat>3?'偏緊':'平靜')+'</b></div></div>';
+  // 宴會
+  h+=banquetCard();
   // 介紹人
   h+='<div class="small bold">🤝 介紹人（關係到僱人、拜官、說媒，所有跟人有關的事）</div>';
-  h+=G.intros.map(i=>{const cid=i.cid,r=R(cid),sel=cid===G.introId;return '<div class="card '+(sel?'good':'')+'"><div class="row"><div><b>'+esc(nameOf(cid))+'</b> <div class="tiny muted">志趣：<b>'+top3(cid).join('、')+'</b></div></div><div style="text-align:right" class="tiny">'+(r.aff>=75?'信任甚深':r.aff>=55?'信任可靠':r.aff>=35?'信任普通':'信任尚淺')+'</div></div><div style="margin:3px 0">'+bar(r.aff,100,'gold')+'</div><div class="row tiny"><span class="muted">交情 '+Math.round(r.aff)+'·'+affWord(r.aff)+'</span><span>'+'<button class="pixel-btn btn-sm btn-gold" data-act="befriend" data-cid="'+cid+'">'+UT('btn.befriend',{c:costTxt('befriend')})+'</button></span></div></div>'}).join('')||'<div class="card warn"><b>📌 你還沒有介紹人</b><div class="tiny" style="margin:3px 0">一切從這裡開始：到「名門商邸」登門投帖，與人往來、好感達 40 以上，就能請對方當介紹人。有了介紹人，才能物色人才、拜謁官員、說親。</div><button class="pixel-btn btn-sm btn-gold" data-act="go" data-go="residences">'+UT('btn.go')+'</button></div>';
+  h+=G.intros.map(i=>{const cid=i.cid,r=R(cid),sel=cid===G.introId;return '<div class="card '+(sel?'good':'')+'"><div class="row"><div><b>'+esc(nameOf(cid))+'</b> <div class="tiny muted">志趣：<b>'+top3(cid).join('、')+'</b></div></div><div style="text-align:right" class="tiny">'+(r.aff>=75?'信任甚深':r.aff>=55?'信任可靠':r.aff>=35?'信任普通':'信任尚淺')+'</div></div><div style="margin:3px 0">'+bar(r.aff,100,'gold')+'</div><div class="row tiny"><span class="muted">交情 '+Math.round(r.aff)+'·'+affWord(r.aff)+'</span></div></div>'}).join('')||'<div class="card warn"><b>📌 你還沒有介紹人</b><div class="tiny" style="margin:3px 0">一切從這裡開始：到「名門商邸」登門投帖，與人往來、好感達 40 以上，就能請對方當介紹人。有了介紹人，才能物色人才、拜謁官員、說親。</div><button class="pixel-btn btn-sm btn-gold" data-act="go" data-go="residences">'+UT('btn.go')+'</button></div>';
   h+='<div class="notice tiny">💡 <b>找志趣相合的介紹人去引薦對應的人</b>，是這個遊戲最重要的社交套利。</div>';
   // 夥計
-  h+='<hr class="sep"><div class="row"><b class="small">👥 商號夥計（丁稚 ➔ 手代 ➔ 番頭 ➔ 大番頭；另有船長、飛腳、保鏢）</b><button class="pixel-btn btn-sm" data-act="apprentice">'+UT('btn.apprentice',{c:costTxt('apprentice')})+'</button></div>';
+  h+='<hr class="sep"><div class="row"><b class="small">👥 商號夥計（丁稚 ➔ 手代 ➔ 番頭 ➔ 大番頭；另有船長、飛腳、保鏢）</b><button class="pixel-btn btn-sm" data-act="apprentice">'+UT('btn.apprentice',{c:costBtn('apprentice')})+'</button></div>';
   h+='<div class="notice tiny">'+RANKS.concat(['保鏢']).map(k=>'• <b>'+k+'</b>　'+DUTY_DESC[k]).join('<br>')+'</div>';
   h+=SPECIAL.filter(k=>k!=='船長').concat(RANKS.slice().reverse()).map(rk=>{
     const ls=G.emps.filter(e=>e.rank===rk);
     return ls.map(e=>{
       const s=statsOfEmp(e);const tag=e.flag?'<span class="tag red">疑似私吞 '+fmt(e.flag)+' 兩</span>':'';
       const idl=G.turn-e.audited>18;
-      return '<div class="card '+(e.flag?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+tag+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬'+(idl?'·<b style="color:#c18a00">久未查帳</b>':'')+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm" data-act="audit" data-id="'+e.id+'">'+UT('btn.audit',{c:costTxt('audit')})+'</button>'+(e.flag?'<button class="pixel-btn btn-sm btn-red" data-act="punish" data-id="'+e.id+'">'+UT('btn.punish')+'</button>':'')+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
+      return '<div class="card '+(e.flag?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+tag+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬'+(idl?'·<b style="color:#c18a00">久未查帳</b>':'')+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm" data-act="audit" data-id="'+e.id+'">'+UT('btn.audit',{c:costBtn('audit')})+'</button>'+(e.flag?'<button class="pixel-btn btn-sm btn-red" data-act="punish" data-id="'+e.id+'">'+UT('btn.punish')+'</button>':'')+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
   h+='<div class="card"><div class="row"><div><b class="small">🔎 請介紹人物色人才</b><div class="tiny muted">禮金 '+costTxt('recruitIntro')+'·交情 -2～5。介紹人愈信任你、與人才圈愈投契，聘得到的職階愈高、人選愈可靠。</div></div><button class="pixel-btn btn-sm btn-gold" data-act="recruit">'+UT('btn.recruit')+'</button></div></div>';
@@ -357,20 +379,42 @@ function renderEstate(){
   h+=(G.family.conc||[]).map(x=>'<div class="card" style="display:flow-root">'+portraitHtml(x.cid,48)+'<b>側室：'+esc(x.name)+'</b><div class="tiny muted">吉原贖身而來·與家人無異，不能生育。每旬家用 8 兩。</div></div>').join('');
   h+=kids.map(k=>{
     const a=kidAge(k);
-    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+(k.gender==='男'?'👦':'👧')+' '+esc(k.name)+'</b>（'+kidStage(a)+'）'+(k.prodigal?'<span class="tag red">敗家子</span>':'')+'<div class="tiny muted">'+(k.revealed?'天賦偏重：<b>'+top3Of(k.stats)[0]+'</b>':'天賦尚未顯露')+(k.path?'·歷練：'+PATHS[k.path].name:'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+P.name+'（'+P.cost+'/年）</span>').join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costTxt('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
+    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+(k.gender==='男'?'👦':'👧')+' '+esc(k.name)+'</b>（'+kidStage(a)+'）'+(k.prodigal?'<span class="tag red">敗家子</span>':'')+'<div class="tiny muted">'+(k.revealed?'天賦偏重：<b>'+top3Of(k.stats)[0]+'</b>':'天賦尚未顯露')+(k.path?'·歷練：'+PATHS[k.path].name:'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+P.name+'（'+P.cost+'/年）</span>').join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costBtn('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
   }).join('');
   // 隱居
   h+='<div class="card" style="background:#fff8eb"><b class="small" style="color:#9b2c3a">👴 退隱交棒（二代視角）</b><p class="tiny" style="margin:3px 0">主角退隱後切換為繼承人，承襲財富、人脈、黑帳、舊怨與老僕。繼承人可為已成年的子女，或招贅（收為義子）你的大番頭。</p><button class="pixel-btn btn-red btn-sm" data-act="retire">'+UT('btn.retire')+'</button></div>';
   h+='</div>';
   $('#view-estate').innerHTML=h;
 }
-/** 切換介紹人。 */
 
-/** 設宴款待，好感 +6。 */
-ACT.befriend=el=>{
-  const cid=el.dataset.cid;if(isEnemy(cid)){toast(MSG('meet.1'));return}if(!afford('befriend')){toast(shortMsg('befriend'));return}
+/* ---------- 宴會：一旬一次，介紹人全員出席（好感 +10），隨機 3～4 名員工作陪（好感 +3～5） ---------- */
+const BANQUET_INTRO=10,BANQUET_EMP=[3,5],BANQUET_EMPN=[3,4];
+/** 私宅頂端的宴會卡。 */
+function banquetCard(){
+  const done=G.banquetT===G.turn,none=!G.intros.length&&!G.emps.length;
+  return '<div class="card"><div class="row"><div><b>🍶 宴會</b><div class="tiny muted">在私宅設宴，介紹人全數出席（好感 +'+BANQUET_INTRO+'），另有 '+BANQUET_EMPN.join('～')+' 名員工作陪（好感 +'+BANQUET_EMP.join('～')+'）。每旬一次，花 '+costTxt('befriend')+'、行動 1 次。</div></div><button class="pixel-btn btn-gold btn-sm" data-act="banquet" '+(done||none?'disabled':'')+'>'+(done?UT('btn.feastDone'):none?UT('btn.banquetNone'):UT('btn.banquet'))+'</button></div></div>';
+}
+ACT.banquet=()=>{
+  if(G.banquetT===G.turn){toast(MSG('banquet.done'));return}
+  if(!G.intros.length&&!G.emps.length){toast(MSG('banquet.none'));return}
+  if(!afford('befriend')){toast(shortMsg('befriend'));return}
   if(!spendAP())return;
-  visitFx({cid,outcome:'ok',kind:'gift',prop:'wine'},()=>{spend('befriend');const r=R(cid);r.aff=clamp(r.aff+6,0,100);logRel(cid,'設宴款待，好感 +6。');sfx.gift();toast(MSG('befriend.1',{cid:nameOf(cid)}));UI.render()});
+  spend('befriend');G.banquetT=G.turn;
+  const intros=G.intros.map(i=>i.cid).filter(cid=>CH(cid)&&alive(cid)&&!isEnemy(cid));
+  const emps=shuffle(G.emps.filter(e=>!intros.includes(e.cid))).slice(0,rint(BANQUET_EMPN[0],BANQUET_EMPN[1]));
+  playFx('walk',MSG('banquet.fx'),MSG('banquet.fxTitle'),()=>{
+    let h='<div class="notice tiny">'+esc(TX('banquet.open'))+'</div>';
+    const lines=shuffle(Ls('banquet.intro').slice());   // 介紹人台詞不重複（人多時才循環）
+    intros.forEach((cid,k)=>{
+      const r=R(cid);r.aff=clamp(r.aff+BANQUET_INTRO,0,100);logRel(cid,'應邀赴宴，好感 +'+BANQUET_INTRO+'。');
+      h+='<div class="card" style="display:flow-root">'+portraitHtml(cid,40)+'<b>'+esc(nameOf(cid))+'</b> <span class="tag gray">介紹人</span> <span class="tag green">好感 +'+BANQUET_INTRO+'</span><div class="small" style="margin-top:3px">'+esc(lines[k%lines.length])+'</div></div>';
+    });
+    emps.forEach(e=>{
+      const g=rint(BANQUET_EMP[0],BANQUET_EMP[1]);e.aff=Math.min(100,empAff(e)+g);
+      h+='<div class="card" style="display:flow-root">'+portraitEmp(e,40)+'<b>'+esc(e.name)+'</b> <span class="tag red">'+esc(e.rank)+'</span> <span class="tag green">好感 +'+g+'</span><div class="small" style="margin-top:3px">'+esc(TX('banquet.emp.'+e.rank)||TX('banquet.emp.手代'))+'</div></div>';
+    });
+    sfx.gift();UI.showInfo('🍶 宴會·'+(intros.length+emps.length)+' 人入席',h);UI.render();
+  },1000);
 };
 /** 找人需要介紹人且有人情額度。 */
 function needIntro(){
@@ -409,7 +453,7 @@ SHEETS.recruit=()=>{
   h+=rc.cands.map(cid=>{
     const c=CH(cid);
     const ranks=candidateHireRanks(cid,rc.rank).filter(slotFree);
-    const opts=ranks.map(rk=>'<button class="pixel-btn btn-sm" data-act="hire" data-cid="'+cid+'" data-rk="'+rk+'">'+UT('btn.hire',{r:rk+(rk==='船長'?'（造船 '+fmt(shipCost())+' 兩）':'')})+'</button>').join(' ');
+    const opts=ranks.map(rk=>'<button class="pixel-btn btn-sm" data-act="hire" data-cid="'+cid+'" data-rk="'+rk+'">'+UT('btn.hire',{r:rk+(rk==='船長'?'（造船 '+coinHtml('silver',shipCost())+'）':'')})+'</button>').join(' ');
     return '<div class="card" style="display:flow-root">'+portraitHtml(cid,56)+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='女'?' <span class="tag" style="background:#f6d5e1;color:#a2315f">♀ 女</span>':'')+'<div class="tiny muted">'+esc(c.family_summary.slice(0,36))+'……</div></div><div class="tiny">評價 '+ratingStars(cid)+'</div></div><div style="margin-top:4px">'+(opts||'<span class="tiny muted">適任職位的名額已滿</span>')+'</div></div>';
   }).join('')||'<div class="notice">人選已聘完。</div>';
   return {title:'🔎 人才名冊',html:h};
@@ -516,9 +560,10 @@ UI.showStart=function(){
 ACT.pickSys=el=>{UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
 /** 開始新局。 */
 ACT.begin=()=>{
+  musicWant('market');                                // 點擊開局＝使用者手勢，可以開始播放音樂
   newGame(UI.s.startSys,'rand');$('#start').classList.add('hidden');
   SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.open',{firm:G.firm}),4200);
   save();
 };
 /** 繼續上次存檔。 */
-ACT.resume=()=>{G=loadSave();sanitizeIntros();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};
+ACT.resume=()=>{musicWant('market');G=loadSave();sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};

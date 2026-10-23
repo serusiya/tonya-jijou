@@ -3,8 +3,10 @@
  * 流程：1 選人物 → 2 選禮物（好感 60 以上免選）→ 3 門口動畫（只決定拒見、不在家）→ 4 對話框戰鬥 → 5 請託（官員，好感 ≥60 且打勝）。
  *  - 心防：依身份（官階一～六／非官員依角色），貪官加倍。玩家看不到數字，只看對方的台詞。
  *  - 傷害：賄賂 × 禮物倍率。好感 <60：送中軟肋 ×1、送錯 ×0.5；好感 ≥60：一律 ×1（好友不計較）。
- *  - 每回合三檔出價（心防的四分之一／一半／全額），最多 3 回合；打穿即勝。錢一律不退。
- *  - 勝：好感 +10～20（基本 10＋交情 0～5＋最後一擊溢出 0～5）；未打穿：依進度 +0～4。
+ *  - 每回合三檔出價（心防的四分之一／一半／三倍），最多 3 回合；打穿即勝。錢一律不退。
+ *  - 期待：每回合對方心裡預設一檔（依個性偏重），台詞約七成準地暗示；猜中那一回合傷害 ×1.5、好感另 +1。
+ *    走完 3 回合仍未打穿、且一次都沒猜中：「什麼東西，真沒意思」，好感不加，本旬與下一旬不能拜訪（也不能派丁稚）。
+ *  - 勝：好感 +10～20（基本 10＋交情 0～5＋最後一擊溢出 0～5）＋猜中次數；未打穿：依進度 +0～4＋猜中次數。
  *  - 對官員出過價：風聲 +0.2（貪官 +0.3），與金額無關。
  *  - 丁稚代送禮金：只能派給好感未滿 60 的人；付中檔禮金，好感隨機 +4～8（最多補到 60），不扣行動點數、不能請託。
  *  - 狀態只在 BT（不存檔）。 */
@@ -30,8 +32,20 @@ function btHp(cid){
   const t=n&&n.pos?n.pos.rank:(BT_ROLE_TIER[n&&n.role]||1);
   return BT_HP[clamp(t,1,6)-1]*(n&&n.pos&&officialKind(n)==='greedy'?2:1);
 }
-/** 三檔出價（心防的四分之一、一半、全額，取整到 5 兩）。 */
-function btTiers(cid){const h=btHp(cid),r=v=>Math.max(5,Math.round(v/5)*5);return [r(h*0.25),r(h*0.5),r(h)]}
+/** 三檔出價（心防的四分之一、一半、三倍，取整到 5 兩）。 */
+const BT_TIER_X=[0.25,0.5,3];
+function btTiers(cid){const h=btHp(cid),r=v=>Math.max(5,Math.round(v/5)*5);return BT_TIER_X.map(x=>r(h*x))}
+/** 期待：各類人物心裡預設小／中／大的偏重；猜中傷害倍率；台詞暗示的準確度。 */
+const BT_EXPECT_W={greedy:[20,30,50],clean:[50,35,15],plain:[30,40,30],merchant:[30,40,30]};
+const BT_HIT_X=1.5,BT_HINT_ACC=0.7;
+/** 人物類型（官員看貪清；非官員為 merchant）。 */
+const btKind=cid=>{const n=npc(cid);return n&&n.pos?officialKind(n):'merchant'};
+/** 依偏重抽這一回合的期待（0 小、1 中、2 大）。 */
+function btRollExpect(cid){const w=BT_EXPECT_W[btKind(cid)];let x=rnd()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){x-=w[i];if(x<0)return i}return 1}
+/** 暗示期待的台詞：七成照實，三成指向別檔。 */
+function btHint(expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return TX('battle.hint.'+['small','mid','large'][t])}
+/** 是否正在氣頭上（被嫌不善言辭：本旬與下一旬不能拜訪）。 */
+const snubbed=cid=>{const r=G.rel[cid];return !!(r&&r.snubUntil!==undefined&&G.turn<=r.snubUntil)};
 /** 禮物倍率。 */
 function btMult(cid,giftKey){
   const r=R(cid);if(r.aff>=FRIEND_AFF)return 1;
@@ -72,17 +86,19 @@ function battleStart(cid,giftKey){
   const mult=btMult(cid,giftKey),hit=!friend&&mult>=1;
   if(hit)r.verified=true;
   if(!friend&&g&&g.k==='plaque')G.life.charity++;
-  BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,
+  BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,
     open:friend?TX('battle.openFriend'):hit?TX('battle.openHit',{g:g.name}):TX('battle.openMiss',{g:g?g.name:'禮物'}),line:''};
+  BT.expect=btRollExpect(cid);BT.hint=btHint(BT.expect);          // 開場就透露第一回合的期待
+  musicWant('visit');                                   // 拜訪戰鬥換成《登門囃子》
   logRel(cid,friend?'登門拜訪，老朋友相見。':'登門拜訪，帶去「'+(g?g.name:'禮物')+'」'+(hit?'，正中下懷。':'。'));
   battleShow();
 }
 /** 對話框內容。 */
 function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
-  let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+'</div>';
+  let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?'該怎麼表示心意？':left===2?'對方還在聽。':'對方的耐性快到頭了。')+(B.spent?'　已奉上 '+fmt(B.spent)+' 兩。':'')+'</div>';
-  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+['小','中','大'].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+fmt(t[i])+' 兩</button>').join('')+'</div>';
+  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+['小','中','大'].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
   h+='<div style="margin-top:6px;text-align:right"><button class="pixel-btn btn-sm" data-act="btEnd">閒話家常，告辭</button></div>';
   return h;
 }
@@ -92,13 +108,14 @@ ACT.btOffer=el=>{
   const B=BT;if(!B||B.done)return;
   const amt=btTiers(B.cid)[+el.dataset.i];
   if(G.silver<amt){toast(MSG('buyGoods.5',{cost:fmt(amt)}));return}
-  battleHit(amt);
-  if(B.dmg>=B.hp||B.round>=3)battleEnd();else battleShow();
+  battleHit(amt,+el.dataset.i);
+  if(B.dmg>=B.hp||B.round>=3)battleEnd();else{B.expect=btRollExpect(B.cid);B.hint=btHint(B.expect);battleShow()}
 };
 /** 造成傷害（丁稚代送也走這裡）。 */
-function battleHit(amt){
-  const B=BT,n=npc(B.cid);
-  payPublic('拜訪賄賂：'+nameOf(B.cid),amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult;sfx.coin();
+function battleHit(amt,tier){
+  const B=BT,n=npc(B.cid),hit=tier!==undefined&&tier===B.expect;
+  if(hit)B.hits++;
+  payPublic('拜訪賄賂：'+nameOf(B.cid),amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult*(hit?BT_HIT_X:1);sfx.coin();
   if(n&&n.pos&&!B.heat){B.heat=true;G.heat=(G.heat||0)+(officialKind(n)==='greedy'?0.3:0.2);G.life.gold+=1}
   B.line=btLine(B.cid,B.dmg/B.hp);
 }
@@ -106,15 +123,20 @@ ACT.btEnd=()=>{if(BT&&!BT.done)battleEnd()};
 /** 結算：好感增加；官員好感 ≥60 且打勝，進入請託。 */
 function battleEnd(){
   const B=BT;if(!B||B.done)return;B.done=true;
+  if(!B.errand)musicWant('market');                     // 戰鬥結束，回到主畫面配樂
   const cid=B.cid,r=R(cid),n=npc(cid),win=B.dmg>=B.hp;
-  let gain=win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp);
+  if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
+    r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,'話不投機，對方嫌你不善言辭'+(B.spent?'（奉上 '+B.spent+' 兩）':'')+'。');sfx.bad();
+    UI.render();refreshSheet();UI.hideInfo();toast(TX('battle.snub'),4600);BT=null;return;
+  }
+  let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?0.3:0.1);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
   const msg=(win?TX('battle.win.'+(n&&n.pos?officialKind(n):'merchant')):B.spent?TX('battle.lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
   UI.render();refreshSheet();
-  if(win&&n&&n.pos&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo('📜 請託·'+nameOf(cid),requestHtml(cid,msg));return}
+  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo('📜 請託·'+nameOf(cid),requestHtml(cid,msg));return}
   UI.hideInfo();toast(msg,4200);BT=null;
 }
 /* 對話框被直接關掉＝閒話告辭 */
@@ -135,9 +157,11 @@ function errandVisit(cid){
 }
 
 /* ---------- 請託（好感 ≥60 且打勝） ---------- */
-/** 好感 100 的特殊請託（每位官員一次）。 */
+/** 特殊請託只有四階以上的官員能辦。 */
+const SPECIAL_RANK=4;
+/** 好感 100 的特殊請託（四階以上官員，每位一次）。 */
 function specialList(cid){
-  const r=R(cid),n=npc(cid);if(!n||!n.pos||r.aff<100||r.specialUsed)return [];
+  const r=R(cid),n=npc(cid);if(!n||!n.pos||n.pos.rank<SPECIAL_RANK||r.aff<100||r.specialUsed)return [];
   const k=schemeKind(n),out=[];
   if(k)out.push({k:'sp_'+k,special:k,name:SCHEME[k].name,desc:'他與你交情至深，願對隨機一家同業'+SCHEME[k].name+'。'+costTxt(k)+'；成敗看他的膽識與商才，事後可能被查辦。'});
   if(n.pos.court==='finance'&&!G.tribute)out.push({k:'sp_tribute',special:'tribute',name:'上貢',desc:'他想請你備一批本業貨，'+ODDS.tribute.turns+' 旬內備齊，他會用高價收下。'});
@@ -145,7 +169,7 @@ function specialList(cid){
 }
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
 function reqList(cid){
-  const n=npc(cid);if(!n||!n.pos)return [];
+  const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 座客商人、私梟：代售與脫手（07x_dealers.js）
   return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&favorDone(f,n))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(specialList(cid));
 }
 function requestHtml(cid,msg){
@@ -166,6 +190,8 @@ ACT.reqAsk=el=>{
     if(sp.special==='tribute')startTribute(cid);else startScheme(cid);
     return;
   }
+  const dm=dealerDo(cid,k);
+  if(dm!==null){UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(dm)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');sfx.coin();UI.render();refreshSheet();return}
   const res=doFavor(cid,k);
   UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(res.msg)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');
   if(res.status==='done')sfx.coin();else sfx.bad();UI.render();refreshSheet();

@@ -56,6 +56,7 @@ const ODDS={
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
   xForce:{name:'官吏硬塞貨物（每旬）',p:0.04},
+  smugglerArrest:{name:'私梟落網（每旬，近期替你脫手者）',from:3,perHeat:0.02,max:0.12,window:36,jail:36},
   /* —— 其他 —— */
   chatMix:{name:'點人聊天內容比例（其餘為閒聊）',outsider:0.2,staff:0.3},
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},

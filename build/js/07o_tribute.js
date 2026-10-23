@@ -1,8 +1,8 @@
-/* ======================= 上貢：財務官員（好感 100）=======================
+/* ======================= 上貢：四階以上財務官員（好感 100）=======================
  *  好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。官員開口要一批本業貨：限期內自己備妥庫存，數量取公會配額的數倍（合理可達）。
  *  到期若庫存足夠，自動上貢＝賣出，作價市價 × 倍數，並增加知名度與市佔率；
  *  備不齊則失約：交情、知名度受損。同時只能有一筆上貢。 */
-const tributeOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='official'&&n.pos&&n.pos.court==='finance'&&alive(cid)&&r&&r.bond&&r.aff>=100&&!isEnemy(cid))};
+const tributeOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='official'&&n.pos&&n.pos.court==='finance'&&n.pos.rank>=SPECIAL_RANK&&alive(cid)&&r&&r.bond&&r.aff>=100&&!isEnemy(cid))};
 /** 人物卡上的上貢進度（答應過這位官員時才顯示）。 */
 function tributeStatus(cid){
   const T=G.tribute;if(!T||T.cid!==cid)return '';

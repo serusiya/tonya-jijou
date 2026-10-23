@@ -17,7 +17,7 @@ function doTurn(n){
     if(!G.ended){
       const d=G.silver-before;
       showTurnReport(reps,logs.map(t=>t.replace(/^[^【]*/,'')?t:t),n);
-      armFaceEvents();
+      if(G.party)INFO_AFTER=showParty;else armFaceEvents();   // 年底：旬報後先開忘年會，散會後再接人物事件
       say(thought());
       if(d>0)coinFx();
     }

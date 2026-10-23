@@ -36,8 +36,8 @@ function festActive(){
   const city=homeCity();const f=parseFestival(city.special_festival&&city.special_festival.date);
   return !!(f&&f.month===G.month&&f.cycle===G.cycle);
 }
-/** 節慶需求倍率（相關物品×4）。 */
-const festMult=c=>(festActive()&&FEST_KW.some(k=>c.name.includes(k)))?4:1;
+/** 節慶需求倍率：本城節慶那一旬，所有貨物需求 ×3；酒、油、布料等節慶相關貨物 ×4。 */
+const festMult=c=>festActive()?(FEST_KW.some(k=>c.name.includes(k))?4:3):1;
 /** 公會配額（單位/旬）＝本城需求×配額比例（初始 6%，可在公會提案 +10%）。 */
 const quotaOf=name=>Math.max(1,Math.round(G.mk[name].D*G.cartel.quotaPct));
 
@@ -222,7 +222,7 @@ function sellGoods(name,qty){
 
 /* ---------- 新聞 ---------- */
 /** 寫入新聞與跑馬燈。 */
-function pushNews(t){G.news.unshift({y:G.year,m:G.month,c:G.cycle,t});if(G.news.length>60)G.news.pop();G.ticker.unshift(t);if(G.ticker.length>8)G.ticker.pop()}
+function pushNews(t){if(typeof yearLogAdd==='function')yearLogAdd(t);G.news.unshift({y:G.year,m:G.month,c:G.cycle,t});if(G.news.length>60)G.news.pop();G.ticker.unshift(t);if(G.ticker.length>8)G.ticker.pop()}
 
 /* ---------- 隨機事件 ---------- */
 /** 對符合條件的物品事件倍率相乘（0.5～3.2）。 */
@@ -619,6 +619,7 @@ function advanceTurn(){
   G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
+  tourTick(log);
   receiveOrders(log);
   evalCartel(log);
   msTick(log);
@@ -627,6 +628,7 @@ function advanceTurn(){
   holdTick(log);
   shipsTick(log);
   smugTick(log);
+  dealerTick(log);
   empTick(log);
   chiefTick(log);
   upkeep(log);
@@ -635,9 +637,10 @@ function advanceTurn(){
   syncPrices();                                   // 事件改了行情倍率之後，重算市價（與進貨價同步）
   riotTick(log);
   peopleTick(log);
-  if(newYear)yearTick(log);
+  if(newYear){yearEndParty(log);yearTick(log)}                // 年底先辦忘年會（記錄上一年），再做新年結算
   if(G.silver<-3000&&!G.ended)endLife('bankrupt');
   enemyTick(log);
+  officialMigrate();                              // 本旬若有官員病故、失勢、遭害或調走，旬末補上空缺
   exileTick(log);
   raidTick(log);
   inspectTick(log);

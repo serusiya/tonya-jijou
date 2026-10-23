@@ -51,7 +51,7 @@ function errandTrim(cid,a0,r){
 function errandBtn(cid){
   if(R(cid).aff>=FRIEND_AFF)return '<button class="pixel-btn btn-sm" style="flex:1" disabled title="交情已深，要你親自登門">👦 交情已深，須親自登門</button>';
   const left=errandLeft(),off=left<=0;
-  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+fmt(btTiers(cid)[1])+' 兩·剩 '+left+'）':'')+'</button>';
+  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+coinHtml('silver',btTiers(cid)[1])+'·剩 '+left+'）':'')+'</button>';
 }
 /* ---------- 大番頭自動補貨 ---------- */
 ACT.toggleRestock=()=>{G.restock=!G.restock;toast(MSG(G.restock?'toggleRestock.on':'toggleRestock.off'));save();UI.render()};

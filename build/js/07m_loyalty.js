@@ -7,7 +7,7 @@ const empAff=e=>{if(e.aff===undefined)e.aff=40;return e.aff};
 function empAffHtml(e,ctx){
   const a=empAff(e),full=a>=100,given=e.allowT===G.turn;
   let h='<div class="row small" style="margin-top:3px"><span>好感 <b>'+Math.round(a)+'</b>／100</span><div style="width:90px">'+bar(a,100,'gold')+'</div>'
-    +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costTxt('allowance')}))+'</button></div>';
+    +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costBtn('allowance')}))+'</button></div>';
   if(e.rank==='保鏢'&&full)h+=assassinHtml(e);
   if(arsonOK(e))h+=arsonHtml(e);
   if(e.rank==='船長'&&full)h+='<div class="tiny" style="color:#5b4a70;margin-top:2px">🏴‍☠️ 他對你死心塌地，肯替你跑「走私」（走私）。</div>';

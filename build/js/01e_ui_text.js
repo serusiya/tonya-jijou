@@ -2,14 +2,14 @@
  * 01e_ui_text.js — 指令·按鈕·選項文字總表
  *  所有按鈕、指令、下拉選項、頁籤的顯示文字都集中在 UI_TXT。
  *  鍵名：nav.* 導覽與頂部按鈕｜btn.<指令名>* 面板內按鈕（<指令名> 即 data-act）｜opt.* 選項與標籤。
- *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:'現款 10 兩'}) 會把 {c} 換成值。
+ *  用法：UT('btn.fire')；有變數者 UT('btn.audit',{c:costBtn('audit')}) 會把 {c} 換成值。
  *  body.html 的固定按鈕以 data-t="鍵名" 標記，開機時由 08_boot 套用。
  *  費用數字不寫死在這裡：由呼叫處依 01b_costs.js 算出再代入。
  * ===================================================================== */
 const UI_TXT={
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
   'nav.home':'🏠 宅邸',
-  'nav.menu':'☰',
+  'nav.menu':'⚙️',
   'nav.month':'▶▶ 月',
   'nav.next':'推進一旬 ▶',
   'nav.purse':'＋',
@@ -29,15 +29,16 @@ const UI_TXT={
   'btn.frame':'請他栽贓',
   'btn.suppress':'請他打壓',
   'btn.audit':'查帳（{c}）',
-  'btn.befriend':'宴請篤交（{c}）',
+  'btn.banquet':'設宴',
+  'btn.banquetNone':'無人可請',
   'btn.begin':'懸掛暖簾，開始人生 ▶',
   'btn.buyClear':'清除',
   'btn.buyMax':'📦 選擇最大進貨量',
   'btn.cartel':'🤝 表態遵守配額',
-  'btn.cartel2':'🤫 簽署暗約偷跑（私房錢 30）',
+  'btn.cartel2':'🤫 簽署暗約偷跑（{c}）',
   'btn.cartel3':'退出協議，各憑本事',
   'btn.charity':'施粥',
-  'btn.encGive':'💰 給他 {c} 兩',
+  'btn.encGive':'💰 給他 {c}',
   'btn.encNo':'不理會',
   'btn.feast':'設宴',
   'btn.feastDone':'本旬已設',
@@ -46,7 +47,7 @@ const UI_TXT={
   'btn.fireDock':'辭退',
   'btn.go':'前往名門商邸 ▶',
   'btn.hire':'聘為{r}',
-  'btn.inspBribe':'🧧 賄賂（{c} 兩）',
+  'btn.inspBribe':'🧧 賄賂（{c}）',
   'btn.inspPass':'公事公辦',
   'btn.kidDebt':'替他還債（{c}）',
   'btn.kidPay':'寫義絕書逐出',
@@ -66,15 +67,15 @@ const UI_TXT={
   'btn.punish':'追討',
   'btn.quotaDone':'本次例會已提案',
   'btn.quotaUp':'提案增加配額 10%',
-  'btn.ransom':'💍 贖身納為側室（私房錢 {c} 兩）',
+  'btn.ransom':'💍 贖身納為側室（{c}）',
   'btn.recruit':'物色',
   'btn.recruitView':'查看',
   'btn.restockOff':'🧾 大番頭自動補貨：關',
   'btn.restockOn':'🧾 大番頭自動補貨：開',
   'btn.resume':'▶ 繼續上次的人生（{n}·{y}）',
   'btn.retire':'宣佈隱居交棒',
-  'btn.scout':'探聽（{c} 兩）',
-  'btn.scoutFull':'探聽性向（{c} 兩）',
+  'btn.scout':'探聽（{c}）',
+  'btn.scoutFull':'探聽性向（{c}）',
   'btn.sellAll':'全賣',
   'btn.sellN':'賣 {n}',
   'btn.setIntro':'選為目前介紹人',
@@ -86,10 +87,9 @@ const UI_TXT={
   'btn.vGo':'託付出發 ▶',
   'btn.visit':'親自登門拜訪 ▶',
   'btn.whMax':'已達上限',
-  'btn.whUp':'{c} 兩',
+  'btn.whUp':'{c}',
   'btn.xoAccept':'借給他',
   'btn.xoDecline':'婉拒',
-  'btn.xsell':'請介紹人賣出',
   /* —— 下拉選單與切換標籤的選項文字 —— */
   'opt.bribe0':'不賄賂（0 兩）',
   'opt.bribe1':'送上 {c} 兩',

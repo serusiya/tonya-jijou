@@ -2,30 +2,24 @@
 /* ★檔案總覽：跨行貨物（趣味玩法，不是正式的賺錢途徑）
  * - 來源只有三種：①船長／飛腳在產地順手買回的便宜貨；②認識的商人拿貨物抵押向你借錢；③官吏硬塞給你的貨。
  *   不能主動買入。貨存在倉庫（G.xinv），佔用倉容，不影響大盤。
- * - 賣出只能請介紹人代為脫手：收入現款、扣介紹人交情 2～5；價格約為基準價的 45%～87%（交情越深越高）。
+ * - 賣出只能拜訪座客商人請託代售（07x_dealers.js）：收入現款、該商人好感 −10；價格約為基準價的 54%～87%（交情越深越高）。
  * - 這不是後期才開放的跨行批發功能。 */
 const xName=n=>COMM_MAP[n]?COMM_MAP[n].short:n;
 function otherComms(){const own=ownNameSet();return COMM.filter(c=>!own.has(c.name))}
+/** 一批沒收貨（協助銷貨與官吏硬塞共用）：非本業、非奢侈品，總值約 300～600 兩（以基準價計），5～50 單位，受倉位限制；放不下 5 單位回傳 null。 */
+function xLot(){
+  const room=Math.max(0,invCap()-invUsed()-pendingQty()-transitQty());if(room<5)return null;
+  const pool=otherComms().filter(c=>!c.luxury);if(!pool.length)return null;
+  const c=pick(pool),q=Math.min(room,clamp(Math.round(rint(300,600)/c.base),5,50));
+  return {c,q};
+}
 function xgoodsCard(){
   const ks=Object.keys(G.xinv||{}).filter(k=>G.xinv[k]>0);
   if(!ks.length)return '';
-  autoIntro(null);const it=G.introId&&introOf(G.introId);
-  let h='<div class="card"><b class="small">📦 他行貨物（非本業，須請介紹人賣掉）</b><div class="tiny muted">'+(it?'介紹人：'+esc(nameOf(G.introId))+'（交情 '+Math.round(R(G.introId).aff)+'）。每次請他出面，交情 −2～5。':'目前沒有介紹人，賣不掉。')+'</div>';
-  h+=ks.map(k=>'<div class="row small" style="margin-top:3px"><span>'+esc(xName(k))+' × '+G.xinv[k]+'</span><button class="pixel-btn btn-sm" data-act="xsell" data-n="'+esc(k)+'">'+UT('btn.xsell')+'</button></div>').join('');
+  let h='<div class="card"><b class="small">📦 他行貨物（非本業）</b><div class="tiny muted">大盤不收。拜訪交情 60 以上的座客商人，打勝後可請他代售，一次一項、整批全收。</div>';
+  h+=ks.map(k=>'<div class="row small" style="margin-top:3px"><span>'+esc(xName(k))+' × '+G.xinv[k]+'</span><span class="tiny muted">基準價 '+fmt1(COMM_MAP[k].base)+' 兩</span></div>').join('');
   return h+'</div>';
 }
-ACT.xsell=el=>{
-  const name=el.dataset.n,q=(G.xinv||{})[name]||0;if(q<=0)return;
-  autoIntro(null);const it=G.introId&&introOf(G.introId);
-  if(!it){toast(MSG('xsell.1'));return}
-  if(isEnemy(G.introId)){toast(MSG('xsell.2'));return}
-  const c=COMM_MAP[name],tf=trustFactor(R(G.introId).aff);
-  const m=clamp(0.42+0.30*tf+(rnd()-0.5)*0.16,0.35,0.9),unit=c.base*m*(1-Math.min(0.25,0.002*q)),rev=Math.round(unit*q);
-  G.silver+=rev;delete G.xinv[name];
-  const d=introCost(it);addFame(0.1);sfx.coin();
-  const t=NEWS('xsell.1',{introId:nameOf(G.introId),short:c.short,q,rev:fmt(rev),m:Math.round(m*100),d});
-  pushNews(t);toast(t,4800);UI.render();refreshSheet();
-};
 /* ---------- 來源②：商人拿貨抵押借錢（旬報選項卡） ---------- */
 function xofferCard(){
   const O=G.xoffer;if(!O)return '';
@@ -59,9 +53,9 @@ function xgoodsTick(log){
   }
   // ③官吏硬塞
   if(roll('xForce')){
-    const os=npcs.filter(n=>n.role==='official'&&alive(n.cid)&&R(n.cid).met);
+    const os=npcs.filter(n=>n.role==='official'&&alive(n.cid)&&R(n.cid).met&&!awayNow(n));
     if(os.length){
-      const n=pick(os),c=pick(oth),room=Math.max(0,invCap()-invUsed()),q=Math.min(rint(15,50),room);
+      const n=pick(os),L=xLot(),c=L&&L.c,q=L?L.q:0;
       if(q>0){G.xinv[c.name]=(G.xinv[c.name]||0)+q;logRel(n.cid,'把一批「'+c.short+'」硬塞給你處理。');
         queueFaceEvent({type:'xforce',cid:n.cid,name:c.name,qty:q});
         log.push(NEWS('xgoodsTick.2',{n:nameOf(n.cid),short:c.short,q}))}

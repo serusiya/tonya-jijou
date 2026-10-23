@@ -109,7 +109,7 @@ function officialKind(n){
   const s=CH(n.cid).derived_stats;
   return s.greed_index>=85?'greedy':(s.greed_index<=72&&s.integrity_loyalty>=50)?'clean':'plain';
 }
-function appDuration(n){return officialKind(n)==='greedy'?3:6}
+function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;return officialKind(n)==='greedy'?3:6}   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
 function applyFavor(cid,n,r,f){

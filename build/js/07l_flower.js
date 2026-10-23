@@ -54,12 +54,12 @@ function oiranBlock(cid){
   let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56);
   h+='<div class="row"><div><b>'+esc(c.name)+'</b> <span class="tag" style="background:#f6d5e1;color:#a2315f">🌸 名伶</span></div></div>';
   h+='<div class="tiny muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
-  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 她身價甚高，以你眼下的名氣還指名不到。</div></div>';
+  if(locked)return h+'<div class="tiny" style="color:#b3261e">🔒 名氣不足，點不到</div></div>';
   if(r.bond){
     h+='<div class="row small"><span>好感：<span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span> '+Math.round(r.aff)+'／100</span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     h+='<div class="tiny muted">'+(r.nomT!==undefined?'上回指名在 '+(G.turn-r.nomT)+' 旬前。':'')+'每 2 旬沒再指名，好感 -4（最低 1）。</div>';
   }else h+='<div class="tiny muted">素昧平生。第一次指名，即算相識。</div>';
-  h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="nomOiran" data-cid="'+cid+'" '+(nom?'disabled':'')+'>'+(nom?UT('btn.nomDone'):UT('btn.nom',{c:costTxt('nominate')}))+'</button></div>';
+  h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="nomOiran" data-cid="'+cid+'" '+(nom?'disabled':'')+'>'+(nom?UT('btn.nomDone'):UT('btn.nom',{c:costBtn('nominate')}))+'</button></div>';
   if(nom){
     if(r.oGiftT===r.nomT)h+='<div class="tiny muted" style="margin-top:4px">這次指名已經送過禮了，下次指名才能再送。</div>';
     else{
@@ -69,7 +69,7 @@ function oiranBlock(cid){
   }
   if(r.bond&&r.aff>=100){
     const price=r.ransom||(r.ransom=costOf('ransom')+rint(-100,100));
-    h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" style="width:100%" data-act="ransom" data-cid="'+cid+'">'+UT('btn.ransom',{c:fmt(price)})+'</button></div>';
+    h+='<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" style="width:100%" data-act="ransom" data-cid="'+cid+'">'+UT('btn.ransom',{c:coinHtml('gold',price)})+'</button></div>';
   }
   return h+'</div>';
 }
@@ -124,7 +124,7 @@ ACT.feast=()=>{
   const F=FL();
   if(F.feast===G.turn){toast(MSG('feast.1'));return}
   if(!afford('feast')){toast(shortMsg('feast'));return}
-  const pool=cityNpcs(G.cityId).filter(n=>!isEnemy(n.cid)&&((n.role==='official'&&n.pos&&n.pos.court!=='region')||['rival','guest','broker'].includes(n.role)));
+  const pool=cityNpcs(G.cityId).filter(n=>!isEnemy(n.cid)&&((n.role==='official'&&n.pos&&n.pos.court!=='region'&&!awayNow(n))||['rival','guest','broker'].includes(n.role)));
   F.feast=G.turn;G.heat+=0.5;addFame(0.3);const note=flowerSpend(spend('feast'));
   playFx('walk',MSG('feast.fx'),MSG('feast.fxTitle'),()=>{
     if(!pool.length){toast(MSG('feast.2',{note}));UI.render();refreshSheet();return}

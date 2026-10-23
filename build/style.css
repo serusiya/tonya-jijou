@@ -220,3 +220,18 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .pt-btn{cursor:pointer;display:contents}
 .pt-btn img.pt:active{filter:brightness(1.15);border-color:#c8963e}
 .card.locked .pt-btn{pointer-events:auto}
+
+/* 金額記號：現款＝方孔銀幣、私房錢＝小判金幣（按鈕裡只寫記號＋數字） */
+.cmark{display:inline-block;vertical-align:-1px;margin-right:2px;position:relative;box-sizing:border-box}
+.cmark.zeni{width:11px;height:11px;border-radius:50%;background:#d3d9e1;border:2px solid #4a5868}
+.cmark.zeni::after{content:'';position:absolute;left:2.5px;top:2.5px;width:2px;height:2px;background:#4a5868}
+.cmark.koban{width:9px;height:13px;border-radius:50%;background:linear-gradient(#fbe08a,#d6981a);border:2px solid #8a5a00}
+.btn-red .cmark,.btn-green .cmark{border-color:#fff8e8}
+.money{font-weight:bold;white-space:nowrap}
+.money.ms{color:#34445a}
+.money.mg{color:#7a4a00}
+.btn-red .money,.btn-green .money,.btn-red .money.ms,.btn-green .money.mg{color:inherit}
+
+/* 索引標籤列（名門商邸、町奉行所）：手機一行放得下六個 */
+.tabrow{margin:4px 0;display:flex;gap:3px}
+.tabrow .pill{margin:0;padding:6px 1px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}

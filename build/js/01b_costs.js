@@ -15,7 +15,7 @@ const COSTS={
   introFee:{name:'請引薦禮金',cur:'silver',amt:20,per:'目標官階'},
   scout:{name:'探聽性向',cur:'silver',amt:25,per:'目標官階'},
   weakness:{name:'打聽軟肋（已停用）',cur:'gold',amt:60,per:'目標官階（另加每階 20）'},
-  befriend:{name:'設宴款待',cur:'silver',amt:60},
+  befriend:{name:'宴會',cur:'silver',amt:60},
   /* —— 贈禮：六種禮物不花錢，拜訪時的賄賂由三檔出價決定（07u_battle.js） —— */
   /* —— 官員請託·許可申請 —— */
   favorRank3:{name:'請託：直採特許（賄賂）',cur:'silver',amt:45,per:'依官階而定'},
@@ -65,6 +65,9 @@ const COSTS={
 
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
 const costTxt=(k,mul)=>CUR_NAME[COSTS[k].cur]+' '+costOf(k,mul)+' 兩';
+/** 按鈕用金額：記號＋數字，不寫「兩」。現款＝方孔銀幣（深藍灰數字），私房錢＝小判金幣（深琥珀數字）。訊息與說明文字仍用 costTxt。 */
+const coinHtml=(cur,amt)=>'<span class="money '+(cur==='gold'?'mg':'ms')+'"><i class="cmark '+(cur==='gold'?'koban':'zeni')+'" aria-label="'+CUR_NAME[cur]+'"></i>'+fmt(amt)+'</span>';
+const costBtn=(k,mul)=>coinHtml(COSTS[k].cur,costOf(k,mul));
 const walletOf=k=>COSTS[k].cur;
 /** 錢夠不夠（amt 可自行指定，如依官階算出的金額）。 */
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);

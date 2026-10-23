@@ -1,6 +1,6 @@
 /* =====================================================================
  * 07g_smuggle.js — 走私與搜查、刑罰
- *  走私：用私房錢向海外買違禁品，船隊＋船長出海，到貨進「密庫」，再經介紹人賣出，收入進私房錢。
+ *  走私：用私房錢向海外買違禁品，船隊＋船長出海，到貨進「密庫」，再請私梟脫手（07x_dealers.js），收入進私房錢。
  *  搜查：每旬有機率被奉行所搜查；打點同心（袖之下）、司法官員交情、風聲、持有違禁品價值都會影響結果。
  *  刑罰：由輕到重＝罰銀＋沒收 → 遠島（期間不能行動）→ 抄家 → 處刑（本代終結）。
  *  狀態：G.smug 在途航程、G.contra 密庫存量、G.smugP 今旬行情係數、G.exile 遠島旬數、G.raidNote 旬報用的搜查結果。
@@ -162,7 +162,7 @@ SHEETS.smuggle=()=>{
   const p=raidChance(),lv=p<=0?'無':p<0.05?'低':p<0.12?'中':'高';
   const free=idleCaptains('sea').length,cap=smugCaptain();
   let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私房錢<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船長<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
-  h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海，回來進密庫，再託介紹人賣出，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
+  h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海，回來進密庫，再請私梟脫手，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
   // 下單
   h+='<div class="card"><b class="small">⛵ 出海採買</b>';
   h+='<div class="row small" style="margin-top:4px"><span>目的地</span><select data-chg="smugDest">'+Object.keys(SMUG_DEST).map(k=>'<option value="'+k+'" '+(k===S.dest?'selected':'')+'>'+SMUG_DEST[k].name+'（'+SMUG_DEST[k].d+' 旬）</option>').join('')+'</select></div>';
@@ -179,9 +179,8 @@ SHEETS.smuggle=()=>{
   h+='<div class="small bold" style="margin-top:6px">🔒 密庫（'+contraQty()+' / '+CONTRA_CAP+'）</div>';
   if(!ks.length)h+='<div class="notice tiny">密庫是空的。</div>';
   else{
-    autoIntro(null);const ok=G.introId&&introOf(G.introId);
-    h+=ks.map(k=>{const q=contra()[k],i=SMUG_BY[k];return '<div class="card"><div class="row"><b class="small">'+i.icon+' '+i.name+' × '+q+'</b><span class="tiny muted">今旬 '+fmt1(smugPrice(k,1))+' 兩／單位</span></div><div class="row" style="gap:4px;margin-top:4px;flex-wrap:wrap;justify-content:flex-start">'+[5,20,'all'].map(n=>'<button class="pixel-btn btn-sm" data-act="smugSell" data-k="'+k+'" data-q="'+n+'">'+(n==='all'?UT('btn.sellAll'):UT('btn.sellN',{n}))+'</button>').join('')+'</div></div>'}).join('');
-    h+='<div class="tiny muted">交由目前介紹人（'+(ok?esc(nameOf(G.introId)):'尚未選擇')+'）出手：扣 1 行動、交情 −2～5，並抽一成介紹費。</div>';
+    h+=ks.map(k=>{const q=contra()[k],i=SMUG_BY[k];return '<div class="card"><div class="row"><b class="small">'+i.icon+' '+i.name+' × '+q+'</b><span class="tiny muted">本旬'+smugMood(k)+'·'+fmt1(smugPrice(k,1))+' 兩／單位</span></div></div>'}).join('');
+    h+='<div class="tiny muted">拜訪交情 60 以上的私梟，打勝後可請他脫手，一次一項、整批全收，收入進私房錢。風聲偏緊時，替你脫過手的私梟可能落網供出你。</div>';
   }
   return {title:'🏴‍☠️ 走私',html:h};
 };
@@ -202,23 +201,5 @@ ACT.smugGo=()=>{
   sfx.step();toast(MSG('smugGo.6',{name:cap.name,d:d.d}));
   UI.render();refreshSheet();
 };
-/** 賣出密庫貨物：經介紹人銷售（扣行動、交情，抽一成），收入歸私房錢。 */
-ACT.smugSell=el=>{
-  const k=el.dataset.k,have=contra()[k]||0;if(have<=0)return;
-  const q=el.dataset.q==='all'?have:Math.min(have,+el.dataset.q);
-  if((G.exile||0)>0){toast(MSG('smugSell.1'));return}
-  autoIntro(null);
-  if(!G.introId||!introOf(G.introId)){toast(MSG('smugSell.2'));return}
-  if(!spendAP())return;
-  const it=SMUG_BY[k];
-  visitFx({cid:G.introId,outcome:'ok',kind:'secret',prop:'crate'},()=>{
-    const gross=Math.round(smugPrice(k,q)*q),fee=Math.round(gross*0.1),net=gross-fee;
-    const d=introCost(introOf(G.introId));
-    contra()[k]-=q;G.gold+=net;G.heat=(G.heat||0)+0.2*it.danger;G.life.smuggled=(G.life.smuggled||0)+net;
-    sfx.coin();coinFx();toast(MSG('smugSell.3',{introId:nameOf(G.introId),name:it.name,q,net,fee,d}));
-    UI.render();refreshSheet();
-  });
-};
-
 /** 被捕者供出主使的機率（忠誠越高越不會招）。 */
 const confessP=loyal=>clamp(ODDS.confess.base-loyal/ODDS.confess.loyalDiv,ODDS.confess.min,ODDS.confess.max);

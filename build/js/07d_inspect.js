@@ -40,7 +40,7 @@ function inspectResolve(bribe,log){
 function inspectCard(){
   const I=G.inspect;if(!I)return '';
   const n=npc(I.cid),rk=n&&n.pos?n.pos.rank:1;
-  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn" style="display:flow-root">'+portraitHtml(I.cid,56)+'<div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:inspectBribe(rk)})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
+  return '<div class="rp-sec">🔎 官吏查貨</div><div class="card warn" style="display:flow-root">'+portraitHtml(I.cid,56)+'<div><b>'+esc(nameOf(I.cid))+'</b> <span class="tag gold">'+esc(posTitle(n))+'</span></div><div class="tiny muted" style="margin:3px 0">官差翻看帳冊與貨品，似乎在等你表示「心意」。不扣行動點數。</div><div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="inspBribe">'+UT('btn.inspBribe',{c:coinHtml('silver',inspectBribe(rk))})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div></div>';
 }
 ACT.inspBribe=()=>{const t=inspectResolve(true);toast(t);if(!G.inspect){UI.hideInfo();sfx.coin();UI.render()}};
 ACT.inspPass=()=>{const t=inspectResolve(false);toast(t);UI.hideInfo();UI.render()};
