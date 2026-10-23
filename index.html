@@ -823,7 +823,133 @@ const LINES={
     },
     snub:['「什麼東西，真沒意思。」對方拂袖而起，話也不想再說。','「什麼東西，真沒意思。」對方冷著臉送客。'],
     lose:['對方客氣地送你出門，彼此只是點頭之交。','茶涼了，對方的話也淡了，你只好告辭。','對方收下心意，卻始終沒有鬆口。'],
-    chat:['你們閒話家常，喝了杯茶便告辭了。','聊了幾句天氣與行情，你起身告辭。']
+    chat:['你們閒話家常，喝了杯茶便告辭了。','聊了幾句天氣與行情，你起身告辭。'],
+    /* —— 依身份、院別、年齡、性別增補的台詞：與上面的原句合成一池平均抽（07u_battle.js 的 btSay）—— */
+    rank:{
+      low:{
+        openHit:['「這……這怎麼好意思。」對方嘴上推辭，手卻沒鬆開「{g}」。','對方把「{g}」悄悄收到案下，笑得有些拘謹。','對方左右張望一下，才把「{g}」接過去：「掌櫃費心了。」'],
+        openMiss:['對方瞄了「{g}」一眼：「掌櫃客氣了，衙裡規矩多。」','對方收下「{g}」，順手擱在一疊公文上。','對方點頭收下「{g}」，又低頭去寫他的文書。'],
+        openFriend:['對方從公文堆裡抬起頭：「是你啊，坐坐坐。」','對方把差事交給旁人，拉你到廊下說話。','對方笑著迎上來：「正悶得慌，你就來了。」'],
+        low:['對方看了看門外，壓低聲音：「這裡人多眼雜。」','對方收下了，臉上卻有些侷促。','對方咳了一聲，假裝在翻文書。'],
+        mid:['對方鬆了口氣，替你倒了杯粗茶。','對方說起衙裡的瑣事，抱怨了幾句上司。'],
+        close:['對方搓著手：「掌櫃這般照顧，小的記著了。」','對方笑得合不攏嘴，連聲說好。'],
+        win:['「往後衙裡有什麼風聲，我頭一個告訴你。」','對方一路送到衙門口：「有事儘管差人來說。」','「掌櫃是好人，往後我替你多留意。」'],
+        lose:['對方起身送客：「公務在身，改日再敘。」','外頭有人喊他，對方匆匆起身，你只好告辭。']
+      },
+      mid:{
+        openHit:['對方端詳「{g}」半晌，點頭道：「有眼光。」','對方命書吏把「{g}」收進內室，臉色和緩了不少。','對方拿起「{g}」細看，嘴角微微上揚。'],
+        openMiss:['對方淡淡一笑：「掌櫃有心了。」便叫人收下「{g}」。','書吏接過「{g}」，對方只點了點頭。','對方沒有細看，揮手讓人收下「{g}」。'],
+        openFriend:['對方屏退左右：「今日只敘私誼，不談公事。」','對方命人在後院擺了茶席：「難得清閒，坐吧。」','對方笑著拍拍你的肩：「又來看我了。」'],
+        low:['對方翻著帳冊，似乎沒把你放在心上。','對方應了一聲，又去看手邊的公文。','對方神色淡淡，說話仍是一副官腔。'],
+        mid:['對方合上帳冊，問起你店裡的生意。','對方吩咐換茶，語氣比方才隨和。'],
+        close:['對方撫著扶手：「你這人，倒也懂事。」','對方難得笑出聲來：「好，好。」'],
+        win:['「城裡的事，我還說得上話。往後有難處，來找我。」','對方親自送到二門：「你這個朋友，我記下了。」','「往後府上的門，隨時為你開著。」'],
+        lose:['對方看了看天色：「今日到此為止吧。」','對方端茶送客，話說得滴水不漏。']
+      },
+      high:{
+        openHit:['對方微微頷首，示意隨從收下「{g}」，嘴角帶了一絲笑意。','對方讓人把「{g}」擺到案頭，看了好一會兒。','對方難得開口：「這份『{g}』，挑得好。」'],
+        openMiss:['隨從接過「{g}」，對方連看都沒看一眼。','對方只抬了抬手，「{g}」便被收了下去。','對方望著窗外，彷彿沒注意到「{g}」。'],
+        openFriend:['對方難得迎到廊下：「巡察在外，就惦記著你這壺茶。」','對方屏退隨從，親手替你斟茶：「見到你，才算鬆了口氣。」','對方笑道：「一路上聽了不少你的事。」'],
+        low:['對方閉目養神，彷彿你不在場。','對方只「嗯」了一聲，目光仍在公文上。','隨從在旁咳了一聲，對方依舊不動聲色。'],
+        mid:['對方睜開眼，問了一句：「你那商號，開了幾年？」','對方放下公文，打量了你一番。'],
+        close:['對方輕叩桌面，神色和緩：「你倒是有心。」','對方難得露出笑意，留你多坐一會兒。'],
+        win:['「我記住你了。」對方起身，親自送到中庭。','對方命隨從送你出府：「下回巡察到此，再來坐坐。」','「往後有事，遞帖子來便是。」'],
+        lose:['隨從上前低聲說了幾句，對方便起身入內，你只好告辭。','對方擺擺手，隨從便請你出去了。']
+      }
+    },
+    court:{
+      administration:{
+        hint:{small:['對方指了指窗外的巡役：「城裡耳目多，凡事低調些。」','對方低聲道：「近來有人遞狀子告商家行賄，你可別太張揚。」'],
+          mid:['對方翻著戶籍簿：「照規矩來，恰到好處就好。」','對方笑道：「做事有分寸的人，我最放心。」'],
+          large:['對方嘆道：「修橋補路，處處要錢，衙門也不寬裕。」','對方說起今年要修的堤防，又提到經費還沒著落。']},
+        mid:['對方說起城裡要修的水渠，話漸漸多了。','對方談起城中戶口增減，聽來頗有興致。']
+      },
+      finance:{
+        hint:{small:['對方撥著算盤：「帳上多一筆，都會有人看見。」','對方低聲道：「勘定所近來查帳查得細。」'],
+          mid:['對方把算盤推開：「數目剛好，最省事。」','對方點點頭：「不多不少，帳最好做。」'],
+          large:['對方撥了撥算盤，搖頭：「這數，還對不上。」','對方翻著帳本：「今年的虧空，還差一大截。」']},
+        mid:['對方停下算盤，抬頭看了你一眼。','對方說起今年的稅收，話也多了起來。']
+      },
+      judiciary:{
+        hint:{small:['對方低聲道：「最近查得緊，別落人話柄。」','對方瞥了一眼門口的捕快：「小心隔牆有耳。」'],
+          mid:['對方合上卷宗：「分寸拿捏得好，就不會出事。」','對方淡淡道：「規規矩矩的，誰也挑不出毛病。」'],
+          large:['對方翻著卷宗：「這案子牽連甚廣，要打點的地方多著呢。」','對方嘆道：「牢裡那些人，吃穿也都要錢啊。」']},
+        mid:['對方把卷宗擱下，總算正眼看你。','對方說起近來審的一樁奇案，你聽得津津有味。']
+      }
+    },
+    role:{
+      guest:{
+        openHit:['對方摸著「{g}」直笑：「掌櫃懂行！」','對方捧著「{g}」愛不釋手，叫夥計快去燒水。','對方一見「{g}」，連帳都不算了。'],
+        openMiss:['對方客氣地收下「{g}」：「哎呀，太破費了。」','對方把「{g}」交給夥計，嘴上連說謝謝。','對方笑著收下「{g}」，轉頭又招呼起客人。'],
+        openFriend:['對方拉你坐下：「來得正好，剛到一批好茶。」','對方遠遠就喊：「掌櫃的，裡面坐！」','對方把店交給夥計：「走，後頭喝兩杯。」'],
+        low:['對方笑著打哈哈，話題一直繞著天氣。','對方一邊應你，一邊盯著門口的客人。'],
+        mid:['對方嘆了幾聲生意難做。','對方說起最近哪家的貨好賣，話多了起來。'],
+        close:['對方越說越起勁，連自家帳本都想翻給你看。','對方拍著大腿：「跟你說話真痛快！」'],
+        win:['「往後有好貨，先讓你挑。」','對方送你到門口，還塞了一包點心給你帶回去。','「往後咱們兩家多走動！」'],
+        lose:['對方笑呵呵地送到門口：「改天再聊、改天再聊。」','店裡客人一多，對方便顧不上你了。']
+      },
+      broker:{
+        openHit:['對方眼珠一轉，把「{g}」收進懷裡：「掌櫃消息靈通啊。」','對方掂著「{g}」笑了：「你倒打聽得清楚。」','對方收下「{g}」，馬上給你挪了個好位子。'],
+        openMiss:['對方掂了掂「{g}」：「就這個？」','對方把「{g}」往旁邊一推：「先說正事吧。」','對方收下「{g}」，臉上沒什麼表情。'],
+        openFriend:['對方湊過來：「我正好有樁消息要告訴你。」','對方招手叫你進來：「老位子，給你留著。」','對方笑嘻嘻地迎上來：「掌櫃，又想打聽什麼？」'],
+        low:['對方東拉西扯，就是不說正題。','對方打了個哈欠，說的都是街頭巷尾的舊聞。'],
+        mid:['對方壓低聲音，說了幾句城裡的閒話。','對方給你倒了杯茶，說起哪家商號最近不太平。'],
+        close:['對方嘿嘿笑著：「掌櫃是爽快人，我喜歡。」','對方往前湊了湊，像是要把壓箱底的消息說出來。'],
+        win:['「城裡有什麼動靜，我第一個捎話給你。」','對方拍胸脯：「往後你的事，就是我的事。」','「有你這樣的主顧，我這行也做得起勁。」'],
+        lose:['對方伸個懶腰：「今日就到這，下回再聊。」','對方說還有別的主顧要見，匆匆送客。']
+      },
+      manager:{
+        openHit:['對方仔細看過「{g}」，點頭：「挑得用心。」','對方把「{g}」收好，難得露出笑容。','對方放下筆，把「{g}」拿在手上端詳。'],
+        openMiss:['對方把「{g}」擱在帳桌一角，繼續撥算盤。','對方收下「{g}」道了聲謝，連頭也沒抬。','對方收下「{g}」，順手記進了帳。'],
+        openFriend:['對方放下帳冊：「難得你來，今天早點收工。」','對方笑道：「正好有幾筆帳想聽聽你的意見。」','對方吩咐夥計看店，請你進了內間。'],
+        low:['對方一邊聽你說話，一邊還在核帳。','對方禮貌地應著，眼睛卻沒離開算盤。'],
+        mid:['對方停下筆，問起你店裡夥計的事。','對方說起怎麼管帳管人，頗有心得。'],
+        close:['對方說起自己經手的幾樁買賣，頗為得意。','對方把算盤推到一旁，專心和你說話。'],
+        win:['「哪天你店裡缺人手，跟我說一聲。」','對方送你出門：「做生意的道理，咱們改天再細聊。」','「跟你談事，比對帳有意思多了。」'],
+        lose:['對方看了看帳冊：「還有一堆帳沒對，失陪了。」','夥計來報有客到，對方只好起身送客。']
+      },
+      smuggler:{
+        openHit:['對方咧嘴一笑，把「{g}」收進暗櫃：「夠意思。」','對方拿著「{g}」翻看，臉上的戒心少了幾分。','對方收下「{g}」，朝手下使個眼色，手下便退了出去。'],
+        openMiss:['對方瞥了「{g}」一眼：「這玩意兒，我那兒多的是。」','對方隨手把「{g}」丟給手下。','對方收下「{g}」，眼神仍帶著戒備。'],
+        openFriend:['對方從後門把你迎進去：「進來說，別讓人看見。」','對方掀開簾子：「老朋友，酒早就溫好了。」','對方遞來一碗酒：「先乾了再說。」'],
+        low:['對方盯著你看，一句話也不說。','對方擦著刀，偶爾抬眼看你一下。'],
+        mid:['對方給你倒了一碗酒：「先喝，再說。」','對方說起海上的風浪，語氣鬆了些。'],
+        close:['對方把桌上的刀收了起來：「你這人，還算靠得住。」','對方哈哈一笑，拍了拍你的背。'],
+        win:['「往後有貨要走，找我。」','對方送你到後巷口：「路上小心，有事捎個口信。」','「你這個朋友，我認了。」'],
+        lose:['對方吹熄了燈：「天快亮了，你該走了。」','外頭傳來腳步聲，對方使個眼色，要你先走。']
+      },
+      rival:{
+        openHit:['對方收下「{g}」，似笑非笑：「同行送禮，倒是頭一遭。」','對方拿著「{g}」看了看：「你倒摸清了我的喜好。」','對方收下「{g}」，笑道：「這份心意，我記下了。」'],
+        openMiss:['對方讓夥計收下「{g}」：「貴號近來生意不錯嘛。」','對方收下「{g}」，話鋒一轉就問起你的貨源。','對方客氣地收下「{g}」，眼底卻沒什麼笑意。'],
+        openFriend:['對方親自煎茶：「同行是冤家，你我卻是例外。」','對方迎出門來：「正想找你商量公會的事。」','對方大笑：「老對手又來了，請進！」'],
+        low:['對方話裡帶刺：「聽說你最近搶了不少客人？」','對方淡淡應著，像在掂量你的來意。'],
+        mid:['對方說起公會的事，語氣緩和了些。','對方聊起行情，難得說了幾句實話。'],
+        close:['對方大笑：「好，往後咱們少鬥一點。」','對方舉杯：「同行之間，也該有個照應。」'],
+        win:['「公會的事，往後我站你這邊。」','對方送你出門：「市面上的事，咱們互通聲氣。」','「這城裡，能跟我平起平坐的不多，你算一個。」'],
+        lose:['對方拱拱手：「生意場上見。」','對方說還要去看貨，客套幾句便送客。']
+      }
+    },
+    age:{
+      young:{mid:['對方說起自己的抱負，眼睛發亮。','對方問了你不少做生意的門道。'],win:['「承蒙提攜，感激不盡！」','對方送你出門，腳步都輕快了。'],lose:['對方年輕氣盛，沒說兩句就坐不住了。','對方說晚上還有約，匆匆送客。']},
+      prime:{mid:['對方說起家裡老小，語氣柔和了些。','對方感嘆這幾年市面變化快。'],win:['「到了這年紀，交朋友就是一輩子的事。」','對方握著你的手：「往後彼此照應。」'],lose:['對方揉了揉眉心：「近來事多，改日吧。」','對方心裡似乎掛著別的事，話也少了。']},
+      old:{mid:['對方說起年輕時的往事，話匣子停不下來。','對方慢慢啜著茶，說起當年的行情。'],win:['「活到這把年紀，看人不會錯。」','對方拄著手杖送你到門口：「常來陪我說說話。」'],lose:['對方打了個盹，醒來便說乏了。','對方咳了幾聲，家人便來請你改日再來。']}
+    },
+    fem:{
+      openHit:['對方輕撫「{g}」，笑意從眼角漾開。','對方捧著「{g}」看了又看：「你怎麼知道我喜歡這個？」','對方收下「{g}」，親手為你奉茶。'],
+      openMiss:['對方客氣地道了謝，便吩咐下人把「{g}」收起。','對方看了「{g}」一眼，笑容淡淡的。','對方收下「{g}」，轉頭吩咐下人上茶。'],
+      openFriend:['對方早已備好點心：「就知道你這幾天會來。」','對方笑著迎出來：「好些日子沒見了。」','對方親自替你斟茶：「坐吧，不必拘禮。」'],
+      mid:['對方掩口一笑：「掌櫃真會說話。」','對方說起近來城裡流行的花樣，興致不錯。'],
+      hint:{small:['對方輕聲道：「太張揚了，讓人看見不好。」','對方搖搖頭：「心意到了就好，別太破費。」'],
+        mid:['對方點點頭：「這樣就很好了。」','對方笑道：「掌櫃做事，總是恰到好處。」'],
+        large:['對方嘆了口氣：「近來府裡開銷可不小呢。」','對方輕撫鬢邊：「好些首飾都舊了。」']},
+      win:['「今日聊得開心，往後常來坐坐。」','對方送到門邊：「下回來，記得多留一會兒。」','「跟你說話，心裡就踏實。」'],
+      lose:['對方輕輕放下茶盞：「天色不早，就不留你了。」','對方說家裡還有事要忙，客氣地送你出門。']
+    },
+    snubX:{
+      official:['「什麼東西，真沒意思。」對方叫書吏送客。','「什麼東西，真沒意思。」對方拂袖轉入內堂。'],
+      smuggler:['「什麼東西，真沒意思。」對方把門一摔。','「什麼東西，真沒意思。」手下把你推出了後門。'],
+      fem:['「什麼東西，真沒意思。」對方別過臉去，不再看你。','「什麼東西，真沒意思。」對方起身離席，只留下一杯涼茶。']
+    }
   },
   /* —— 忘年會：主人開場與收尾、各類大事的前後語、閒話、孩子 —— */
   banquet:{
@@ -3801,7 +3927,7 @@ function renderRoutes(){
   if(!R_.item||!items.includes(R_.item))R_.item=items[0]||null;
   const crew=m=>crewCount(m)+'（空閒 '+Math.max(0,crewCount(m)-crewBusy(m))+'）';
   let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🗺️ 產地運入·船長與飛腳</b></div><span class="tag navy">船長 '+crewCount('sea')+'／'+slotCap('船長')+'·飛腳 '+crewCount('land')+'／'+slotCap('飛腳')+'</span></div>';
-  h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">海運許可<br><b>'+(permitsOf().sea.all?'全地區':Object.keys(permitsOf().sea).length+' 地區')+'</b><div class="tiny muted">船長 '+crew('sea')+'</div></div><div class="card" style="margin:0">陸運許可<br><b>'+(landPermit()?'已取得':'未取得')+'</b><div class="tiny muted">飛腳 '+crew('land')+'</div></div><div class="card" style="margin:0">免檢旗<br><b>'+(G.flags.exempt>0?G.flags.exempt+' 旬':'無')+'</b></div></div>';
+  h+='<div class="grid2 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">海運許可<br><b>'+(permitsOf().sea.all?'全地區':Object.keys(permitsOf().sea).length+' 地區')+'</b><div class="tiny muted">船長 '+crew('sea')+'</div></div><div class="card" style="margin:0">陸運許可<br><b>'+(landPermit()?'已取得':'未取得')+'</b><div class="tiny muted">飛腳 '+crew('land')+'</div></div></div>';
   if(!anySea()&&!landPermit())h+='<div class="notice tiny">📌 運入許可由地區官員核發：請到「遠國奉行所」請託。</div>';
   if(G.ships.length){h+='<div class="small bold">⛵ 在途貨運</div>'+G.ships.map(s=>{if(s.entrust)return '<div class="card"><div class="row"><b class="small">'+(s.mode==='land'?'🐎 陸運·飛腳':'⛵ 海運·船長')+'「'+esc(s.captName)+'」</b><span class="tag '+(s.eta<=1?'green':'gray')+'">剩 '+s.eta+' 旬</span></div><div class="tiny muted">前往【'+esc(CITY(s.origId).name)+'】·委託金 '+fmt(s.budget)+' 兩·買什麼由'+(s.mode==='land'?'飛腳':'船長')+'決定，歸來才知道</div></div>';const b=s.origId?CITY(s.origId):null;return '<div class="card"><div class="row"><b class="small">'+(s.mode==='sea'?'⛵':'🐎')+' '+esc(COMM_MAP[s.name].short)+' × '+s.qty+'</b><span class="tag '+(s.eta<=1?'green':'gray')+'">剩 '+s.eta+' 旬</span></div><div class="tiny muted">'+(b?'自 '+esc(b.name)+'·'+esc(b.region_name)+' 運入本城':'返航中')+'·'+(s.captName?(s.mode==='sea'?'船長 ':'飛腳 ')+esc(s.captName)+'·':'')+'遇險率 '+Math.round(s.risk*100)+'%</div></div>'}).join('')}
   else h+='<div class="notice">目前沒有在途的貨運。</div>';
@@ -3856,7 +3982,7 @@ ACT.posList=()=>{
 ACT.commInfo=el=>{
   const n=el.dataset.n,c=COMM_MAP[n],i=COMM_INFO[n];if(!c||!i)return;
   UI.showInfo('貿易物品：'+c.short,'<div class="small"><span class="tag">'+c.kind+'</span> <span class="tag gray">'+esc(i.origin_type)+'</span>'+(c.flam?' <span class="tag red">易燃</span>':'')+'</div>'
-   +ik('所屬系統',i.system_name)+ik('系統簡介',i.system_desc)+ik('全名',i.name)+ik('單位',i.unit)+'<div class="ik">遊戲基準價</div><div class="iv">'+fmt1(c.base)+' 兩／單位（需求彈性 α '+c.alpha+'·每旬損耗約 '+(c.decay*100).toFixed(1)+'%）</div>'
+   +ik('所屬系統',i.system_name)+ik('系統簡介',i.system_desc)+ik('全名',i.name)+ik('單位',i.unit)+'<div class="ik">遊戲基準價</div><div class="iv">'+fmt1(c.base)+' 兩／單位（每旬損耗約 '+(c.decay*100).toFixed(1)+'%）</div>'
    +ik('主要產區',(i.primary_regions||[]).join('、'))+ik('季節特性',i.seasonal_traits)+ik('價格波動',i.price_volatility)+ik('需求階層',i.demand_strata)+ik('保存與損耗',i.decay_rate)+ik('管制狀態',i.contraband_status)+ik('卡特爾潛力',i.cartel_potential));
 };
 /** 物品旁的『ⓘ說明』按鈕。 */
@@ -5328,7 +5454,7 @@ function voyagePanel(){
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
   h+='<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'"><div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
-  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>請介紹人</b>幫忙賣；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。</div>';
+  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。</div>';
   h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo">'+UT('btn.vGo')+'</button></div>';
   return h;
 }
@@ -5504,7 +5630,7 @@ function regionTick(log){
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   const ps=permitSummary(),P=permitsOf();
-  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。許可與權利需要先遞件，再等審理，通常約六旬；可自行決定是否附上賄賂。</div>';
+  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。</div>';
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?'（本地）':'')+'</span>').join('')+'</div>';
   h+='<div class="card"><div class="row small"><span>⛵ 海運許可：<b>'+esc(ps.sea)+'</b></span><span>🐎 陸運許可：<b>'+esc(ps.land)+'</b></span></div>'+((G.flags.horse>0||G.flags.escort>0||G.flags.taxfree>0||G.flags.cheap>0)?'<div class="tiny muted">效期：'+[['horse','驛馬'],['escort','護送'],['taxfree','免稅'],['cheap','便宜']].filter(x=>G.flags[x[0]]>0).map(x=>x[1]+' '+G.flags[x[0]]+' 旬').join('、')+'</div>':'')+'</div>';
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
@@ -6365,7 +6491,25 @@ const btKind=cid=>{const n=npc(cid);return n&&n.pos?officialKind(n):'merchant'};
 /** 依偏重抽這一回合的期待（0 小、1 中、2 大）。 */
 function btRollExpect(cid){const w=BT_EXPECT_W[btKind(cid)];let x=rnd()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){x-=w[i];if(x<0)return i}return 1}
 /** 暗示期待的台詞：七成照實，三成指向別檔。 */
-function btHint(expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return TX('battle.hint.'+['small','mid','large'][t])}
+function btHint(cid,expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return btSay(cid,'hint.'+['small','mid','large'][t])}
+/** 人物適用的增補句庫（身份：官階帶或商邸身分；院別；年齡層；女性）。 */
+function btGroups(cid){
+  const n=npc(cid),c=CH(cid),L=LINES.battle,out=[];if(!c)return out;
+  if(n&&n.pos){out.push(L.rank[n.pos.rank<=2?'low':n.pos.rank<=4?'mid':'high']);if(L.court[n.pos.court])out.push(L.court[n.pos.court])}
+  else if(n&&L.role[n.role])out.push(L.role[n.role]);
+  const a=ageOf(cid);out.push(L.age[a<35?'young':a<55?'prime':'old']);
+  if(c.gender==='女')out.push(L.fem);
+  return out;
+}
+/** 拜訪戰鬥取句：原句與所有適用的增補句合成一池，平均抽一句。stage：openHit／openMiss／openFriend／low／mid／close／win／lose／snub／hint.small…。 */
+function btSay(cid,stage,vars){
+  const n=npc(cid),L=LINES.battle,at=(o,p)=>p.split('.').reduce((x,k)=>x&&x[k],o),kind=n&&n.pos?officialKind(n):'merchant';
+  let pool=[].concat(['low','mid','close','win'].includes(stage)?L[stage][kind]:at(L,stage)||[]);
+  btGroups(cid).forEach(g=>{const v=at(g,stage);if(Array.isArray(v))pool=pool.concat(v)});
+  if(stage==='snub'){if(n&&n.pos)pool=pool.concat(L.snubX.official);else if(n&&n.role==='smuggler')pool=pool.concat(L.snubX.smuggler);if(CH(cid)&&CH(cid).gender==='女')pool=pool.concat(L.snubX.fem)}
+  const s=pool.length?pool[Math.floor(rnd()*pool.length)]:'';
+  return vars?s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):s;
+}
 /** 是否正在氣頭上（被嫌不善言辭：本旬與下一旬不能拜訪）。 */
 const snubbed=cid=>{const r=G.rel[cid];return !!(r&&r.snubUntil!==undefined&&G.turn<=r.snubUntil)};
 /** 禮物倍率。 */
@@ -6394,9 +6538,8 @@ function visitRowHtml(cid){
 /* ---------- 進度台詞 ---------- */
 /** 依打掉的比例與官員類型，挑一句模糊的反應台詞。 */
 function btLine(cid,ratio){
-  const n=npc(cid),k=n&&n.pos?officialKind(n):'plain';
   const st=ratio>=1?'win':ratio>=0.7?'close':ratio>=0.3?'mid':'low';
-  return TX('battle.'+st+'.'+(n&&n.pos?k:'merchant'));
+  return btSay(cid,st);
 }
 
 /* ---------- 戰鬥狀態與流程 ---------- */
@@ -6409,8 +6552,8 @@ function battleStart(cid,giftKey){
   if(hit)r.verified=true;
   if(!friend&&g&&g.k==='plaque')G.life.charity++;
   BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,
-    open:friend?TX('battle.openFriend'):hit?TX('battle.openHit',{g:g.name}):TX('battle.openMiss',{g:g?g.name:'禮物'}),line:''};
-  BT.expect=btRollExpect(cid);BT.hint=btHint(BT.expect);          // 開場就透露第一回合的期待
+    open:btSay(cid,friend?'openFriend':hit?'openHit':'openMiss',{g:g?g.name:'禮物'}),line:''};
+  BT.expect=btRollExpect(cid);BT.hint=btHint(cid,BT.expect);          // 開場就透露第一回合的期待
   musicWant('visit');                                   // 拜訪戰鬥換成《登門囃子》
   logRel(cid,friend?'登門拜訪，老朋友相見。':'登門拜訪，帶去「'+(g?g.name:'禮物')+'」'+(hit?'，正中下懷。':'。'));
   battleShow();
@@ -6431,7 +6574,7 @@ ACT.btOffer=el=>{
   const amt=btTiers(B.cid)[+el.dataset.i];
   if(G.silver<amt){toast(MSG('buyGoods.5',{cost:fmt(amt)}));return}
   battleHit(amt,+el.dataset.i);
-  if(B.dmg>=B.hp||B.round>=3)battleEnd();else{B.expect=btRollExpect(B.cid);B.hint=btHint(B.expect);battleShow()}
+  if(B.dmg>=B.hp||B.round>=3)battleEnd();else{B.expect=btRollExpect(B.cid);B.hint=btHint(B.cid,B.expect);battleShow()}
 };
 /** 造成傷害（丁稚代送也走這裡）。 */
 function battleHit(amt,tier){
@@ -6449,14 +6592,14 @@ function battleEnd(){
   const cid=B.cid,r=R(cid),n=npc(cid),win=B.dmg>=B.hp;
   if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
     r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,'話不投機，對方嫌你不善言辭'+(B.spent?'（奉上 '+B.spent+' 兩）':'')+'。');sfx.bad();
-    UI.render();refreshSheet();UI.hideInfo();toast(TX('battle.snub'),4600);BT=null;return;
+    UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub'),4600);BT=null;return;
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?0.3:0.1);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
-  const msg=(win?TX('battle.win.'+(n&&n.pos?officialKind(n):'merchant')):B.spent?TX('battle.lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
+  const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
   UI.render();refreshSheet();
   if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo('📜 請託·'+nameOf(cid),requestHtml(cid,msg));return}
   UI.hideInfo();toast(msg,4200);BT=null;
