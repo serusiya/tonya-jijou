@@ -234,11 +234,11 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .card.locked .pt-btn{pointer-events:auto}
 
 /* 金額記號：現款＝方孔銀幣、私房錢＝小判金幣（按鈕裡只寫記號＋數字） */
-.coin{display:inline-block;vertical-align:-1px;margin-right:2px;position:relative;box-sizing:border-box}
-.coin.zeni{width:11px;height:11px;border-radius:50%;background:#d3d9e1;border:2px solid #4a5868}
-.coin.zeni::after{content:'';position:absolute;left:2.5px;top:2.5px;width:2px;height:2px;background:#4a5868}
-.coin.koban{width:9px;height:13px;border-radius:50%;background:linear-gradient(#fbe08a,#d6981a);border:2px solid #8a5a00}
-.btn-red .coin,.btn-green .coin{border-color:#fff8e8}
+.cmark{display:inline-block;vertical-align:-1px;margin-right:2px;position:relative;box-sizing:border-box}
+.cmark.zeni{width:11px;height:11px;border-radius:50%;background:#d3d9e1;border:2px solid #4a5868}
+.cmark.zeni::after{content:'';position:absolute;left:2.5px;top:2.5px;width:2px;height:2px;background:#4a5868}
+.cmark.koban{width:9px;height:13px;border-radius:50%;background:linear-gradient(#fbe08a,#d6981a);border:2px solid #8a5a00}
+.btn-red .cmark,.btn-green .cmark{border-color:#fff8e8}
 .money{font-weight:bold;white-space:nowrap}
 .money.ms{color:#34445a}
 .money.mg{color:#7a4a00}
@@ -263,8 +263,8 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
     </div>
     <div class="stats">
       <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
-      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="coin zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div></div>
-      <div class="stat"><div class="k"><i class="coin koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div></div>
+      <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
     <div class="row small" style="background:#1c1921;border:1px solid var(--line);padding:2px 6px">
@@ -641,7 +641,7 @@ const COSTS={
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
 const costTxt=(k,mul)=>CUR_NAME[COSTS[k].cur]+' '+costOf(k,mul)+' 兩';
 /** 按鈕用金額：記號＋數字，不寫「兩」。現款＝方孔銀幣（深藍灰數字），私房錢＝小判金幣（深琥珀數字）。訊息與說明文字仍用 costTxt。 */
-const coinHtml=(cur,amt)=>'<span class="money '+(cur==='gold'?'mg':'ms')+'"><i class="coin '+(cur==='gold'?'koban':'zeni')+'" aria-label="'+CUR_NAME[cur]+'"></i>'+fmt(amt)+'</span>';
+const coinHtml=(cur,amt)=>'<span class="money '+(cur==='gold'?'mg':'ms')+'"><i class="cmark '+(cur==='gold'?'koban':'zeni')+'" aria-label="'+CUR_NAME[cur]+'"></i>'+fmt(amt)+'</span>';
 const costBtn=(k,mul)=>coinHtml(COSTS[k].cur,costOf(k,mul));
 const walletOf=k=>COSTS[k].cur;
 /** 錢夠不夠（amt 可自行指定，如依官階算出的金額）。 */
