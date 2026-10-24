@@ -160,12 +160,13 @@ ACT.yamenTab=el=>{UI.s.yamenTab=el.dataset.k;refreshSheet()};
 SHEETS.guild=()=>{
   const C=G.cartel,own=tradeComms();
   const st=C.state==='pledged'?'<span class="tag green">已表態遵守配額</span>':C.state==='secret'?'<span class="tag red">已簽暗約偷跑</span>':'<span class="tag gray">未表態</span>';
-  let h='<div class="notice tiny">全城取得「'+SYS_BY_KEY[G.sysKey].name+'」株牌的十四家問屋圍坐一堂。公會核心是<b>以量控價</b>：全體減供價才高；有人偷跑，價就崩（囚徒困境）。誓言守配額卻超量，會被聯合斷貨；暗約偷跑若敗露，則遭官府查抄。</div>';
-  h+='<div class="card"><div class="row"><b>目前立場</b>'+st+'</div><div class="row small" style="margin-top:4px"><span>配額遵守率</span><b>'+Math.round(C.comp)+'%</b></div>'+bar(C.comp,100,C.comp<50?'red':'gold')+(C.sanction>0?'<div class="tiny" style="color:#b3261e;margin-top:3px">⚠️ 聯合斷貨中，剩 '+C.sanction+' 旬，進貨價大漲</div>':'')+'</div>';
+  let h='<div class="notice tiny">全城取得「'+SYS_BY_KEY[G.sysKey].name+'」株牌的十四家問屋圍坐一堂。公會核心是<b>以量控價</b>：全體減供價才高；有人偷跑，價就崩（囚徒困境）。入會要押擔保金，向大盤進貨享公會價；未入會照市價。誓言守配額卻超量，會被聯合斷貨；暗約偷跑若敗露，則遭官府查抄；兩者擔保金都會沒收。沒收的擔保金每九旬平分給守約的人。</div>';
+  h+='<div class="card"><div class="row"><b>目前立場</b>'+st+'</div><div class="row small" style="margin-top:4px"><span>配額遵守率</span><b>'+Math.round(C.comp)+'%</b></div>'+bar(C.comp,100,C.comp<50?'red':'gold')+(C.sanction>0?'<div class="tiny" style="color:#b3261e;margin-top:3px">⚠️ 聯合斷貨中，剩 '+C.sanction+' 旬，進貨價大漲</div>':'')+'</div>'+guildBondCard();
   h+='<div class="card"><b class="small">本旬配額（每項本城需求的 '+Math.round(C.quotaPct*100)+'%）</b>'+own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+quotaOf(c.name)+' 單位／旬</b></div>').join('')+'</div>';
   const qp=quotaRaiseChance();
   h+='<div class="card"><b class="small">📈 提案提高配額</b><div class="tiny muted" style="margin:2px 0">每次例會可提案一次，最多增加 10%。成敗看你與同行商人的交情。目前成功率 <b>'+Math.round(qp*100)+'%</b>。</div><button class="pixel-btn btn-sm btn-gold" data-act="quotaUp" '+(C.tried?'disabled':'')+'>'+UT(C.tried?'btn.quotaDone':'btn.quotaUp')+'</button></div>';
-  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged">'+UT('btn.cartel')+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret">'+UT('btn.cartel2',{c:costBtn('guildSecret')})+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%">'+UT('btn.cartel3')+'</button></div>';
+  const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
+  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%" '+(C.state==='none'?'disabled':'')+'>'+UT(mem?'btn.cartel3Lose':'btn.cartel3')+'</button></div>';
   const rv=cityNpcs(G.cityId,'rival');
   h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.slice(0,6).map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
   return {title:'⚖️ 問屋公會·株仲間會所',html:h};
@@ -187,14 +188,20 @@ ACT.quotaUp=()=>{
 };
 /** 公會表態（遵守/暗約/退出）。 */
 ACT.cartel=el=>{
-  const s=el.dataset.s,C=G.cartel;
-  if(s==='secret'&&C.state!=='secret'){if(!afford('guildSecret')){toast(shortMsg('guildSecret'));return}}
+  const s=el.dataset.s,C=G.cartel;guildEnsure();
+  if(s===C.state){toast(MSG('cartel.same'));return}
+  const joining=s!=='none'&&!(guildMember()&&C.bond>0);
+  if(joining&&!afford('guildBond')){toast(shortMsg('guildBond'));return}
+  if(s==='secret'&&!afford('guildSecret')){toast(shortMsg('guildSecret'));return}
   if(!C.paid){if(!spendAP())return;C.paid=true}
-  if(s==='secret'&&C.state!=='secret')spend('guildSecret');
+  if(s==='secret')spend('guildSecret');
+  let note='';
+  if(joining){guildJoin();note=MSG('cartel.join',{c:fmt(costOf('guildBond'))})}
+  if(s==='none'){const lost=guildForfeit();if(lost)note=MSG('cartel.lose',{c:fmt(lost)})}
   C.state=s;
-  if(s==='pledged'){C.comp=Math.min(90,C.comp+3);toast(MSG('cartel.1'))}
-  else if(s==='secret')toast(MSG('cartel.2'));
-  else toast(MSG('cartel.3'));
+  if(s==='pledged'){C.comp=Math.min(90,C.comp+3);toast((note?note+' ':'')+MSG('cartel.1'),4200)}
+  else if(s==='secret')toast((note?note+' ':'')+MSG('cartel.2'),4200);
+  else toast(MSG('cartel.3')+(note?' '+note:''),4200);
   UI.render();refreshSheet();
 };
 /** 名門商邸面板。 */
@@ -551,8 +558,8 @@ UI.showStart=function(){
   h+='<div style="text-align:center;font-size:12px;color:#cfc6b6;margin-bottom:10px">20 歲開局。沒有固定的目標，只有一生。</div>';
   if(!sv&&OLD_SAVE_FOUND)h+='<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v'+GAME_VER+' 起已不相容，已清除。請重新開局。</div>';
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
-  h+='<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div>';
-  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'</div></div>').join('');
+  h+='<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div><div class="tiny" style="text-align:center;color:#cfc6b6;margin-bottom:6px">越往下，起手資源越多。</div>';
+  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'：'+s.res+'</div></div>').join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:15px" data-act="begin">'+UT('btn.begin')+'</button>';
   $('#start-inner').innerHTML=h;$('#start').classList.remove('hidden');
 };

@@ -44,7 +44,7 @@ function yearEndParty(log){
   friends.forEach(cid=>{const n=npc(cid);att.push({kind:'friend',cid,label:nameOf(cid)+(n.pos?'（'+posTitle(n)+'）':''),look:hostLook(cid),off:!!n.pos})});
   /* 效果 */
   const cost=Math.min(Math.max(0,Math.round(G.silver)),att.length*PARTY_FEE);
-  if(cost>0)payPublic('忘年會宴席',cost);
+  if(cost>0){G.silver-=cost;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['忘年會宴席']=(TURNRP.inTurn['忘年會宴席']||0)+cost}}   // 推進途中付的錢記在本旬（不放進 G.publicSpend，以免下一旬重複計入）
   friends.forEach(cid=>{const r=R(cid);r.aff=clamp(r.aff+PARTY_GAIN.friend,0,100);logRel(cid,'出席年底的忘年會，好感 +'+PARTY_GAIN.friend+'。')});
   staff.forEach(e=>{e.aff=Math.min(100,empAff(e)+PARTY_GAIN.staff)});
   const lines=partyLines(att,L,G.silver-s0);

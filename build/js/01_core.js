@@ -83,22 +83,22 @@ function compat(cidA,cidB){return compatOfTops(top3(cidA),top3(cidB))}
 const trustFactor=aff=>clamp(aff/60,0.4,1.5);
 
 /* ---------- 七大問屋流派 ---------- */
-/** 七大問屋流派：開局資金、特色與適用的物品系統。新增流派在此加一筆。 */
+/** 七大問屋流派：開局資金、特色與適用的物品系統。越往下起手資源越多（applyStartBoost 依順序累加）；perk＝開局畫面的短語，res＝百科裡的完整起手資源。新增流派在此加一筆。 */
 const SYS=[
   {key:'timber',match:'山林竹木',name:'材木問屋',style:'豪賭型',firm:'三河屋',silver:8000,gold:8,
-    tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家'},
-  {key:'grain',match:'糧穀與油料',name:'米問屋',style:'政治壓力型',firm:'鴻池屋',silver:7000,gold:6,
-    tip:'薄利多銷，主食漲價易生暴動。',perk:'員工初備'},
-  {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:6500,gold:6,
-    tip:'鮮魚損耗快，必須快進快出。',perk:'家庭圓滿、員工初備'},
-  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'金融軍工型',firm:'住友屋',silver:9000,gold:10,
-    tip:'銅鐵銀金，成敗看官府人脈。',perk:'家庭圓滿、員工充足、航運在手'},
-  {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'大宗調度型',firm:'越後屋',silver:8000,gold:8,
-    tip:'量大跨城，船隊與商路為本。',perk:'家庭圓滿、員工充足、船隊在手、名望三階'},
-  {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:7500,gold:20,
-    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'財力驚人、名望四階'},
-  {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:28,
-    tip:'賣品味與人情，名士與花街是商路。',perk:'財力驚人、家庭圓滿、員工充足、船隊在手、名望四階'}
+    tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
+  {key:'grain',match:'糧穀與油料',name:'米問屋',style:'政治壓力型',firm:'鴻池屋',silver:8500,gold:10,
+    tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
+  {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:9000,gold:12,
+    tip:'鮮魚損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
+  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'金融軍工型',firm:'住友屋',silver:10000,gold:15,
+    tip:'銅鐵銀金，成敗看官府人脈。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
+  {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
+    tip:'產地稀少，靠公會與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
+  {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
+    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
+  {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:1000,
+    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；私房錢充裕，名望四階。'}
 ];
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
 /** 依物品所屬系統名稱，找出對應的流派 key。 */

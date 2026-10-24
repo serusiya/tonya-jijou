@@ -162,14 +162,14 @@ SHEETS.smuggle=()=>{
   const p=raidChance(),lv=p<=0?'無':p<0.05?'低':p<0.12?'中':'高';
   const free=idleCaptains('sea').length,cap=smugCaptain();
   let h='<div class="grid3 small" style="text-align:center;margin-bottom:6px"><div class="card" style="margin:0">私房錢<br><b style="color:#b8860b">'+Math.round(G.gold)+' 兩</b></div><div class="card" style="margin:0">空閒船長<br><b>'+Math.max(0,free)+'</b></div><div class="card" style="margin:0">搜查風聲<br><b style="color:'+(p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34')+'">'+lv+'</b></div></div>';
-  h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海，回來進密庫，再請私梟脫手，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
+  h+='<div class="tiny muted" style="margin-bottom:6px">用私房錢向海外買禁品，船長出海（行動 -1），回來進密庫，再請私梟脫手，收入歸私房錢。被搜到會沒收、罰款，嚴重者遠島、處刑。</div>';
   // 下單
   h+='<div class="card"><b class="small">⛵ 出海採買</b>';
   h+='<div class="row small" style="margin-top:4px"><span>目的地</span><select data-chg="smugDest">'+Object.keys(SMUG_DEST).map(k=>'<option value="'+k+'" '+(k===S.dest?'selected':'')+'>'+SMUG_DEST[k].name+'（'+SMUG_DEST[k].d+' 旬）</option>').join('')+'</select></div>';
   h+='<div class="row small" style="margin-top:4px"><span>品項</span><select data-chg="smugItem">'+d.items.map(k=>'<option value="'+k+'" '+(k===S.k?'selected':'')+'>'+SMUG_BY[k].icon+' '+SMUG_BY[k].name+'</option>').join('')+'</select></div>';
   h+='<div class="row small" style="margin-top:4px"><span>數量（最多 '+SMUG_CAP+'）</span><input type="number" class="inline-input" min="1" max="'+SMUG_CAP+'" value="'+S.qty+'" data-chg="smugQty"></div>';
   const cost=Math.round(it.cost*d.mult*S.qty);
-  h+='<div class="row small" style="margin-top:6px"><span>需私房錢 <b>'+cost+'</b> 兩·預計 '+Math.round(smugPrice(S.k,S.qty)*S.qty)+' 兩可賣</span><button class="pixel-btn btn-sm btn-gold" data-act="smugGo">'+UT('btn.smugGo')+'</button></div>';
+  h+='<div class="row small" style="margin-top:6px"><span>需私房錢 <b>'+cost+'</b> 兩·預計 '+Math.round(smugPrice(S.k,S.qty)*S.qty)+' 兩可賣</span><button class="pixel-btn btn-sm btn-gold" data-act="smugGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.smugGo')+'</button></div>';
   if(!cap)h+='<div class="tiny" style="color:#b3261e;margin-top:3px">沒有好感滿格的空閒船長。到河岸碼頭給船長零用錢，好感滿了才肯走私。</div>';
   h+='</div>';
   // 在途
@@ -196,6 +196,8 @@ ACT.smugGo=()=>{
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
+  if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
+  if(!spendAP()){toast(MSG('smugGo.ap'));return}     // 走私出海也要親自到碼頭交代：扣 1 行動點數
   G.gold-=cost;G.heat=(G.heat||0)+0.3;
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});
   sfx.step();toast(MSG('smugGo.6',{name:cap.name,d:d.d}));

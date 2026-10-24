@@ -5,14 +5,15 @@
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0},publicSpend:{},skim:0,fame:0,net:0,short:[]};
+  const T={guildDiv:0,voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
-    T.rev+=r.rev||0;T.skim+=r.skim||0;T.fame+=r.fame||0;T.net+=r.net||0;
+    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.skim+=r.skim||0;T.fame+=r.fame||0;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
     Object.entries(r.publicSpend||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});
+    Object.entries(r.inTurn||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});   // 推進途中付的主動支出（如忘年會），已含在本旬淨額裡
     (r.short||[]).forEach(s=>{if(!T.short.includes(s))T.short.push(s)});
   });
   return T;
@@ -27,13 +28,14 @@ var LASTREP=null;
 function showTurnReport(reps,logs,n){
   LASTREP={reps,logs,n};
   const T=mergeReports(reps);
-  const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🏠','家計開銷',T.cost.fam],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
+  const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🛡️','倉儲保險',T.cost.hold],['🏠','家計開銷',T.cost.fam],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
   const publicSpend=Object.entries(T.publicSpend).filter(x=>x[1]>0),publicSpendTotal=publicSpend.reduce((a,x)=>a+x[1],0);
   const exp=costs.reduce((a,x)=>a+x[2],0);
-  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim);      // 其餘：自動進貨、事件、罰款等
-  const inc=T.rev+Math.max(0,other),outl=exp+publicSpendTotal+T.skim+Math.max(0,-other);
+  const voyBack=T.voy.reduce((a,v)=>a+(v.back||0),0);         // 委託採買歸來退回的委託金餘額
+  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim)-voyBack-T.guildDiv;      // 其餘：自動進貨、事件、罰款等
+  const inc=T.rev+voyBack+T.guildDiv+Math.max(0,other),outl=exp+publicSpendTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
-  const max=Math.max(1,T.rev,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
+  const max=Math.max(1,T.rev,voyBack,T.guildDiv,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
   h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">現款餘額 '+fmt(G.silver)+' 兩</div></div>';
   h+=raidCard();
@@ -43,10 +45,12 @@ function showTurnReport(reps,logs,n){
   if(T.rev>0||Object.keys(T.ship).length){
     h+='<div class="rp-sec">📤 出貨收入</div>'+Object.keys(T.ship).map(k=>repRow('📦',esc(k)+' ×'+T.ship[k].q,T.ship[k].rev,max,'in')).join('');
   }else h+='<div class="rp-sec">📤 出貨收入</div><div class="rp-empty">本旬沒有出貨</div>';
+  if(voyBack>0)h+=repRow('⛵','委託金退回',voyBack,max,'in');
+  if(T.guildDiv>0)h+=repRow('⚖️','公會分紅',T.guildDiv,max,'in');
   if(other>0)h+=repRow('✨','其他進帳',other,max,'in');
   h+='<div class="rp-sec">🧾 固定支出</div>'+(costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||'<div class="rp-empty">無</div>');
   if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
-  if(other<0)h+=repRow('📦','進貨·運費·其他',-other,max,'out');
+  if(other<0)h+=repRow('📦','進貨·其他',-other,max,'out');
   if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
   if(T.fame!==0||T.short.length){
     const chips=T.short.slice(0,6).map(x=>'<span class="tag red">'+esc(x.slice(0,5))+'</span>').join('')+(T.short.length>6?'<span class="tag gray">…共 '+T.short.length+' 項</span>':'');

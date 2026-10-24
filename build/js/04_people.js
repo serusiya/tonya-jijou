@@ -145,12 +145,12 @@ function revealWeakness(cid){
 const BRIBE_RATE=15;
 
 /* ---------- 官員請託 ---------- */
-/** 官員請託項目（依院別）：rank 所需官階、cost 成本、once 一次性、cd 冷卻。含運入許可 port/pass。新增請託在此加一筆並在 doFavor 實作效果。 */
+/** 官員請託項目（依院別）：rank 所需官階、cost 成本、once 一次性、cd 冷卻。新增請託在此加一筆並在 doFavor 實作效果。 */
 const FAVORS={
   administration:[
     {k:'licWh',apply:true,lic:'wh',name:'河岸倉地拜領',rank:1,desc:'核准增建倉庫的建地，官階越高給得越多。'},
     {k:'licShip',apply:true,lic:'ship',name:'船株鑑札',rank:2,desc:'核准多聘船長，一名船長帶一艘船。'},
-    {k:'licStaff',apply:true,lic:'staff',name:'人別帳增補',rank:2,desc:'核准多雇丁稚、手代與番頭。'}
+    {k:'licStaff',apply:true,lic:'staff',name:'人別帳增補',rank:2,desc:'核准多雇手代與番頭。'}
   ],
   finance:[
     {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
@@ -583,7 +583,7 @@ function succeed(h,mode){            // mode: 'retire' | 'death' | 'bankrupt'（
   G.intros=G.intros.filter(i=>R(i.cid).aff>=15&&alive(i.cid));
   G.introId=G.intros[0]?G.intros[0].cid:null;
   G.life={gifts:0,gold:Math.round(G.life.gold*0.3),cheats:0,charity:0,fires:0,riots:0,peak:G.silver,contracts:0,pledges:0,scapegoat:0,spouseKind:''};
-  G.cartel.state='none';G.cartel.sanction=0;G.staple.streak=0;G.recruit=null;G.ended=null;
+  G.cartel.state=G.cartel.bond>0?'pledged':'none';G.cartel.sanction=0;   // 公會會籍與擔保金隨家業承襲；暗約不承襲G.staple.streak=0;G.recruit=null;G.ended=null;
   pushNews(NEWS('succeed.1',{oldName:(mode==='retire'?oldName+'退隱':oldName+'離世'),gen:G.me.gen,name:G.me.name,myAge:myAge()}));
   save();
 }

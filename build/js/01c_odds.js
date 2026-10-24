@@ -16,15 +16,16 @@ const ODDS={
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
-  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數（產地直採已取消）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
+  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數（入會者的公會價；未入會照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
-  buyLimit:{name:'大盤進貨上限（公會配額的倍數；番頭每人加成）',mult:0.8,perBantou:0.3},
+  buyLimit:{name:'大盤進貨上限（公會配額的倍數；番頭與大番頭每人加成；無條件進位）',mult:0.8,perBantou:0.3},
   chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
   cartelSecret:{name:'暗約偷跑被告發',base:0.12,slope:0.18,max:0.8},
   cartelRaise:{name:'公會提案提高配額成功率',base:0.30,perAff:0.5,max:0.8},
+  guildBond:{name:'公會擔保金一期的旬數（自動續押，期滿分配違約金）',turns:9},
   /* —— 人際·員工·家族 —— */
   introBacklash:{name:'引薦性向全不合時反遭嫌棄',p:0.35},
   skim:{name:'員工私吞（每旬）',greed:0.6,betray:0.5,loyal:0.7,cap:0.6,lateMul:1.5,lateTurns:18},
@@ -50,7 +51,6 @@ const ODDS={
   confess:{name:'被捕者供出主使',base:0.75,loyalDiv:130,min:0.1,max:0.7},
   /* —— 海陸運（遇險率隨旬數累積，受船長膽識影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
-  routeRisk:{name:'運入商路每旬遇險率',sea:0.04,land:0.03,guardLand:0.004,min:0.01,max:0.4},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */

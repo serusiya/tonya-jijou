@@ -1,9 +1,9 @@
 'use strict';
-/* ★檔案總覽：地區官制（遠國奉行所）與運入許可
+/* ★檔案總覽：地區官制（遠國奉行所）與海運、陸運許可
  * - 在城市三院之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
  * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發；船奉行的朱印狀＝全地區通用；遠國奉行的通商特許＝該地區海陸皆通）。
  * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發；道中奉行的通行狀＝通用、航程 −1）。
- * - 其餘請託：驛馬優先、產地買付便宜、船手護送、免稅狀、請巡見使美言。中央巡見使巡視時，風聲太緊會吊銷許可。
+ * - 其餘請託：驛馬優先、產地買付便宜、船手護送、雜費減免狀、請巡見使美言。中央巡見使巡視時，風聲太緊會吊銷許可。
  * - 狀態：G.permits={sea:{regId|all:true},land:{…}}；G.flags.horse/escort/taxfree/cheap（剩餘旬數）、road/charter。 */
 /** 全部地區（id、名稱）。 */
 const REG_LIST=[...new Map(CITIES.map(c=>[c.region_id,{id:c.region_id,name:c.region_name}])).values()];
@@ -38,16 +38,16 @@ function permitSummary(){
 }
 /* ---------- 請託項目 ---------- */
 const REG_FAVORS=[
-  {k:'rpass',apply:true,name:'陸運通行手形',rank:3,cost:{gold:4},once:true,pos:['reg_01'],desc:'馬幫可通行本地區關所。'},
-  {k:'rport',apply:true,name:'海運泊位許可',rank:3,cost:{gold:4},once:true,pos:['reg_02'],desc:'船隊可進本地區各港。'},
-  {k:'rhorse',name:'驛馬優先',rank:3,cost:{gold:3},cd:12,pos:['reg_03'],desc:'十二旬內陸運航程少 1 旬。'},
-  {k:'rcheap',name:'產地買付便宜',rank:4,cost:{gold:6},cd:12,pos:['reg_04'],desc:'十二旬內出發的採買，買價再低一成。'},
-  {k:'rescort',name:'船手組護送',rank:4,cost:{gold:6},cd:12,pos:['reg_05'],desc:'十二旬內出發的海運，遇險率減半。'},
-  {k:'rtax',name:'勘定所免稅狀',rank:4,cost:{gold:6},cd:12,pos:['reg_06'],desc:'十二旬內出發的採買，關稅與雜費減半。'},
-  {k:'rroad',apply:true,name:'五街道通行狀',rank:5,cost:{gold:10},once:true,pos:['reg_07'],desc:'各地區陸路通用，陸運航程永久少 1 旬。'},
-  {k:'rshuin',apply:true,name:'朱印狀',rank:5,cost:{gold:10},once:true,pos:['reg_08'],desc:'船隊可前往任何地區。'},
-  {k:'rcharter',apply:true,name:'地區通商特許狀',rank:6,cost:{gold:15},once:true,pos:['reg_09'],desc:'本地區海陸許可一併發給，採買雜費永久再省一成。'},
-  {k:'rvisit',name:'請巡見使美言',rank:6,cost:{gold:6},cd:12,pos:['reg_10'],desc:'巡見使替你說好話，風聲大減。'}
+  {k:'rpass',apply:true,name:'陸運通行手形',rank:3,once:true,pos:['reg_01'],desc:'馬幫可通行本地區關所。'},
+  {k:'rport',apply:true,name:'海運泊位許可',rank:3,once:true,pos:['reg_02'],desc:'船隊可進本地區各港。'},
+  {k:'rhorse',name:'驛馬優先',rank:3,cd:12,pos:['reg_03'],desc:'十二旬內陸運航程少 1 旬。'},
+  {k:'rcheap',name:'產地買付便宜',rank:4,cd:12,pos:['reg_04'],desc:'十二旬內出發的採買，買價再低一成。'},
+  {k:'rescort',name:'船手組護送',rank:4,cd:12,pos:['reg_05'],desc:'十二旬內出發的海運，遇險率減半。'},
+  {k:'rtax',name:'勘定所雜費減免狀',rank:4,cd:12,pos:['reg_06'],desc:'十二旬內出發的採買，雜費減半。'},
+  {k:'rroad',apply:true,name:'五街道通行狀',rank:5,once:true,pos:['reg_07'],desc:'各地區陸路通用，陸運航程永久少 1 旬。'},
+  {k:'rshuin',apply:true,name:'朱印狀',rank:5,once:true,pos:['reg_08'],desc:'船隊可前往任何地區。'},
+  {k:'rcharter',apply:true,name:'地區通商特許狀',rank:6,once:true,pos:['reg_09'],desc:'本地區海陸許可一併發給，採買雜費永久再省一成。'},
+  {k:'rvisit',name:'請巡見使美言',rank:6,cd:12,pos:['reg_10'],desc:'巡見使替你說好話，風聲大減。'}
 ];
 FAVORS.region=REG_FAVORS;
 const regOfNpc=n=>CITY(n.cityId).region_id;
@@ -67,7 +67,7 @@ const REG_FAVOR={
   rhorse:()=>{G.flags.horse=12;return '驛馬優先：十二旬內陸運航程少 1 旬。'},
   rcheap:()=>{G.flags.cheap=12;return '郡代點頭：十二旬內出發的採買，買價低一成。'},
   rescort:()=>{G.flags.escort=12;return '船手組答應護送：十二旬內出發的海運，遇險率減半。'},
-  rtax:()=>{G.flags.taxfree=12;return '勘定所發下免稅狀：十二旬內出發的採買，雜費減半。'},
+  rtax:()=>{G.flags.taxfree=12;return '勘定所發下雜費減免狀：十二旬內出發的採買，雜費減半。'},
   rroad:()=>{G.flags.road=true;permitsOf().land.all=true;return '得到五街道通行狀：陸路通行無阻，陸運航程永久少 1 旬。'},
   rshuin:()=>{permitsOf().sea.all=true;return '船奉行發下朱印狀！你的船隊可前往任何地區的港口。'},
   rcharter:n=>{const rid=regOfNpc(n);grantSea(rid);grantLand(rid);G.flags.charter=Math.min(3,(G.flags.charter||0)+1);return NEWS('regionHeld.3',{REG_NAME:REG_NAME(rid)})},
@@ -91,9 +91,9 @@ function regionTick(log){
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   const ps=permitSummary(),P=permitsOf();
-  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。許可與權利需要先遞件，再等審理，通常約六旬；可自行決定是否附上賄賂。</div>';
+  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。</div>';
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?'（本地）':'')+'</span>').join('')+'</div>';
-  h+='<div class="card"><div class="row small"><span>⛵ 海運許可：<b>'+esc(ps.sea)+'</b></span><span>🐎 陸運許可：<b>'+esc(ps.land)+'</b></span></div>'+((G.flags.horse>0||G.flags.escort>0||G.flags.taxfree>0||G.flags.cheap>0)?'<div class="tiny muted">效期：'+[['horse','驛馬'],['escort','護送'],['taxfree','免稅'],['cheap','便宜']].filter(x=>G.flags[x[0]]>0).map(x=>x[1]+' '+G.flags[x[0]]+' 旬').join('、')+'</div>':'')+'</div>';
+  h+='<div class="card"><div class="row small"><span>⛵ 海運許可：<b>'+esc(ps.sea)+'</b></span><span>🐎 陸運許可：<b>'+esc(ps.land)+'</b></span></div>'+((G.flags.horse>0||G.flags.escort>0||G.flags.taxfree>0||G.flags.cheap>0)?'<div class="tiny muted">效期：'+[['horse','驛馬'],['escort','護送'],['taxfree','減免'],['cheap','便宜']].filter(x=>G.flags[x[0]]>0).map(x=>x[1]+' '+G.flags[x[0]]+' 旬').join('、')+'</div>':'')+'</div>';
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
   h+='<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList2')+'</button></div>';
   h+=offs.map(n=>personBlock(n.cid,'yamen')).join('')||'<div class="notice">此地區官府暫無人在任。</div>';

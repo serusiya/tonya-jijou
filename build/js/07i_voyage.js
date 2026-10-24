@@ -2,7 +2,7 @@
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
- *   70% 買本業能賣的貨（入倉）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）；5% 私買違禁品（入密庫）。
+ *   70% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）；5% 私買違禁品（入密庫）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_CAPT={sea:'船長',land:'飛腳'};
@@ -24,7 +24,7 @@ function destList(mode){
     own:ct.connected_commodities.filter(n=>own.has(n)&&COMM_MAP[n]),oth:ct.connected_commodities.filter(n=>!all.has(n)&&COMM_MAP[n])}))
     .sort((x,y)=>(y.own.length>0)-(x.own.length>0)||x.d-y.d||y.own.length-x.own.length);
 }
-/** 出發：free＝開局贈送（不扣委託金）。 */
+/** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）。 */
 function sendVoyage(captId,budget,destId,mode,free){
   mode=mode||'sea';
   const cap=idleCaptains(mode).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:MODE_CAPT[mode]})};
@@ -32,6 +32,9 @@ function sendVoyage(captId,budget,destId,mode,free){
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?'進港泊位許可':'關所通行手形')})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
+  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG('sendVoyage.hurt',{injured:G.injured})};
+  if(!free&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣）
+  if(!free){G.ap--;updateAP()}
   const st=statsOfEmp(cap);let d=dl.d;
   if(mode==='land'){if(G.flags.horse>0)d--;if(G.flags.road)d--;d=Math.max(1,d)}
   if(!free)payPublic('委託採買：'+dest.name,budget);
@@ -54,13 +57,26 @@ function resolveVoyage(s,log){
   const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(mode==='sea'?'遇上風暴':'遭山賊襲擊'):'';
   L.push(NEWS('kind.1',{dest:E.dest,note}));
   if(kind==='own'&&ownP.length){
-    const c=COMM_MAP[pick(ownP)],pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*0.12,0.5,0.95)*(s.cheap?0.9:1),unit=c.base*pf;
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(c.name)-(G.inv[c.name]||0)));
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),capOf(c.name,mode),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
-    if(q>0){if(got>0)addStock(c.name,got,cost/got);G.inv[c.name]=(G.inv[c.name]||0)+got;
-      L.push(NEWS('kind.2',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));
-      L.push(wreck?'🌊 歸途'+wn+'，損失 '+(q-got)+' 單位，只有 '+got+' 單位入倉。':'✅ '+got+' 單位已入倉，可到大盤分旬出貨。')}
-    else L.push(NEWS('kind.3',{short:c.short}));
+    /* 同一地產好幾樣本業貨時平均分配：委託金與單趟運量平分給每一樣；某樣碰到庫存上限或倉位而買不滿，
+       剩下的錢與運量再平分給其他還能買的貨（最多分幾輪，直到錢、運量或倉位用完）。
+       單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
+    const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*0.12,0.5,0.95)*(s.cheap?0.9:1);
+      return {n,c,pf,unit:c.base*pf,cp:capOf(n,mode),room:Math.max(0,itemCap(n)-(G.inv[n]||0)),q:0}});
+    let money=spend,load=1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0);
+    for(let round=0;round<6&&act.length&&wh>0&&load>1e-6;round++){
+      const k=act.length,m=money/k,l=load/k;let added=0;
+      act.forEach(x=>{const q=Math.max(0,Math.min(Math.floor(m/x.unit),Math.floor(l*x.cp+1e-9),x.room-x.q,wh));if(q<=0)return;
+        x.q+=q;money-=q*x.unit;load-=q/x.cp;wh-=q;added+=q});
+      act=act.filter(x=>x.q<x.room);if(!added)break;
+    }
+    let bought=0,lost=0;const first=its[0].c;
+    its.filter(x=>x.q>0).forEach(x=>{
+      const q=x.q,got=Math.round(q*keep),cost=Math.round(x.unit*q);refund-=cost;bought+=got;lost+=q-got;
+      if(got>0)addStock(x.n,got,cost/got);G.inv[x.n]=(G.inv[x.n]||0)+got;
+      L.push(NEWS('kind.2',{short:x.c.short,q,unit:fmt1(x.unit),pf:pc(x.pf),cost:fmt(cost)}));
+    });
+    if(bought+lost>0)L.push(wreck?'🌊 歸途'+wn+'，損失 '+lost+' 單位，只有 '+bought+' 單位入倉。':'✅ '+bought+' 單位已入倉，可到大盤分旬出貨。');
+    else L.push(NEWS('kind.3',{short:first.short}));
   }else if(kind==='cross'){
     const c=COMM_MAP[pick(othP)],pf=clamp(0.40-0.15*cs/100+(rnd()-0.5)*0.12,0.18,0.5)*(s.cheap?0.9:1),unit=c.base*pf;
     const room=Math.max(0,invCap()-invUsed());
@@ -103,8 +119,8 @@ function voyagePanel(){
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
   h+='<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'"><div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
-  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>請介紹人</b>幫忙賣；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。</div>';
-  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo">'+UT('btn.vGo')+'</button></div>';
+  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
+  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGo')+'</button></div>';
   return h;
 }
 function voyLogCard(){

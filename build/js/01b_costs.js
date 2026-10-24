@@ -4,7 +4,7 @@
  *    cur：'silver' 現款（商號帳上資金）／'gold' 私房錢（主人自己的錢）
  *    amt：基本金額（兩）；有 per 者，實付 = amt × 倍數（官階、船隊數…），倍數由呼叫處給。
  *  用法：costOf(k,倍數)、costTxt(k,倍數)→「現款 20 兩」、afford(k,倍數)、spend(k,倍數)、shortMsg(k,倍數)。
- *  罰款、利息、薪資等「按比例或變動」的支出不在此表。貿易商品的進貨款、運費、關稅也不在此表。
+ *  罰款、利息、薪資等「按比例或變動」的支出不在此表。貿易商品的進貨款、委託採買的雜費也不在此表。
  * ===================================================================== */
 const CUR_NAME={silver:'現款',gold:'私房錢'};
 const COSTS={
@@ -17,14 +17,7 @@ const COSTS={
   weakness:{name:'打聽軟肋（已停用）',cur:'gold',amt:60,per:'目標官階（另加每階 20）'},
   befriend:{name:'宴會',cur:'silver',amt:60},
   /* —— 贈禮：六種禮物不花錢，拜訪時的賄賂由三檔出價決定（07u_battle.js） —— */
-  /* —— 官員請託·許可申請 —— */
-  favorRank3:{name:'請託：直採特許（賄賂）',cur:'silver',amt:45,per:'依官階而定'},
-  favorRank1:{name:'請託：免檢旗／睜眼（賄賂）',cur:'silver',amt:15,per:'官階−1'},
-  favor_rpass:{name:'請託：關所通行手形（賄賂）',cur:'silver',amt:60},favor_rport:{name:'請託：進港泊位許可（賄賂）',cur:'silver',amt:60},
-  favor_rhorse:{name:'請託：驛馬優先（賄賂）',cur:'silver',amt:45},favor_rcheap:{name:'請託：產地買付便宜（賄賂）',cur:'silver',amt:90},
-  favor_rescort:{name:'請託：船手組護送（賄賂）',cur:'silver',amt:90},favor_rtax:{name:'請託：勘定所免稅狀（賄賂）',cur:'silver',amt:90},
-  favor_rroad:{name:'請託：五街道通行狀（賄賂）',cur:'silver',amt:150},favor_rshuin:{name:'請託：朱印狀（賄賂）',cur:'silver',amt:150},
-  favor_rcharter:{name:'請託：地區通商特許狀（賄賂）',cur:'silver',amt:225},favor_rvisit:{name:'請託：請巡見使美言（賄賂）',cur:'silver',amt:90},
+  /* —— 官員請託不另收錢（賄賂已在拜訪戰鬥中付過，見 04_people.js 的 doFavor） —— */
   inspectBribe:{name:'查貨賄賂',cur:'silver',amt:30,per:'官階'},
   /* —— 商號·人事 —— */
   audit:{name:'查帳',cur:'silver',amt:10},
@@ -38,6 +31,7 @@ const COSTS={
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
   guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},
+  guildBond:{name:'公會擔保金',cur:'silver',amt:1000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},
   marryOfficial:{name:'聘禮：官家之女',cur:'silver',amt:800},

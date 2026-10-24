@@ -184,7 +184,7 @@ function newGame(sysKey,regionPref){
     silver:S.silver,gold:S.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
-    cartel:{state:'none',comp:65,sanction:0,quotaPct:0.06,cheated:0},
+    cartel:{state:'pledged',comp:65,sanction:0,quotaPct:0.06,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0},   // 開局即入會，擔保金由開局贈送
     staple:{streak:0,peak:1},ships:[],
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
     family:{spouse:null,kids:[],married:false},
@@ -192,15 +192,15 @@ function newGame(sysKey,regionPref){
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1};
   G.me.given=pick(GIVEN);G.me.name=G.me.family+'屋 '+G.me.given;
-  // 駐節城市：人口 6 萬以上較有規模，可指定地區；本店所在城市不能是本業貨品的產地
+  // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
   const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
   let cs=ALL_CITIES.filter(c=>c.population>=60000&&!producesOwn(c)&&(!regionPref||regionPref==='rand'||c.region_id===regionPref));
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c));
-  {const si=SYS.findIndex(x=>x.key===sysKey);if(si===3||si===4||si===6){const sc=cs.filter(canSea);if(sc.length)cs=sc}}   // 有海運開局的流派，起家地需是港灣
+  {const sc=cs.filter(canSea);if(sc.length)cs=sc}   // 所有流派都在港口開局（委託採買的海運要港口）
   G.cityId=pick(cs).id;
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
-  G.trade=startTrade(sysKey);                     // 名望三、四階的流派開局送第二貴貨物的交易許可
+  G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
   initMarket();
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
@@ -209,6 +209,7 @@ function newGame(sysKey,regionPref){
   recordSilver();
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
+  pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond'))}));
   pushNews(G.emps.length?'🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。':'🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。');
   return G;
 }

@@ -5,7 +5,7 @@
  * - planOf/autoShip：出貨預設＝公會配額，未按「出貨」則推進一旬時自動出貨。 */
 /* ======================= 06 介面核心：頂欄、分頁、跑馬燈、大盤、商路 ======================= */
 /** 介面暫存狀態（不存檔）：分頁、選取物品、面板、筆記篩選、商路設定… */
-const UI={s:{tab:'home',focus:null,ship:0,buy:10,sheet:null,sheetLock:false,notesQ:'',notesF:'all',route:{item:null,qty:20,mode:'sea',dest:null},intro:null,openNote:null}};
+const UI={s:{tab:'home',focus:null,ship:0,buy:10,sheet:null,sheetLock:false,notesQ:'',notesF:'all',route:{mode:'sea',dest:null},intro:null,openNote:null}};
 /** ACT：data-act 點擊處理表；CHG：data-chg 變更處理表。新增按鈕＝在 HTML 加 data-act 並在此註冊。 */
 const ACT={},CHG={};
 /** 四個主分頁。 */
@@ -109,7 +109,7 @@ function chgAmt(name,cur){const h=G.mk[name].hist;if(h.length<2)return 0;return 
 /** 價差文字：「約 +3 兩」「約 -2 兩」「持平」。 */
 const amtTxt=d=>d===0?'持平':'約 '+(d>0?'+':'-')+Math.abs(d)+' 兩';
 function chg(name){const h=G.mk[name].hist;if(h.length<2)return 0;return (h[h.length-1]-h[h.length-2])/Math.max(0.01,h[h.length-2])*100}
-/** 大盤畫面：行情、進貨區（含每旬上限）、進貨列表、出貨區（預設＝公會配額）、市佔率、行情表。 */
+/** 大盤畫面：行情、本旬買賣（出貨與進貨合併）、本旬買賣總表、市佔率、行情表。 */
 function renderMarket(){
   const own=ownComms();
   if(!UI.s.focus||!G.mk[UI.s.focus]||!own.some(c=>c.name===UI.s.focus))UI.s.focus=(own.find(c=>tradeOK(c.name))||own[0]).name;
@@ -123,21 +123,12 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📊 本旬大盤（以量控價）</b><div class="tiny muted">價格不能自訂，只能決定出貨量。近九旬裡，本城買的人多、同業與你賣得少，市價就高；賣得多就低。同業也會出貨，偶爾超賣</div></div><span class="tag gold">'+season()+'季</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:14px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
-  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">大盤商</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
+  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'公會價':'未入會·市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
-  // 進貨（未取得交易許可的貨，只顯示行情）
-  if(!tradeOK(name)){h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';h+=orderCard()+shareCard()}
-  else{
-  h+='<div class="card"><div class="row"><b class="small">📥 向大盤商進貨</b><span class="tiny muted">單價 '+fmt1(buy)+' 兩</span></div><div class="tiny" style="color:#9b2c3a">本旬向大盤還能進 <b>'+buyLeft(name)+'</b> 單位'+(nEmp('番頭')?'　<span style="color:#1e7e34">番頭幫忙，進貨上限變高</span>':'')+'</div><div class="tiny muted">庫存 '+have+'，在途 '+itemOnOrder(name)+'，單項上限 '+itemCap(name)+'</div><div class="row" style="margin-top:4px"><b id="b-q" style="color:#9b2c3a">'+bq+' 單位</b><span id="b-cost" class="tiny muted">約 '+fmt(Math.round(buy*bq))+' 兩</span></div><input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'><div class="row tiny muted"><span>0 不進貨</span><span>推進一旬時自動下單，次旬到貨</span><span>'+bmax+' 上限</span></div></div>';
-  h+=orderCard();
-  // 出貨
-  h+='<div class="card"><div class="row"><b class="small">📤 本旬出貨量</b><b id="q-q" style="color:#9b2c3a">'+UI.s.ship+' 單位</b></div><div class="tiny muted">預設為公會配額（'+quota+'）。推進一旬時自動出貨。出貨量達 <b>'+supplyLine(name)+'</b> 單位（穩定供貨線）知名度才會上升，達不到則下降。</div>';
-  h+='<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+UI.s.ship+'" step="1" '+(have<1?'disabled':'')+'>';
-  h+='<div class="row tiny muted"><span>0 惜售壓倉</span><span>公會配額 '+quota+'（'+ex+'）</span><span>'+have+' 全拋</span></div>';
-  h+='<div class="grid2 small" style="margin-top:4px"><div class="card" style="margin:0"><div class="tiny muted">出貨後市價</div><b id="q-price">'+fmt1(q.price)+' 兩</b></div><div class="card" style="margin:0"><div class="tiny muted">預估入帳 ／ 毛利</div><b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b> <span id="q-gain" class="tiny"></span></div></div>';
-  h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div></div>';
-  h+=shareCard();
-  }
+  // 本旬買賣（未取得交易許可的貨，只顯示行情）
+  if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
+  else h+=tradeCard(name);
+  h+=planCard()+shareCard();
   // 行情表
   h+='<div class="small bold" style="margin:6px 0 3px">🏛️ 本業物資行情（近 12 旬）</div>';
   h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">庫存 '+(G.inv[x.name]||0)+'·損耗 '+(x.decay*100).toFixed(1)+'%/旬</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(mm.price)+'</b><div class="'+(chgAmt(x.name,mm.price)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,mm.price))+'</div></div></div></div>'}).join('');
@@ -157,54 +148,88 @@ function shareCard(){
    +'<div class="tiny muted" style="margin-top:4px">未列名的零星供貨約 '+(sh.others*100).toFixed(1)+'%（市占估計誤差）。</div>'
    +'</div>';
 }
-/** 本旬進貨列表（只列「預定」進貨；推進一旬後清空，不顯示已到貨／在途數量）。 */
-function orderCard(){
-  const plan=tradeComms().map(c=>({n:c.name,q:buyPlanOf(c.name)})).filter(x=>x.q>0);
-  let h='<div class="card" id="order-card" style="background:#fff8eb"><div class="row"><b class="small">📋 本旬進貨列表</b><span class="tiny muted">推進一旬時下單，隨即到貨入倉</span></div><div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="buyMax">'+UT('btn.buyMax')+'</button> <button class="pixel-btn btn-sm" data-act="buyClear">'+UT('btn.buyClear')+'</button></div>'+restockRow();
-  if(plan.length){h+=plan.map(x=>{const u=unitBuyCost(x.n);return '<div class="row small" style="margin-top:3px"><span>📝 '+esc(COMM_MAP[x.n].short)+' × '+x.q+'</span><span class="muted">預計 '+fmt(Math.round(u*x.q))+' 兩·單價 '+fmt1(u)+'</span></div>'}).join('');
-    h+='<div class="row tiny muted" style="margin-top:3px;border-top:1px dashed #b5a98f;padding-top:3px"><span>預定合計 '+plan.reduce((a,x)=>a+x.q,0)+' 單位</span><span>預計支出 '+fmt(plan.reduce((a,x)=>a+Math.round(unitBuyCost(x.n)*x.q),0))+' 兩</span></div>'}
-  else h+='<div class="tiny muted" style="margin-top:3px">本旬尚未安排進貨。</div>';
+/** 下旬開頭的預估庫存：賣出後加上進貨（含已下單在途），再扣預估損耗（夏季主食損耗較多）。 */
+function nextStock(name,ship,buy){
+  const c=COMM_MAP[name],n=Math.max(0,(G.inv[name]||0)-ship)+buy+itemOnOrder(name);
+  return Math.max(0,n-Math.round(n*c.decay*(c.staple&&season()==='夏'?1.6:1)));
+}
+/** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
+function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
+/** 【本旬買賣】單項貨的出貨與進貨：頂端看「現有→賣出後→下旬開頭」，下面是兩個滑桿與快速按鈕。 */
+function tradeCard(name){
+  const c=COMM_MAP[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
+  const ex=(G.cartel.state==='pledged'?'已表態守配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未入會');
+  let h='<div class="card" id="trade-card"><b class="small">📦 本旬買賣·'+esc(c.short)+'</b>';
+  h+='<div class="small" style="margin:4px 0;text-align:center">現有 <b>'+have+'</b> → 賣出後 <b id="f-after">'+Math.max(0,have-ship)+'</b> → 下旬開頭約 <b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b></div>';
+  h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">📤 出貨</b><b id="q-q" style="color:#9b2c3a">'+ship+' 單位</b></div>';
+  h+='<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>';
+  h+='<div class="tiny muted">公會配額 '+quota+'（'+ex+'）·穩定供貨線 '+supplyLine(name)+'</div><div class="tiny">出貨後市價 <b id="q-price">'+fmt1(q.price)+' 兩</b>·約入帳 <b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b></div></div>';
+  h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">📥 進貨</b><b id="b-q" style="color:#9b2c3a">'+bq+' 單位</b></div>';
+  h+='<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>';
+  h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+'·在途 '+itemOnOrder(name)+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
+  h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">推進一旬時照這裡辦理；進的貨在新的一旬開頭到倉。</div></div>';
+  return h;
+}
+/** 【本旬買賣總表】所有本業貨這一旬的出貨、進貨與下旬開頭；點一列切換到那項貨。 */
+function planCard(){
+  const L=tradeComms();let rev=0,cost=0;
+  let h='<div class="card" id="order-card" style="background:#fff8eb"><b class="small">📋 本旬買賣總表</b><div class="row" style="margin:4px 0;gap:4px;justify-content:flex-start">'+['planMax','planQuota','planClear'].map(k=>'<button class="pixel-btn btn-sm" data-act="'+k+'">'+UT('btn.'+k)+'</button>').join('')+'</div>'+(nEmp('大番頭')?'<div class="tiny muted">有大番頭：沒動過的品項，照上旬的數量帶入。</div>':'');
+  h+=L.map(c=>{const n=c.name,s=planOf(n),b=buyPlanOf(n);rev+=s>0?quoteSale(n,s).revenue:0;cost+=Math.round(unitBuyCost(n)*b);
+    return '<div class="row small" data-act="focus" data-n="'+esc(n)+'" style="margin-top:3px;cursor:pointer'+(n===UI.s.focus?';font-weight:bold;color:#9b2c3a':'')+'"><span>'+esc(c.short)+'</span><span>出 '+s+'·進 '+b+'·下旬約 '+nextStock(n,s,b)+'</span></div>'}).join('')||'<div class="tiny muted">目前沒有能買賣的本業貨。</div>';
+  h+='<div class="row tiny muted" style="margin-top:3px;border-top:1px dashed #b5a98f;padding-top:3px"><span>約進帳 '+fmt(rev)+' 兩</span><span>進貨花 '+fmt(cost)+' 兩</span></div>';
   return h+'</div>';
 }
-/** 滑桿拖動時即時更新出貨試算。 */
-function updateQuote(){
-  const name=UI.s.focus;if(!name||!$('#q-q'))return;
-  const q=quoteSale(name,UI.s.ship),buy=unitBuyCost(name);
-  $('#q-q').textContent=UI.s.ship+' 單位';$('#q-price').textContent=fmt1(q.price)+' 兩';$('#q-rev').textContent=fmt(q.revenue)+' 兩';
-  const gain=Math.round(q.revenue-buy*UI.s.ship);const g=$('#q-gain');g.textContent='（對進貨價 '+sgn(gain)+'）';g.style.color=gain>=0?'#1e7e34':'#b3261e';
+/** 滑桿拖動或按快速鈕後，即時更新本旬買賣面板與總表。 */
+function refreshTrade(){
+  const name=UI.s.focus;if(!name||!$('#trade-card'))return;
+  const have=G.inv[name]||0,ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
+  if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
+  const bq=buyPlanOf(name);if(sb)sb.value=bq;
+  $('#q-q').textContent=ship+' 單位';$('#q-price').textContent=fmt1(q.price)+' 兩';$('#q-rev').textContent=fmt(q.revenue)+' 兩';
+  $('#b-q').textContent=bq+' 單位';$('#b-cost').textContent=fmt(Math.round(unitBuyCost(name)*bq))+' 兩';
+  $('#f-after').textContent=Math.max(0,have-ship);$('#f-next').textContent=nextStock(name,ship,bq);
+  const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
 }
+const updateQuote=refreshTrade;
+/** 單項出貨設定（滑桿用）。 */
+function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,G.inv[n]||0);UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
+/** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為公會配額，出貨不動）、清除（只清進貨）。 */
+function planAllBuy(f){const L=tradeComms();G.buyPlan={};L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
+ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
+ACT.planQuota=()=>{let short=0;planAllBuy(n=>quotaOf(n));tradeComms().forEach(c=>{if((G.buyPlan[c.name]||0)<quotaOf(c.name))short++});
+  toast(MSG(short?'plan.quotaShort':'plan.quota'));UI.render()};
+ACT.planClear=()=>{G.buyPlan={};tradeComms().forEach(c=>{G.buyPlan[c.name]=0});toast(MSG('plan.clear'));UI.render()};
 /** 選取大盤物品。 */
 ACT.focus=el=>{UI.s.focus=el.dataset.n;renderMarket();sfx.tap()};
 /** 進貨計畫：滑桿設定的本旬進貨量，推進一旬時自動下單。 */
-function maxBuy(name){
+function maxBuy(name,ui){
   const u=unitBuyCost(name)||1;let oq=0,oc=0;
-  Object.keys(G.buyPlan||{}).forEach(k=>{if(k===name||!COMM_MAP[k])return;const q=Math.max(0,G.buyPlan[k]||0);oq+=q;oc+=Math.round(unitBuyCost(k)*q)});
-  return Math.max(0,Math.min(buyLeft(name),itemRoom(name),invCap()-invUsed()-pendingQty()-transitQty()-oq,Math.floor((G.silver-oc)/u)));
+  tradeComms().forEach(c=>{const k=c.name;if(k===name)return;const q=buyRaw(k);oq+=q;oc+=Math.round(unitBuyCost(k)*q)});
+  let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty()-transitQty(),cash=G.silver;
+  if(ui){                                           // 畫面試算：推進一旬時先出貨、後進貨，出貨空出的倉位與入帳都算進來
+    const T=shipPlanTotals();wh+=T.q;cash+=T.rev;
+    room=Math.max(0,Math.min(itemCap(name)-Math.max(0,(G.inv[name]||0)-planOf(name))-itemOnOrder(name),wh));
+  }
+  return Math.max(0,Math.min(buyLeft(name),room,wh-oq,Math.floor((cash-oc)/u)));
 }
-function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(G.buyPlan[name]||0,0,maxBuy(name))}
-/** 一次把所有本業貨品排到進貨上限（依序分配，受倉容、品項上限、本旬額度與現款限制）。 */
-ACT.buyMax=()=>{
-  G.buyPlan={};let room=invCap()-invUsed()-pendingQty()-transitQty(),cash=G.silver,tot=0;
-  tradeComms().forEach(c=>{
-    const u=unitBuyCost(c.name)||1;
-    const q=Math.max(0,Math.min(buyLeft(c.name),itemRoom(c.name),room,Math.floor(cash/u)));
-    if(q>0){G.buyPlan[c.name]=q;room-=q;cash-=Math.round(u*q);tot+=q}
-  });
-  toast(tot?MSG('buyMax.ok',{tot}):MSG('buyMax.none'));UI.render();
-};
-ACT.buyClear=()=>{G.buyPlan={};UI.render()};
+/** 這項貨本旬的進貨設定（未夾上限）：你動過就照你的；沒動過時，有大番頭延續上旬的數量，否則 0。 */
+function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return nEmp('大番頭')&&G.lastBuy&&G.lastBuy[name]>0?G.lastBuy[name]:0}
+function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(buyRaw(name),0,maxBuy(name,true))}
 function autoBuy(log){
-  G.buyPlan=G.buyPlan||{};const got=[];
-  tradeComms().forEach(c=>{const q=Math.min(G.buyPlan[c.name]||0,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok)got.push(c.short+'×'+q)}});
+  const plan={},got=[],kept=[],chief=nEmp('大番頭'),touched=new Set(Object.keys(G.buyPlan||{}));
+  tradeComms().forEach(c=>{const v=buyRaw(c.name);if(v>0)plan[c.name]=v});
+  if(chief){const nb={};tradeComms().forEach(c=>{nb[c.name]=buyRaw(c.name)});G.lastBuy=nb}else delete G.lastBuy;   // 大番頭延續的數字（記設定值，不是實際買到的量）
+  G.buyPlan=Object.assign({},plan);                     // 只留還沒下單的計畫：maxBuy 會替它們保留倉位與現款
+  tradeComms().forEach(c=>{
+    const want=plan[c.name]||0;if(want<=0)return;
+    delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進在途量、也已扣現款，不能再保留一次
+    const q=Math.min(want,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok)(touched.has(c.name)?got:kept).push(c.short+'×'+q)}
+  });
   if(got.length)log.push(NEWS('autoBuy.1',{got:got.join('、')}));
-  autoRestock(log);
+  if(kept.length)log.push(NEWS('chief.keepBuy',{got:kept.join('、')}));
   G.buyPlan={};
 }
-ACT.buy=el=>{
-  const name=UI.s.focus;let q=el.dataset.q;
-  q=+q;
-  const r=buyGoods(name,q,true);toast(r.msg);if(r.ok)coinFx(el.getBoundingClientRect());UI.render();
-};
 /** 按下『出貨』：以目前預設/滑桿量出貨並標記本旬已出貨。 */
 ACT.ship=el=>{
   const name=UI.s.focus,qty=UI.s.ship;
@@ -213,39 +238,26 @@ ACT.ship=el=>{
     const r=sellGoods(name,qty);toast(r.msg);if(r.ok){coinFx();G.sold=G.sold||{};G.sold[name]=true;G.plan[name]=0}UI.render();say(thought());
   },950);
 };
-document.addEventListener('input',e=>{if(e.target.id==='slider-buy'){const n=UI.s.focus,v=+e.target.value;G.buyPlan=G.buyPlan||{};G.buyPlan[n]=v;$('#b-q').textContent=v+' 單位';$('#b-cost').textContent='約 '+fmt(Math.round(unitBuyCost(n)*v))+' 兩';const oc=$('#order-card');if(oc)oc.outerHTML=orderCard();return}if(e.target.id==='slider-ship'){UI.s.ship=+e.target.value;G.plan=G.plan||{};G.plan[UI.s.focus]=UI.s.ship;if(G.sold)delete G.sold[UI.s.focus];updateQuote()}});
+document.addEventListener('input',e=>{if(e.target.id==='slider-buy'){G.buyPlan=G.buyPlan||{};G.buyPlan[UI.s.focus]=+e.target.value;refreshTrade();return}if(e.target.id==='slider-ship'){setShipPlan(+e.target.value);refreshTrade()}});
 
 /* ---------- 商路 ---------- */
-/** 商路畫面：許可與船長/飛腳狀態、在途貨運、產地候選與預估毛利。 */
+/** 商路畫面：許可與船長/飛腳狀態、出門採買中的人、委託採買面板與採買日誌。 */
 function renderRoutes(){
-  const R_=UI.s.route,items=tradeComms().map(c=>c.name).filter(n=>originsOf(n).length);
-  if(!R_.item||!items.includes(R_.item))R_.item=items[0]||null;
+  const R_=UI.s.route;
   const crew=m=>crewCount(m)+'（空閒 '+Math.max(0,crewCount(m)-crewBusy(m))+'）';
-  let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🗺️ 產地運入·船長與飛腳</b></div><span class="tag navy">船長 '+crewCount('sea')+'／'+slotCap('船長')+'·飛腳 '+crewCount('land')+'／'+slotCap('飛腳')+'</span></div>';
-  h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">海運許可<br><b>'+(permitsOf().sea.all?'全地區':Object.keys(permitsOf().sea).length+' 地區')+'</b><div class="tiny muted">船長 '+crew('sea')+'</div></div><div class="card" style="margin:0">陸運許可<br><b>'+(landPermit()?'已取得':'未取得')+'</b><div class="tiny muted">飛腳 '+crew('land')+'</div></div><div class="card" style="margin:0">免檢旗<br><b>'+(G.flags.exempt>0?G.flags.exempt+' 旬':'無')+'</b></div></div>';
-  if(!anySea()&&!landPermit())h+='<div class="notice tiny">📌 運入許可由地區官員核發：請到「遠國奉行所」請託。</div>';
-  if(G.ships.length){h+='<div class="small bold">⛵ 在途貨運</div>'+G.ships.map(s=>{if(s.entrust)return '<div class="card"><div class="row"><b class="small">'+(s.mode==='land'?'🐎 陸運·飛腳':'⛵ 海運·船長')+'「'+esc(s.captName)+'」</b><span class="tag '+(s.eta<=1?'green':'gray')+'">剩 '+s.eta+' 旬</span></div><div class="tiny muted">前往【'+esc(CITY(s.origId).name)+'】·委託金 '+fmt(s.budget)+' 兩·買什麼由'+(s.mode==='land'?'飛腳':'船長')+'決定，歸來才知道</div></div>';const b=s.origId?CITY(s.origId):null;return '<div class="card"><div class="row"><b class="small">'+(s.mode==='sea'?'⛵':'🐎')+' '+esc(COMM_MAP[s.name].short)+' × '+s.qty+'</b><span class="tag '+(s.eta<=1?'green':'gray')+'">剩 '+s.eta+' 旬</span></div><div class="tiny muted">'+(b?'自 '+esc(b.name)+'·'+esc(b.region_name)+' 運入本城':'返航中')+'·'+(s.captName?(s.mode==='sea'?'船長 ':'飛腳 ')+esc(s.captName)+'·':'')+'遇險率 '+Math.round(s.risk*100)+'%</div></div>'}).join('')}
-  else h+='<div class="notice">目前沒有在途的貨運。</div>';
-  h+='<hr class="sep"><div class="small bold">📦 運入貨物</div><div style="margin:4px 0">'+['sea','land'].map(m=>'<span class="pill '+(R_.mode===m?'on':'')+'" data-act="rMode" data-m="'+m+'">'+UT(m==='sea'?'opt.modeSea':'opt.modeLand')+'</span>').join('')+'</div>';
+  let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🗺️ 委託採買·船長與飛腳</b></div><span class="tag navy">船長 '+crewCount('sea')+'／'+slotCap('船長')+'·飛腳 '+crewCount('land')+'／'+slotCap('飛腳')+'</span></div>';
+  h+='<div class="grid2 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">海運許可<br><b>'+(permitsOf().sea.all?'全地區':Object.keys(permitsOf().sea).length+' 地區')+'</b><div class="tiny muted">船長 '+crew('sea')+'</div></div><div class="card" style="margin:0">陸運許可<br><b>'+(landPermit()?'已取得':'未取得')+'</b><div class="tiny muted">飛腳 '+crew('land')+'</div></div></div>';
+  if(!anySea()&&!landPermit())h+='<div class="notice tiny">📌 海運、陸運許可由地區官員核發：請到「遠國奉行所」請託。</div>';
+  if(G.ships.length){h+='<div class="small bold">⛵ 出門採買中</div>'+G.ships.map(s=>'<div class="card"><div class="row"><b class="small">'+(s.mode==='land'?'🐎 陸運·飛腳':'⛵ 海運·船長')+'「'+esc(s.captName)+'」</b><span class="tag '+(s.eta<=1?'green':'gray')+'">剩 '+s.eta+' 旬</span></div><div class="tiny muted">前往【'+esc(CITY(s.origId).name)+'】·委託金 '+fmt(s.budget)+' 兩·買什麼由'+(s.mode==='land'?'飛腳':'船長')+'決定，歸來才知道</div></div>').join('')}
+  else h+='<div class="notice">目前沒有出門採買的船長或飛腳。</div>';
+  h+='<hr class="sep"><div class="small bold">📦 委託採買</div><div style="margin:4px 0">'+['sea','land'].map(m=>'<span class="pill '+(R_.mode===m?'on':'')+'" data-act="rMode" data-m="'+m+'">'+UT(m==='sea'?'opt.modeSea':'opt.modeLand')+'</span>').join('')+'</div>';
   h+=voyagePanel();
   h+=voyLogCard();
   h+='<hr class="sep"><div class="tiny muted">一名船長帶一艘船、一名飛腳帶一支馬幫。聘船長時另付造船費。名額由奉行所核發：船長看「船株鑑札」（行政），飛腳看「馬幫株」（財務）。</div></div>';
   $('#view-routes').innerHTML=h;
 }
-/** 商路：選貨物。 */
-ACT.rItem=el=>{UI.s.route.item=el.dataset.n;UI.s.route.dest=null;renderRoutes()};
 /** 商路：選海運/陸路。 */
 ACT.rMode=el=>{UI.s.route.mode=el.dataset.m;UI.s.route.dest=null;renderRoutes()};
-/** 商路：選產地。 */
-ACT.rDest=el=>{UI.s.route.dest=el.dataset.id;renderRoutes()};
-/** 商路：下單運入。 */
-ACT.rGo=()=>{
-  const R_=UI.s.route;const r0=dispatchShip(R_.item,R_.qty,R_.dest,R_.mode);
-  if(!r0.ok){toast(r0.msg,4200);return}
-  playFx(R_.mode==='sea'?'boat':'cart',MSG('route.depart'),CITY(R_.dest).name,()=>{toast(r0.msg,5000);UI.render()},1000);
-};
-document.addEventListener('change',e=>{if(e.target.id==='r-qty'){UI.s.route.qty=Math.max(1,Math.floor(+e.target.value||1));renderRoutes()}});
-
 /* ---------- 說明視窗：官吏職位、貿易物品 ---------- */
 /** 關閉目前視窗後要接續執行的動作（例如旬報後依序顯示人物事件）。 */
 var INFO_AFTER=null;
@@ -277,17 +289,17 @@ ACT.posList=()=>{
 ACT.commInfo=el=>{
   const n=el.dataset.n,c=COMM_MAP[n],i=COMM_INFO[n];if(!c||!i)return;
   UI.showInfo('貿易物品：'+c.short,'<div class="small"><span class="tag">'+c.kind+'</span> <span class="tag gray">'+esc(i.origin_type)+'</span>'+(c.flam?' <span class="tag red">易燃</span>':'')+'</div>'
-   +ik('所屬系統',i.system_name)+ik('系統簡介',i.system_desc)+ik('全名',i.name)+ik('單位',i.unit)+'<div class="ik">遊戲基準價</div><div class="iv">'+fmt1(c.base)+' 兩／單位（需求彈性 α '+c.alpha+'·每旬損耗約 '+(c.decay*100).toFixed(1)+'%）</div>'
+   +ik('所屬系統',i.system_name)+ik('系統簡介',i.system_desc)+ik('全名',i.name)+ik('單位',i.unit)+'<div class="ik">遊戲基準價</div><div class="iv">'+fmt1(c.base)+' 兩／單位（每旬損耗約 '+(c.decay*100).toFixed(1)+'%）</div>'
    +ik('主要產區',(i.primary_regions||[]).join('、'))+ik('季節特性',i.seasonal_traits)+ik('價格波動',i.price_volatility)+ik('需求階層',i.demand_strata)+ik('保存與損耗',i.decay_rate)+ik('管制狀態',i.contraband_status)+ik('卡特爾潛力',i.cartel_potential));
 };
 /** 物品旁的『ⓘ說明』按鈕。 */
 const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">ⓘ說明</span>';
 
 /* ---------- 出貨預設＝公會配額；未按「出貨」，推進一旬時自動出貨 ---------- */
-/** 某物品本旬的預定出貨量：預設＝公會配額（不超過庫存），可被滑桿覆蓋（存在 G.plan）。 */
+/** 某物品本旬的預定出貨量：預設＝公會配額（有大番頭時延續上旬的出貨量），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
 function planOf(name){
   const have=G.inv[name]||0;G.plan=G.plan||{};
-  if(G.plan[name]===undefined)G.plan[name]=Math.min(quotaOf(name),have);
+  if(G.plan[name]===undefined)G.plan[name]=Math.min(nEmp('大番頭')&&G.lastShip&&G.lastShip[name]!==undefined?G.lastShip[name]:quotaOf(name),have);   // 有大番頭：延續上旬的出貨量
   return clamp(G.plan[name],0,have);
 }
 /** 【穩定供貨線】本城該物品需求 × 你的市佔率（至少 1）。出貨量達此線才算穩定供貨。 */
@@ -312,5 +324,6 @@ function autoShip(log){
   if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}
   TURNRP=rep;
+  if(nEmp('大番頭')){G.lastShip={};own.forEach(c=>{G.lastShip[c.name]=G.plan[c.name]!==undefined?G.plan[c.name]:quotaOf(c.name)})}else delete G.lastShip;   // 大番頭延續的數字
   G.plan={};G.sold={};
 }

@@ -4,7 +4,7 @@
  * - 買賣：buyGoods（下單、隔旬到貨、每旬上限）、sellGoods（出貨）、autoShip 在 06_ui.js。
  * - 公會：evalCartel（配額與偷跑）；riotTick（主食鹽價過高→打毀）；EVENTS 隨機事件。
  * - 同業：marketShares/msTick（本城同業市佔率）。
- * - 商路：只能「從產地運入本城」；distTurns/canLand/capOf/dispatchShip/shipsTick。
+ * - 商路：只有委託採買（07i_voyage.js）；這裡留距離 distTurns、陸海路判定 canSea/canLand、單趟運量 capOf 與歸來推進 shipsTick。
  * - advanceTurn：每旬推進的唯一入口（順序很重要，詳見該函式註解）。 */
 /* ======================= 03 市場：以量控價、株仲間、打毀、損耗、商路、旬推進 ======================= */
 /** 打毀指標：白米與粗鹽。 */
@@ -62,7 +62,7 @@ const invCap=()=>G.wh.n*G.wh.cap;
 function capMult(name){return clamp(10-COMM_MAP[name].decay*200,5,10)}
 /** 某物品庫存上限＝本城需求×倍率。 */
 function itemCap(name){const m=G.mk[name];return Math.max(5,Math.round((m?m.D:cityD(homeCity(),COMM_MAP[name]))*capMult(name)))}
-/** 某物品在途量（下單未到＋商路在途）。 */
+/** 某物品在途量（向大盤下單、尚未到貨）。 */
 const itemOnOrder=name=>(G.orders||[]).filter(o=>o.name===name).reduce((a,o)=>a+o.qty,0)+G.ships.filter(s=>s.name===name).reduce((a,s)=>a+s.qty,0);
 /** 某物品還能再放多少（同時受單項上限與倉庫容量限制）。 */
 const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOrder(name),invCap()-invUsed()-pendingQty()-transitQty()));
@@ -112,7 +112,7 @@ function luxTick(c,m,first){
     if(own&&chance(L.news)){const t=NEWS('luxBurst',{name:c.short});pushNews(t)}
   }
 }
-/** 本旬同業實際出貨量：基準供給（需求×0.58）依各家知名度/庫存/事件分配，各家再乘隨機係數；偶爾某家超賣（倍數大增）壓低行情。 */
+/** 本旬同業實際出貨量：基準供給（需求×0.58）依各家知名度/庫存/事件分配，各家再乘隨機係數；本業每家每旬 5% 挑一項超賣（倍數大增）壓低行情。 */
 function rivalSupply(c,m,first){
   const R=ODDS.rivalShip,base=m.D*R.base,rv=rivalsHere();
   if(!rv.length)return Math.round(base*(R.lo+rnd()*(R.hi-R.lo)));
@@ -121,7 +121,10 @@ function rivalSupply(c,m,first){
   sc.forEach(r=>{
     const w=tot>0?r.score/tot:0;let f=R.lo+rnd()*(R.hi-R.lo);
     f*=clamp(r.stock/0.9,0.5,1.3);if(r.raided)f*=0.4;
-    if(!first&&!r.raided&&roll('rivalShip',R.overP)){const mul=R.mulMin+rnd()*(R.mulMax-R.mulMin);f*=mul;if(!big||mul>big.mul)big={cid:r.cid,mul}}
+    let mul=0;
+    if(c.sys===G.sysKey)mul=rivalOverMul(r,c,first);                       // 本業：每家每旬 5% 挑一項超賣（違反公會配額，見 07y_guild.js）
+    else if(!first&&!r.raided&&roll('rivalShip',R.overP))mul=R.mulMin+rnd()*(R.mulMax-R.mulMin);   // 非本業（打毀指標用的主食）：照舊逐項擲
+    if(mul){f*=mul;if(!big||mul>big.mul)big={cid:r.cid,mul}}
     sum+=base*frac*w*f;
   });
   if(big&&!first&&c.sys===G.sysKey&&chance(R.news)){const t=NEWS('rivalDump',{who:nameOf(big.cid),name:c.short});pushNews(t)}
@@ -150,12 +153,12 @@ function refreshMarket(first){
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
 const empBuyMult=()=>ODDS.rivalShip.buyMult;
-/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（0.93），遇公會斷貨×1.4、守配額×0.96，再乘進貨壓力。 */
+/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（入會 0.93、未入會 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
   let p=marketIndex(name,true)*empBuyMult();
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
-  if(G.cartel.state==='pledged')p*=0.96;                               // 公會內部價
+  if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未入會：照市價（入會者享公會價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
   return p;
 }
@@ -165,8 +168,8 @@ function quoteSale(name,qty){
   const p=priceNow(name,tot);const mult=empMult();
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
-/** 每旬向大盤進貨上限＝公會配額×倍數（基本 0.8，番頭加成；從產地運入不受限）。 */
-const buyLimit=name=>Math.max(1,Math.floor(quotaOf(name)*buyLimitMult()));            // 每旬大盤進貨上限＝公會配額×(0.8＋番頭加成)
+/** 每旬向大盤進貨上限＝公會配額×倍數（基本 0.8，番頭加成；委託採買不受限）。 */
+const buyLimit=name=>Math.max(1,Math.ceil(quotaOf(name)*buyLimitMult()));             // 每旬大盤進貨上限＝公會配額×(0.8＋番頭加成)，無條件進位（大番頭也算一名番頭）
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -310,17 +313,17 @@ function evalCartel(log){
     if(over>0){
       C.cheated++;G.life.cheats++;
       if(chance(Math.min(ODDS.cartelPledged.max,ODDS.cartelPledged.base+ODDS.cartelPledged.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-12);loseFame('cartelPledged');sfx.bad();
-        const t=NEWS('evalCartel.1');pushNews(t);log.push(t);
+        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-12);loseFame('cartelPledged');sfx.bad();const lost=guildForfeit();
+        const t=NEWS('evalCartel.1',{bond:lost?'擔保金 '+fmt(lost)+' 兩沒收，':''});pushNews(t);log.push(t);
       }else C.comp=Math.max(30,C.comp-3);
     }else if(shippedAny){C.comp=Math.min(90,C.comp+2);G.life.pledges++;addFame(0.1)}
   }else if(C.state==='secret'){
     if(over>0){
       C.cheated++;G.life.cheats++;
       if(chance(Math.min(ODDS.cartelSecret.max,ODDS.cartelSecret.base+ODDS.cartelSecret.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');
+        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');const lost=guildForfeit();
         let fine=0;if(G.flags.exempt<=0){fine=Math.round(Math.max(0,G.silver)*0.06);G.silver-=fine}
-        const t=NEWS('evalCartel.2',{fine:(fine?'官府查抄罰銀 '+fmt(fine)+' 兩，':'靠司法人脈壓下了查抄，')});pushNews(t);log.push(t);sfx.bad();
+        const t=NEWS('evalCartel.2',{fine:(lost?'擔保金 '+fmt(lost)+' 兩沒收，':'')+(fine?'官府查抄罰銀 '+fmt(fine)+' 兩，':'靠司法人脈壓下了查抄，')});pushNews(t);log.push(t);sfx.bad();
       }else C.comp=Math.max(30,C.comp-2);
     }
   }else{C.comp+= (60-C.comp)*0.1}
@@ -453,7 +456,7 @@ function msTick(log){
   G.share=marketShares();
 }
 
-/* ---------- 商路：跨城調貨 ---------- */
+/* ---------- 商路：距離、陸海路與運量（委託採買用） ---------- */
 /** 城市是否有港口/水路可通海運。 */
 const canSea=ct=>ct.region_id==='reg_west'||ct.region_id==='reg_south'||/水/.test(ct.location_type);
 /* 陸路：只限陸地相連的同一地區（南海諸島是島嶼，無陸路），且行程須在 2 旬內 */
@@ -489,81 +492,16 @@ const CAP_LAND={heavy:30,normal:50,light:80},CAP_SEA={heavy:120,normal:150,light
 function weightClass(name){const c=COMM_MAP[name];if(c.luxury)return 'light';if(c.staple||c.sys==='mining'||c.sys==='timber')return 'heavy';return 'normal'}
 /** 某物品某運輸方式的單趟運量上限。 */
 function capOf(name,mode){const w=weightClass(name);return (mode==='sea'?CAP_SEA:CAP_LAND)[w]}
-/** 運輸方式參數：名稱、運費率、基礎遇險率。 */
-const MODE={sea:{name:'海運（菱垣廻船）',cap:150,rate:0.04,risk:ODDS.routeRisk.sea},land:{name:'陸路（馬幫）',cap:50,rate:0.07,risk:ODDS.routeRisk.land}};
-/* 商路只准「從產地運入本城」，貨物不能運出。海運需泊位權＋船長，陸路需通行手形＋飛腳 */
-/** 某物品的產地城市清單（不含本城）。 */
-const originsOf=name=>CITIES.filter(ct=>ct.id!==G.cityId&&ct.connected_commodities.includes(name));
-/** 運入許可：海運需泊位權、陸路需通行手形（向行政院官員請託取得）。 */
+/** 運輸許可：海運需該地區的進港泊位許可、陸路需本地區的關所通行手形（遠國奉行所核發）。 */
 const permitOf=(mode,ct)=>mode==='sea'?(ct?seaPermitFor(ct):anySea()):landPermit();
-/** 許可名稱。 */
-const PERMIT_NAME={sea:'進港泊位許可',land:'關所通行手形'};
 /** 商路在途貨物總量。 */
 const transitQty=()=>G.ships.reduce((a,s)=>a+s.qty,0);
-/** 找一名空閒的船長（海運）/飛腳（陸路）；在途貨運各佔用一人。 */
-function captainFor(mode,exclude){
-  const used=new Set(G.ships.filter(s=>s.mode===mode&&s!==exclude).map(s=>s.capt));
-  if(mode==='sea')(G.smug||[]).forEach(v=>used.add(v.capt));            // 走私航程也佔用船長
-  return G.emps.find(e=>e.rank===(mode==='sea'?'船長':'飛腳')&&!used.has(e.id))||null;
-}
 /** 船長/飛腳的膽識與商才換算成遇險率倍數（0.7～1.3）。 */
 function crewRiskMult(e){const C_=ODDS.crewRisk,s=e?statsOfEmp(e):null;return s?clamp(C_.base-s.audacity_courage*C_.perCourage-(s.commerce_skill-50)/C_.commerceDiv,C_.min,C_.max):C_.max}
-/** 試算商路：產地價×數量、運費、關稅（免檢旗免）、遇險率、在本城的預估售價與毛利。 */
-/** 季節性貨物（農、漁、茶、蜜、蠶絲、棉麻等）：產地價隨季節波動；礦木、陶器等不受季節影響。 */
-const SEASONAL_KW=['茶','蜂蜜','昆布','鮮魚','乾鮑','蠶','生絲','木棉','棉','菜籽','麻','人參','靈芝','栗','米','麥','大豆','鹽'];
-const isSeasonal=c=>c.sys==='grain'||c.sys==='marine'||SEASONAL_KW.some(k=>c.name.includes(k));
-function routeQuote(name,qty,origId,mode){
-  const a=homeCity(),b=CITY(origId),c=COMM_MAP[name];const M=MODE[mode];
-  const d=distTurns(a,b,mode);
-  const unit=c.base/3*(isSeasonal(c)?seasonCoef(c):1);                // 產地價＝大盤基準價 1/3；農漁等季節性貨物另計季節波動
-  const cost=Math.round(unit*qty);
-  const freight=Math.round(c.base*M.rate*d*qty);
-  const duty=Math.round(cost*(G.flags.exempt>0?0:0.08));
-  const cap=captainFor(mode);
-  const risk=clamp(M.risk*d*crewRiskMult(cap)-(mode==='land'?ODDS.routeRisk.guardLand*guardCount():0),ODDS.routeRisk.min,ODDS.routeRisk.max);
-  const home=G.mk[name]?G.mk[name].price:0;                          // 貨運回來是堆進倉庫、分旬慢慢賣，預估以目前市價計
-  const sell=Math.round(home*qty*empMult());
-  return {d,unit,cost,freight,duty,total:cost+freight+duty,risk,sell,margin:sell-(cost+freight+duty),cap};
-}
-/** 下單運入：檢查產地、許可、船隊、船長/飛腳、運量、庫存上限、現款；一次付清貨款＋運費＋關稅；到貨後入倉。 */
-function dispatchShip(name,qty,origId,mode){
-  qty=Math.floor(qty);const a=homeCity(),b=CITY(origId);
-  if(!b||origId===G.cityId)return {ok:false,msg:MSG('dispatchShip.1')};
-  if(!b.connected_commodities.includes(name))return {ok:false,msg:MSG('dispatchShip.2',{name:b.name,name2:COMM_MAP[name].short})};
-  if(!tradeOK(name))return {ok:false,msg:tradeLockMsg(name)};
-  if(qty<=0)return {ok:false,msg:MSG('dispatchShip.3')};
-  if(!permitOf(mode))return {ok:false,msg:MSG('dispatchShip.4',{mode:PERMIT_NAME[mode]})};
-  const cap=captainFor(mode);
-  if(!cap)return {ok:false,msg:MSG('dispatchShip.noCrew',{crew:mode==='sea'?'船長':'飛腳'})};
-  if(mode==='sea'&&!(canSea(a)&&canSea(b)))return {ok:false,msg:MSG('dispatchShip.6')};
-  if(mode==='land'&&!canLand(a,b))return {ok:false,msg:MSG('dispatchShip.7')};
-  const M=MODE[mode],cp=capOf(name,mode);if(qty>cp)return {ok:false,msg:MSG('dispatchShip.capLimit',{mode:M.name,name:COMM_MAP[name].short,cp})};
-  if(invUsed()+pendingQty()+transitQty()+qty>invCap())return {ok:false,msg:MSG('dispatchShip.8')};
-  if(qty>itemRoom(name))return {ok:false,msg:MSG('dispatchShip.9',{name:COMM_MAP[name].short,itemCap:itemCap(name),itemRoom:itemRoom(name)})};
-  const q=routeQuote(name,qty,origId,mode);
-  if(G.silver<q.total)return {ok:false,msg:MSG('dispatchShip.10',{q:fmt(q.total)})};
-  payPublic('商路運貨：'+COMM_MAP[name].short,q.total);
-  G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),name,qty,origId,mode,eta:q.d,risk:q.risk,cost:q.total,unit:q.total/Math.max(1,qty),start:G.turn,capt:cap.id,captName:cap.name});
-  sfx.step();return {ok:true,msg:MSG('dispatchShip.depart',{crew:mode==='sea'?'船長':'飛腳',who:cap.name,origin:b.name,d:q.d,total:fmt(q.total),cost:fmt(q.cost),freight:fmt(q.freight),duty:fmt(q.duty)})};
-}
-/** 每旬推進在途貨運，抵達時判定海難/山賊、入倉。 */
+/** 每旬推進委託採買：歸來時結算（07i_voyage.js 的 resolveVoyage）。 */
 function shipsTick(log){
   const done=[];
-  G.ships.forEach(s=>{
-    s.eta--;
-    if(s.entrust){if(s.eta<=0){resolveVoyage(s,log);done.push(s)}return}
-    if(s.eta<=0){
-      const c=COMM_MAP[s.name],b=s.origId?CITY(s.origId):null;
-      if(s.origId&&chance(s.risk)){
-        const lostQ=Math.round(s.qty*0.7);s.qty-=lostQ;
-        const t=(s.mode==='sea'?'🌊【海難】':'🥷【山賊】')+'自【'+b.name+'】運來的「'+c.short+'」'+(s.mode==='sea'?'遭遇風暴觸礁':'遭山賊襲擊')+'，損失 '+lostQ+' 單位！';pushNews(t);log.push(t);sfx.bad();
-      }
-      const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(s.name)-(G.inv[s.name]||0))),q=Math.min(s.qty,room);
-      if(q>0){addStock(s.name,q,s.unit||(s.cost>0?s.cost/Math.max(1,s.qty0||s.qty):0));G.inv[s.name]=(G.inv[s.name]||0)+q}
-      const t=NEWS('shipsTick.1',{name:(b?'自【'+b.name+'】':''),short:c.short,q,q2:(q<s.qty?'（倉庫已滿，'+(s.qty-q)+' 單位落空）':'')});pushNews(t);log.push(t);sfx.coin();addFame(0.3);
-      done.push(s);
-    }
-  });
+  G.ships.forEach(s=>{s.eta--;if(s.eta<=0){resolveVoyage(s,log);done.push(s)}});
   G.ships=G.ships.filter(s=>!done.includes(s));
 }
 
@@ -578,7 +516,7 @@ function upkeep(log){
   G.silver-=cost;G.lastCost=cost;
   let interest=0;
   if(G.silver<0){interest=Math.round(-G.silver*0.02);G.silver-=interest}
-  if(TURNRP)TURNRP.cost={wages,guards:0,wh:G.wh.n*6,fam,interest};
+  if(TURNRP)TURNRP.cost={wages,guards:0,wh:G.wh.n*6,fam,interest,hold:G.holdFee||0};
   if(G.flags.exempt>0)G.flags.exempt--;regionTick(log);appsTick(log);tributeTick(log);oiranTick(log);
   G.heat=Math.max(0,(G.heat||0)-0.15);
 }
@@ -607,7 +545,7 @@ function cityTick(){
 }
 
 /* ---------- 旬推進 ---------- */
-/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→同業市佔率→市場刷新→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
+/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
 function advanceTurn(){
   syncPeaks();
   const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
@@ -624,6 +562,7 @@ function advanceTurn(){
   evalCartel(log);
   msTick(log);
   refreshMarket();
+  guildTick(log);                                 // 公會：查同業超賣、期滿分配違約金
   invUpkeep(log);
   holdTick(log);
   shipsTick(log);

@@ -43,7 +43,25 @@ const btKind=cid=>{const n=npc(cid);return n&&n.pos?officialKind(n):'merchant'};
 /** 依偏重抽這一回合的期待（0 小、1 中、2 大）。 */
 function btRollExpect(cid){const w=BT_EXPECT_W[btKind(cid)];let x=rnd()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){x-=w[i];if(x<0)return i}return 1}
 /** 暗示期待的台詞：七成照實，三成指向別檔。 */
-function btHint(expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return TX('battle.hint.'+['small','mid','large'][t])}
+function btHint(cid,expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return btSay(cid,'hint.'+['small','mid','large'][t])}
+/** 人物適用的增補句庫（身份：官階帶或商邸身分；院別；年齡層；女性）。 */
+function btGroups(cid){
+  const n=npc(cid),c=CH(cid),L=LINES.battle,out=[];if(!c)return out;
+  if(n&&n.pos){out.push(L.rank[n.pos.rank<=2?'low':n.pos.rank<=4?'mid':'high']);if(L.court[n.pos.court])out.push(L.court[n.pos.court])}
+  else if(n&&L.role[n.role])out.push(L.role[n.role]);
+  const a=ageOf(cid);out.push(L.age[a<35?'young':a<55?'prime':'old']);
+  if(c.gender==='女')out.push(L.fem);
+  return out;
+}
+/** 拜訪戰鬥取句：原句與所有適用的增補句合成一池，平均抽一句。stage：openHit／openMiss／openFriend／low／mid／close／win／lose／snub／hint.small…。 */
+function btSay(cid,stage,vars){
+  const n=npc(cid),L=LINES.battle,at=(o,p)=>p.split('.').reduce((x,k)=>x&&x[k],o),kind=n&&n.pos?officialKind(n):'merchant';
+  let pool=[].concat(['low','mid','close','win'].includes(stage)?L[stage][kind]:at(L,stage)||[]);
+  btGroups(cid).forEach(g=>{const v=at(g,stage);if(Array.isArray(v))pool=pool.concat(v)});
+  if(stage==='snub'){if(n&&n.pos)pool=pool.concat(L.snubX.official);else if(n&&n.role==='smuggler')pool=pool.concat(L.snubX.smuggler);if(CH(cid)&&CH(cid).gender==='女')pool=pool.concat(L.snubX.fem)}
+  const s=pool.length?pool[Math.floor(rnd()*pool.length)]:'';
+  return vars?s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):s;
+}
 /** 是否正在氣頭上（被嫌不善言辭：本旬與下一旬不能拜訪）。 */
 const snubbed=cid=>{const r=G.rel[cid];return !!(r&&r.snubUntil!==undefined&&G.turn<=r.snubUntil)};
 /** 禮物倍率。 */
@@ -72,9 +90,8 @@ function visitRowHtml(cid){
 /* ---------- 進度台詞 ---------- */
 /** 依打掉的比例與官員類型，挑一句模糊的反應台詞。 */
 function btLine(cid,ratio){
-  const n=npc(cid),k=n&&n.pos?officialKind(n):'plain';
   const st=ratio>=1?'win':ratio>=0.7?'close':ratio>=0.3?'mid':'low';
-  return TX('battle.'+st+'.'+(n&&n.pos?k:'merchant'));
+  return btSay(cid,st);
 }
 
 /* ---------- 戰鬥狀態與流程 ---------- */
@@ -87,8 +104,8 @@ function battleStart(cid,giftKey){
   if(hit)r.verified=true;
   if(!friend&&g&&g.k==='plaque')G.life.charity++;
   BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,
-    open:friend?TX('battle.openFriend'):hit?TX('battle.openHit',{g:g.name}):TX('battle.openMiss',{g:g?g.name:'禮物'}),line:''};
-  BT.expect=btRollExpect(cid);BT.hint=btHint(BT.expect);          // 開場就透露第一回合的期待
+    open:btSay(cid,friend?'openFriend':hit?'openHit':'openMiss',{g:g?g.name:'禮物'}),line:''};
+  BT.expect=btRollExpect(cid);BT.hint=btHint(cid,BT.expect);          // 開場就透露第一回合的期待
   musicWant('visit');                                   // 拜訪戰鬥換成《登門囃子》
   logRel(cid,friend?'登門拜訪，老朋友相見。':'登門拜訪，帶去「'+(g?g.name:'禮物')+'」'+(hit?'，正中下懷。':'。'));
   battleShow();
@@ -109,7 +126,7 @@ ACT.btOffer=el=>{
   const amt=btTiers(B.cid)[+el.dataset.i];
   if(G.silver<amt){toast(MSG('buyGoods.5',{cost:fmt(amt)}));return}
   battleHit(amt,+el.dataset.i);
-  if(B.dmg>=B.hp||B.round>=3)battleEnd();else{B.expect=btRollExpect(B.cid);B.hint=btHint(B.expect);battleShow()}
+  if(B.dmg>=B.hp||B.round>=3)battleEnd();else{B.expect=btRollExpect(B.cid);B.hint=btHint(B.cid,B.expect);battleShow()}
 };
 /** 造成傷害（丁稚代送也走這裡）。 */
 function battleHit(amt,tier){
@@ -127,14 +144,14 @@ function battleEnd(){
   const cid=B.cid,r=R(cid),n=npc(cid),win=B.dmg>=B.hp;
   if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
     r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,'話不投機，對方嫌你不善言辭'+(B.spent?'（奉上 '+B.spent+' 兩）':'')+'。');sfx.bad();
-    UI.render();refreshSheet();UI.hideInfo();toast(TX('battle.snub'),4600);BT=null;return;
+    UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub'),4600);BT=null;return;
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?0.3:0.1);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
-  const msg=(win?TX('battle.win.'+(n&&n.pos?officialKind(n):'merchant')):B.spent?TX('battle.lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
+  const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
   UI.render();refreshSheet();
   if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo('📜 請託·'+nameOf(cid),requestHtml(cid,msg));return}
   UI.hideInfo();toast(msg,4200);BT=null;
@@ -169,7 +186,7 @@ function specialList(cid){
 }
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
 function reqList(cid){
-  const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 座客商人、私梟：代售與脫手（07x_dealers.js）
+  const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 商人請託：調貨、銷貨、臨時打工、代售與脫手（07x_dealers.js）
   return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&favorDone(f,n))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(specialList(cid));
 }
 function requestHtml(cid,msg){

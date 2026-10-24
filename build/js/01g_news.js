@@ -9,6 +9,9 @@
 const NEWS_TXT={
   /* —— newGame —— */
   "newGame.1":"📜【開業】{name}接掌家業，於【{CITY}】懸掛「{firm}」暖簾。",
+  "newGame.guild":"⚖️【公會】開業時已加入株仲間，擔保金 {c} 兩由家中長輩代墊。入會向大盤進貨享公會價，記得守住配額。",
+  "guild.rivalCaught":"⚖️【公會】同業「{n}」超量拋售「{item}」被查獲，擔保金沒收。",
+  "guild.div":"⚖️【公會分紅】本期 {k} 家同業違約被沒收擔保金，由守約的 {n} 家平分，你分得 {sh} 兩。",
   /* —— receiveOrders —— */
   "rivalDump":"🏪【同業】「{who}」大舉拋售「{name}」，存貨傾巢而出，近日行情恐怕被壓低。",
   "luxDry":"🏮【行情】近來「{name}」門庭冷落，達官貴人不再問津，不知何時才有買家。",
@@ -51,7 +54,7 @@ const NEWS_TXT={
   "thieves.1":"🛡️【治安】盜賊夜探倉庫，被保鏢當場擊退。",
   "thieves.2":"🥷【盜賊】夜間遭賊潛入倉庫，損失「{k}」{l} 單位。",
   /* —— evalCartel —— */
-  "evalCartel.1":"⚖️【公會制裁】你誓言守配額卻超量出貨，被株仲間查獲！三旬內遭聯合斷貨，進貨價飆升，知名度 -4。",
+  "evalCartel.1":"⚖️【公會制裁】你誓言守配額卻超量出貨，被株仲間查獲！{bond}三旬內遭聯合斷貨，進貨價飆升，知名度 -4。",
   "evalCartel.2":"⚖️【暗約敗露】你私下偷跑被同業告發！{fine}並遭聯合斷貨三旬，知名度 -5。",
   /* —— invUpkeep —— */
   "invUpkeep.1":"🔥【倉庫失火】易燃貨物起火，連環波及，共燒毀 {tot} 單位貨物！（保鏢可降低機率）",
@@ -105,6 +108,7 @@ const NEWS_TXT={
   "inspectResolve.1":"公事公辦，被罰銀 {fine} 兩。",
   "inspectResolve.2":"🔎【查貨】{t}",
   /* —— enemyTick —— */
+  "enemy.fade":"🍂【怨氣漸消】「{name}」對你的怨氣，隨著歲月漸漸淡了。",
   "enemyTick.1":"🗡️【仇家使壞】{replace}",
   /* —— smugTick —— */
   "smugTick.1":"🌊【走私船遇難】開往【{name}】的船遭遇風暴，「{name2}」損失 {lost} 單位。",
@@ -122,8 +126,8 @@ const NEWS_TXT={
   /* —— seize —— */
   "seize.1":"🚨【{replace}】{g}",
   "seize.lessen":"減罪狀派上用場，刑罰減輕一等。",
-  /* —— autoRestock —— */
-  "autoRestock.1":"🧾【大番頭補貨】{got} 已下單。",
+  /* —— 大番頭延續上旬設定 —— */
+  "chief.keepBuy":"🧾【大番頭照舊】照上旬的量進貨：{got} 已下單。",
   /* —— kind —— */
   "kind.1":"前往【{dest}】採買。{note}",
   "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約大盤基準價的 {pf}），共 {cost} 兩。",
