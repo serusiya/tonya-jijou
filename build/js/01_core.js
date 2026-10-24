@@ -96,9 +96,9 @@ const SYS=[
   {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
     tip:'產地稀少，靠公會與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
   {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
-    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
+    tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
   {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:1000,
-    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；私房錢充裕，名望四階。'}
+    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}
 ];
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
 /** 依物品所屬系統名稱，找出對應的流派 key。 */
@@ -229,8 +229,8 @@ function addFame(x){if(!G)return 0;const f=G.fame||0;G.fame=clamp(f+x*Math.max(O
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */
 const fameCut=()=>clamp((G.fame||0)/ODDS.fame.cap*0.30,0,0.30);
 /** 更新頂部知名度顯示。 */
-/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers），再加私房錢每滿 1000 兩 +1 階（上限 4）。 */
-function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+Math.floor((G.gold||0)/1000))}
+/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers）；私房錢滿 2000 兩（ODDS.fame.goldTier）再加一階，只加這一階（上限 4）。 */
+function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+((G.gold||0)>=ODDS.fame.goldTier?1:0))}
 /** 見官員所需知名度階：官階 1～2 免限制(1)，3→2，4→3，5 以上→4。 */
 const needTierOfRank=rk=>rk<=2?1:Math.min(4,rk-1);
 /** 介紹人階級 1～4（官階 1～2→1，3→2，4→3，5+→4；非官員為 1）。 */

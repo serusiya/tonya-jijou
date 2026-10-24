@@ -1,7 +1,8 @@
 /* ======================= 雇員好感：零用錢、保鏢暗殺、手代番頭放火、船長走私 =======================
  *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5，滿 100 後不能再給；每人每旬只能給一次。
  *  - 保鏢好感 100：出現「暗殺」指令，可對認識的人下手。
- *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長只列在河岸碼頭。 */
+ *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長只列在河岸碼頭。
+ *  - 大番頭好感 100：可替你做帳，公款 500 兩轉私房錢、或私房錢 1000 兩轉公款；每次好感 −20，他私吞 5～10%（記入私吞帳，查帳可追回）。不加風聲。 */
 const empAff=e=>{if(e.aff===undefined)e.aff=40;return e.aff};
 /** 好感列＋零用錢鈕；保鏢、船長滿格時另有專屬指令。 */
 function empAffHtml(e,ctx){
@@ -10,9 +11,28 @@ function empAffHtml(e,ctx){
     +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costBtn('allowance')}))+'</button></div>';
   if(e.rank==='保鏢'&&full)h+=assassinHtml(e);
   if(arsonOK(e))h+=arsonHtml(e);
+  if(e.rank==='大番頭'&&full)h+=chiefBookHtml(e);
   if(e.rank==='船長'&&full)h+='<div class="tiny" style="color:#5b4a70;margin-top:2px">🏴‍☠️ 他對你死心塌地，肯替你跑「走私」（走私）。</div>';
   return h;
 }
+/* ---------- 大番頭做帳：公款與私房錢互轉（好感 100） ---------- */
+const CHIEF_BOOK={toGold:500,toSilver:1000,aff:20,cutMin:0.05,cutMax:0.10};
+function chiefBookHtml(e){
+  const B=CHIEF_BOOK;
+  return '<div class="card" style="margin:4px 0"><b class="small">📒 做帳</b><div class="tiny muted">他願替你把帳做平，不留痕跡。每做一次，好感 -'+B.aff+'。</div>'
+    +'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="chiefBook" data-id="'+e.id+'" data-d="g" '+(G.silver<B.toGold?'disabled':'')+'>公款 '+fmt(B.toGold)+' 兩轉私房錢</button>'
+    +'<button class="pixel-btn btn-sm btn-green" data-act="chiefBook" data-id="'+e.id+'" data-d="s" '+(G.gold<B.toSilver?'disabled':'')+'>私房錢 '+fmt(B.toSilver)+' 兩轉公款</button></div>'+purseTierNote()+'</div>';
+}
+ACT.chiefBook=el=>{
+  const e=G.emps.find(x=>x.id===el.dataset.id),B=CHIEF_BOOK;if(!e||e.rank!=='大番頭'||empAff(e)<100)return;
+  const toGold=el.dataset.d==='g',amt=toGold?B.toGold:B.toSilver;
+  if(toGold?G.silver<amt:G.gold<amt){toast(toGold?'帳上現款不足。':'私房錢不足。');return}
+  const cut=Math.round(amt*(B.cutMin+rnd()*(B.cutMax-B.cutMin))),net=amt-cut;
+  if(toGold){G.silver-=amt;G.gold+=net}else{G.gold-=amt;G.silver+=net}
+  e.skim=(e.skim||0)+cut;e.aff=Math.max(0,empAff(e)-B.aff);
+  sfx.coin();toast('「'+e.name+'」把帳做平了，'+(toGold?'私房錢':'現款')+' +'+fmt(net)+' 兩。（好感 -'+B.aff+'）',3600);
+  UI.render();refreshSheet();
+};
 ACT.allow=el=>{
   const e=G.emps.find(x=>x.id===el.dataset.id);if(!e)return;
   if(empAff(e)>=100){toast(MSG('allow.1'));return}

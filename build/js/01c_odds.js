@@ -52,6 +52,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽識影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
+  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
@@ -61,7 +62,7 @@ const ODDS={
   chatMix:{name:'點人聊天內容比例（其餘為閒聊）',outsider:0.2,staff:0.3},
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
-  fame:{name:'知名度：上限、階級門檻、加分遞減',cap:200,tiers:[30,80,150],damp:130,floor:0.25},
+  fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）',cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
   fameLoss:{name:'醜聞扣知名度',inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},

@@ -199,7 +199,7 @@ function openChat(ent){
 }
 
 /* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭。現款與私房錢見 SYS。 */
+/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。現款與私房錢見 SYS。 */
 function applyStartBoost(sysKey){
   const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
@@ -221,7 +221,7 @@ function applyStartBoost(sysKey){
     const cap=hireEmp(null,'船長');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
     {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[1]);   // 名望三階（交易許可見 startTrade）
+  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]);   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
     const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('大番頭')&&!introOf(n.cid));
     const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];

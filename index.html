@@ -427,9 +427,9 @@ const SYS=[
   {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
     tip:'產地稀少，靠公會與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
   {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
-    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
+    tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
   {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:1000,
-    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；私房錢充裕，名望四階。'}
+    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}
 ];
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
 /** 依物品所屬系統名稱，找出對應的流派 key。 */
@@ -560,8 +560,8 @@ function addFame(x){if(!G)return 0;const f=G.fame||0;G.fame=clamp(f+x*Math.max(O
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */
 const fameCut=()=>clamp((G.fame||0)/ODDS.fame.cap*0.30,0,0.30);
 /** 更新頂部知名度顯示。 */
-/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers），再加私房錢每滿 1000 兩 +1 階（上限 4）。 */
-function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+Math.floor((G.gold||0)/1000))}
+/** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers）；私房錢滿 2000 兩（ODDS.fame.goldTier）再加一階，只加這一階（上限 4）。 */
+function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+((G.gold||0)>=ODDS.fame.goldTier?1:0))}
 /** 見官員所需知名度階：官階 1～2 免限制(1)，3→2，4→3，5 以上→4。 */
 const needTierOfRank=rk=>rk<=2?1:Math.min(4,rk-1);
 /** 介紹人階級 1～4（官階 1～2→1，3→2，4→3，5+→4；非官員為 1）。 */
@@ -715,6 +715,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽識影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
+  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
@@ -724,7 +725,7 @@ const ODDS={
   chatMix:{name:'點人聊天內容比例（其餘為閒聊）',outsider:0.2,staff:0.3},
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
-  fame:{name:'知名度：上限、階級門檻、加分遞減',cap:200,tiers:[30,80,150],damp:130,floor:0.25},
+  fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）',cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
   fameLoss:{name:'醜聞扣知名度',inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
@@ -1546,7 +1547,7 @@ const NEWS_TXT={
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
   "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩。",
   "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
-  "kind.6":"⚠️ {mode}自作主張，私買違禁品「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要賣請走私頁（用私房錢交易），也要小心搜查。",
+  "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找私梟，也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
   /* —— xsell —— */
@@ -4549,6 +4550,8 @@ ACT.resume=()=>{musicWant('market');G=loadSave();sanitizeIntros();officialMigrat
  *  - 現款 = G.silver：貨款、賄賂、拜訪、薪資皆用現款。
  *  - 私房錢 = G.gold：花街、走私（暗約偷跑）專用。
  *  - 私房錢來源：①從商號帳上挪用（每次最多 50 兩，扣 1 行動點數）②每旬盈餘抽成（0～3%）。
+ *  - 撥回現款：每旬一次、扣 1 行動點數、一次 100 兩（PURSE_BACK）。好感 100 的大番頭另可大筆轉帳（07m_loyalty.js）。
+ *  - 私房錢滿 2000 兩，名望多一階（fameTier）。
  *  - 保鏢（SPECIAL 職位）：出門前往時 0.5～3% 遇襲，見 rollAmbush。
  * ===================================================================== */
 
@@ -4556,15 +4559,22 @@ ACT.resume=()=>{musicWant('market');G=loadSave();sanitizeIntros();officialMigrat
 const SKIM_MAX=50,SKIM_MIN=30;
 /** 每旬盈餘抽成上限（比例）。 */
 const SKIM_PCT_MAX=0.03;
+/** 私房錢撥回現款：每次金額（每旬一次）。 */
+const PURSE_BACK=100;
+/** 轉出私房錢後若跌破名望門檻，提醒一句。 */
+const purseTierNote=()=>'<div class="tiny muted">私房錢滿 '+fmt(ODDS.fame.goldTier)+' 兩時名望多一階，不滿就少這一階。</div>';
 
 /** 私房錢面板（點最上方私房錢旁的「＋」）：從現款挪用／設定每旬抽成。 */
 SHEETS.purse=()=>{
   const pct=(G.skimPct||0)*100;
-  let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，只用在<b>吉原</b>與<b>走私（暗約偷跑）</b>。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
+  let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，用在<b>吉原</b>、<b>走私</b>這類見不得光的事；攢滿 2,000 兩，身分也高一階。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
   h+='<div class="card"><b>1. 從現款挪用</b><div class="tiny muted">每次挪走 '+SKIM_MIN+'～'+SKIM_MAX+' 兩（隨機），扣 1 行動點數。</div>'
     +'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="skim">'+UT('btn.skim')+'</button></div></div>';
   h+='<div class="card"><b>2. 每旬盈餘自動抽成</b><div class="tiny muted">每旬若有盈餘，按此比例撥入私房錢（0～3%），目前 <b id="skim-pct-v">'+pct.toFixed(1)+'%</b>。</div>'
     +'<input type="range" min="0" max="30" step="1" value="'+Math.round(pct*10)+'" data-chg="skimPct" style="width:100%"></div>';
+  const back=G.purseBackT===G.turn;
+  h+='<div class="card"><b>3. 撥回現款</b><div class="tiny muted">從私房錢拿 '+PURSE_BACK+' 兩補進商號帳上；每旬一次，扣 1 行動點數。</div>'
+    +'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" data-act="purseBack" '+(back||G.gold<PURSE_BACK?'disabled':'')+'>'+(back?'本旬已撥回':'撥回 '+PURSE_BACK+' 兩')+'</button></div>'+purseTierNote()+'</div>';
   h+='<div class="tiny muted">私房錢現有 <b>'+Math.round(G.gold)+'</b> 兩；現款 '+fmt(G.silver)+' 兩。</div>';
   return {title:'🟨 私房錢',html:h};
 };
@@ -4576,6 +4586,15 @@ ACT.skim=()=>{
   if(!spendAP())return;
   G.silver-=amt;G.gold+=amt;G.heat=(G.heat||0)+0.2;G.life.skimmed=(G.life.skimmed||0)+amt;
   sfx.coin();toast(MSG('skim.2',{amt}));
+  UI.render();refreshSheet();
+};
+/** 私房錢撥回現款：每旬一次、扣 1 行動點數、一次 100 兩。 */
+ACT.purseBack=()=>{
+  if(G.purseBackT===G.turn){toast('這一旬已經撥回過了。');return}
+  if(G.gold<PURSE_BACK){toast('私房錢不足 '+PURSE_BACK+' 兩。');return}
+  if(!spendAP())return;
+  G.gold-=PURSE_BACK;G.silver+=PURSE_BACK;G.purseBackT=G.turn;
+  sfx.coin();toast('從私房錢撥回 '+PURSE_BACK+' 兩到帳上。');
   UI.render();refreshSheet();
 };
 /** 設定每旬抽成比例（滑桿 0～30 → 0～3.0%）。 */
@@ -5281,7 +5300,7 @@ function openChat(ent){
 }
 
 /* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭。現款與私房錢見 SYS。 */
+/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。現款與私房錢見 SYS。 */
 function applyStartBoost(sysKey){
   const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
@@ -5303,7 +5322,7 @@ function applyStartBoost(sysKey){
     const cap=hireEmp(null,'船長');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
     {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[1]);   // 名望三階（交易許可見 startTrade）
+  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]);   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
     const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('大番頭')&&!introOf(n.cid));
     const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];
@@ -5315,7 +5334,8 @@ function applyStartBoost(sysKey){
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
- *   70% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）；5% 私買違禁品（入密庫）。
+ *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
+ *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫，風聲 +0.2 × 危險度）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_CAPT={sea:'船長',land:'飛腳'};
@@ -5361,8 +5381,14 @@ function resolveVoyage(s,log){
   const prod=(dest?dest.connected_commodities:[]).filter(n=>COMM_MAP[n]);
   const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
-  const spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
-  let kind=(()=>{const r=rnd();return r<0.05?'contra':r<0.30?'cross':'own'})(),note='';
+  let spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
+  let carry=null;                                       // 唐物藥種夾帶：先從委託金留出這筆錢，再做主要採買
+  if(G.sysKey==='medicine'&&chance(ODDS.voyageKind.carry)){
+    const K=ODDS.voyageKind,it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);
+    const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
+    if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
+  }
+  let kind=rnd()<ODDS.voyageKind.cross?'cross':'own',note='';
   if(kind==='own'&&!ownP.length){if(othP.length){kind='cross';note='【'+(dest?dest.name:'此地')+'】沒有出產你本業的貨，'+MODE_CAPT[mode]+'改買了別行的貨。'}}
   if(kind==='cross'&&!othP.length)kind='own';
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[]};
@@ -5398,19 +5424,18 @@ function resolveVoyage(s,log){
       L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));
       L.push((wreck?'🌊 歸途'+wn+'，損失 '+(q-got)+' 單位，':'')+got+' 單位已入倉。這不是你的本業，得請座客商人代售。')}
     else L.push(NEWS('kind.5',{short:c.short}));
-  }else{
-    const it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),SMUG_CAP,CONTRA_CAP-contraQty())),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
-    if(q>0){contra()[it.k]=(contra()[it.k]||0)+got;G.heat=(G.heat||0)+0.5+it.danger*0.3;
-      L.push(NEWS('kind.6',{mode:MODE_CAPT[mode],name:it.name,q,cost:fmt(cost),got:(wreck?'，'+wn+'只剩 '+got+' 單位':'')}))}
-    else L.push(MODE_CAPT[mode]+'想私買「'+it.name+'」，但密庫已滿，作罷。');
+  }
+  if(carry){                                            // 唐物藥種：夾帶唐船私貨
+    const {it,q,cost}=carry,got=Math.round(q*keep);refund-=cost;
+    contra()[it.k]=(contra()[it.k]||0)+got;G.heat=(G.heat||0)+ODDS.voyageKind.carryHeat*it.danger;
+    L.push(NEWS('kind.6',{mode:MODE_CAPT[mode],name:it.name,q,cost:fmt(cost),got:(wreck?'，'+wn+'只剩 '+got+' 單位':'')}));
   }
   refund=Math.max(0,refund);G.silver+=refund+income;
   L.push(NEWS('kind.7',{fee:fmt(fee),refund:fmt(refund)}));
   E.back=refund+income;
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
-  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':kind==='cross'?'帶回跨行貨':'帶回違禁品'),sea:(wreck?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
+  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':'帶回跨行貨'),sea:(wreck?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
 /* ---------- 商路畫面 ---------- */
@@ -5432,7 +5457,7 @@ function voyagePanel(){
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
   h+='<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'"><div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
-  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
+  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>'+(G.sysKey==='medicine'?'；唐物藥種的船隊常<b>夾帶唐船私貨</b>':'')+'。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
   h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGo')+'</button></div>';
   return h;
 }
@@ -5819,7 +5844,8 @@ SHEETS.flower=()=>{
 /* ======================= 雇員好感：零用錢、保鏢暗殺、手代番頭放火、船長走私 =======================
  *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5，滿 100 後不能再給；每人每旬只能給一次。
  *  - 保鏢好感 100：出現「暗殺」指令，可對認識的人下手。
- *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長只列在河岸碼頭。 */
+ *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長只列在河岸碼頭。
+ *  - 大番頭好感 100：可替你做帳，公款 500 兩轉私房錢、或私房錢 1000 兩轉公款；每次好感 −20，他私吞 5～10%（記入私吞帳，查帳可追回）。不加風聲。 */
 const empAff=e=>{if(e.aff===undefined)e.aff=40;return e.aff};
 /** 好感列＋零用錢鈕；保鏢、船長滿格時另有專屬指令。 */
 function empAffHtml(e,ctx){
@@ -5828,9 +5854,28 @@ function empAffHtml(e,ctx){
     +'<button class="pixel-btn btn-sm" data-act="allow" data-id="'+e.id+'" '+(full||given?'disabled':'')+'>'+(full?UT('btn.allowFull'):given?UT('btn.allowDone'):UT('btn.allow',{c:costBtn('allowance')}))+'</button></div>';
   if(e.rank==='保鏢'&&full)h+=assassinHtml(e);
   if(arsonOK(e))h+=arsonHtml(e);
+  if(e.rank==='大番頭'&&full)h+=chiefBookHtml(e);
   if(e.rank==='船長'&&full)h+='<div class="tiny" style="color:#5b4a70;margin-top:2px">🏴‍☠️ 他對你死心塌地，肯替你跑「走私」（走私）。</div>';
   return h;
 }
+/* ---------- 大番頭做帳：公款與私房錢互轉（好感 100） ---------- */
+const CHIEF_BOOK={toGold:500,toSilver:1000,aff:20,cutMin:0.05,cutMax:0.10};
+function chiefBookHtml(e){
+  const B=CHIEF_BOOK;
+  return '<div class="card" style="margin:4px 0"><b class="small">📒 做帳</b><div class="tiny muted">他願替你把帳做平，不留痕跡。每做一次，好感 -'+B.aff+'。</div>'
+    +'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="chiefBook" data-id="'+e.id+'" data-d="g" '+(G.silver<B.toGold?'disabled':'')+'>公款 '+fmt(B.toGold)+' 兩轉私房錢</button>'
+    +'<button class="pixel-btn btn-sm btn-green" data-act="chiefBook" data-id="'+e.id+'" data-d="s" '+(G.gold<B.toSilver?'disabled':'')+'>私房錢 '+fmt(B.toSilver)+' 兩轉公款</button></div>'+purseTierNote()+'</div>';
+}
+ACT.chiefBook=el=>{
+  const e=G.emps.find(x=>x.id===el.dataset.id),B=CHIEF_BOOK;if(!e||e.rank!=='大番頭'||empAff(e)<100)return;
+  const toGold=el.dataset.d==='g',amt=toGold?B.toGold:B.toSilver;
+  if(toGold?G.silver<amt:G.gold<amt){toast(toGold?'帳上現款不足。':'私房錢不足。');return}
+  const cut=Math.round(amt*(B.cutMin+rnd()*(B.cutMax-B.cutMin))),net=amt-cut;
+  if(toGold){G.silver-=amt;G.gold+=net}else{G.gold-=amt;G.silver+=net}
+  e.skim=(e.skim||0)+cut;e.aff=Math.max(0,empAff(e)-B.aff);
+  sfx.coin();toast('「'+e.name+'」把帳做平了，'+(toGold?'私房錢':'現款')+' +'+fmt(net)+' 兩。（好感 -'+B.aff+'）',3600);
+  UI.render();refreshSheet();
+};
 ACT.allow=el=>{
   const e=G.emps.find(x=>x.id===el.dataset.id);if(!e)return;
   if(empAff(e)>=100){toast(MSG('allow.1'));return}
@@ -6045,7 +6090,7 @@ const WIKI_GUIDE=[
   ['📅 時間與行動','一個月分三旬，一年十二個月。每旬你有固定的行動點數，用來拜訪、請託、辦事；用完也可以直接「推進一旬」。推進時，預定的出貨與進貨會自動辦理，接著日期前進，旬報會告訴你這一旬的收支與大事。'],
   ['📊 大盤買賣','大盤的價格不能自訂，你只能決定出貨多少。總出貨越多，價格越低；而「總出貨」包含全城同業的出貨，同業偶爾還會大舉超賣。這些影響不會一旬就消失，約要三個月（九旬）才完全淡去，所以分批出貨比一次倒完划算。向大盤進貨的價格略低於市價，但每旬能進的量很有限——光靠大盤進出，大致只是打平；真正的利潤來自商路的委託採買。本業最貴的兩項貨，要先向財務官員取得「交易許可」才能買賣。'],
   ['⚖️ 問屋公會（株仲間）','開業時你已是公會成員，擔保金由家中長輩代墊。入會的人向大盤進貨享公會價，沒入會的照市價。每三個月開一次例會：你可以表態遵守配額（公會會幫你穩住行情），或簽暗約偷跑（賺得快，但被發現後果嚴重），也可以退出協議、各憑本事，或提案提高配額。守約卻超量出貨，或偷跑被告發，都會被聯合斷貨，擔保金也會被沒收；同業偷跑被抓也一樣。沒收的擔保金每九旬平分給守約的人。退出或被抓之後，要到下一次例會重新押擔保金才能入會。大番頭可以代你出席例會。'],
-  ['🚢 商路與委託採買','船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的進港泊位許可與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比大盤便宜，商才越高買得越多越省，當地產好幾樣本業貨時，委託金與運量平均分給每一樣；偶爾帶回別行的便宜貨，要請座客商人代售；極少數會私買違禁品。每次委託要親自到碼頭交代，扣一次行動。路上有海難與山賊，往返要等上幾旬。'],
+  ['🚢 商路與委託採買','船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的進港泊位許可與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比大盤便宜，商才越高買得越多越省，當地產好幾樣本業貨時，委託金與運量平均分給每一樣；偶爾帶回別行的便宜貨，要請座客商人代售；唐物藥種的船隊還常夾帶唐船私貨。每次委託要親自到碼頭交代，扣一次行動。路上有海難與山賊，往返要等上幾旬。'],
   ['🤝 人脈','官吏、同業、名士、花街名伶，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，官吏也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。'],
   ['👥 店員','丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，能替你延續上旬的買賣安排、出席例會、每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳，要記得查帳。保鏢平時守倉庫，出門時護著你。每種店員一開始都只能雇一名，要多雇得先向官府申請許可。'],
   ['🏛️ 官府','城裡有行政、財務、司法三院，上面還有管整個地區的遠國奉行所。他們掌管許可、稅賦、查緝與審判：行政院核發倉地、船株與人別帳，財務院核發交易許可、馬幫株並放貸，司法院核發帶刀許可、袖之下與減罪狀。許可分等級，官階越高的官員給得越多。官吏有各自的性格與弱點，打通關節能少很多麻煩，但也有人會反過來勒索。詳見「官吏」分頁。'],

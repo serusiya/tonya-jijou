@@ -2,7 +2,8 @@
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
- *   70% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；25% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）；5% 私買違禁品（入密庫）。
+ *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
+ *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫，風聲 +0.2 × 危險度）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_CAPT={sea:'船長',land:'飛腳'};
@@ -48,8 +49,14 @@ function resolveVoyage(s,log){
   const prod=(dest?dest.connected_commodities:[]).filter(n=>COMM_MAP[n]);
   const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
-  const spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
-  let kind=(()=>{const r=rnd();return r<0.05?'contra':r<0.30?'cross':'own'})(),note='';
+  let spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
+  let carry=null;                                       // 唐物藥種夾帶：先從委託金留出這筆錢，再做主要採買
+  if(G.sysKey==='medicine'&&chance(ODDS.voyageKind.carry)){
+    const K=ODDS.voyageKind,it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);
+    const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
+    if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
+  }
+  let kind=rnd()<ODDS.voyageKind.cross?'cross':'own',note='';
   if(kind==='own'&&!ownP.length){if(othP.length){kind='cross';note='【'+(dest?dest.name:'此地')+'】沒有出產你本業的貨，'+MODE_CAPT[mode]+'改買了別行的貨。'}}
   if(kind==='cross'&&!othP.length)kind='own';
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[]};
@@ -85,19 +92,18 @@ function resolveVoyage(s,log){
       L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));
       L.push((wreck?'🌊 歸途'+wn+'，損失 '+(q-got)+' 單位，':'')+got+' 單位已入倉。這不是你的本業，得請座客商人代售。')}
     else L.push(NEWS('kind.5',{short:c.short}));
-  }else{
-    const it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),SMUG_CAP,CONTRA_CAP-contraQty())),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
-    if(q>0){contra()[it.k]=(contra()[it.k]||0)+got;G.heat=(G.heat||0)+0.5+it.danger*0.3;
-      L.push(NEWS('kind.6',{mode:MODE_CAPT[mode],name:it.name,q,cost:fmt(cost),got:(wreck?'，'+wn+'只剩 '+got+' 單位':'')}))}
-    else L.push(MODE_CAPT[mode]+'想私買「'+it.name+'」，但密庫已滿，作罷。');
+  }
+  if(carry){                                            // 唐物藥種：夾帶唐船私貨
+    const {it,q,cost}=carry,got=Math.round(q*keep);refund-=cost;
+    contra()[it.k]=(contra()[it.k]||0)+got;G.heat=(G.heat||0)+ODDS.voyageKind.carryHeat*it.danger;
+    L.push(NEWS('kind.6',{mode:MODE_CAPT[mode],name:it.name,q,cost:fmt(cost),got:(wreck?'，'+wn+'只剩 '+got+' 單位':'')}));
   }
   refund=Math.max(0,refund);G.silver+=refund+income;
   L.push(NEWS('kind.7',{fee:fmt(fee),refund:fmt(refund)}));
   E.back=refund+income;
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
-  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':kind==='cross'?'帶回跨行貨':'帶回違禁品'),sea:(wreck?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
+  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':'帶回跨行貨'),sea:(wreck?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
 /* ---------- 商路畫面 ---------- */
@@ -119,7 +125,7 @@ function voyagePanel(){
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
   h+='<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'"><div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
-  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>；極少數情況會<b>私買違禁品</b>。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
+  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>'+(G.sysKey==='medicine'?'；唐物藥種的船隊常<b>夾帶唐船私貨</b>':'')+'。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
   h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGo')+'</button></div>';
   return h;
 }
