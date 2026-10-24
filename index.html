@@ -414,22 +414,22 @@ function compat(cidA,cidB){return compatOfTops(top3(cidA),top3(cidB))}
 const trustFactor=aff=>clamp(aff/60,0.4,1.5);
 
 /* ---------- 七大問屋流派 ---------- */
-/** 七大問屋流派：開局資金、特色與適用的物品系統。新增流派在此加一筆。 */
+/** 七大問屋流派：開局資金、特色與適用的物品系統。越往下起手資源越多（applyStartBoost 依順序累加）；perk＝開局畫面的短語，res＝百科裡的完整起手資源。新增流派在此加一筆。 */
 const SYS=[
   {key:'timber',match:'山林竹木',name:'材木問屋',style:'豪賭型',firm:'三河屋',silver:8000,gold:8,
-    tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家'},
-  {key:'grain',match:'糧穀與油料',name:'米問屋',style:'政治壓力型',firm:'鴻池屋',silver:7000,gold:6,
-    tip:'薄利多銷，主食漲價易生暴動。',perk:'員工初備'},
-  {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:6500,gold:6,
-    tip:'鮮魚損耗快，必須快進快出。',perk:'家庭圓滿、員工初備'},
-  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'金融軍工型',firm:'住友屋',silver:9000,gold:10,
-    tip:'銅鐵銀金，成敗看官府人脈。',perk:'家庭圓滿、員工充足、航運在手'},
-  {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:8000,gold:8,
-    tip:'產地稀少，靠公會與大盤穩住生意。',perk:'家庭圓滿、員工充足、船隊在手、名望三階'},
-  {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:7500,gold:20,
-    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'財力驚人、名望四階'},
-  {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:28,
-    tip:'賣品味與人情，名士與花街是商路。',perk:'財力驚人、家庭圓滿、員工充足、船隊在手、名望四階'}
+    tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
+  {key:'grain',match:'糧穀與油料',name:'米問屋',style:'政治壓力型',firm:'鴻池屋',silver:8500,gold:10,
+    tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
+  {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:9000,gold:12,
+    tip:'鮮魚損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
+  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'金融軍工型',firm:'住友屋',silver:10000,gold:15,
+    tip:'銅鐵銀金，成敗看官府人脈。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
+  {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
+    tip:'產地稀少，靠公會與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
+  {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
+    tip:'香辛藥材暴利，靠免檢與緝私官員。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
+  {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:1000,
+    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；私房錢充裕，名望四階。'}
 ];
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
 /** 依物品所屬系統名稱，找出對應的流派 key。 */
@@ -1399,7 +1399,8 @@ const MSG_TXT={
   'buyMax.none':'目前無法再進貨（倉庫、額度或現款已到上限）。',
   'sell.shipping':'出貨中……',
   'encGive.noMoney':'{short}，只能不理會。',
-  'plan.quota':'每項都照公會配額出貨，進貨補到配額。',
+  'plan.quota':'每項進貨都照公會配額。',
+  'plan.quotaShort':'每項進貨照公會配額；有幾項受進貨上限、倉位或現款所限，進不足。',
   'plan.clear':'已清除本旬的進貨安排。',
   'sendVoyage.ok':'{crew}「{name}」帶著 {budget} 兩委託金前往【{dest}】，約 {d} 旬後歸來。',
   'voyage.depart':'出發！',
@@ -1789,7 +1790,7 @@ function newGame(sysKey,regionPref){
   G.cityId=pick(cs).id;
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
-  G.trade=startTrade(sysKey);                     // 名望三、四階的流派開局送第二貴貨物的交易許可
+  G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
   initMarket();
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
@@ -3838,11 +3839,11 @@ function refreshTrade(){
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
 function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,G.inv[n]||0);UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
-/** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（出貨設為公會配額，進貨補到下旬開頭約等於配額）、清除（只清進貨）。 */
+/** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為公會配額，出貨不動）、清除（只清進貨）。 */
 function planAllBuy(f){const L=tradeComms();G.buyPlan={};L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
-ACT.planQuota=()=>{G.plan=G.plan||{};tradeComms().forEach(c=>{G.plan[c.name]=Math.min(quotaOf(c.name),G.inv[c.name]||0)});if(G.sold)G.sold={};
-  planAllBuy(n=>quotaOf(n)-Math.max(0,(G.inv[n]||0)-planOf(n))-itemOnOrder(n));UI.s.ship=planOf(UI.s.focus);toast(MSG('plan.quota'));UI.render()};
+ACT.planQuota=()=>{let short=0;planAllBuy(n=>quotaOf(n));tradeComms().forEach(c=>{if((G.buyPlan[c.name]||0)<quotaOf(c.name))short++});
+  toast(MSG(short?'plan.quotaShort':'plan.quota'));UI.render()};
 ACT.planClear=()=>{G.buyPlan={};tradeComms().forEach(c=>{G.buyPlan[c.name]=0});toast(MSG('plan.clear'));UI.render()};
 /** 選取大盤物品。 */
 ACT.focus=el=>{UI.s.focus=el.dataset.n;renderMarket();sfx.tap()};
@@ -4532,8 +4533,8 @@ UI.showStart=function(){
   h+='<div style="text-align:center;font-size:12px;color:#cfc6b6;margin-bottom:10px">20 歲開局。沒有固定的目標，只有一生。</div>';
   if(!sv&&OLD_SAVE_FOUND)h+='<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v'+GAME_VER+' 起已不相容，已清除。請重新開局。</div>';
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
-  h+='<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div>';
-  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'</div></div>').join('');
+  h+='<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div><div class="tiny" style="text-align:center;color:#cfc6b6;margin-bottom:6px">越往下，起手資源越多。</div>';
+  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'：'+s.res+'</div></div>').join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:15px" data-act="begin">'+UT('btn.begin')+'</button>';
   $('#start-inner').innerHTML=h;$('#start').classList.remove('hidden');
 };
@@ -5268,34 +5269,34 @@ function openChat(ent){
 }
 
 /* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6：0 不變；1 介紹人＋兩名店員；2 再加妻小；3 再加海運；4 再加知名度三階；5 僅私房錢 1 萬；6 ＝ 4 加 5（資金為兩者相加）。 */
+/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭。現款與私房錢見 SYS。 */
 function applyStartBoost(sysKey){
   const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
-  const eff=idx===6?[4,5]:[idx],has=f=>eff.some(f);
-  if(has(i=>i===5)){G.gold=10000+(idx===6?SYS[4].gold:0)}
-  if(has(i=>i>=1&&i<=4)){
-    // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
+  if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
     const ns=Object.values(G.world.npcs),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
     if(cand){
       const cid=cand.cid,r=R(cid);r.met=true;r.seen=true;r.aff=Math.max(r.aff,45);r.bond={mult:1,label:'介紹人',introId:null};
       addKnown(cid);G.intros.push({cid});G.introId=cid;logRel(cid,'開業之初，答應當你的介紹人。');
     }
-    // 兩名店員
-    hireEmp(null,'手代');hireEmp(null,'丁稚');
   }
-  if(has(i=>i>=2&&i<=4)){
+  if(idx>=2){hireEmp(null,'手代');hireEmp(null,'丁稚')}
+  if(idx>=3){
     const fn=['阿梅','阿園','小百合','阿花','阿鶴','阿雪','千代','阿初'];
     G.family.spouse={name:pick(fn)+'（町人之女）',kind:'commoner',birthYear:G.year-20};
     G.family.married=true;G.life.spouseKind='commoner';
     const k=newKid();k.birthYear=G.year-2;G.family.kids.push(k);
   }
-  if(has(i=>i>=3&&i<=4)){
+  if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'船長');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
-    // 一趟已在途的海運（委託金由開局贈與）
-    {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}
+    {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(has(i=>i===4))G.fame=Math.max(G.fame||0,ODDS.fame.tiers[1]);
+  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[1]);   // 名望三階（交易許可見 startTrade）
+  if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
+    const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('大番頭')&&!introOf(n.cid));
+    const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];
+    hireEmp(m?m.cid:null,'大番頭');
+  }
 }
 
 'use strict';
@@ -6065,7 +6066,7 @@ function wikiRegions(){
 function wikiGuide(){
   let h='<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>';
   h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]))).join('');
-  h+=wikiBox('gsys','🏪 七種問屋流派','<div class="tiny muted">開局時選擇的流派決定本業貨品、起手資源與玩法側重。</div>'+SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="tiny">'+esc(s.tip)+'</div></div>').join(''));
+  h+=wikiBox('gsys','🏪 七種問屋流派','<div class="tiny muted">開局時選擇的流派決定本業貨品、起手資源與玩法側重。越往下，起手資源越多。</div>'+SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="tiny">'+esc(s.tip)+'</div><div class="tiny muted">起手：'+esc(s.res||s.perk)+'</div></div>').join(''));
   return h;
 }
 function wikiOffice(){
@@ -6372,8 +6373,8 @@ function tradeOK(name){
 }
 /** 本業中目前可交易的貨。 */
 const tradeComms=()=>ownComms().filter(c=>tradeOK(c.name));
-/** 開局交易許可：名望三階、四階的流派，送第二貴貨物的許可。 */
-function startTrade(sysKey){const S=SYS_BY_KEY[sysKey];return /名望[三四]階/.test(S.perk||'')?[lockedTrade(sysKey)[1]]:[]}
+/** 開局交易許可：第六、七個流派（唐物藥種、陶磁雅玩）送第二貴貨物的許可。 */
+function startTrade(sysKey){return SYS.findIndex(s=>s.key===sysKey)>=5?[lockedTrade(sysKey)[1]]:[]}
 /** 交易許可的請託名稱（帶上貨名）。 */
 const tradeFavorName=idx=>'交易許可：'+COMM_MAP[lockedTrade()[idx]].short;
 /** 尚未許可時的提示（大盤用）。 */
