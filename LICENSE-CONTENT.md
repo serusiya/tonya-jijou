@@ -1,22 +1,55 @@
-# 內容授權：CC BY 4.0
+# 《問屋事情》內容授權
 
-《問屋事情》的文字、劇情、台詞、人物與城市設定、商品資料與圖像，
-採用 **創用 CC 姓名標示 4.0 國際（CC BY 4.0）** 授權。
+Copyright © 2026 陳建安（serusiya）
 
-- 授權條款全文：https://creativecommons.org/licenses/by/4.0/legalcode.zh-hant
-- 白話摘要：https://creativecommons.org/licenses/by/4.0/deed.zh-hant
+## 一、適用範圍
 
-## 你可以
+本授權適用於《問屋事情》中**由作者創作或主導編排**的下列內容（以下稱「本作內容」）：
 
-- 分享：以任何媒介或格式重製、散布
-- 改作：重混、轉換、據以創作，包含商業用途
+- 文字、劇情、台詞、新聞與訊息文字
+- 人物名冊、人物設定與性格、弱點等資料（`chars.json`）
+- 城市與地區設定（`cities.json`）
+- 商品資料與說明（`commodities.json`、`commodity_info.json`）
+- 官制與官職設定（`officials.json`）
+- 遊戲設計文件（`DESIGN_NOTES.md`）
+- 由作者繪製或產生的圖像
 
-## 條件
+程式碼（`build/js/`、`build.py`、`body.html`、`style.css` 等）另依 GNU General Public License v3.0 授權，見 `LICENSE`。
 
-- **姓名標示**：註明作者、提供授權連結，並說明是否已修改。
+## 二、授權條款：CC BY-NC-SA 4.0
 
-署名範例：
+本作內容採用**創用 CC 姓名標示─非商業性─相同方式分享 4.0 國際**授權條款（CC BY-NC-SA 4.0）。
 
-> 《問屋事情》，https://github.com/serusiya/tonya-jijou，採 CC BY 4.0 授權。
+- 授權條款摘要：https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant
+- 法律全文：https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.zh-hant
 
-程式碼部分請見 [LICENSE](LICENSE)（MIT）。
+在遵守下列條件時，你可以自由**分享**（以任何媒介或格式重製、散布）與**改作**（重混、轉換、以本作內容為基礎另行創作）：
+
+1. **姓名標示**：須標示作者姓名、作品名稱、來源連結與授權條款，並註明是否做過修改。
+2. **非商業性**：不得將本作內容用於商業目的，包括販售、付費下載、內購、置入廣告營利，或上架於收費商店。
+3. **相同方式分享**：改作後的內容，須以相同的 CC BY-NC-SA 4.0 條款釋出。
+
+建議的標示方式：
+
+> 本作使用《問屋事情》（陳建安，https://github.com/serusiya/tonya-jijou ）的內容，依 CC BY-NC-SA 4.0 授權；已修改／未修改。
+
+商業使用請另行聯絡作者取得書面同意。
+
+## 三、名稱與標誌
+
+「問屋事情」名稱、標題字樣與標誌**不在本授權範圍內**，作者保留一切權利。未經書面同意，不得以此名稱或容易混淆的名稱發行、上架或宣傳其他作品（包括本作的改作版本）。改作版本請改用其他名稱，並說明改自《問屋事情》。
+
+## 四、第三方素材（不適用本授權）
+
+下列素材不屬於作者所有，依其原授權條款使用：
+
+| 素材 | 來源 | 授權 |
+|---|---|---|
+| 字型 DotGothic16 | Google Fonts（Fontworks Inc.） | SIL Open Font License 1.1 |
+| `street.jpg` | 【請填入來源】 | 【請填入授權】 |
+
+## 五、關於 AI 輔助創作
+
+本作在開發過程中使用 AI 工具輔助撰寫程式與部分文字、資料。本作之遊戲設計、規則、數值、取捨與整體編排均由作者主導並逐項審定（設計過程記錄於 `DESIGN_NOTES.md`）。
+
+各國對 AI 生成內容的著作權認定尚未一致；作者僅在其依法享有權利的範圍內授權。對於依法不受著作權保護的部分，本授權不構成任何權利主張，但第三節關於名稱的保留仍然適用。
