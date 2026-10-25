@@ -2,7 +2,7 @@
 /* ======================= 配樂：江戶風 WebAudio 音序器 =======================
  *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器]（音高 0＝休止），即時合成。
  *  - 樂器：koto 箏、kotoLow 低音箏、shami 三味線、fue 笛、taiko 大太鼓、shime 締太鼓、ka 鼓邊、kane 鉦。
- *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）；皆依祭典囃子形式編排，非特定曲目。
+ *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）；皆依祭典囃子形式編排，非特定曲目。
  *  - 播放採預排：每 25 毫秒把接下來 0.25 秒內的音符排進時間軸，循環播放；換曲時淡出淡入。
  *  - 設定（音樂開關、音效開關、音量）存在本機瀏覽器（AUDIO_KEY），屬個人偏好，不寫進存檔。
  *  - 手機瀏覽器要在使用者點擊之後才能出聲：開局／繼續人生時開始播放，之後任何點擊都會喚醒。 */
@@ -98,10 +98,40 @@ function songVisit(){
    .forEach(([m,s,d])=>notes.push([m,s,d,'fue']));
   return {bpm:112,len:32,notes};
 }
-const SONGS={market:songMarket,visit:songVisit};
+/** 《暖簾囃子》（片頭，人生終章）：D 調，十六小節。
+ *  1～4 小節：箏獨奏引子（陽音階）；5～8：笛入，放慢的《市井囃子》開頭動機；
+ *  9～12：借《登門囃子》的都節色彩（降 E、降 B），三味線頑固低音，略帶緊張；
+ *  13～16：回到陽音階，全員齊奏收束，末小節太鼓連打，接回開頭循環。 */
+function songTitle(){
+  const A2=45,D3=50,E3=52,G3=55,A3=57,B3=59,D4=62,Eb4=63,E4=64,G4=67,A4=69,Bb4=70,B4=71,C5=72,D5=74,E5=76,G5=79,A5=81;
+  const notes=[],N=(m,s,d,i)=>notes.push([m,s,d,i]);
+  // 1～4：箏引子（分散和弦，低音箏打根音）
+  const intro=[[D4,A4,D5,E5,D5,A4,G4,A4],[B3,G4,B4,D5,B4,A4,G4,E4],[A3,E4,A4,B4,A4,G4,E4,D4],[D4,A4,D5,G5,E5,D5,B4,A4]];
+  intro.forEach((arp,bar)=>{const b=bar*4;arp.forEach((m,k)=>N(m,b+k*0.5,0.6,'koto'));N([D3,G3,A2,D3][bar],b,4,'kotoLow')});
+  N(0,0,1,'kane');N(0,12,1,'taiko');N(0,14,1,'taiko');N(0,15,1,'taiko');N(0,15.5,1,'taiko');
+  // 5～8：笛奏放慢的《市井囃子》動機，箏伴奏
+  [[D5,16,.5],[E5,16.5,.5],[D5,17,1],[B4,18,1],[A4,19,1],[G4,20,1],[A4,21,.5],[B4,21.5,.5],[A4,22,2],
+   [D5,24,.5],[E5,24.5,.5],[G5,25,1],[E5,26,1],[D5,27,1],[B4,28,1],[D5,29,1],[E5,30,2]].forEach(([m,s,d])=>N(m,s,d,'fue'));
+  [[D3,A3,D4,A3],[G3,D4,G4,D4],[D3,A3,D4,A3],[A2,E3,A3,E3]].forEach((r,i)=>{const b=16+i*4;r.forEach((m,k)=>N(m,b+k,1,'kotoLow'))});
+  for(let b=16;b<32;b+=4){N(0,b,1,'taiko');N(0,b+2,1,'ka');N(0,b,1,'kane');N(0,b+2,1,'kane')}
+  // 9～12：都節色彩，三味線頑固低音
+  for(let bar=8;bar<12;bar++){const b=bar*4;
+    (bar===11?[D3,A3,D4,A3,Eb4,D4,A3,D4]:[D3,A3,D4,A3,Eb4,A3,D4,A3]).forEach((m,k)=>N(m,b+k*0.5,0.5,'shami'));
+    N(0,b,1,'taiko');N(0,b+0.5,1,'ka');N(0,b+2,1,'taiko');N(0,b+3,1,'ka');[0.5,1.5,2.5,3.5].forEach(o=>N(0,b+o,1,'shime'))}
+  [[A4,32,1],[Bb4,33,.5],[A4,33.5,.5],[G4,34,1],[Eb4,35,1],[D4,36,3],[G4,40,1],[A4,41,1],[Bb4,42,1],[D5,43,1],[C5,44,1],[Bb4,45,1],[A4,46,2]].forEach(([m,s,d])=>N(m,s,d,'fue'));
+  // 13～16：回陽音階，全員收束
+  [[G5,48,1],[E5,49,.5],[D5,49.5,.5],[B4,50,1],[D5,51,1],[E5,52,1],[D5,53,.5],[B4,53.5,.5],[A4,54,2],
+   [G4,56,.5],[A4,56.5,.5],[B4,57,1],[A4,58,.5],[G4,58.5,.5],[E4,59,1],[D4,60,3]].forEach(([m,s,d])=>N(m,s,d,'fue'));
+  [[G5,48],[E5,52],[B4,56],[D5,60]].forEach(([m,s])=>N(m,s,1.5,'koto'));
+  [G3,A2,G3,D3].forEach((r,i)=>{const b=48+i*4;[r,r+7,r+12,r+7,r,r+7,r+12,r+7].forEach((m,k)=>N(m,b+k*0.5,0.5,'shami'))});
+  for(let b=48;b<60;b+=4){[0,2,2.5].forEach(o=>N(0,b+o,1,'taiko'));[1,3,3.5].forEach(o=>N(0,b+o,1,'ka'));[0,1,2,3].forEach(o=>N(0,b+o,1,'kane'))}
+  [0,0.5,1,1.5,2,2.25,2.5,2.75,3,3.25,3.5,3.75].forEach(o=>N(0,60+o,1,o<2?'taiko':'shime'));N(0,60,1,'kane');N(A5,63,1,'koto');
+  return {bpm:96,len:64,notes};
+}
+const SONGS={market:songMarket,visit:songVisit,title:songTitle};
 
 /* ======================= 播放 ======================= */
-/** 想播的曲子（market／visit）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
+/** 想播的曲子（market／visit／title；null＝停止）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
 function musicWant(key){MUS.want=key;musicSync()}
 /** 依設定與想播的曲子，開始、換曲或停止。 */
 function musicSync(){
@@ -135,7 +165,7 @@ function audioSettingsHtml(){
   const sw=(k,on,lb)=>'<button class="pixel-btn btn-sm '+(on?'btn-gold':'')+'" data-act="audioToggle" data-k="'+k+'" style="flex:1">'+lb+'：'+(on?'開':'關')+'</button>';
   return '<div class="card"><b class="small">🎵 聲音</b><div class="row" style="gap:6px;margin-top:5px">'+sw('music',AUDIO.music,'音樂')+sw('sfx',AUDIO.sfx,'音效')+'</div>'
     +'<div class="row small" style="gap:6px;margin-top:6px"><span>音量</span><input type="range" min="0" max="100" value="'+AUDIO.vol+'" data-audio="vol" style="flex:1"><b id="audio-vol">'+AUDIO.vol+'</b></div>'
-    +'<div class="tiny muted" style="margin-top:3px">主畫面《市井囃子》、拜訪《登門囃子》。設定只存在這台裝置的瀏覽器。</div></div>';
+    +'<div class="tiny muted" style="margin-top:3px">主畫面《市井囃子》、拜訪《登門囃子》、人生終章《暖簾囃子》。設定只存在這台裝置的瀏覽器。</div></div>';
 }
 ACT.audioToggle=el=>{const k=el.dataset.k;AUDIO[k]=!AUDIO[k];audioSave();audioApply();musicSync();if(AUDIO.sfx)sfx.tap();refreshSheet()};
 document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.audio==='vol'){AUDIO.vol=+e.target.value;const v=$('#audio-vol');if(v)v.textContent=AUDIO.vol;audioApply();audioSave()}});

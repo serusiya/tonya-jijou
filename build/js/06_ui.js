@@ -302,24 +302,26 @@ function planOf(name){
   if(G.plan[name]===undefined)G.plan[name]=Math.min(nEmp('大番頭')&&G.lastShip&&G.lastShip[name]!==undefined?G.lastShip[name]:quotaOf(name),have);   // 有大番頭：延續上旬的出貨量
   return clamp(G.plan[name],0,have);
 }
-/** 【穩定供貨線】本城該物品需求 × 你的市佔率（至少 1）。出貨量達此線才算穩定供貨。 */
-function supplyLine(name){const sh=(G.share&&G.share.me)||0.05;return Math.max(1,Math.round((G.mk[name].D||0)*sh*supplyCut()))}
+/** 【穩定供貨線】本城該物品需求 × 你的市佔率，四捨五入（可以是 0：冷門奢侈品在小城常如此）。出貨量達此線才算穩定供貨；0 的貨不列入判定。 */
+function supplyLine(name){const sh=(G.share&&G.share.me)||0.05;return Math.max(0,Math.round((G.mk[name].D||0)*sh*supplyCut()))}
 /** 推進一旬前，對本旬沒按『出貨』的物品自動按預定量出貨，並清空本旬計畫。 */
 function autoShip(log){
   G.sold=G.sold||{};G.plan=G.plan||{};
   const rep={rev:0,ship:[],fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
   G.publicSpend={};
-  const own=tradeComms();let short=[],allMet=own.length>0;          // 未取得交易許可的貨不算進穩定供貨線
+  const own=tradeComms();let short=[],squeeze=[],judged=0,allMet=true;          // 未取得交易許可的貨不算進穩定供貨線
   own.forEach(c=>{
     const quota=quotaOf(c.name),have=G.inv[c.name]||0;
     const q=planOf(c.name);let shipped=0;
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
-    /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨 */
-    if(shipped<supplyLine(c.name)){short.push(c.short);allMet=false}
+    /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
+       已入會（守約或暗約）、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未入會）＝出貨不足 */
+    const line=supplyLine(c.name);if(line>0)judged++;
+    if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未入會沒有配額約束，一律算出貨不足
   });
   /* 穩定供貨：全部商品出貨量達穩定供貨線 → 知名度 +1～3；有商品未達 → -1～3 */
-  if(short.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short}
-  else if(allMet)rep.fame=1+Math.floor(rnd()*3);
+  if(short.length||squeeze.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short;rep.squeeze=squeeze}   // 兩種扣分相同
+  else if(allMet&&judged>0)rep.fame=1+Math.floor(rnd()*3);   // 沒有任何一項貨的供貨線 ≥1：這一旬不判定
   if(rep.fame)G.fame=clamp((G.fame||0)+rep.fame,0,ODDS.fame.cap);
   if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}

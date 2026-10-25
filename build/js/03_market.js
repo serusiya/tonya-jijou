@@ -10,7 +10,7 @@
 /** 打毀指標：白米與粗鹽。 */
 const STAPLE_KEYS=['白米（精製越光米）','赤穗天然曬制粗鹽'];
 /** 節慶期間需求暴增的物品關鍵字。 */
-const FEST_KW=['清酒','菜籽','麻油','鯨油','棉布','錦緞','醬油','味醂'];
+const FEST_KW=['菜籽','麻油','鯨油','棉布','錦緞'];
 /** （舊）地區相鄰表；目前距離改由 REGION_XY 座標計算。 */
 const REGION_ADJ={reg_central:['reg_east','reg_west','reg_north'],reg_east:['reg_central','reg_north'],reg_west:['reg_central','reg_south'],reg_south:['reg_west'],reg_north:['reg_central','reg_east']};
 
@@ -168,8 +168,8 @@ function quoteSale(name,qty){
   const p=priceNow(name,tot);const mult=empMult();
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
-/** 每旬向大盤進貨上限＝公會配額×倍數（基本 0.8，番頭加成；委託採買不受限）。 */
-const buyLimit=name=>Math.max(1,Math.ceil(quotaOf(name)*buyLimitMult()));             // 每旬大盤進貨上限＝公會配額×(0.8＋番頭加成)，無條件進位（大番頭也算一名番頭）
+/** 每旬向大盤進貨上限＝（本城需求×你的市佔率＋公會配額）×（0.8＋番頭加成），無條件捨去，至少 1；入會與否相同（委託採買不受限）。市佔率上升，能進的貨跟著增加；大番頭也算一名番頭。 */
+const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05;return Math.max(1,Math.floor(((G.mk[name].D||0)*sh+quotaOf(name))*buyLimitMult()))};
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -237,6 +237,7 @@ const EVENTS=[
   {w:ODDS.eventW.harvest,seasons:['秋'],f(){setEv(c=>c.name.includes('白米')||c.name.includes('大麥'),0.72);return NEWS('setEv.3')}},
   {w:ODDS.eventW.typhoon,seasons:['夏','秋'],f(){setEv(c=>c.name.includes('鹽')||c.name.includes('鮮魚'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});return NEWS('setEv.4')}},
   {w:ODDS.eventW.plague,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);return NEWS('setEv.5')}},
+  {w:ODDS.eventW.military,seasons:['春','夏','秋','冬'],f(){setEv(c=>/銅錠|鐵錠|硫磺/.test(c.name),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
   {w:ODDS.eventW.sword,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
   {w:ODDS.eventW.flower,seasons:['春','夏','秋','冬'],f(){return NEWS('setEv.7')}},
   {w:ODDS.eventW.dump,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.sys===G.sysKey,0.82);return NEWS('setEv.8')}},
@@ -267,21 +268,19 @@ function inspection(){
   }
   return NEWS('inspection.3');
 }
-/** 事件：官員失勢，由遞補者接任，原有交情歸零。 */
+/** 事件：政敵拿你和交好官員（好感 ≥30）的往來做文章，他受你牽連遭申斥：好感扣七成（可能成仇），官職不變；好感見底時可能把罪責推給你。 */
 function officialFall(){
   const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30);
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
-  const loss=Math.round(r.aff*0.7);r.aff-=loss;r.bond&&(r.bond.label=r.bond.label);
-  const nm=nameOf(n.cid);logRel(n.cid,'因政爭失勢遭免職，交情盡失。');
-  if(r.aff<10&&roll('fallScapegoat')){
+  const loss=Math.round(r.aff*0.7);r.aff-=loss;                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
+  const nm=nameOf(n.cid);logRel(n.cid,'受你牽連遭上司申斥，好感 -'+loss+'。');
+  if(r.aff<10&&roll('fallScapegoat')){                             // 好感見底：為求自保，把罪責推到你頭上
     const fine=Math.round(Math.max(0,G.silver)*0.04);G.silver-=fine;loseFame('scapegoat');
-    G.life.scapegoat++;
-    const rep=replaceOfficial(n);if(rep){addKnown(rep)}delete G.world.npcs[n.cid];
-    return NEWS('officialFall.2',{nm,fine:fmt(fine),rep:(rep?'後任為「'+nameOf(rep)+'」。':'')});
+    G.life.scapegoat++;logRel(n.cid,'為求自保，把罪責推到你頭上。');
+    return NEWS('officialFall.2',{nm,fine:fmt(fine)});
   }
-  const rep=replaceOfficial(n);if(rep){addKnown(rep)}delete G.world.npcs[n.cid];
-  return NEWS('officialFall.3',{nm,rep:(rep?'後任為「'+nameOf(rep)+'」。':'')});
+  return NEWS('officialFall.3',{nm});
 }
 /** 事件：官員索賄，不理會會影響交情或衍生麻煩。 */
 function officialExtort(){
@@ -392,7 +391,7 @@ function riot(log){
   const gf=1-Math.min(0.4,0.12*guardCount());let tot=0;
   Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.staple?0.5:0.25)*gf);G.inv[n]-=l;tot+=l});
   Object.keys(G.mk).forEach(n=>{if(COMM_MAP[n].staple)G.mk[n].ev=Math.max(1,G.mk[n].ev*0.7)});
-  let t=NEWS('riot.1',{tot});
+  let t=NEWS('riot.1')+(tot>0?NEWS('riot.loss',{tot}):NEWS('riot.safe'));   // 搶走 0 單位時不寫損失
   const staple=G.sysKey==='grain'||G.sysKey==='marine';
   const best=Object.entries(G.rel).filter(([id])=>npc(id)&&npc(id).role==='official').reduce((a,[,r])=>Math.max(a,r.aff),0);
   const RS_=ODDS.riotScapegoat,p=clamp((staple?RS_.staple:RS_.other)-best/RS_.affDiv,RS_.min,RS_.max);
@@ -579,7 +578,7 @@ function advanceTurn(){
   if(newYear){yearEndParty(log);yearTick(log)}                // 年底先辦忘年會（記錄上一年），再做新年結算
   if(G.silver<-3000&&!G.ended)endLife('bankrupt');
   enemyTick(log);
-  officialMigrate();                              // 本旬若有官員病故、失勢、遭害或調走，旬末補上空缺
+  officialMigrate();                              // 本旬若有官員病故、遭害或調走，旬末補上空缺
   exileTick(log);
   raidTick(log);
   inspectTick(log);

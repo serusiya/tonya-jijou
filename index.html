@@ -684,7 +684,7 @@ const ODDS={
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
   rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數（入會者的公會價；未入會照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
-  buyLimit:{name:'大盤進貨上限（公會配額的倍數；番頭與大番頭每人加成；無條件進位）',mult:0.8,perBantou:0.3},
+  buyLimit:{name:'大盤進貨上限（（需求×市佔率＋公會配額）的倍數；番頭與大番頭每人加成；無條件捨去，至少 1）',mult:0.8,perBantou:0.3},
   chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
@@ -1471,9 +1471,11 @@ const NEWS_TXT={
   /* —— invUpkeep —— */
   "invUpkeep.1":"🔥【倉庫失火】易燃貨物起火，連環波及，共燒毀 {tot} 單位貨物！（保鏢可降低機率）",
   /* —— riot —— */
-  "riot.1":"🔥【打毀】主食與鹽價居高不下，市民憤而暴動搶倉！商號倉庫被搶走 {tot} 單位貨物。奉行所開倉平準。",
-  "riot.2":" 奉行所拿囤積居奇的商號開刀，你被當成替罪羊，罰銀 {fine} 兩，知名度 -8！",
-  "riot.3":" 幸而官場靠山護住了你，替罪羊另有其人。",
+  "riot.1":"🔥【打毀】主食與鹽價居高不下，市民憤而暴動搶倉，奉行所開倉平準。",
+  "riot.loss":"商號倉庫被搶走 {tot} 單位貨物。",
+  "riot.safe":"所幸商號倉庫沒有損失。",
+  "riot.2":"官府拿囤積居奇的商號開刀，你被當成替罪羊，罰銀 {fine} 兩，知名度 -8！",
+  "riot.3":"幸而官場靠山護住了你，替罪羊另有其人。",
   /* —— shipsTick —— */
   "shipsTick.1":"⛵【到貨】{name}「{short}」{q} 單位運抵入倉{q2}。",
   /* —— cityTick —— */
@@ -1968,8 +1970,8 @@ function quoteSale(name,qty){
   const p=priceNow(name,tot);const mult=empMult();
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
-/** 每旬向大盤進貨上限＝公會配額×倍數（基本 0.8，番頭加成；委託採買不受限）。 */
-const buyLimit=name=>Math.max(1,Math.ceil(quotaOf(name)*buyLimitMult()));             // 每旬大盤進貨上限＝公會配額×(0.8＋番頭加成)，無條件進位（大番頭也算一名番頭）
+/** 每旬向大盤進貨上限＝（本城需求×你的市佔率＋公會配額）×（0.8＋番頭加成），無條件捨去，至少 1；入會與否相同（委託採買不受限）。市佔率上升，能進的貨跟著增加；大番頭也算一名番頭。 */
+const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05;return Math.max(1,Math.floor(((G.mk[name].D||0)*sh+quotaOf(name))*buyLimitMult()))};
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -2191,7 +2193,7 @@ function riot(log){
   const gf=1-Math.min(0.4,0.12*guardCount());let tot=0;
   Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.staple?0.5:0.25)*gf);G.inv[n]-=l;tot+=l});
   Object.keys(G.mk).forEach(n=>{if(COMM_MAP[n].staple)G.mk[n].ev=Math.max(1,G.mk[n].ev*0.7)});
-  let t=NEWS('riot.1',{tot});
+  let t=NEWS('riot.1')+(tot>0?NEWS('riot.loss',{tot}):NEWS('riot.safe'));   // 搶走 0 單位時不寫損失
   const staple=G.sysKey==='grain'||G.sysKey==='marine';
   const best=Object.entries(G.rel).filter(([id])=>npc(id)&&npc(id).role==='official').reduce((a,[,r])=>Math.max(a,r.aff),0);
   const RS_=ODDS.riotScapegoat,p=clamp((staple?RS_.staple:RS_.other)-best/RS_.affDiv,RS_.min,RS_.max);
@@ -3932,9 +3934,9 @@ function autoShip(log){
     const q=planOf(c.name);let shipped=0;
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
     /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
-       配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘＝出貨不足 */
+       已入會（守約或暗約）、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未入會）＝出貨不足 */
     const line=supplyLine(c.name);if(line>0)judged++;
-    if(line>0&&shipped<line){(quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}
+    if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未入會沒有配額約束，一律算出貨不足
   });
   /* 穩定供貨：全部商品出貨量達穩定供貨線 → 知名度 +1～3；有商品未達 → -1～3 */
   if(short.length||squeeze.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short;rep.squeeze=squeeze}   // 兩種扣分相同
@@ -4117,7 +4119,7 @@ SHEETS.guild=()=>{
   const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
   h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%" '+(C.state==='none'?'disabled':'')+'>'+UT(mem?'btn.cartel3Lose':'btn.cartel3')+'</button></div>';
   const rv=cityNpcs(G.cityId,'rival');
-  h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.slice(0,6).map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
+  h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
   return {title:'⚖️ 問屋公會·株仲間會所',html:h};
 };
 /** 配額提案成功率：30%＋前三名同行交情平均×0.5（最高 80%）。 */
@@ -5063,7 +5065,7 @@ const confessP=loyal=>clamp(ODDS.confess.base-loyal/ODDS.confess.loyalDiv,ODDS.c
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
  * - 手代：出貨價小幅加成（上限 +4%）、穩定供貨線略降。 番頭：只加大大盤進貨上限。
- * - 大番頭：延續上旬的出貨與進貨數量、代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
+ * - 大番頭：延續上旬的出貨與進貨數量、已入會時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
@@ -5071,7 +5073,7 @@ const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
-  大番頭:'總管：也算一名番頭，大盤進貨上限加大；替你延續上旬的出貨與進貨數量、代出席公會例會（未入會時替你押擔保金入會）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
+  大番頭:'總管：也算一名番頭，大盤進貨上限加大；替你延續上旬的出貨與進貨數量、已入會時代出席公會例會（脫離公會後不代席，入會要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
@@ -5081,7 +5083,7 @@ const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsO
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
 /** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
 function tellerBonus(){const t=tempHelp();return Math.min(0.04,empsOf('手代').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
-/** 大盤進貨上限倍數（公會配額的幾倍）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
+/** 大盤進貨上限倍數（乘在「需求×市佔率＋公會配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
 const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('番頭').concat(empsOf('大番頭')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('手代')+(tempHelp()===null?0:2)));
@@ -5146,15 +5148,15 @@ function chiefGuildTick(log){
   if(!nEmp('大番頭'))return;
   chiefGuild(log);
 }
-/** 代出席例會：到期的例會自動出席；尚未表態則表態守配額，並照常提案提高配額一次。 */
+/** 代出席例會：已入會（守約或暗約）時，到期的例會自動出席並提案提高配額一次；未入會（自己退出或被查獲）不代席，入會要東家自己去。 */
 function chiefGuild(log){
   if(G.turn-(G.guildAt===undefined?-99:G.guildAt)<GUILD_GAP)return;
   const C=G.cartel,b=empsOf('大番頭')[0];
+  if(!guildMember())return;                       // 未入會：不出席、不替你入會
   G.guildAt=G.turn;C.tried=false;C.paid=true;
   let stance;
   guildEnsure();
-  if(C.state==='none'||!C.state){if(G.silver>=costOf('guildBond')){guildJoin(true);C.state='pledged';C.comp=Math.min(90,C.comp+3);stance='押上擔保金 '+fmt(costOf('guildBond'))+' 兩，表態遵守配額'}else stance='現款付不出擔保金，暫不入會'}
-  else stance=C.state==='secret'?'維持暗約立場':'重申遵守配額';
+  stance=C.state==='secret'?'維持暗約立場':'重申遵守配額';
   let t=NEWS('chief.guild',{stance});pushNews(t);log.push(t);
   C.tried=true;
   if(rnd()<quotaRaiseChance()){
@@ -6045,10 +6047,10 @@ const WIKI_GUIDE=[
   ['🏮 你是誰、要做什麼','你是江戶中盤的一名「問屋」（批發商）。從一間小商號起家，向產地與同行進貨、賣給城裡的零售與工坊，累積現款、聲望與人脈。年歲漸長，家業要傳給後人——每一代都有一生的故事，最後留下什麼，由你決定。'],
   ['📅 時間與行動','一個月分三旬，一年十二個月。每旬你有固定的行動點數，用來拜訪、請託、辦事；用完也可以直接「推進一旬」。推進時，預定的出貨與進貨會自動辦理，接著日期前進，旬報會告訴你這一旬的收支與大事。'],
   ['📊 大盤買賣','大盤的價格不能自訂，你只能決定出貨多少。總出貨越多，價格越低；而「總出貨」包含全城同業的出貨，同業偶爾還會大舉超賣。這些影響不會一旬就消失，約要三個月（九旬）才完全淡去，所以分批出貨比一次倒完划算。向大盤進貨的價格略低於市價，但每旬能進的量很有限——光靠大盤進出，大致只是打平；真正的利潤來自商路的委託採買。本業最貴的兩項貨，要先向財務官員取得「交易許可」才能買賣。'],
-  ['⚖️ 問屋公會（株仲間）','開業時你已是公會成員，擔保金由家中長輩代墊。入會的人向大盤進貨享公會價，沒入會的照市價。每三個月開一次例會：你可以表態遵守配額（公會會幫你穩住行情），或簽暗約偷跑（賺得快，但被發現後果嚴重），也可以退出協議、各憑本事，或提案提高配額。守約卻超量出貨，或偷跑被告發，都會被聯合斷貨，擔保金也會被沒收；同業偷跑被抓也一樣。沒收的擔保金每九旬平分給守約的人。退出或被抓之後，要到下一次例會重新押擔保金才能入會。大番頭可以代你出席例會。'],
+  ['⚖️ 問屋公會（株仲間）','開業時你已是公會成員，擔保金由家中長輩代墊。入會的人向大盤進貨享公會價，沒入會的照市價。每三個月開一次例會：你可以表態遵守配額（公會會幫你穩住行情），或簽暗約偷跑（賺得快，但被發現後果嚴重），也可以退出協議、各憑本事，或提案提高配額。守約卻超量出貨，或偷跑被告發，都會被聯合斷貨，擔保金也會被沒收；同業偷跑被抓也一樣。沒收的擔保金每九旬平分給守約的人。退出或被抓之後，要到下一次例會親自重新押擔保金才能入會。大番頭只在你已入會時代你出席例會，不會替你入會。'],
   ['🚢 商路與委託採買','船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的進港泊位許可與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比大盤便宜，商才越高買得越多越省，當地產好幾樣本業貨時，委託金與運量平均分給每一樣；偶爾帶回別行的便宜貨，要請座客商人代售；唐物藥種的船隊還常夾帶唐船私貨。每次委託要親自到碼頭交代，扣一次行動。路上有海難與山賊，往返要等上幾旬。'],
   ['🤝 人脈','官吏、同業、名士、花街名伶，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，官吏也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。'],
-  ['👥 店員','丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，能替你延續上旬的買賣安排、出席例會、每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳，要記得查帳。保鏢平時守倉庫，出門時護著你。每種店員一開始都只能雇一名，要多雇得先向官府申請許可。'],
+  ['👥 店員','丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，能替你延續上旬的買賣安排、在已入會時代你出席例會、每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳，要記得查帳。保鏢平時守倉庫，出門時護著你。每種店員一開始都只能雇一名，要多雇得先向官府申請許可。'],
   ['🏛️ 官府','城裡有行政、財務、司法三院，上面還有管整個地區的遠國奉行所。他們掌管許可、稅賦、查緝與審判：行政院核發倉地、船株與人別帳，財務院核發交易許可、馬幫株並放貸，司法院核發帶刀許可、袖之下與減罪狀。許可分等級，官階越高的官員給得越多。官吏有各自的性格與弱點，打通關節能少很多麻煩，但也有人會反過來勒索。詳見「官吏」分頁。'],
   ['⚠️ 風險與事件','倉庫會失火、遭竊、受潮；主食價格漲得太高會引發「打毀」（市民暴動）；走私被查獲會罰銀、遠島，甚至處刑（減罪狀能讓刑罰輕一等）；醜聞會損傷知名度。同行也會鬥——有人造謠、栽贓、縱火，你也可以反擊。貨越值錢，持有的成本與風險越高。'],
   ['💎 奢侈品','每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。'],

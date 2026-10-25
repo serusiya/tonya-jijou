@@ -5,7 +5,7 @@
 function faceEventQueue(){return G.faceEvents||(G.faceEvents=[])}
 function queueFaceEvent(e){if(G&&e)faceEventQueue().push(e)}
 
-/** 人物事件卡；商人借錢保留原本的接受／婉拒操作，其餘事件用「知道了」接續。 */
+/** 人物事件卡；官吏查貨（賄賂／公事公辦）、商人借錢（接受／婉拒）附選項，其餘事件用「知道了」接續。查貨、借錢、硬塞都只在這裡呈現，旬報不另列卡片。 */
 function faceEventCard(e){
   let pt='',name='',tag='',line='',effect='',buttons='<button class="pixel-btn btn-sm btn-gold" data-act="faceNext">知道了</button>';
   if(e.empId){
@@ -19,6 +19,11 @@ function faceEventCard(e){
     line='東家，我談成一筆臨時買賣，替店裡添了 '+fmt(e.amt)+' 兩。';effect='現款增加 '+fmt(e.amt)+' 兩。';
   }else if(e.type==='extort'){
     line='近來替商家辦事不容易。三旬之內送來 '+fmt(e.amt)+' 兩，我自然記得你的心意。';effect='已記下承諾；到期前可在人物筆記中交付。';
+  }else if(e.type==='inspect'){
+    const I=G.inspect;if(!I||I.cid!==e.cid||I.turn!==e.turn)return null;
+    const rk=npc(e.cid).pos?npc(e.cid).pos.rank:1;
+    line='奉命查貨。帳冊與貨品都得過目，掌櫃的可有什麼要說的？';effect='奉上心意可結交此人、免去麻煩；公事公辦會被罰銀。不扣行動點數；不處理就關掉，下一旬照公事公辦。';
+    buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="inspBribe">'+UT('btn.inspBribe',{c:coinHtml('silver',inspectBribe(rk))})+'</button><button class="pixel-btn btn-sm" data-act="inspPass">'+UT('btn.inspPass')+'</button></div>';
   }else if(e.type==='xforce'){
     line='這批「'+xName(e.name)+'」是官府沒收來的。先放在你庫裡，替我處理乾淨。';effect='收到「'+xName(e.name)+'」'+e.qty+' 單位，列入跨行貨物。';
   }else if(e.type==='xloan'){
@@ -36,7 +41,7 @@ function showNextFaceEvent(){
   save();
   if(!h)return;
   INFO_AFTER=q.length?showNextFaceEvent:null;
-  const title={windfall:'💰 大番頭回報',extort:'🤝 官員來訪',xforce:'🎁 官吏來訪',xloan:'🤝 商人來訪'}[e.type]||'來客';
+  const title={windfall:'💰 大番頭回報',extort:'🤝 官員來訪',xforce:'🎁 官吏來訪',xloan:'🤝 商人來訪',inspect:'🔎 官吏查貨'}[e.type]||'來客';
   UI.showInfo(title,h);
 }
 /** 在旬報開啟後登記接續動作；玩家關閉旬報才開始逐件會面。 */

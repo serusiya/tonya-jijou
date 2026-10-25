@@ -108,13 +108,15 @@ function tourHere(n,m){return (((m||G.month)-TOUR_MONTH[n.pos.court])%3+3)%3===0
 function awayNow(n){return touring(n)&&!tourHere(n)}
 /** 下次來本城的月份。 */
 function tourNext(n){for(let k=1;k<=3;k++){const m=(G.month-1+k)%12+1;if(tourHere(n,m))return m}return G.month}
-/** 每旬：補上本城官署空缺；巡迴官員抵達（上旬）與啟程（下旬）的旬報。 */
+/** 每旬：補上本城官署空缺；每月上旬一則巡察消息（本月抵達的院別、上月在城而本月已離城的院別），不寫姓名。 */
 function tourTick(log){
   officialMigrate();                              // 本城官署若有空缺（病故、遭害而無人遞補），由名冊補上
-  if(G.cycle!==1&&G.cycle!==3)return;
-  Object.values(G.world.npcs).filter(n=>touring(n)&&alive(n.cid)&&tourHere(n)).sort((a,b)=>b.pos.rank-a.pos.rank).forEach(n=>{
-    const t=NEWS(G.cycle===1?'tour.arrive':'tour.leave',{t:posTitle(n).replace(/（.*）/,''),n:nameOf(n.cid)});pushNews(t);log.push(t);
-  });
+  if(G.cycle!==1)return;
+  const prev=(G.month+10)%12+1,tour=Object.values(G.world.npcs).filter(n=>touring(n)&&alive(n.cid));
+  const courts=f=>CITY_COURTS.filter(k=>tour.some(n=>n.pos.court===k&&f(n))).map(k=>COURTS[k].name).join('、');
+  const arr=courts(n=>tourHere(n)),gone=courts(n=>tourHere(n,prev)&&!tourHere(n));
+  if(!arr&&!gone)return;
+  const t=NEWS('tour.month',{part:(arr?arr+'高官抵達本城，停留一月':'')+(arr&&gone?'；':'')+(gone?gone+'高官已離城':'')});pushNews(t);log.push(t);
 }
 /** 舊存檔整理：已刪除的官職換成同院同階的官職；本城缺的三院官署（含五、六階）由名冊補上。 */
 function officialMigrate(){

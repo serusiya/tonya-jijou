@@ -168,7 +168,7 @@ SHEETS.guild=()=>{
   const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
   h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%" '+(C.state==='none'?'disabled':'')+'>'+UT(mem?'btn.cartel3Lose':'btn.cartel3')+'</button></div>';
   const rv=cityNpcs(G.cityId,'rival');
-  h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.slice(0,6).map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
+  h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
   return {title:'⚖️ 問屋公會·株仲間會所',html:h};
 };
 /** 配額提案成功率：30%＋前三名同行交情平均×0.5（最高 80%）。 */
@@ -255,12 +255,11 @@ SHEETS.menu=()=>{
   let h=audioSettingsHtml()+'<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+='<div class="notice tiny" style="margin-top:6px">每旬推進時自動存檔於此瀏覽器。</div>';
   h+='<div class="card tiny"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
-  if(G.legacy.length)h+='<div class="card tiny"><b>🏯 家系</b>'+G.legacy.map(l=>'<div>第 '+l.gen+' 代·'+esc(l.name)+'·'+l.age+' 歲·'+({death:'壽終',bankrupt:'家業傾覆',executed:'伏法處刑'})[l.cause]+'（'+yearStr(l.year)+'）</div>').join('')+'</div>';
   return {title:'⚙️ 設定',html:h};
 };
 /** 開關音效。 */
 /** 放棄並重開。 */
-ACT.newLife=()=>{if(UI.s.sheetLock||confirm('確定放棄目前的人生，重新開局？（此舉不可復原）')){UI.s.sheetLock=false;UI.s.sheet=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;UI.showStart()}};
+ACT.newLife=()=>{if(UI.s.sheetLock||confirm('確定放棄目前的人生，重新開局？（此舉不可復原）')){UI.s.sheetLock=false;UI.s.sheet=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
 
 /* ======================= 筆記（千人手帳） ======================= */
 /** 筆記分類標籤。 */
@@ -389,7 +388,7 @@ function renderEstate(){
     return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+(k.gender==='男'?'👦':'👧')+' '+esc(k.name)+'</b>（'+kidStage(a)+'）'+(k.prodigal?'<span class="tag red">敗家子</span>':'')+'<div class="tiny muted">'+(k.revealed?'天賦偏重：<b>'+top3Of(k.stats)[0]+'</b>':'天賦尚未顯露')+(k.path?'·歷練：'+PATHS[k.path].name:'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+P.name+'（'+P.cost+'/年）</span>').join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costBtn('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
   }).join('');
   // 隱居
-  h+='<div class="card" style="background:#fff8eb"><b class="small" style="color:#9b2c3a">👴 退隱交棒（二代視角）</b><p class="tiny" style="margin:3px 0">主角退隱後切換為繼承人，承襲財富、人脈、黑帳、舊怨與老僕。繼承人可為已成年的子女，或招贅（收為義子）你的大番頭。</p><button class="pixel-btn btn-red btn-sm" data-act="retire">'+UT('btn.retire')+'</button></div>';
+  h+='<div class="card" style="background:#fff8eb"><b class="small" style="color:#9b2c3a">👴 退隱</b><p class="tiny" style="margin:3px 0">交出店務，隱居茶室，安度晚年。這一生就此落幕，之後看蓋棺評語。</p><button class="pixel-btn btn-red btn-sm" data-act="retire">'+UT('btn.retire')+'</button></div>';
   h+='</div>';
   $('#view-estate').innerHTML=h;
 }
@@ -509,43 +508,28 @@ ACT.marryGo=()=>{
 };
 /** 開啟退隱面板。 */
 ACT.retire=()=>UI.openSheet('retire');
-/** 退隱面板。 */
+/** 退隱面板：確認後快轉到人生結束。 */
 SHEETS.retire=()=>{
-  const hs=heirCandidates();
-  let h='<div class="notice tiny">退隱後，主角成為老人隱居茶室；你將以繼承人的身分繼續這個家。人脈交情打八折（舊怨一併承襲），僱員與倉庫保留，家族重新開始。</div>';
-  h+=hs.map((x,i)=>'<div class="card"><div class="row"><div><b>'+esc(x.name)+'</b> <span class="tag '+(x.type==='kid'?'green':'navy')+'">'+(x.type==='kid'?'親生':'贅婿·義子')+'</span><div class="tiny muted">'+(x.type==='kid'?kidStage(x.age):'大番頭')+'</div></div><button class="pixel-btn btn-sm btn-red" data-act="succeedGo" data-i="'+i+'" data-m="retire">'+UT('btn.succeedGo')+'</button></div></div>').join('')||'<div class="notice">目前沒有合適的繼承人（子女需成年，或有大番頭可招贅）。</div>';
-  return {title:'👴 宣佈隱居交棒',html:h};
+  let h='<div class="notice tiny">退隱後交出店務，隱居茶室，不再過問生意。晚年就這樣過去，直到辭世；之後看這一生的蓋棺評語。存檔會清除，無法回頭。</div>';
+  h+='<button class="pixel-btn btn-red" style="width:100%;margin-top:6px" data-act="retireGo">'+UT('btn.retireGo')+'</button>';
+  return {title:'👴 宣佈退隱',html:h};
 };
-/** 確認繼承人。 */
-ACT.succeedGo=el=>{
-  const mode=el.dataset.m,list=(mode==='retire'?heirCandidates():heirAll());const x=list[+el.dataset.i];if(!x)return;
-  UI.s.sheetLock=false;
-  succeed(x,mode);if(x.minor){G.silver=Math.round(G.silver*0.75)}
-  UI.s.sheet=null;$('#sheet-bd').classList.add('hidden');sceneSync(true);UI.go('home');say(TX('protag.takeover'),4200);UI.render();
-  setTimeout(()=>toast(MSG('succeedGo.1',{gen:G.me.gen,name:G.me.name,myAge:myAge()})),300);
-};
-/** 所有可繼承人選。 */
-function heirAll(){
-  const hs=heirCandidates();
-  G.family.kids.filter(k=>kidAge(k)<16&&!k.prodigal).forEach(k=>hs.push({type:'kid',id:k.id,name:k.name,age:kidAge(k),minor:true}));
-  return hs;
-}
+/** 確認退隱。 */
+ACT.retireGo=()=>{UI.s.sheet=null;endLife('retire')};
 
 /* ======================= 人生終章（蓋棺評語，無分數） ======================= */
 /** 顯示一生總結。 */
-UI.showLegacy=function(){UI.s.sheetLock=true;UI.openSheet('legacy')};
+UI.showLegacy=function(){UI.s.sheetLock=true;musicWant('title');UI.openSheet('legacy')};   // 人生終章播片頭《暖簾囃子》
 /** 一生總結面板。 */
 SHEETS.legacy=()=>{
   const E=G.ended,ob=E.ob;
-  const cause=E.cause==='death'?'壽終，於'+yearStr(E.year)+'辭世，享年 '+ob.age+' 歲。':E.cause==='executed'?'因走私重罪伏法，於'+yearStr(E.year)+'處刑，家產盡數抄沒。':'家業傾覆，債主臨門，一生的經營化為烏有。';
-  let h='<div class="card" style="background:#fffaf0;text-align:center"><div style="font-size:20px">🕯️</div><b style="font-size:15px">'+esc(G.me.name)+'</b><div class="small muted">第 '+G.me.gen+' 代·'+cause+'</div><hr class="sep"><div style="font-size:14px;line-height:1.8;color:#3a2f27">'+esc(ob.sum)+'</div></div>';
+  const cause=E.cause==='retire'?'於'+yearStr(E.year)+'退隱，隱居茶室；'+yearStr(E.deathYear)+'辭世，享年 '+ob.age+' 歲。':E.cause==='death'?'壽終，於'+yearStr(E.year)+'辭世，享年 '+ob.age+' 歲。':E.cause==='executed'?'因走私重罪伏法，於'+yearStr(E.year)+'處刑，家產盡數抄沒。':'家業傾覆，債主臨門，一生的經營化為烏有。';
+  let h='<div class="card" style="background:#fffaf0;text-align:center"><div style="font-size:20px">🕯️</div><b style="font-size:15px">'+esc(G.me.name)+'</b><div class="small muted">'+cause+'</div><hr class="sep"><div style="font-size:14px;line-height:1.8;color:#3a2f27">'+esc(ob.sum)+'</div></div>';
   h+='<div class="card"><b class="small">這一生</b>'+ob.facts.map(f=>'<div class="tiny" style="margin-top:2px">• '+esc(f)+'</div>').join('')+'</div>';
   if(ob.quotes.length)h+='<div class="card"><b class="small">眾人的話</b>'+ob.quotes.map(q=>'<div class="small" style="margin-top:5px"><b>'+esc(q.name)+'</b>　<span class="tag '+affCls(q.aff)+'">'+affWord(q.aff)+'</span><br>'+esc(q.txt)+'</div>').join('')+'</div>';
   else h+='<div class="notice">一生碌碌，竟沒有幾個人記得。</div>';
   h+='<div class="notice tiny">這個遊戲沒有勝負，也沒有分數。人生只是這樣走過一遭。</div>';
-  const hs=heirAll();
-  if(hs.length)h+='<div class="small bold">🏯 由誰接掌家業？</div>'+hs.map((x,i)=>'<div class="card"><div class="row"><div><b>'+esc(x.name)+'</b> <span class="tag '+(x.type==='kid'?'green':'navy')+'">'+(x.type==='kid'?'親生':'贅婿·義子')+'</span><div class="tiny muted">'+(x.type==='kid'?kidStage(x.age):'大番頭')+(x.minor?'（家業由族老代管，資產折損 25%）':'')+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="succeedGo" data-i="'+i+'" data-m="'+E.cause+'">'+UT('btn.succeedGo2')+'</button></div></div>').join('');
-  h+='<div style="margin-top:8px"><button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT(hs.length?'btn.newLifeNo':'btn.newLife2')+'</button></div>';
+  h+='<div style="margin-top:8px"><button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife2')+'</button></div>';
   return {title:'🕯️ 人生終章',html:h};
 };
 
@@ -553,7 +537,7 @@ SHEETS.legacy=()=>{
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){
   if(!UI.s.startSys)UI.s.startSys='timber';
-  const sv=loadSave();
+  let sv=loadSave();if(sv&&sv.ended){clearSave();sv=null}   // 舊版留下的已落幕存檔：清除
   let h='<h1>🏮 問屋事情</h1><div class="sub">關於我成了江戶中盤商這件事<br><span style="font-size:11px">像素風商人人生模擬 · v'+GAME_VER+'</span></div>';
   h+='<div style="text-align:center;font-size:12px;color:#cfc6b6;margin-bottom:10px">20 歲開局。沒有固定的目標，只有一生。</div>';
   if(!sv&&OLD_SAVE_FOUND)h+='<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v'+GAME_VER+' 起已不相容，已清除。請重新開局。</div>';
@@ -571,6 +555,7 @@ ACT.begin=()=>{
   newGame(UI.s.startSys,'rand');$('#start').classList.add('hidden');
   SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.open',{firm:G.firm}),4200);
   save();
+  LASTREP=null;showTurnReport([{}],G.news.map(x=>x.t).reverse(),0,'open');   // 開業旬報：進出貨皆空，列開局消息
 };
 /** 繼續上次存檔。 */
-ACT.resume=()=>{musicWant('market');G=loadSave();sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};
+ACT.resume=()=>{musicWant('market');G=loadSave();LASTREP=G.lastRep||null;sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};

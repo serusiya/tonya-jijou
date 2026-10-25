@@ -46,7 +46,6 @@ const LINES={
     meetBad:'「唉，介紹人挑錯了……」',
     meetOk:'「初見尚可，往後慢慢經營。」',
     newIntro:'「有了介紹人，往後的路好走多了。」',
-    takeover:'「從今日起，這個家由我撐著了。」',
     open:'「{firm}，今日開張！」',
     resume:'「又是新的一旬。」'
   },

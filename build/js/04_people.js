@@ -3,7 +3,7 @@
  * - 引薦與拜訪：introPower（性向相容×信任）、visitRoll（拒見/不在家/成功）、meetVia/meetCold（初見）。之後的拜訪戰鬥在 07u_battle.js。
  * - 請託：FAVORS、doFavor（拜訪打勝、好感 ≥60 才出現；辦成扣好感）。
  * - 風評：rumorsOf。 員工：hireEmp/empTick（私吞、潛逃）、船長/飛腳專職。
- * - 家族與傳承：marry、newKid、yearTick（年度結算）、endLife/succeed（二代）。 */
+ * - 家族與人生終章：marry、newKid、yearTick（年度結算）、endLife（壽終、破產、處刑、退隱；只有一代，不傳承）。 */
 /* ======================= 04 人物：介紹人、性向、贈禮、風評、僱員、家族、傳承 ======================= */
 /** 取某人在介紹人名單中的資料。 */
 const introOf=cid=>G.intros.find(i=>i.cid===cid);
@@ -63,7 +63,7 @@ function meetCheck(cid,viaIntro){
   if(!n)return '此人已不在此地';
   if(isEnemy(cid))return '視你為仇，拒不見面。';
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return '才剛請託過，三旬內不宜再度叨擾';
-  /* 知名度階級：有介紹人時視同 +1 階；私房錢每千兩 +1 階已含在 fameTier */
+  /* 知名度階級：有介紹人時視同 +1 階；私房錢滿 2000 兩加一階（只加一階）已含在 fameTier */
   const need=meetTierNeed(cid),have=fameTier()+(viaIntro?1:0);
   if(have<need)return n.role==='oiran'?'名氣不足，點不到她。':'名氣不足，對方不見。';
   if(viaIntro){
@@ -534,13 +534,13 @@ function netWorth(){let v=G.silver;Object.entries(G.inv).forEach(([n,q])=>v+=q*C
 /** 生平總結評語（高/中/低好感）。 */
 const QUOTE_HI=Ls('eulogy.hi'),QUOTE_MID=Ls('eulogy.mid'),QUOTE_LO=Ls('eulogy.lo');          // 台詞在 01d_lines.js
 /** 產生主角一生的總結。 */
-function obituary(){
+function obituary(ageAt){
   const L=G.life,nw=netWorth();
   const wealth=nw>=60000?'富甲一方':nw>=25000?'殷實富商':nw>=8000?'小有家業':nw>=0?'勉強糊口':'負債累累';
   const good=L.charity*2+L.pledges*0.3,bad=L.cheats*2+L.scapegoat*0.5;
   const moral=good>bad+3?'義商':bad>good+3?'奸商':'亦正亦邪';
   const pol=L.gold>=60?'官商勾結':L.gold<=8?'清流商人':'八面玲瓏';
-  const age=myAge();
+  const age=ageAt||myAge();
   const sum='「'+wealth+'，'+moral+'，世人謂其'+pol+'。享壽 '+age+' 歲。」';
   const people=Object.entries(G.rel).filter(([id,r])=>r.aff>=25&&CH(id)&&(alive(id)||CH(id).death_year>=G.year-1)).sort((a,b)=>b[1].aff-a[1].aff).slice(0,5);
   const rd=seeded('ob'+G.turn+G.me.given);
@@ -551,39 +551,18 @@ function obituary(){
   const facts=['在世 '+age+' 載，歷經 '+(G.year-0)+' 個寒暑','經手貨殖，淨資產約 '+fmt(nw)+' 兩','打點官場，動用私房錢 '+L.gold+' 兩','施粥賑濟 '+L.charity+' 次，違約偷跑 '+L.cheats+' 次','經歷火災 '+L.fires+' 次、打毀 '+L.riots+' 次','膝下 '+G.family.kids.length+' 名子女'];
   return {wealth,moral,pol,sum,quotes,facts,nw,age};
 }
-/** 結束這一世（破產/病逝/退隱）。 */
+/** 退隱：從現在的年齡起逐年擲死亡機率（同 yearTick），算出享壽。 */
+function retireDeathAge(){
+  let a=myAge();
+  while(a<100){a++;if(chance(Math.max(0,a-ODDS.death.startAge)*ODDS.death.perYear+ODDS.death.base))break}
+  return a;
+}
+/** 結束這一世（壽終、破產、處刑、退隱）。只有一代：結束即清除存檔，人生終章後重新開局。 */
 function endLife(cause){
   if(G.ended)return;
   delete G.party;
-  G.ended={cause,year:G.year,ob:obituary()};
-  G.legacy.push({gen:G.me.gen,name:G.me.name,age:myAge(),cause,sum:G.ended.ob.sum,year:G.year});
-  save();
+  const age=cause==='retire'?retireDeathAge():myAge();
+  G.ended={cause,year:G.year,age,deathYear:G.year+(age-myAge()),ob:obituary(age)};
+  clearSave();                                       // 人生落幕：不留存檔（save() 遇到 G.ended 也不再寫入）
   if(typeof UI!=='undefined'&&UI.showLegacy)UI.showLegacy();
-}
-/** 可繼承人選。 */
-function heirCandidates(){
-  const kids=G.family.kids.filter(k=>kidAge(k)>=16&&!k.prodigal).map(k=>({type:'kid',id:k.id,name:k.name,age:kidAge(k)}));
-  const boss=G.emps.find(e=>e.rank==='大番頭'&&e.cid);
-  if(boss)kids.push({type:'adopt',id:boss.id,name:boss.name,age:ageOf(boss.cid),cid:boss.cid});
-  return kids;
-}
-/** 傳承給繼承人，進入二代視角。 */
-function succeed(h,mode){            // mode: 'retire' | 'death' | 'bankrupt'（處刑視同家產抄沒）
-  if(mode==='executed')mode='bankrupt';
-  const f=mode==='retire'?0.8:0.6;
-  const oldName=G.me.name;
-  if(mode==='death')G.silver=Math.round(G.silver*0.9);
-  if(mode==='bankrupt'){G.silver=2500;Object.keys(G.inv).forEach(k=>G.inv[k]=Math.round(G.inv[k]*0.3));G.emps=G.emps.filter((e,i,a)=>e.rank!=='保鏢'||a.findIndex(x=>x.rank==='保鏢')===i)}
-  let given,birth;
-  if(h.type==='kid'){const k=G.family.kids.find(x=>x.id===h.id);given=k.name;birth=k.birthYear;G.me.family=G.me.family}
-  else{const e=G.emps.find(x=>x.id===h.id);given=e.name.split(' ').pop();birth=CH(e.cid).birth_year;G.emps=G.emps.filter(x=>x!==e);if(npc(e.cid))npc(e.cid).hired=false}
-  G.me={family:G.me.family,given,name:G.me.family+'屋 '+given,birthYear:birth,gen:G.me.gen+1};
-  G.family={spouse:null,kids:[],married:false,conc:[]};
-  Object.values(G.rel).forEach(r=>{r.aff=Math.round(r.aff*f)});
-  G.intros=G.intros.filter(i=>R(i.cid).aff>=15&&alive(i.cid));
-  G.introId=G.intros[0]?G.intros[0].cid:null;
-  G.life={gifts:0,gold:Math.round(G.life.gold*0.3),cheats:0,charity:0,fires:0,riots:0,peak:G.silver,contracts:0,pledges:0,scapegoat:0,spouseKind:''};
-  G.cartel.state=G.cartel.bond>0?'pledged':'none';G.cartel.sanction=0;   // 公會會籍與擔保金隨家業承襲；暗約不承襲G.staple.streak=0;G.recruit=null;G.ended=null;
-  pushNews(NEWS('succeed.1',{oldName:(mode==='retire'?oldName+'退隱':oldName+'離世'),gen:G.me.gen,name:G.me.name,myAge:myAge()}));
-  save();
 }

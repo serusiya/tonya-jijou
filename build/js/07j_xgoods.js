@@ -21,10 +21,6 @@ function xgoodsCard(){
   return h+'</div>';
 }
 /* ---------- 來源②：商人拿貨抵押借錢（旬報選項卡） ---------- */
-function xofferCard(){
-  const O=G.xoffer;if(!O)return '';
-  return '<div class="rp-sec">🤝 商人借錢</div><div class="card warn" style="display:flow-root">'+portraitHtml(O.cid,56)+'<div><b>'+esc(nameOf(O.cid))+'</b> <span class="tag gold">商人</span></div><div class="small" style="margin:5px 0">「掌櫃的，眼下周轉不靈。可否借我 <b>'+fmt(O.loan)+' 兩</b>？我拿『'+esc(xName(O.name))+'』'+O.qty+' 單位作抵押。」</div><div class="tiny muted" style="margin:3px 0">若他還不出錢，抵押的貨便歸你。</div><div style="display:flex;gap:6px"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div></div>';
-}
 ACT.xoAccept=()=>{
   const O=G.xoffer;if(!O)return;
   if(G.silver<O.loan){toast(MSG('xoAccept.1',{O:fmt(O.loan)}));return}

@@ -5,7 +5,7 @@
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={guildDiv:0,voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[]};
+  const T={guildDiv:0,voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
@@ -15,6 +15,7 @@ function mergeReports(reps){
     Object.entries(r.publicSpend||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});
     Object.entries(r.inTurn||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});   // 推進途中付的主動支出（如忘年會），已含在本旬淨額裡
     (r.short||[]).forEach(s=>{if(!T.short.includes(s))T.short.push(s)});
+    (r.squeeze||[]).forEach(s=>{if(!T.squeeze.includes(s))T.squeeze.push(s)});
   });
   return T;
 }
@@ -25,8 +26,9 @@ function repRow(icon,label,amt,max,cls){
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */
 var LASTREP=null;
-function showTurnReport(reps,logs,n){
-  LASTREP={reps,logs,n};
+/** 畫出旬報。kind：undefined＝一般旬報、'open'＝開業旬報、'recent'＝近況（舊存檔沒有上一份旬報時）。上一份旬報存進 G.lastRep，重新載入後按瓦版仍可重開。 */
+function showTurnReport(reps,logs,n,kind){
+  LASTREP={reps,logs,n,kind};if(G&&!G.ended){G.lastRep=LASTREP;save()}
   const T=mergeReports(reps);
   const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🛡️','倉儲保險',T.cost.hold],['🏠','家計開銷',T.cost.fam],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
   const publicSpend=Object.entries(T.publicSpend).filter(x=>x[1]>0),publicSpendTotal=publicSpend.reduce((a,x)=>a+x[1],0);
@@ -37,10 +39,8 @@ function showTurnReport(reps,logs,n){
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
   const max=Math.max(1,T.rev,voyBack,T.guildDiv,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
-  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">現款餘額 '+fmt(G.silver)+' 兩</div></div>';
+  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':kind==='open'?'開業·':kind==='recent'?'近況·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">現款餘額 '+fmt(G.silver)+' 兩</div></div>';
   h+=raidCard();
-  h+=inspectCard();
-  h+=xofferCard();
   h+='<div class="rp-split"><i class="in" style="width:'+pi+'%"></i><i class="out" style="width:'+(100-pi)+'%"></i></div><div class="rp-legend"><span class="in">收入 '+fmt(inc)+'</span><span class="out">支出 '+fmt(outl)+'</span></div>';
   if(T.rev>0||Object.keys(T.ship).length){
     h+='<div class="rp-sec">📤 出貨收入</div>'+Object.keys(T.ship).map(k=>repRow('📦',esc(k)+' ×'+T.ship[k].q,T.ship[k].rev,max,'in')).join('');
@@ -52,15 +52,15 @@ function showTurnReport(reps,logs,n){
   if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
   if(other<0)h+=repRow('📦','進貨·其他',-other,max,'out');
   if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
-  if(T.fame!==0||T.short.length){
-    const chips=T.short.slice(0,6).map(x=>'<span class="tag red">'+esc(x.slice(0,5))+'</span>').join('')+(T.short.length>6?'<span class="tag gray">…共 '+T.short.length+' 項</span>':'');
-    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">未達供貨線：'+chips+'</div>':'')+'</div>';
+  if(T.fame!==0||T.short.length||T.squeeze.length){
+    const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?'<span class="tag gray">…共 '+L.length+' 項</span>':'');
+    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">公會減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
   }
   if(T.voy.length)h+='<div class="rp-sec">⛵ 船隻歸航</div>'+T.voy.map(v=>'<div class="card" style="margin:3px 0"><b class="small">船長「'+esc(v.capt)+'」·委託金 '+fmt(v.budget)+' 兩'+(v.wreck?' <span class="tag red">遇海難</span>':'')+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('');
-  const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢/.test(t));
+  const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢/.test(t)&&!/【查貨】|【借錢】|【官吏硬塞】/.test(t));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列
   const moveEv=allEv.filter(t=>/【官員調任】|【宅邸異動】/.test(t));
-  const ev=moveEv.concat(allEv.filter(t=>!/【官員調任】|【宅邸異動】/.test(t)).slice(0,Math.max(0,10-moveEv.length))).slice(0,10);
+  const ev=moveEv.concat(allEv.filter(t=>!/【官員調任】|【宅邸異動】/.test(t)).slice(0,Math.max(0,15-moveEv.length))).slice(0,15);
   if(ev.length)h+='<div class="rp-sec">📰 本旬大事</div>'+ev.map(t=>'<div class="rp-ev">'+esc(t)+'</div>').join('');
   h+='</div>';
-  UI.showInfo('📅 旬報',h);
+  UI.showInfo(kind==='open'?'📜 開業旬報':kind==='recent'?'📅 近況':'📅 旬報',h);
 }

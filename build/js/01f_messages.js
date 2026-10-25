@@ -132,8 +132,6 @@ const MSG_TXT={
   /* —— marryGo —— */
   'marryGo.1':'請先選擇結親對象',
   'marryGo.2':'說親需請介紹人當媒人。',
-  /* —— succeedGo —— */
-  'succeedGo.1':'第 {gen} 代「{name}」接掌家業（{myAge} 歲）',
   /* —— skim —— */
   'skim.1':'現款不足',
   'skim.2':'你從帳上抹去 {amt} 兩，悄悄收進私囊。',

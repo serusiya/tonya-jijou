@@ -91,8 +91,8 @@ const SYS=[
     tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
   {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:9000,gold:12,
     tip:'鮮魚損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
-  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'金融軍工型',firm:'住友屋',silver:10000,gold:15,
-    tip:'銅鐵銀金，成敗看官府人脈。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
+  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'重貨高價型',firm:'住友屋',silver:10000,gold:15,
+    tip:'金銀單價極高，礦錠沉重難運；逢軍需，銅鐵硫磺大漲。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
   {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
     tip:'產地稀少，靠公會與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
   {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
@@ -108,9 +108,9 @@ function sysKeyOfCommodity(sysStr){const s=SYS.find(x=>sysStr.includes(x.match))
 /** 【物品加工】民生必需品關鍵字（價高易引發打毀、需求彈性大）。 */
 const STAPLE_KW=['白米','大麥','黃大豆','粗鹽','鮮魚','白炭','棉布','菜籽'];
 /** 【物品加工】易燃品關鍵字（倉庫失火時損失較大）。 */
-const FLAM_KW=['菜籽','麻油','鯨油','硫磺','樟','白炭','吉野','漆'];
+const FLAM_KW=['菜籽','麻油','鯨油','硫磺','樟','白炭','吉野','漆','銘木','檜皮'];
 /** 【物品加工】每旬損耗率表（關鍵字→比例）。 */
-const DECAY_TABLE=[['鮮魚',0.20],['白米',0.02],['大麥',0.025],['黃大豆',0.02],['菜籽',0.015],['新茶',0.012],['粗鹽',0.004],['精鹽',0.003],['昆布',0.01],['乾鮑',0.008],['蜂蜜',0.005],['清酒',0.015],['醬油',0.01],['味醂',0.008],['生絲',0.015],['棉',0.02],['藍染',0.01],['鹽',0.004]];
+const DECAY_TABLE=[['鮮魚',0.20],['銘木',0.002],['玉鋼',0.005],['獻上棚田米',0.015],['鹽雲丹',0.005],['白米',0.02],['大麥',0.025],['黃大豆',0.02],['菜籽',0.015],['新茶',0.012],['粗鹽',0.004],['精鹽',0.003],['昆布',0.01],['乾鮑',0.008],['黃楊木',0.002],['檜皮',0.005],['當歸川芎',0.005],['伊吹艾',0.005],['點眼藥',0.01],['生絲',0.015],['棉',0.02],['藍染',0.01],['鹽',0.004]];
 /** 把原始 COMMS 資料加工成遊戲用的物品：短名、流派、基準價（原價/10）、必需品/奢侈品、需求彈性 α、損耗、易燃。 */
 const COMM=COMMS.map((c,i)=>{
   const short=c.short_name||c.name.replace(/（.*?）/g,'');
@@ -163,14 +163,17 @@ function parseFestival(str){
 
 /* ---------- 存檔 ---------- */
 /** 存檔到 localStorage（key＝SAVE_KEY，G.ver＝GAME_VER）。失敗（私密模式等）時靜默略過。 */
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}}
+function save(){if(G&&G.ended)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}}   // 人生落幕後不再存檔
 /** 啟動時是否發現並清掉了舊版（不相容）存檔，供開始畫面提示。 */
 let OLD_SAVE_FOUND=false;
 /** 讀檔；版本不符（0.6 之前的存檔一律不相容）或損毀回傳 null，並清掉不相容的舊存檔。 */
+/** 貨物改名對照（舊全名 → 新全名）：讀舊存檔時替換。 */
+const COMM_RENAME=[['野山參與深山雪靈芝','屋久杉與神代杉銘木'],['石見純銀礦錠（丁銀）','出雲踏鞴玉鋼'],['高山御用新茶（宇治綠茶）','獻上棚田米（將軍家御用）'],['天然海撈黑珍珠與南洋珠','越前鹽雲丹（鹽漬海膽）'],['特等灘之清酒（純米下行酒）','當歸川芎（婦人良藥）'],['野田天然本釀造濃口醬油','伊吹艾（灸用艾絨）'],['三河傳統純釀味醂與米醋','蛤殼點眼藥（眼病膏藥）'],['深山野生百花蜂蜜','薩摩黃楊木（櫛與印材）'],['厚實黑熊皮與鞣製鹿皮','檜皮（檜皮葺屋根材）']];
 function loadSave(){
   try{
     OLD_SAVE_KEYS.forEach(k=>{if(localStorage.getItem(k)!==null){localStorage.removeItem(k);OLD_SAVE_FOUND=true}});
-    const s=localStorage.getItem(SAVE_KEY);if(!s)return null;
+    let s=localStorage.getItem(SAVE_KEY);if(!s)return null;
+    COMM_RENAME.forEach(([a,b])=>{s=s.split(a).join(b)});   // 舊存檔：改名的貨物（庫存、行情、計畫等鍵值一併換新名）
     const o=JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v);
     if(o&&typeof o==='object'&&o.ver===GAME_VER&&o.me&&o.rel&&o.inv&&o.emps)return o;
     localStorage.removeItem(SAVE_KEY);OLD_SAVE_FOUND=true;return null;
