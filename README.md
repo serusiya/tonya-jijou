@@ -74,12 +74,29 @@ python3 -I build.py        # 產生單一 HTML 檔
 
 ## 授權
 
-| 範圍 | 授權 |
-|---|---|
-| 程式碼（`build/js/`、`build.py`、`body.html`、`style.css`） | [MIT License](LICENSE) |
-| 文字、劇情、台詞、人物與城市設定、商品資料、圖像 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-hant)，詳見 [LICENSE-CONTENT.md](LICENSE-CONTENT.md) |
+Copyright © 2026 陳建安（serusiya）
 
-你可以自由遊玩、分享、修改，也可以用於商業用途，只要**保留作者署名與授權聲明**。
+本作採**程式碼與內容分開授權**：
+
+| 部分 | 範圍 | 授權 |
+|---|---|---|
+| 程式碼 | `build/js/`、`build.py`、`body.html`、`style.css` 等 | [GNU GPL v3.0](LICENSE) |
+| 內容 | 文字、台詞、人物、城市、商品、官制資料、設計文件、圖像 | [CC BY-NC-SA 4.0](LICENSE-CONTENT.md) |
+| 名稱 | 「問屋事情」名稱、標題字樣與標誌 | 保留所有權利 |
+
+簡單說：
+
+- ✅ 歡迎遊玩、閱讀原始碼、學習、修改、在非商業場合分享。
+- ✅ 改作可以，但改作的程式碼須同樣以 GPL v3.0 開源，內容須同樣以 CC BY-NC-SA 4.0 釋出，並標示來源。
+- ❌ 不得將本作內容用於商業目的（販售、付費下載、內購、廣告營利、上架收費商店）。
+- ❌ 不得以「問屋事情」或容易混淆的名稱發行、上架其他作品；改作請改名，並註明改自《問屋事情》。
+
+商業使用或其他授權需求，請聯絡作者。
+
+第三方素材（字型等）依其原授權使用，詳見 [LICENSE-CONTENT.md](LICENSE-CONTENT.md)。本作開發時使用 AI 工具輔助，相關說明亦見該檔。
+
+> 2026 年 10 月以前的版本曾以 MIT／CC BY 4.0 釋出；這些舊版本的授權依其原條款繼續有效，本次起的新版本改依上述條款授權。
+
 
 署名範例：「《問屋事情》，https://github.com/serusiya/tonya-jijou ，採 MIT / CC BY 4.0 授權」。
 
