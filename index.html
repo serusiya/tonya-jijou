@@ -3781,10 +3781,10 @@ function tradeCard(name){
   let h='<div class="card" id="trade-card"><b class="small">📦 本旬買賣·'+esc(c.short)+'</b>';
   h+='<div class="small" style="margin:4px 0;text-align:center">現有 <b>'+have+'</b> → 賣出後 <b id="f-after">'+Math.max(0,have-ship)+'</b> → 下旬開頭約 <b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">📤 出貨</b><b id="q-q" style="color:#9b2c3a">'+ship+' 單位</b></div>';
-  h+='<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>';
+  h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
   h+='<div class="tiny muted">公會配額 '+quota+'（'+ex+'）·穩定供貨線 '+supplyLine(name)+'</div><div class="tiny">出貨後市價 <b id="q-price">'+fmt1(q.price)+' 兩</b>·約入帳 <b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b></div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">📥 進貨</b><b id="b-q" style="color:#9b2c3a">'+bq+' 單位</b></div>';
-  h+='<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>';
+  h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+'·在途 '+itemOnOrder(name)+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">推進一旬時照這裡辦理；進的貨在新的一旬開頭到倉。</div></div>';
@@ -3948,6 +3948,36 @@ function autoShip(log){
   if(nEmp('大番頭')){G.lastShip={};own.forEach(c=>{G.lastShip[c.name]=G.plan[c.name]!==undefined?G.plan[c.name]:quotaOf(c.name)})}else delete G.lastShip;   // 大番頭延續的數字
   G.plan={};G.sold={};
 }
+
+/* ---------- 拉霸兩側的加減鈕：每按一下照拉霸的單位加減（進出貨 1 單位、委託金 50 兩）；按住約半秒後連續加減 ---------- */
+/** 把拉霸包成「［－］拉霸［＋］」；decOff／incOff＝初始是否變灰。 */
+function stepRow(input,id,decOff,incOff){
+  const b=(d,off)=>'<button class="pixel-btn btn-sm step-btn" style="min-width:36px" data-step="'+id+'" data-d="'+d+'" '+(off?'disabled':'')+'>'+(d<0?'－':'＋')+'</button>';
+  return '<div class="row step-row" style="gap:6px;align-items:center">'+b(-1,decOff)+input.replace('type="range"','type="range" style="flex:1;min-width:0"')+b(1,incOff)+'</div>';
+}
+/** 依拉霸目前的值與上下限，更新兩側按鈕是否可按。 */
+function stepSync(){
+  document.querySelectorAll('.step-row').forEach(row=>{
+    const inp=row.querySelector('input[type=range]');if(!inp)return;const v=+inp.value;
+    row.querySelectorAll('[data-step]').forEach(bt=>{bt.disabled=inp.disabled||(+bt.dataset.d<0?v<=+inp.min:v>=+inp.max)});
+  });
+}
+/** 加減一格：改拉霸的值並觸發原本的 input 處理。 */
+function stepOnce(bt){
+  const inp=document.getElementById(bt.dataset.step);if(!inp||inp.disabled)return false;
+  const st=+inp.step||1,nv=Math.max(+inp.min,Math.min(+inp.max,+inp.value+st*(+bt.dataset.d)));
+  if(nv===+inp.value)return false;
+  inp.value=nv;inp.dispatchEvent(new Event('input',{bubbles:true}));return true;
+}
+let STEP_T=null;
+const stepStop=()=>{if(STEP_T){clearTimeout(STEP_T);clearInterval(STEP_T);STEP_T=null}};
+document.addEventListener('pointerdown',e=>{
+  const bt=e.target.closest('[data-step]');if(!bt||bt.disabled)return;
+  e.preventDefault();stepStop();if(!stepOnce(bt))return;sfx.tap&&sfx.tap();
+  STEP_T=setTimeout(()=>{STEP_T=setInterval(()=>{const b2=document.querySelector('[data-step="'+bt.dataset.step+'"][data-d="'+bt.dataset.d+'"]');if(!b2||!stepOnce(b2))stepStop()},80)},450);
+});
+['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>document.addEventListener(ev,stepStop,true));
+document.addEventListener('input',e=>{if(e.target&&e.target.type==='range')stepSync()});
 
 'use strict';
 /* ★檔案總覽：人物介面、面板（Sheet）、筆記、私宅、開局
@@ -5419,7 +5449,7 @@ function voyagePanel(){
   let h='<div class="small" style="margin:4px 0">選'+MODE_CAPT[mode]+'：'+caps.map(e=>'<span class="pill '+(e.id===R_.capt?'on':'')+'" data-act="vCapt" data-id="'+e.id+'">'+esc(e.name)+' '+ratingStars(e.cid||statsOfEmp(e))+'</span>').join('')+'</div>';
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
-  h+='<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'"><div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
+  h+=stepRow('<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'">','slider-voy',R_.budget<=100,R_.budget>=maxB)+'<div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
   h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>'+(G.sysKey==='medicine'?'；唐物藥種的船隊常<b>夾帶唐船私貨</b>':'')+'。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
   h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGo')+'</button></div>';
   return h;
