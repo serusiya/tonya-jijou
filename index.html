@@ -264,10 +264,10 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
+      <div class="stat"><div class="v" id="d-date" style="color:#e5a93b">1年 1月上旬</div><div class="k" id="d-age">主角 20 歲</div></div>
       <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div><div class="k hidden" id="d-debt"></div></div>
-      <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:17px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
-      <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
+      <div class="stat" data-act="purse" style="cursor:pointer" title="私房錢：從商號帳上挪用／每旬抽成"><div class="k"><i class="cmark koban"></i>私房錢</div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0/一階</div></div>
     </div>
     <div class="ticker"><span class="lbl">瓦版急報</span><div class="win"><div id="ticker-txt" class="txt">……</div></div></div>
   </header>
@@ -572,7 +572,7 @@ function resTier(cid,role){const w=RES_TIER_W[role];if(!w)return 1;const x=seede
 /** 見某人所需知名度階（官員看官階；名伶看固定門檻；名門商邸人物依身分與人物編號固定；其餘 1）。 */
 function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):resTier(cid,n.role)}
 const TIER_NAME=['','一階','二階','三階','四階'];
-function updateFame(){const e=document.getElementById('d-fame');if(e&&G)e.textContent='名望 '+TIER_NAME[fameTier()]}
+function updateFame(){const e=document.getElementById('d-rep');if(e&&G)e.textContent=Math.round(G.fame||0)+'/'+TIER_NAME[fameTier()]}
 
 /* =====================================================================
  * 01b_costs.js — 費用總表
@@ -1040,7 +1040,6 @@ const UI_TXT={
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
   'nav.menu':'⚙️',
   'nav.next':'推進一旬 ▶',
-  'nav.purse':'＋',
   'nav.close':'✕ 關閉',
   'nav.market':'大盤',
   'nav.routes':'商路',
@@ -3698,13 +3697,11 @@ UI.render=function(){
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
   $('#d-date').textContent=yearStr(G.year)+' '+G.month+'月'+CYCLE_NAMES[G.cycle-1];
-  $('#k-date').textContent='曆法·'+season()+'季';
   $('#d-age').textContent=G.me.given+' '+myAge()+' 歲';
   $('#d-silver').textContent=fmt(G.silver)+' 兩';
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent='欠'+fmt(tot)+'·'+(near?near+'旬':'本旬');e.title='欠款 '+fmt(tot)+' 兩，最近一筆'+(near?near+' 旬後':'本旬')+'到期';e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=Math.round(G.gold)+' 兩';
-  $('#d-rep').textContent=Math.round(G.fame||0)+' / '+ODDS.fame.cap;
   updateAP();updateFame();
   { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent='⛓️ 遠島 '+G.exile+' 旬'; else if(a&&(G.injured||0)>0) a.textContent='🤕 養傷 '+G.injured+' 旬'; }
   setTicker();
@@ -4274,7 +4271,7 @@ ACT.cityInfo=()=>UI.openSheet('city');
 SHEETS.menu=()=>{
   let h=audioSettingsHtml()+'<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+='<div class="notice tiny" style="margin-top:6px">每旬推進時自動存檔於此瀏覽器。</div>';
-  h+='<div class="card text-prose"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
+  h+='<div class="card text-prose"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點最上方「私房錢」欄可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
   return {title:'⚙️ 設定',html:h};
 };
 /** 開關音效。 */
@@ -4600,7 +4597,7 @@ const PURSE_BACK=100;
 /** 轉出私房錢後若跌破名望門檻，提醒一句。 */
 const purseTierNote=()=>'<div class="tiny muted">私房錢滿 '+fmt(ODDS.fame.goldTier)+' 兩時名望多一階，不滿就少這一階。</div>';
 
-/** 私房錢面板（點最上方私房錢旁的「＋」）：從現款挪用／設定每旬抽成。 */
+/** 私房錢面板（點最上方「私房錢」欄）：從現款挪用／設定每旬抽成。 */
 SHEETS.purse=()=>{
   const pct=(G.skimPct||0)*100;
   let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，用在<b>吉原</b>、<b>走私</b>這類見不得光的事；攢滿 2,000 兩，身分也高一階。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
@@ -4614,6 +4611,7 @@ SHEETS.purse=()=>{
   h+='<div class="tiny muted">私房錢現有 <b>'+Math.round(G.gold)+'</b> 兩；現款 '+fmt(G.silver)+' 兩。</div>';
   return {title:'🟨 私房錢',html:h};
 };
+ACT.purse=()=>UI.openSheet('purse');
 /** 從現款挪用：隨機 30～50 兩，扣 1 行動點數。 */
 ACT.skim=()=>{
   const amt=Math.min(Math.floor(G.silver),SKIM_MIN+Math.floor(rnd()*(SKIM_MAX-SKIM_MIN+1)));
@@ -7292,7 +7290,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   $$('.loc').forEach(el=>el.dataset.act='go');
   $$('#bottom button').forEach(b=>b.addEventListener('click',()=>{UI.go(UI.s.tab===b.dataset.tab?'home':b.dataset.tab)}));
   $('#b-next').addEventListener('click',()=>doTurn(1));
-  $('#b-purse').addEventListener('click',()=>UI.openSheet('purse'));
   $('#b-menu').addEventListener('click',()=>UI.openSheet('menu'));
   $('#sh-close').addEventListener('click',()=>UI.closeSheet());
   $('#info-close').addEventListener('click',()=>UI.hideInfo());
