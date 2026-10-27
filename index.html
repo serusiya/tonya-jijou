@@ -269,10 +269,6 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
       <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:17px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
-    <div class="row small" style="background:#1c1921;border:1px solid var(--line);padding:2px 6px">
-      <span><span style="color:#8e8598">本業：</span><b id="d-firm">—</b></span>
-      <span><span style="color:#8e8598">駐節：</span><b id="d-city" style="color:#e5a93b">—</b></span>
-    </div>
     <div class="ticker"><span class="lbl">瓦版急報</span><div class="win"><div id="ticker-txt" class="txt">……</div></div></div>
   </header>
 
@@ -3709,10 +3705,8 @@ function updateTop(){
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent='欠'+fmt(tot)+'·'+(near?near+'旬':'本旬');e.title='欠款 '+fmt(tot)+' 兩，最近一筆'+(near?near+' 旬後':'本旬')+'到期';e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=Math.round(G.gold)+' 兩';
   $('#d-rep').textContent=Math.round(G.fame||0)+' / '+ODDS.fame.cap;
-  $('#d-firm').textContent=G.firm;
   updateAP();updateFame();
   { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent='⛓️ 遠島 '+G.exile+' 旬'; else if(a&&(G.injured||0)>0) a.textContent='🤕 養傷 '+G.injured+' 旬'; }
-  $('#d-city').textContent='【'+homeCity().name+'】';
   setTicker();
 }
 let _tk='';
@@ -4274,6 +4268,8 @@ SHEETS.city=()=>{
   const s=c.seasonal_annual_rhythms;h+='<div class="card text-prose"><b>四季節律</b><br>春：'+esc(s.spring)+'<br>夏：'+esc(s.summer)+'<br>秋：'+esc(s.autumn)+'<br>冬：'+esc(s.winter)+'</div>';
   return {title:'🏙️ 城志·'+c.name,html:h};
 };
+/** 私宅的駐節城市欄：開啟城志。 */
+ACT.cityInfo=()=>UI.openSheet('city');
 /** 選單面板（說明、存檔、規則摘要）。 */
 SHEETS.menu=()=>{
   let h=audioSettingsHtml()+'<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
@@ -4382,6 +4378,7 @@ function ratingStars(src){
 function renderEstate(){
   const sp=G.family.spouse,kids=G.family.kids;
   let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🏯 私宅內苑·商號與家族</b><div class="tiny muted">介紹人、夥計、家族與傳承。</div></div><span class="tag red">'+esc(G.me.name)+'·第'+G.me.gen+'代</span></div>';
+  h+='<div class="grid2 small" style="margin:6px 0 0;text-align:center"><div class="card" style="margin:0">本業<br><b>'+esc(G.firm)+'</b></div><div class="card" data-act="cityInfo" style="margin:0;cursor:pointer">駐節<br><b>【'+esc(homeCity().name)+'】</b></div></div>';
   h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">淨資產<br><b>'+fmt(netWorth())+' 兩</b></div><div class="card" style="margin:0">每旬開銷<br><b>'+fmt(G.lastCost||0)+' 兩</b></div><div class="card" style="margin:0">黑帳風聲<br><b>'+(G.heat>6?'很緊':G.heat>3?'偏緊':'平靜')+'</b></div></div>';
   // 宴會
   h+=banquetCard();
@@ -7297,8 +7294,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   $('#b-next').addEventListener('click',()=>doTurn(1));
   $('#b-purse').addEventListener('click',()=>UI.openSheet('purse'));
   $('#b-menu').addEventListener('click',()=>UI.openSheet('menu'));
-  $('#d-city').parentNode.style.cursor='pointer';
-  $('#d-city').parentNode.addEventListener('click',()=>{if(G)UI.openSheet('city')});
   $('#sh-close').addEventListener('click',()=>UI.closeSheet());
   $('#info-close').addEventListener('click',()=>UI.hideInfo());
   $('#info-bd').addEventListener('click',e=>{if(e.target.id==='info-bd')UI.hideInfo()});
