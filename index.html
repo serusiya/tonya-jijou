@@ -260,7 +260,6 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
       <div class="row" style="gap:5px"><span style="font-size:17px;color:#e5a93b">🏮 問屋事情</span></div>
       <div class="row" style="gap:4px">
         <button id="b-menu" class="hbtn" data-t="nav.menu">☰</button>
-        <button id="b-next3" class="hbtn" title="推進一個月" data-t="nav.month">▶▶ 月</button>
         <span id="d-ap" class="ap">行動 5/5</span><button id="b-next" class="hbtn go" data-t="nav.next">推進一旬 ▶</button>
       </div>
     </div>
@@ -1044,7 +1043,6 @@ const Ls=path=>{const v=_lineAt(path);return Array.isArray(v)?v:[v]};
 const UI_TXT={
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
   'nav.menu':'⚙️',
-  'nav.month':'▶▶ 月',
   'nav.next':'推進一旬 ▶',
   'nav.purse':'＋',
   'nav.close':'✕ 關閉',
@@ -3780,7 +3778,7 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📊 本旬大盤（'+guildPolicyName()+'）</b><div class="tiny muted">價格不能自訂，只能決定出貨量。'+(cartelPolicy()==='normal'?(guildMember()?'本期全體總配額等於本城需求；你的配額為穩定供貨線，其餘由同行依市占率分配。':'本期全體總配額等於本城需求；你未參加協議，沒有保留配額，其餘同業分配全部協議供應量。'):'本期依減供配額以量控價。')+'近九旬裡，賣得少則市價較高，賣得多則較低；同業偶爾也會超賣。</div></div><span class="tag gold">'+season()+'季</span></div>';
   {const p=G.supplyQuarter||{stable:0,unstable:0,turns:0};h+='<div class="tiny muted" style="margin-top:4px">🏯 三個月人口檢視：已記錄 '+p.turns+'/9 旬（穩定 '+p.stable+'·不穩定 '+p.unstable+'）</div>'}
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
-  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
+  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩</div></div>';
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'聯合採購價':'未參加協議·市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
@@ -3826,7 +3824,7 @@ function tradeCard(name){
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+(guildMember()?'　協議配額已有加給':'　未參加協議，只按市占率分配')+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">推進一旬時照這裡辦理；進的貨在新的一旬開頭到倉。</div></div>';
+  h+='</div>';
   return h;
 }
 /** 【本旬買賣總表】所有本業貨這一旬的出貨、進貨與下旬開頭；點一列切換到那項貨。 */
@@ -7259,7 +7257,7 @@ function guildBondCard(){
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
- * - doTurn：「推進一旬/一月」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
+ * - doTurn：「推進一旬」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
  * - 以事件委派處理所有 data-act / data-chg；DOMContentLoaded 綁定頂部按鈕與開局。 */
 /* ======================= 08 啟動、事件委派、推進時間 ======================= */
 /** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次現款變化。 */
@@ -7297,7 +7295,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   $$('.loc').forEach(el=>el.dataset.act='go');
   $$('#bottom button').forEach(b=>b.addEventListener('click',()=>{UI.go(UI.s.tab===b.dataset.tab?'home':b.dataset.tab)}));
   $('#b-next').addEventListener('click',()=>doTurn(1));
-  $('#b-next3').addEventListener('click',()=>doTurn(3));
   $('#b-purse').addEventListener('click',()=>UI.openSheet('purse'));
   $('#b-menu').addEventListener('click',()=>UI.openSheet('menu'));
   $('#d-city').parentNode.style.cursor='pointer';
