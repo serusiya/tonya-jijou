@@ -16,10 +16,12 @@ const REGION_ADJ={reg_central:['reg_east','reg_west','reg_north'],reg_east:['reg
 
 /** 主角駐節城市。 */
 const homeCity=()=>CITY(G.cityId);
+/** 城市目前人口；本店駐節城採存檔中的動態人口，其他城市維持資料表人口。 */
+const cityPop=city=>G&&city&&city.id===G.cityId&&Number.isFinite(G.cityPopulation)?G.cityPopulation:(parseInt(city&&city.population,10)||0);
 /** 某城對某物品的每旬需求量（依人口，必需品權重高、奢侈品低）。 */
 function cityD(city,c){
   const w=c.staple?0.5:c.luxury?0.06:0.25,mn=c.staple?30:c.luxury?6:20;
-  return Math.max(mn,Math.round(city.population/1000*w));
+  return Math.max(mn,Math.round(cityPop(city)/1000*w));
 }
 /** 城市價格係數：固定雜訊、產地便宜（×0.8）、大城偏貴（×1.08）。 */
 function cityMod(city,c){
@@ -38,8 +40,10 @@ function festActive(){
 }
 /** 節慶需求倍率：本城節慶那一旬，所有貨物需求 ×3；酒、油、布料等節慶相關貨物 ×4。 */
 const festMult=c=>festActive()?(FEST_KW.some(k=>c.name.includes(k))?4:3):1;
-/** 公會配額（單位/旬）＝本城需求×配額比例（初始 6%，可在公會提案 +10%）。 */
-const quotaOf=name=>Math.max(1,Math.round(G.mk[name].D*G.cartel.quotaPct));
+/** 以量制價配額（單位/旬）＝本城需求×配額比例（初始 6%，可在公會提案 +10%）。 */
+const restrictQuotaOf=name=>Math.max(1,Math.round(G.mk[name].D*G.cartel.quotaPct));
+/** 本期有效配額：以量制價採固定比例；正常供應採玩家的穩定供貨線，兩者都是出貨上限。 */
+const quotaOf=name=>cartelPolicy()==='normal'?supplyLine(name):restrictQuotaOf(name);
 
 /** 建立各物品市場資料（需求、供給、事件倍率、進貨壓力）與開局庫存。 */
 function initMarket(){
@@ -62,17 +66,17 @@ const invCap=()=>G.wh.n*G.wh.cap;
 function capMult(name){return clamp(10-COMM_MAP[name].decay*200,5,10)}
 /** 某物品庫存上限＝本城需求×倍率。 */
 function itemCap(name){const m=G.mk[name];return Math.max(5,Math.round((m?m.D:cityD(homeCity(),COMM_MAP[name]))*capMult(name)))}
-/** 某物品在途量（向大盤下單、尚未到貨）。 */
-const itemOnOrder=name=>(G.orders||[]).filter(o=>o.name===name).reduce((a,o)=>a+o.qty,0)+G.ships.filter(s=>s.name===name).reduce((a,s)=>a+s.qty,0);
+/** 某物品已向大盤下單、尚未到貨的數量。委任採買的品項與數量在歸來時才決定，不列入。 */
+const itemOnOrder=name=>(G.orders||[]).filter(o=>o.name===name).reduce((a,o)=>a+o.qty,0);
 /** 某物品還能再放多少（同時受單項上限與倉庫容量限制）。 */
-const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOrder(name),invCap()-invUsed()-pendingQty()-transitQty()));
+const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOrder(name),invCap()-invUsed()-pendingQty()));
 
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
 const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lux.ph==='dry'?L.dryMult:m.lux.ph==='burst'?m.lux.mul:1};
 const demandEff=(c,m,noLux)=>m.D*festMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
-/** 本旬同業有效供給（本業受株仲間減供）。 */
-const supplyEff=(c,m)=>m.so*(c.sys===G.sysKey?1-0.22*G.cartel.comp/100:1);
+/** 本旬同業有效供給：只有「以量制價」決議會再依協議遵守率減供；正常供應直接採各家配額內的實際出貨。 */
+const supplyEff=(c,m)=>m.so*(c.sys===G.sysKey&&cartelPolicy()==='restrict'?1-0.22*G.cartel.comp/100:1);
 /** 前（視窗旬數−1）旬的需求/同業供給/我方出貨紀錄（舊存檔或開局缺資料時，以基準值補齊）。 */
 function pastOf(m){
   if(m.past&&m.past.length)return m.past;
@@ -112,20 +116,26 @@ function luxTick(c,m,first){
     if(own&&chance(L.news)){const t=NEWS('luxBurst',{name:c.short});pushNews(t)}
   }
 }
-/** 本旬同業實際出貨量：基準供給（需求×0.58）依各家知名度/庫存/事件分配，各家再乘隨機係數；本業每家每旬 5% 挑一項超賣（倍數大增）壓低行情。 */
+/** 本旬同業實際出貨量：
+ *  - 以量制價：沿用需求×0.58 的基準供給，再依各家權重與隨機波動出貨。
+ *  - 正常供應：總配額＝本城需求；先扣玩家配額，餘額依其他同業（含零星商家）的市占率分配。各家通常不超過配額，偶發超賣才越線。 */
 function rivalSupply(c,m,first){
-  const R=ODDS.rivalShip,base=m.D*R.base,rv=rivalsHere();
-  if(!rv.length)return Math.round(base*(R.lo+rnd()*(R.hi-R.lo)));
-  const sc=marketShares().rows,tot=sc.reduce((a,r)=>a+r.score,0),frac=1-R.otherShare;
-  let sum=base*R.otherShare*(0.95+rnd()*0.1),big=null;
+  const R=ODDS.rivalShip,normal=c.sys===G.sysKey&&cartelPolicy()==='normal',rv=rivalsHere();
+  if(normal)shareFactor();
+  const shares=normal?G.share:marketShares(),sc=shares.rows;
+  const base=normal?Math.max(0,m.D-(guildMember()?quotaOf(c.name):0)):m.D*R.base;   // 未參加協議的玩家沒有保留配額，正常供應總量全數分給協議內同業
+  if(!rv.length)return Math.round(base*(normal?1:R.lo+rnd()*(R.hi-R.lo)));
+  const tot=sc.reduce((a,r)=>a+r.score,0),frac=1-R.otherShare;
+  const rivalPool=normal?Math.max(0.000001,sc.reduce((a,r)=>a+(r.share||0),0)+(shares.others||0)):1;
+  let sum=normal?base*(shares.others||0)/rivalPool*(0.95+rnd()*0.05):base*R.otherShare*(0.95+rnd()*0.1),big=null;
   sc.forEach(r=>{
-    const w=tot>0?r.score/tot:0;let f=R.lo+rnd()*(R.hi-R.lo);
-    f*=clamp(r.stock/0.9,0.5,1.3);if(r.raided)f*=0.4;
+    const w=normal?(r.share||0)/rivalPool:(tot>0?r.score/tot:0);let f=R.lo+rnd()*((normal?1:R.hi)-R.lo);
+    f*=clamp(r.stock/0.9,0.5,normal?1:1.3);if(r.raided)f*=0.4;
     let mul=0;
-    if(c.sys===G.sysKey)mul=rivalOverMul(r,c,first);                       // 本業：每家每旬 5% 挑一項超賣（違反公會配額，見 07y_guild.js）
+    if(c.sys===G.sysKey)mul=rivalOverMul(r,c,first);                       // 本業：每家每旬 5% 挑一項超賣（違反協議配額，見 07y_guild.js）
     else if(!first&&!r.raided&&roll('rivalShip',R.overP))mul=R.mulMin+rnd()*(R.mulMax-R.mulMin);   // 非本業（打毀指標用的主食）：照舊逐項擲
-    if(mul){f*=mul;if(!big||mul>big.mul)big={cid:r.cid,mul}}
-    sum+=base*frac*w*f;
+    if(mul){f=normal?Math.max(1.01,f*mul):f*mul;if(!big||mul>big.mul)big={cid:r.cid,mul}}   // 正常供應的超賣事件必定越過該店配額
+    sum+=base*(normal?1:frac)*w*f;
   });
   if(big&&!first&&c.sys===G.sysKey&&chance(R.news)){const t=NEWS('rivalDump',{who:nameOf(big.cid),name:c.short});pushNews(t)}
   return Math.round(sum);
@@ -153,12 +163,12 @@ function refreshMarket(first){
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
 const empBuyMult=()=>ODDS.rivalShip.buyMult;
-/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（入會 0.93、未入會 1），遇公會斷貨×1.4，再乘進貨壓力。 */
+/** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（參加協議 0.93、未參加 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
   let p=marketIndex(name,true)*empBuyMult();
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
-  if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未入會：照市價（入會者享公會價）
+  if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未參加協議：照市價（參加者享聯合採購價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
   return p;
 }
@@ -168,8 +178,8 @@ function quoteSale(name,qty){
   const p=priceNow(name,tot);const mult=empMult();
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
-/** 每旬向大盤進貨上限＝（本城需求×你的市佔率＋公會配額）×（0.8＋番頭加成），無條件捨去，至少 1；入會與否相同（委託採買不受限）。市佔率上升，能進的貨跟著增加；大番頭也算一名番頭。 */
-const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05;return Math.max(1,Math.floor(((G.mk[name].D||0)*sh+quotaOf(name))*buyLimitMult()))};
+/** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
+const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()))};
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -179,7 +189,7 @@ function buyGoods(name,qty,manual){
   qty=Math.floor(qty);if(qty<=0)return {ok:false,msg:MSG('buyGoods.1')};
   if(!tradeOK(name))return {ok:false,msg:tradeLockMsg(name)};
   if(!G.orders)G.orders=[];
-  if(invUsed()+pendingQty()+transitQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),transitQty:(pendingQty()+transitQty()),invCap:invCap()})};
+  if(invUsed()+pendingQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),pendingQty:pendingQty(),invCap:invCap()})};
   if(qty>itemRoom(name))return {ok:false,msg:MSG('buyGoods.3',{name:COMM_MAP[name].short,capMult:fmt1(capMult(name)),itemCap:itemCap(name),itemRoom:itemRoom(name)})};
   const mk=G.mk[name];
   if(qty>buyLeft(name))return {ok:false,msg:MSG('buyGoods.4',{name:COMM_MAP[name].short,buyLimit:buyLimit(name),buyLeft:buyLeft(name),mult:fmt1(buyLimitMult())})};
@@ -307,7 +317,7 @@ function thieves(){
 /** 每旬結算公會：誓言守配額卻超量→斷貨；暗約偷跑→可能被查抄；遵守率隨行為變動。 */
 function evalCartel(log){
   const C=G.cartel;let over=0,shippedAny=false;
-  ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const q=quotaOf(c.name);over=Math.max(over,Math.max(0,(m.shipped-q)/q))});
+  ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const q=quotaOf(c.name),x=q>0?Math.max(0,(m.shipped-q)/q):(m.shipped>0?1:0);over=Math.max(over,x)});
   if(C.state==='pledged'){
     if(over>0){
       C.cheated++;G.life.cheats++;
@@ -493,8 +503,6 @@ function weightClass(name){const c=COMM_MAP[name];if(c.luxury)return 'light';if(
 function capOf(name,mode){const w=weightClass(name);return (mode==='sea'?CAP_SEA:CAP_LAND)[w]}
 /** 運輸許可：海運需該地區的進港泊位許可、陸路需本地區的關所通行手形（遠國奉行所核發）。 */
 const permitOf=(mode,ct)=>mode==='sea'?(ct?seaPermitFor(ct):anySea()):landPermit();
-/** 商路在途貨物總量。 */
-const transitQty=()=>G.ships.reduce((a,s)=>a+s.qty,0);
 /** 船長/飛腳的膽識與商才換算成遇險率倍數（0.7～1.3）。 */
 function crewRiskMult(e){const C_=ODDS.crewRisk,s=e?statsOfEmp(e):null;return s?clamp(C_.base-s.audacity_courage*C_.perCourage-(s.commerce_skill-50)/C_.commerceDiv,C_.min,C_.max):C_.max}
 /** 每旬推進委託採買：歸來時結算（07i_voyage.js 的 resolveVoyage）。 */
@@ -543,8 +551,29 @@ function cityTick(){
   });
 }
 
+/** 每三個月（九旬）依穩定供貨旬數調整本城人口：全穩定 ±2%，其餘依多數 ±0.6%。 */
+function populationTick(log){
+  if(!TURNRP)return;
+  const O=ODDS.cityPopulation,Q=G.supplyQuarter||(G.supplyQuarter={stable:0,unstable:0,turns:0});
+  if(TURNRP.supplyStable)Q.stable++;else Q.unstable++;
+  Q.turns++;
+  if(Q.turns<O.turns)return;
+  const stable=Q.stable,unstable=Q.unstable;
+  let rate,result;
+  if(stable===O.turns){rate=O.all;result='供貨始終安定，人口明顯增加'}
+  else if(stable>unstable){rate=O.majority;result='穩定供貨較多，人口小幅增加'}
+  else if(stable===0){rate=-O.all;result='供貨持續不穩，人口明顯減少'}
+  else{rate=-O.majority;result='供貨不穩較多，人口小幅減少'}
+  const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(homeCity());
+  G.cityPopulation=Math.max(O.min,Math.round(before*(1+rate)));
+  G.supplyQuarter={stable:0,unstable:0,turns:0};
+  TURNRP.population={before,after:G.cityPopulation,stable,unstable,rate};
+  const t=NEWS('city.population',{stable,unstable,result,before:fmt(before),after:fmt(G.cityPopulation),rate:(rate>0?'+':'')+(rate*100).toFixed(1)+'%'});
+  pushNews(t);log.push(t);
+}
+
 /* ---------- 旬推進 ---------- */
-/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
+/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→季度人口→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
 function advanceTurn(){
   syncPeaks();
   const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
@@ -559,6 +588,8 @@ function advanceTurn(){
   tourTick(log);
   receiveOrders(log);
   evalCartel(log);
+  guildPolicyTick(log);                           // 先按舊方針結算玩家出貨，再決定新一期方針，讓本旬同業供給立即採新配額
+  populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
   msTick(log);
   refreshMarket();
   guildTick(log);                                 // 公會：查同業超賣、期滿分配違約金

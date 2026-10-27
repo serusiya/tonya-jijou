@@ -8,7 +8,7 @@ const xName=n=>COMM_MAP[n]?COMM_MAP[n].short:n;
 function otherComms(){const own=ownNameSet();return COMM.filter(c=>!own.has(c.name))}
 /** 一批沒收貨（協助銷貨與官吏硬塞共用）：非本業、非奢侈品，總值約 300～600 兩（以基準價計），5～50 單位，受倉位限制；放不下 5 單位回傳 null。 */
 function xLot(){
-  const room=Math.max(0,invCap()-invUsed()-pendingQty()-transitQty());if(room<5)return null;
+  const room=Math.max(0,invCap()-invUsed()-pendingQty());if(room<5)return null;
   const pool=otherComms().filter(c=>!c.luxury);if(!pool.length)return null;
   const c=pick(pool),q=Math.min(room,clamp(Math.round(rint(300,600)/c.base),5,50));
   return {c,q};

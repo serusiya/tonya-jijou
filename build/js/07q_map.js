@@ -66,20 +66,20 @@ function regionMapSvg(rid,opts){
   // 城市
   const placed=px.map(p=>[p.sx-7,p.sy-7,p.sx+7,p.sy+7]);
   const hit=r=>placed.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1]);
-  px.slice().sort((a,b)=>b.c.population-a.c.population).forEach(p=>{
+  px.slice().sort((a,b)=>cityPop(b.c)-cityPop(a.c)).forEach(p=>{
     const cx=p.sx,cy=p.sy,home=opts.home===p.c.id,sel=opts.sel===p.c.id;
     let g='<g data-act="mapCity" data-cid="'+p.c.id+'" style="cursor:pointer">';
     g+='<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="transparent"/>';
     if(home)g+='<circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="'+RED+'" opacity=".22"/><circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="none" stroke="'+RED+'" stroke-width="1"/>';
     if(sel)g+='<circle cx="'+cx+'" cy="'+cy+'" r="10.5" fill="none" stroke="'+INK+'" stroke-width=".8" stroke-dasharray="2 1.5"/>';
-    const big=p.c.population>200000;
+    const big=cityPop(p.c)>200000;
     if(p.k==='admin'){const k=big?1.25:1;g+='<g transform="translate('+cx+' '+cy+') scale('+k+')" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"><path d="M-6 5H6L5 0H-5Z" fill="#6f6f6a"/><rect x="-4.2" y="-3" width="8.4" height="3.2" fill="#fbf6e4"/><path d="M-5.8 -3L0 -8L5.8 -3Z" fill="#37424a"/><rect x="-2.2" y="-6.2" width="4.4" height="3" fill="#fbf6e4"/><path d="M-3.4 -6L0 -10.5L3.4 -6Z" fill="#37424a"/></g>'}
     else if(p.k==='mine')g+='<g transform="translate('+cx+' '+cy+')" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"><path d="M-7 4L-2 -5L1 -1L4 -7L8 4Z" fill="#8a7f6a"/><path d="M-3 4L-1 0M4 -7L3 -2L6 4M1 -1L2 4" fill="none" stroke-width=".5"/><circle cx="-5.5" cy="-2.5" r="1" fill="#e0b73c" stroke-width=".4"/></g>';
     else if(p.k==='port')g+='<g transform="translate('+cx+' '+cy+')" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"><path d="M-6 1H6L4 5H-4Z" fill="#8a5a33"/><path d="M0 1V-8M0 -8L5 -1H0Z" fill="#fbf6e4"/><path d="M-1 -8L-1 -10" fill="none"/><path d="M-7 7q1.7 -1.6 3.5 0t3.5 0t3.5 0t3.5 0" fill="none" stroke="'+WASH+'" stroke-width=".8"/></g>';
     else if(p.k==='land')g+='<g transform="translate('+cx+' '+cy+')" stroke="'+INK+'" stroke-width=".8" stroke-linejoin="round"><path d="M-6 5V-3M6 5V-3" fill="none" stroke-width="1.4"/><path d="M-8 -3H8L7 -5.2H-7Z" fill="'+RED+'"/><path d="M-5.5 0H5.5" fill="none" stroke-width=".9"/></g>';
     else g+='<g transform="translate('+cx+' '+cy+')" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"><path d="M-6 2L0 -5L6 2Z" fill="#c89e52"/><rect x="-4" y="2" width="8" height="3.6" fill="#fbf6e4"/><path d="M-8 7H8M-8 9.2H8" stroke="#7d8f4b" stroke-width=".8" fill="none"/></g>';
     // 直書名牌
-    const lab=p.c.name.slice(0,2),fs=6.6,w=fs+4.6,h=fs*2+5.4;
+    const lab=p.c.name.slice(0,2),fs=8.6,w=fs+4.6,h=fs*2+5.4;
     const cand=[[cx+10,cy-h/2],[cx-10-w,cy-h/2],[cx-w/2,cy-12-h+2],[cx-w/2,cy+9],[cx+10,cy-h-1],[cx+10,cy+1]];
     let pick=null;for(const c of cand){const r=[c[0]+x0,c[1]+y0,c[0]+w+x0,c[1]+h+y0];if(!hit(r)){pick=[c,r];break}}
     if(!pick){const c=cand[0];pick=[c,[c[0]+x0,c[1]+y0,c[0]+w+x0,c[1]+h+y0]]}
@@ -96,12 +96,12 @@ function regionMapSvg(rid,opts){
   const reg=(list[0]||{}).region_name||'',title=reg.replace(/圈$/,'').replace(/同盟|群島|水運港灣|商賈驛站/,m=>m)+'繪圖',tl=[...title];
   const tw=15,th=tl.length*11+8;
   s+='<g><rect x="13" y="13" width="'+tw+'" height="'+th+'" fill="#f7efd2" stroke="'+INK+'" stroke-width="1"/><rect x="15" y="15" width="'+(tw-4)+'" height="'+(th-4)+'" fill="none" stroke="'+RED+'" stroke-width=".6"/>'
-   +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(25+i*11)+'" text-anchor="middle" font-size="9.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
+   +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(25+i*13)+'" text-anchor="middle" font-size="11.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
   // 方位（北）：在幾個候選位置中挑離城市與名牌最遠者
   const cc=[[W-26,34],[W-26,H-70],[W/2,24]].map(c=>[c,Math.min(...px.map(p=>Math.hypot(p.sx-c[0],p.sy-c[1])))]).sort((a,b)=>b[1]-a[1])[0][0],cx=cc[0],cy=cc[1];
-  s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="8" font-weight="bold" fill="'+INK+'">北</text>';
+  s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="'+INK+'">北</text>';
   // 比例尺（百里）與落款印
-  s+='<g stroke="'+INK+'" stroke-width=".8"><path d="M14 '+(H-14)+'H'+(14+50)+'M14 '+(H-17)+'V'+(H-11)+'M'+(14+50)+' '+(H-17)+'V'+(H-11)+'"/></g><text x="39" y="'+(H-18.5)+'" text-anchor="middle" font-size="6.5" fill="'+INK+'">五十里</text>';
-  s+='<g><rect x="'+(W-27)+'" y="'+(H-27)+'" width="15" height="15" fill="'+RED+'" opacity=".9"/><text x="'+(W-19.5)+'" y="'+(H-22)+'" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#fbf4dc">問</text><text x="'+(W-19.5)+'" y="'+(H-14.6)+'" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#fbf4dc">屋</text></g>';
+  s+='<g stroke="'+INK+'" stroke-width=".8"><path d="M14 '+(H-14)+'H'+(14+50)+'M14 '+(H-17)+'V'+(H-11)+'M'+(14+50)+' '+(H-17)+'V'+(H-11)+'"/></g><text x="39" y="'+(H-18.5)+'" text-anchor="middle" font-size="8.5" fill="'+INK+'">五十里</text>';
+  s+='<g><rect x="'+(W-27)+'" y="'+(H-27)+'" width="15" height="15" fill="'+RED+'" opacity=".9"/><text x="'+(W-19.5)+'" y="'+(H-22)+'" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fbf4dc">問</text><text x="'+(W-19.5)+'" y="'+(H-14.6)+'" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fbf4dc">屋</text></g>';
   return s+'</svg>';
 }

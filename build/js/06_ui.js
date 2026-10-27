@@ -2,7 +2,7 @@
 /* ★檔案總覽：主介面（首頁、大盤、商路）
  * - UI.s：介面暫存狀態（分頁、選取物品、面板…，不存檔）。ACT[name]：data-act 按鈕處理；CHG：data-chg 變更處理。
  * - renderHome/renderMarket/renderRoutes：三個主畫面；說明視窗 UI.showInfo。
- * - planOf/autoShip：出貨預設＝公會配額，未按「出貨」則推進一旬時自動出貨。 */
+ * - planOf/autoShip：出貨預設＝本期有效協議配額（以量制價採固定比例；正常供應採穩定供貨線），未按「出貨」則推進一旬時自動出貨。 */
 /* ======================= 06 介面核心：頂欄、分頁、跑馬燈、大盤、商路 ======================= */
 /** 介面暫存狀態（不存檔）：分頁、選取物品、面板、筆記篩選、商路設定… */
 const UI={s:{tab:'home',focus:null,ship:0,buy:10,sheet:null,sheetLock:false,notesQ:'',notesF:'all',route:{mode:'sea',dest:null},intro:null,openNote:null}};
@@ -25,7 +25,6 @@ UI.go=function(tab){
   UI.s.tab=tab;
   ['home',...TAB_IDS].forEach(t=>$('#view-'+t).classList.toggle('hidden',t!==tab));
   $$('#bottom button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  $('#b-home').classList.toggle('hidden',tab==='home');
   UI.render();
   $('#main').scrollTop=0;sfx.step();
 };
@@ -79,7 +78,7 @@ function renderHome(){
   $('#loc-city').textContent='所在：'+city.name;
   $('#n-off').textContent='官吏 '+officialsOf(G.cityId).length+' 名';
   $('#n-flower').textContent='名伶 今旬 '+oiranOnStage().length+'／'+oiranAll().length+' 位在席';
-  {const w=GUILD_GAP-(G.turn-(G.guildAt===undefined?-99:G.guildAt));$('#n-guild').textContent='配額遵守率 '+Math.round(G.cartel.comp)+'%·'+(w>0?'下次例會 '+w+' 旬後':'可入會')}
+  {const w=GUILD_GAP-(G.turn-(G.guildAt===undefined?-99:G.guildAt));$('#n-guild').textContent='協議配額遵守率 '+Math.round(G.cartel.comp)+'%·'+(w>0?'下次例會 '+w+' 旬後':'可加入協議')}
   $('#n-res').textContent='可造訪 '+resident().length+' 家';
   const fl=Object.keys(G.inv).reduce((a,k)=>a+(COMM_MAP[k].flam?G.inv[k]:0),0);
   $('#wh-line').textContent='倉庫 '+G.wh.n+' 棟，庫存 '+invUsed()+' / '+invCap()+' 單位。易燃品 '+fl+' 單位；保鏢 '+guardCount()+' 名巡守。';
@@ -120,10 +119,11 @@ function renderMarket(){
   const bmax=maxBuy(name),bq=buyPlanOf(name);
   const ex=(G.cartel.state==='pledged'?'已表態守配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未表態');
   let h='<div class="pixel-box" style="padding:8px">';
-  h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📊 本旬大盤（以量控價）</b><div class="tiny muted">價格不能自訂，只能決定出貨量。近九旬裡，本城買的人多、同業與你賣得少，市價就高；賣得多就低。同業也會出貨，偶爾超賣</div></div><span class="tag gold">'+season()+'季</span></div>';
+  h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📊 本旬大盤（'+guildPolicyName()+'）</b><div class="tiny muted">價格不能自訂，只能決定出貨量。'+(cartelPolicy()==='normal'?(guildMember()?'本期全體總配額等於本城需求；你的配額為穩定供貨線，其餘由同行依市占率分配。':'本期全體總配額等於本城需求；你未參加協議，沒有保留配額，其餘同業分配全部協議供應量。'):'本期依減供配額以量控價。')+'近九旬裡，賣得少則市價較高，賣得多則較低；同業偶爾也會超賣。</div></div><span class="tag gold">'+season()+'季</span></div>';
+  {const p=G.supplyQuarter||{stable:0,unstable:0,turns:0};h+='<div class="tiny muted" style="margin-top:4px">🏯 三個月人口檢視：已記錄 '+p.turns+'/9 旬（穩定 '+p.stable+'·不穩定 '+p.unstable+'）</div>'}
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
-  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:14px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
-  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'公會價':'未入會·市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
+  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
+  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'聯合採購價':'未參加協議·市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
@@ -148,9 +148,9 @@ function shareCard(){
    +'<div class="tiny muted" style="margin-top:4px">未列名的零星供貨約 '+(sh.others*100).toFixed(1)+'%（市占估計誤差）。</div>'
    +'</div>';
 }
-/** 下旬開頭的預估庫存：賣出後加上進貨（含已下單在途），再扣預估損耗（夏季主食損耗較多）。 */
+/** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
 function nextStock(name,ship,buy){
-  const c=COMM_MAP[name],n=Math.max(0,(G.inv[name]||0)-ship)+buy+itemOnOrder(name);
+  const c=COMM_MAP[name],n=Math.max(0,(G.inv[name]||0)-ship)+buy;
   return Math.max(0,n-Math.round(n*c.decay*(c.staple&&season()==='夏'?1.6:1)));
 }
 /** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
@@ -158,15 +158,15 @@ function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(
 /** 【本旬買賣】單項貨的出貨與進貨：頂端看「現有→賣出後→下旬開頭」，下面是兩個滑桿與快速按鈕。 */
 function tradeCard(name){
   const c=COMM_MAP[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
-  const ex=(G.cartel.state==='pledged'?'已表態守配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未入會');
+  const ex=(G.cartel.state==='pledged'?'已表態守協議配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未參加協議');
   let h='<div class="card" id="trade-card"><b class="small">📦 本旬買賣·'+esc(c.short)+'</b>';
   h+='<div class="small" style="margin:4px 0;text-align:center">現有 <b>'+have+'</b> → 賣出後 <b id="f-after">'+Math.max(0,have-ship)+'</b> → 下旬開頭約 <b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">📤 出貨</b><b id="q-q" style="color:#9b2c3a">'+ship+' 單位</b></div>';
-  h+='<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>';
-  h+='<div class="tiny muted">公會配額 '+quota+'（'+ex+'）·穩定供貨線 '+supplyLine(name)+'</div><div class="tiny">出貨後市價 <b id="q-price">'+fmt1(q.price)+' 兩</b>·約入帳 <b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b></div></div>';
+  h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
+  h+='<div class="tiny muted">協議配額 '+quota+'（'+ex+'）·穩定供貨線 '+supplyLine(name)+'</div><div class="tiny">出貨後市價 <b id="q-price">'+fmt1(q.price)+' 兩</b>·約入帳 <b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b></div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">📥 進貨</b><b id="b-q" style="color:#9b2c3a">'+bq+' 單位</b></div>';
-  h+='<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>';
-  h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+'·在途 '+itemOnOrder(name)+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
+  h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
+  h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+(guildMember()?'　協議配額已有加給':'　未參加協議，只按市占率分配')+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">推進一旬時照這裡辦理；進的貨在新的一旬開頭到倉。</div></div>';
   return h;
@@ -194,7 +194,7 @@ function refreshTrade(){
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
 function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,G.inv[n]||0);UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
-/** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為公會配額，出貨不動）、清除（只清進貨）。 */
+/** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為協議配額，出貨不動）、清除（只清進貨）。 */
 function planAllBuy(f){const L=tradeComms();G.buyPlan={};L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
 ACT.planQuota=()=>{let short=0;planAllBuy(n=>quotaOf(n));tradeComms().forEach(c=>{if((G.buyPlan[c.name]||0)<quotaOf(c.name))short++});
@@ -206,7 +206,7 @@ ACT.focus=el=>{UI.s.focus=el.dataset.n;renderMarket();sfx.tap()};
 function maxBuy(name,ui){
   const u=unitBuyCost(name)||1;let oq=0,oc=0;
   tradeComms().forEach(c=>{const k=c.name;if(k===name)return;const q=buyRaw(k);oq+=q;oc+=Math.round(unitBuyCost(k)*q)});
-  let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty()-transitQty(),cash=G.silver;
+  let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty(),cash=G.silver;
   if(ui){                                           // 畫面試算：推進一旬時先出貨、後進貨，出貨空出的倉位與入帳都算進來
     const T=shipPlanTotals();wh+=T.q;cash+=T.rev;
     room=Math.max(0,Math.min(itemCap(name)-Math.max(0,(G.inv[name]||0)-planOf(name))-itemOnOrder(name),wh));
@@ -223,7 +223,7 @@ function autoBuy(log){
   G.buyPlan=Object.assign({},plan);                     // 只留還沒下單的計畫：maxBuy 會替它們保留倉位與現款
   tradeComms().forEach(c=>{
     const want=plan[c.name]||0;if(want<=0)return;
-    delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進在途量、也已扣現款，不能再保留一次
+    delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進待到貨訂單量、也已扣現款，不能再保留一次
     const q=Math.min(want,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok)(touched.has(c.name)?got:kept).push(c.short+'×'+q)}
   });
   if(got.length)log.push(NEWS('autoBuy.1',{got:got.join('、')}));
@@ -281,8 +281,8 @@ function posInfoHtml(id){
 ACT.posInfo=el=>{const p=OFF_POS[el.dataset.id];UI.pushInfo('官吏職位：'+(p?p.title:''),posInfoHtml(el.dataset.id))};
 /** 顯示 30 個職位一覽。 */
 ACT.posList=()=>{
-  let h='<div class="tiny muted">三院每院一階一職，一～四階常駐城中，五階以上巡迴各城、每三個月來訪一個月。點選查看說明。</div>';
-  Object.keys(COURTS).forEach(ct=>{const sys=OFFICIALS.systems[ct];h+='<div class="ik" style="font-size:13px">'+COURTS[ct].name+'系統·'+esc(sys.department)+'</div><div class="tiny muted">'+esc(sys.core_function)+'</div>'+sys.positions.map(p=>'<div class="irow" data-act="posInfo" data-id="'+p.id+'"><b>'+esc(p.title)+'</b> <span class="tag gold">'+RANK_INFO[p.rank].title.split(/[\u30FB\u00B7]/)[0]+'</span></div>').join('')});
+  let h='<div class="tiny muted">三系官署每一系統一階一職，一～四階常駐城中，五階以上巡迴各城、每三個月來訪一個月。點選查看說明。</div>';
+  Object.keys(COURTS).forEach(ct=>{const sys=OFFICIALS.systems[ct];h+='<div class="ik" style="font-size:15px">'+COURTS[ct].name+'系統·'+esc(sys.department)+'</div><div class="tiny muted">'+esc(sys.core_function)+'</div>'+sys.positions.map(p=>'<div class="irow" data-act="posInfo" data-id="'+p.id+'"><b>'+esc(p.title)+'</b> <span class="tag gold">'+RANK_INFO[p.rank].title.split(/[\u30FB\u00B7]/)[0]+'</span></div>').join('')});
   UI.showInfo('官吏職位一覽',h);
 };
 /** 顯示貿易物品說明（資料來自 COMM_INFO）。 */
@@ -295,8 +295,8 @@ ACT.commInfo=el=>{
 /** 物品旁的『ⓘ說明』按鈕。 */
 const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">ⓘ說明</span>';
 
-/* ---------- 出貨預設＝公會配額；未按「出貨」，推進一旬時自動出貨 ---------- */
-/** 某物品本旬的預定出貨量：預設＝公會配額（有大番頭時延續上旬的出貨量），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
+/* ---------- 出貨預設＝本期有效協議配額；未按「出貨」，推進一旬時自動出貨 ---------- */
+/** 某物品本旬的預定出貨量：預設＝本期有效協議配額（正常供應時即穩定供貨線；有大番頭時延續同一方針下的上旬出貨量），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
 function planOf(name){
   const have=G.inv[name]||0;G.plan=G.plan||{};
   if(G.plan[name]===undefined)G.plan[name]=Math.min(nEmp('大番頭')&&G.lastShip&&G.lastShip[name]!==undefined?G.lastShip[name]:quotaOf(name),have);   // 有大番頭：延續上旬的出貨量
@@ -315,13 +315,14 @@ function autoShip(log){
     const q=planOf(c.name);let shipped=0;
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
     /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
-       已入會（守約或暗約）、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未入會）＝出貨不足 */
+       已參加協議（守約或暗約）、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未參加協議）＝出貨不足 */
     const line=supplyLine(c.name);if(line>0)judged++;
-    if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未入會沒有配額約束，一律算出貨不足
+    if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未參加協議沒有配額約束，一律算出貨不足
   });
   /* 穩定供貨：全部商品出貨量達穩定供貨線 → 知名度 +1～3；有商品未達 → -1～3 */
   if(short.length||squeeze.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short;rep.squeeze=squeeze}   // 兩種扣分相同
   else if(allMet&&judged>0)rep.fame=1+Math.floor(rnd()*3);   // 沒有任何一項貨的供貨線 ≥1：這一旬不判定
+  rep.supplyStable=judged>0&&allMet;               // 季度人口：全品項達線才記為穩定供貨旬
   if(rep.fame)G.fame=clamp((G.fame||0)+rep.fame,0,ODDS.fame.cap);
   if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}
@@ -329,3 +330,33 @@ function autoShip(log){
   if(nEmp('大番頭')){G.lastShip={};own.forEach(c=>{G.lastShip[c.name]=G.plan[c.name]!==undefined?G.plan[c.name]:quotaOf(c.name)})}else delete G.lastShip;   // 大番頭延續的數字
   G.plan={};G.sold={};
 }
+
+/* ---------- 拉霸兩側的加減鈕：每按一下照拉霸的單位加減（進出貨 1 單位、委託金 50 兩）；按住約半秒後連續加減 ---------- */
+/** 把拉霸包成「［－］拉霸［＋］」；decOff／incOff＝初始是否變灰。 */
+function stepRow(input,id,decOff,incOff){
+  const b=(d,off)=>'<button class="pixel-btn btn-sm step-btn" style="min-width:36px" data-step="'+id+'" data-d="'+d+'" '+(off?'disabled':'')+'>'+(d<0?'－':'＋')+'</button>';
+  return '<div class="row step-row" style="gap:6px;align-items:center">'+b(-1,decOff)+input.replace('type="range"','type="range" style="flex:1;min-width:0"')+b(1,incOff)+'</div>';
+}
+/** 依拉霸目前的值與上下限，更新兩側按鈕是否可按。 */
+function stepSync(){
+  document.querySelectorAll('.step-row').forEach(row=>{
+    const inp=row.querySelector('input[type=range]');if(!inp)return;const v=+inp.value;
+    row.querySelectorAll('[data-step]').forEach(bt=>{bt.disabled=inp.disabled||(+bt.dataset.d<0?v<=+inp.min:v>=+inp.max)});
+  });
+}
+/** 加減一格：改拉霸的值並觸發原本的 input 處理。 */
+function stepOnce(bt){
+  const inp=document.getElementById(bt.dataset.step);if(!inp||inp.disabled)return false;
+  const st=+inp.step||1,nv=Math.max(+inp.min,Math.min(+inp.max,+inp.value+st*(+bt.dataset.d)));
+  if(nv===+inp.value)return false;
+  inp.value=nv;inp.dispatchEvent(new Event('input',{bubbles:true}));return true;
+}
+let STEP_T=null;
+const stepStop=()=>{if(STEP_T){clearTimeout(STEP_T);clearInterval(STEP_T);STEP_T=null}};
+document.addEventListener('pointerdown',e=>{
+  const bt=e.target.closest('[data-step]');if(!bt||bt.disabled)return;
+  e.preventDefault();stepStop();if(!stepOnce(bt))return;sfx.tap&&sfx.tap();
+  STEP_T=setTimeout(()=>{STEP_T=setInterval(()=>{const b2=document.querySelector('[data-step="'+bt.dataset.step+'"][data-d="'+bt.dataset.d+'"]');if(!b2||!stepOnce(b2))stepStop()},80)},450);
+});
+['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>document.addEventListener(ev,stepStop,true));
+document.addEventListener('input',e=>{if(e.target&&e.target.type==='range')stepSync()});

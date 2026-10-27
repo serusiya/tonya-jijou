@@ -1,23 +1,41 @@
 'use strict';
-/* ======================= 公會擔保金與違約金分配 =======================
- *  - 入會（表態遵守或簽暗約）要押擔保金 1,000 兩（COSTS.guildBond）；開局即以守約成員身分入會，擔保金由開局贈送。
- *  - 入會者向大盤進貨享公會價（市價九三折）；未入會照市價（03_market.js 的 unitBuyCost）。
+/* ======================= 聯合採購與出貨協議的擔保金與違約金分配 =======================
+ *  - 參加協議（表態遵守或簽暗約）要押擔保金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，擔保金由開局贈送。
+ *  - 參加協議者向大盤進貨享聯合採購價（市價九三折）；未參加者照市價（03_market.js 的 unitBuyCost）。
  *  - 自動續押：擔保金一直押在公會；每 9 旬一期（ODDS.guildBond.turns），期滿把本期沒收的違約金平分給守約者（你＋本期沒被抓的同業）。
- *  - 你被查獲超量（evalCartel）或退出協議：擔保金沒收，立場回到未表態；要重新入會須在例會時再押一次。
+ *  - 你被查獲超量（evalCartel）或退出協議：擔保金沒收，立場回到未參加；要重新加入協議須在例會時再押一次。
  *  - 同業：每家每旬 5% 超賣一項本業貨（ODDS.rivalShip.overRival，rivalSupply 擲骰），查獲規則與你守約時相同；被抓者擔保金沒收、三旬內市佔下降。
  *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pEnd（本期結束旬）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。 */
-/** 是否為公會成員（表態遵守或暗約）。 */
+/** 本期供給方針；舊存檔在補值前沿用原本的「以量制價」。 */
+const cartelPolicy=()=>G.cartel&&G.cartel.policy==='normal'?'normal':'restrict';
+const guildPolicyName=()=>cartelPolicy()==='normal'?'正常供應':'以量制價';
+/** 是否已參加聯合採購與出貨協議（表態遵守或暗約）。 */
 const guildMember=()=>G.cartel.state==='pledged'||G.cartel.state==='secret';
-/** 舊存檔補欄位：已入會而沒有擔保金紀錄的，視為已押。 */
+/** 舊存檔補欄位：已參加協議而沒有擔保金紀錄的，視為已押。 */
 function guildEnsure(){
   const C=G.cartel;
+  if(C.policy!=='normal'&&C.policy!=='restrict')C.policy='restrict';
+  if(C.policyEnd===undefined)C.policyEnd=G.turn+ODDS.guildBond.turns;
   if(C.bond===undefined){C.bond=guildMember()?costOf('guildBond'):0;C.pot=0;if(C.bond)C.pEnd=G.turn+ODDS.guildBond.turns}
   if(guildMember()&&C.bond>0&&C.pEnd===undefined)C.pEnd=G.turn+ODDS.guildBond.turns;
 }
-/** 押擔保金入會（新的一期從此刻算起）。inTurn＝推進一旬途中付（大番頭代席），記在本旬報告。 */
+/** 每九旬以各半機率決定下一期供給方針；改變方針時不沿用大番頭的舊出貨量。 */
+function guildPolicyRoll(log){
+  const C=G.cartel,prev=cartelPolicy();
+  C.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
+  if(C.policy!==prev){delete G.lastShip;G.plan={}}
+  const key=C.policy==='normal'&&!guildMember()?'guild.policy.normalNone':'guild.policy.'+C.policy;
+  const t=NEWS(key);pushNews(t);if(log)log.push(t);
+}
+/** 進入新旬後、刷新市場前決定新一期方針；上一旬玩家出貨已先按舊方針完成違約判定。 */
+function guildPolicyTick(log){
+  guildEnsure();const C=G.cartel;
+  if(C.policyEnd!==undefined&&G.turn>=C.policyEnd){C.policyEnd+=ODDS.guildBond.turns;guildPolicyRoll(log)}
+}
+/** 押擔保金加入協議（新的一期從此刻算起）。inTurn＝推進一旬途中付（大番頭代席），記在本旬報告。 */
 function guildJoin(inTurn){
   const C=G.cartel,amt=costOf('guildBond');
-  if(inTurn){G.silver-=amt;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['公會擔保金']=(TURNRP.inTurn['公會擔保金']||0)+amt}}
+  if(inTurn){G.silver-=amt;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['協議擔保金']=(TURNRP.inTurn['協議擔保金']||0)+amt}}
   else spend('guildBond');
   C.bond=amt;C.pEnd=G.turn+ODDS.guildBond.turns;C.pot=0;
   rivalsHere().forEach(n=>{msOf(n).caught=false});
@@ -54,7 +72,7 @@ function guildTick(log){
 /** 公會面板上的擔保金卡。 */
 function guildBondCard(){
   guildEnsure();const C=G.cartel;
-  if(!guildMember()||!(C.bond>0))return '<div class="card"><b class="small">🔓 未入會</b><div class="tiny muted" style="margin-top:2px">向大盤照市價進貨，出貨不受配額約束。入會要押擔保金 '+fmt(costOf('guildBond'))+' 兩。</div></div>';
+  if(!guildMember()||!(C.bond>0))return '<div class="card"><b class="small">🔓 未參加協議</b><div class="tiny muted" style="margin-top:2px">你仍是問屋公會會員；向大盤照市價進貨，進貨上限只按市占率分配，出貨不受協議配額約束。參加協議要押擔保金 '+fmt(costOf('guildBond'))+' 兩。</div></div>';
   const left=Math.max(0,(C.pEnd||G.turn)-G.turn),k=Math.round((C.pot||0)/costOf('guildBond'));
-  return '<div class="card"><b class="small">🔒 擔保金 '+fmt(C.bond)+' 兩押在公會</b><div class="tiny muted" style="margin-top:2px">向大盤進貨享公會價。本期還有 '+left+' 旬'+(k?'，已有 '+k+' 家同業偷跑被抓，期滿時沒收的擔保金平分給守約的人。':'，至今無人違約。')+'被查獲超量或退出協議，擔保金沒收。</div></div>';
+  return '<div class="card"><b class="small">🔒 協議擔保金 '+fmt(C.bond)+' 兩押在公會</b><div class="tiny muted" style="margin-top:2px">向大盤進貨享聯合採購價，進貨上限另有協議配額加給。本期還有 '+left+' 旬'+(k?'，已有 '+k+' 家同業偷跑被抓，期滿時沒收的擔保金平分給守約的人。':'，至今無人違約。')+'被查獲超量或退出協議，擔保金沒收；公會會員身分不受影響。</div></div>';
 }

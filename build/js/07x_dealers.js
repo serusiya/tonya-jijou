@@ -1,7 +1,7 @@
 'use strict';
 /* ======================= 商人請託：同業調貨、掮客銷貨、經營好手臨時打工、座客商人代售他行貨物、私梟脫手走私貨 =======================
  *  - 拜訪同業、掮客、經營好手、座客商人或私梟打勝、好感 ≥60 時出現請託（與官員請託同一個視窗）。開口好感 −10，同一人冷卻 3 旬。
- *  - 同業巨賈「調貨」：本旬隨機一項已能交易的本業貨（同一人同一旬固定），數量＝大盤每旬進貨上限的兩倍（不超過倉位、庫存上限與現款），照大盤市價（未入會價）付現款，當場入倉。
+ *  - 同業巨賈「調貨」：本旬隨機一項已能交易的本業貨（同一人同一旬固定），數量＝大盤每旬進貨上限的兩倍（不超過倉位、庫存上限與現款），照大盤市價（未參加協議價）付現款，當場入倉。
  *  - 掮客「銷貨」：庫存單位數最多的本業貨（同量取基準價最高），以大盤市價七折賣出，最多 10 單位、金額最多約 400～500 兩（庫存不夠就全賣），收入進現款；不算出貨，不影響行情、配額與市佔率。
  *  - 經營好手「臨時打工」：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成（不佔名額、不付月例）。
  *  - 座客商人「代售」：倉庫裡的他行貨物，一次一項、整批全收；價格約為基準價的 54%～87%（看這位商人的好感），量大再打折。收入進現款。
@@ -22,7 +22,7 @@ function smugMood(k){const f=(G.smugP&&G.smugP[k])||1;return f>=1.15?'行情好'
 function rivalLot(cid){
   const L=tradeComms();if(!L.length)return null;
   const c=L[Math.floor(seeded(cid+'_'+G.turn)()*L.length)],n=c.name;
-  const unit=unitBuyCost(n)/(guildMember()?ODDS.rivalShip.buyMult:1);   // 未入會價＝大盤市價
+  const unit=unitBuyCost(n)/(guildMember()?ODDS.rivalShip.buyMult:1);   // 未參加協議價＝大盤市價
   const q=Math.max(0,Math.min(buyLimit(n)*2,itemRoom(n),Math.floor(G.silver/unit)));
   return q>0?{c,n,q,unit,cost:Math.round(unit*q)}:null;
 }

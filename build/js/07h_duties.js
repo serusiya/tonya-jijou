@@ -2,7 +2,7 @@
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
  * - 手代：出貨價小幅加成（上限 +4%）、穩定供貨線略降。 番頭：只加大大盤進貨上限。
- * - 大番頭：延續上旬的出貨與進貨數量、已入會時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
+ * - 大番頭：延續上旬的出貨與進貨數量、已參加協議時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
@@ -10,7 +10,7 @@ const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
-  大番頭:'總管：也算一名番頭，大盤進貨上限加大；替你延續上旬的出貨與進貨數量、已入會時代出席公會例會（脫離公會後不代席，入會要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
+  大番頭:'總管：也算一名番頭，大盤進貨上限加大；替你延續上旬的出貨與進貨數量、已參加協議時代出席公會例會（退出協議後不代席，重新加入要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
@@ -20,7 +20,7 @@ const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsO
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
 /** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
 function tellerBonus(){const t=tempHelp();return Math.min(0.04,empsOf('手代').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
-/** 大盤進貨上限倍數（乘在「需求×市佔率＋公會配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
+/** 大盤進貨上限倍數（乘在「需求×市佔率＋參加協議者的協議配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
 const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('番頭').concat(empsOf('大番頭')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('手代')+(tempHelp()===null?0:2)));
@@ -85,16 +85,17 @@ function chiefGuildTick(log){
   if(!nEmp('大番頭'))return;
   chiefGuild(log);
 }
-/** 代出席例會：已入會（守約或暗約）時，到期的例會自動出席並提案提高配額一次；未入會（自己退出或被查獲）不代席，入會要東家自己去。 */
+/** 代出席例會：已參加協議（守約或暗約）時，到期的例會自動出席並提案提高配額一次；未參加協議（自己退出或被查獲）不代席，重新加入要東家自己去。 */
 function chiefGuild(log){
   if(G.turn-(G.guildAt===undefined?-99:G.guildAt)<GUILD_GAP)return;
   const C=G.cartel,b=empsOf('大番頭')[0];
-  if(!guildMember())return;                       // 未入會：不出席、不替你入會
+  if(!guildMember())return;                       // 未參加協議：不出席、不替你重新加入
   G.guildAt=G.turn;C.tried=false;C.paid=true;
   let stance;
   guildEnsure();
   stance=C.state==='secret'?'維持暗約立場':'重申遵守配額';
   let t=NEWS('chief.guild',{stance});pushNews(t);log.push(t);
+  if(cartelPolicy()==='normal')return;             // 正常供應配額依穩定供貨線與市占率分配，沒有固定比例可提案
   C.tried=true;
   if(rnd()<quotaRaiseChance()){
     C.quotaPct=Math.min(0.5,Math.round(C.quotaPct*1.1*10000)/10000);

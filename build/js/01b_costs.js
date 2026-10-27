@@ -31,7 +31,7 @@ const COSTS={
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
   guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},
-  guildBond:{name:'公會擔保金',cur:'silver',amt:1000},
+  guildBond:{name:'協議擔保金',cur:'silver',amt:1000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},
   marryOfficial:{name:'聘禮：官家之女',cur:'silver',amt:800},

@@ -44,7 +44,7 @@ const btKind=cid=>{const n=npc(cid);return n&&n.pos?officialKind(n):'merchant'};
 function btRollExpect(cid){const w=BT_EXPECT_W[btKind(cid)];let x=rnd()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){x-=w[i];if(x<0)return i}return 1}
 /** 暗示期待的台詞：七成照實，三成指向別檔。 */
 function btHint(cid,expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return btSay(cid,'hint.'+['small','mid','large'][t])}
-/** 人物適用的增補句庫（身份：官階帶或商邸身分；院別；年齡層；女性）。 */
+/** 人物適用的增補句庫（身份：官階帶或商邸身分；系統別；年齡層；女性）。 */
 function btGroups(cid){
   const n=npc(cid),c=CH(cid),L=LINES.battle,out=[];if(!c)return out;
   if(n&&n.pos){out.push(L.rank[n.pos.rank<=2?'low':n.pos.rank<=4?'mid':'high']);if(L.court[n.pos.court])out.push(L.court[n.pos.court])}
@@ -81,7 +81,7 @@ function visitRowHtml(cid){
   const r=R(cid),friend=r.aff>=FRIEND_AFF;
   let h='<div class="small bold" style="margin-top:5px">🎁 登門拜訪</div>';
   if(friend)h+='<div class="tiny muted" style="margin-top:2px">交情已深，帶什麼禮都不計較。</div>';
-  else h+='<div class="row" style="gap:4px;margin-top:2px"><span class="tiny">禮物</span><select class="gift-sel" style="flex:1;font-size:11px">'+giftOptions(cid)+'</select></div>';
+  else h+='<div class="row" style="gap:4px;margin-top:2px"><span class="tiny">禮物</span><select class="gift-sel" style="flex:1">'+giftOptions(cid)+'</select></div>';
   const n=npc(cid);if(n&&n.pos)h+='<div class="tiny muted" style="margin-top:3px">'+(friend?'見面時表示心意，對方高興了，才好開口請託。':'交情到了，才好開口請託。')+'</div>';
   h+='<div style="margin-top:4px;display:flex;gap:4px"><button class="pixel-btn btn-sm btn-gold" style="flex:2" data-act="visit" data-cid="'+cid+'">'+UT('btn.visit')+'</button>'+errandBtn(cid)+'</div>';
   return h;
@@ -148,7 +148,8 @@ function battleEnd(){
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
-  r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?0.3:0.1);
+  const hiOff=n&&n.pos&&n.pos.rank>=4;            // 四～六階官員：打勝知名度＝結識時的一半（0.75×官階，隨知名度遞減）
+  r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
   const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
@@ -187,7 +188,7 @@ function specialList(cid){
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
 function reqList(cid){
   const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 商人請託：調貨、銷貨、臨時打工、代售與脫手（07x_dealers.js）
-  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&favorDone(f,n))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(specialList(cid));
+  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(specialList(cid));
 }
 function requestHtml(cid,msg){
   const L=reqList(cid);

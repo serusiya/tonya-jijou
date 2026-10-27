@@ -17,15 +17,15 @@ function silverChartSvg(pts){
   const X=i=>L+(n<2?0:(W-L-R)*i/(n-1)),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
   const short=v=>Math.abs(v)>=10000?(v/10000).toFixed(2)+'萬':fmt(v);
   let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block;background:#fffaf0;border:2px solid #b5a98f" font-family="inherit">';
-  for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#e2d7bd" stroke-width="1"/><text x="'+(L-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#6b6256">'+short(Math.round(v))+'</text>'}
+  for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#e2d7bd" stroke-width="1"/><text x="'+(L-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="11" fill="#6b6256">'+short(Math.round(v))+'</text>'}
   const d=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join('');
   const up=pts[n-1].v>=pts[0].v,col=up?'#1e7e34':'#b3392b';
   s+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>';
   pts.forEach((p,i)=>{
     const x=X(i),y=Y(p.v);
     s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3" fill="'+col+'" stroke="#fffaf0" stroke-width="1"/>';
-    if(n<=9)s+='<text x="'+x.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" text-anchor="middle" font-size="8.5" fill="#3b2e1c">'+short(p.v)+'</text>';
-    s+='<text x="'+x.toFixed(1)+'" y="'+(H-14)+'" text-anchor="middle" font-size="9" fill="#6b6256">'+esc(p.l)+'</text>';
+    if(n<=9)s+='<text x="'+x.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" text-anchor="middle" font-size="10.5" fill="#3b2e1c">'+short(p.v)+'</text>';
+    s+='<text x="'+x.toFixed(1)+'" y="'+(H-14)+'" text-anchor="middle" font-size="11" fill="#6b6256">'+esc(p.l)+'</text>';
   });
   return s+'</svg>';
 }

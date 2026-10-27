@@ -37,7 +37,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#info-bd').c
 window.addEventListener('DOMContentLoaded',()=>{
   $$('.loc').forEach(el=>el.dataset.act='go');
   $$('#bottom button').forEach(b=>b.addEventListener('click',()=>{UI.go(UI.s.tab===b.dataset.tab?'home':b.dataset.tab)}));
-  $('#b-home').addEventListener('click',()=>UI.go('home'));
   $('#b-next').addEventListener('click',()=>doTurn(1));
   $('#b-next3').addEventListener('click',()=>doTurn(3));
   $('#b-purse').addEventListener('click',()=>UI.openSheet('purse'));

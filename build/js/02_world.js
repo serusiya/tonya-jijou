@@ -1,7 +1,7 @@
 'use strict';
 /* ★檔案總覽：世界生成
  * - ROLE_MAP/roleOf：把名冊人物的「適任職務」對應成遊戲角色（官吏、同業、掮客…）。
- * - COURTS/OFF_POS/RANK_INFO：三院官制（行政/財務/司法）與官階索引，資料來自 OFFICIALS。
+ * - COURTS/OFF_POS/RANK_INFO：三系官署官制（行政/財務/司法）與官階索引，資料來自 OFFICIALS。
  * - genWorld：每局從千人名冊隨機抽樣 600～700 人（受開局在世名冊上限限制），分派到各城與官職。
  * - R(cid)：人物關係資料（好感、羈絆、性向是否已知、往來紀錄、承諾）。
  * - newGame：建立全新一局的 G 初始狀態（無員工、無介紹人）。 */
@@ -16,9 +16,9 @@ const roleOf=c=>{const r=(c.suitable_roles&&c.suitable_roles[0])||'';for(const [
 const hasRole=(c,key)=>(c.suitable_roles||[]).some(r=>{const m=ROLE_MAP.find(x=>r.includes(x[0]));return m&&m[1]===key});
 
 /* 官制索引 */
-/** 三院定義（行政/財務/司法）與介面配色。 */
+/** 三系官署定義（行政/財務/司法）與介面配色。 */
 const COURTS={administration:{key:'administration',name:'行政',cls:'navy',short:'政'},finance:{key:'finance',name:'財務',cls:'gold',short:'財'},judiciary:{key:'judiciary',name:'司法',cls:'purple',short:'法'},region:{key:'region',name:'地區',cls:'red',short:'域'}};
-/** 城市層級的三院（地區官制另有人事，不在城市官署內）。 */
+/** 城市層級的三系官署（地區官制另有人事，不在城市官署內）。 */
 const CITY_COURTS=['administration','finance','judiciary'];
 /** 職位 id→職位資料（含所屬 court），由 OFFICIALS 展開。 */
 const OFF_POS={};
@@ -28,7 +28,7 @@ const RANK_INFO={};OFFICIALS.ranks.forEach(r=>RANK_INFO[r.rank]=r);
 /** 對該官階送賄賂金封的基準金額（已折半，最少 1 兩）。 */
 const giftGoldCost=rank=>Math.max(1,Math.round(RANK_INFO[rank].bribe_base_gold*0.08));
 
-/** 從某院某官階隨機挑一個職位。 */
+/** 從某系統某官階隨機挑一個職位。 */
 function posPick(court,rank){
   const list=OFFICIALS.systems[court].positions.filter(p=>p.rank===rank);
   return pick(list);
@@ -43,7 +43,7 @@ const nameOf=cid=>{const c=CH(cid);return c?c.name:'？'};
 function cityNpcs(cityId,roleKey){
   return Object.values(G.world.npcs).filter(n=>n.cityId===cityId&&alive(n.cid)&&(!roleKey||n.role===roleKey));
 }
-/** 某城官員，依院別、官階排序。 */
+/** 某城官員，依系統別、官階排序。 */
 function officialsOf(cityId){
   return cityNpcs(cityId,'official').filter(n=>n.pos&&n.pos.court!=='region').sort((a,b)=>a.pos.court.localeCompare(b.pos.court)||a.pos.rank-b.pos.rank);
 }
@@ -53,7 +53,7 @@ function posTitle(n){const p=OFF_POS[n.pos.posId];return p?p.title:'官吏'}
 function rankLabel(n){return RANK_INFO[n.pos.rank].title}
 
 /* ---------- 抽樣：千人固定名冊，每局隨機抽 600~700 人 ---------- */
-/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三院官署（每院一～六階各一人，五、六階巡迴）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
+/** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三系官署（每一系統一～六階各一人，五、六階巡迴）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
 function genWorld(homeId){
   const home=CITY(homeId);
   const pool=CHARS.filter(c=>c.birth_year<=0&&c.death_year>=2);   // 開局當下在世
@@ -65,7 +65,7 @@ function genWorld(homeId){
   };
   const add=(c,cityId,extra)=>{W.npcs[c.id]=Object.assign({cid:c.id,cityId,role:roleOf(c),pos:null},extra||{})};
   const age0=c=>-c.birth_year;
-  // 駐節地：三院官署每院一～六階各一人；一～四階常駐，五、六階巡迴各城（見 touring）
+  // 駐節地：三系官署每一系統一～六階各一人；一～四階常駐，五、六階巡迴各城（見 touring）
   const homeSeats=[];CITY_COURTS.forEach(court=>[1,2,3,4,5,6].forEach(rank=>homeSeats.push([court,rank])));
   homeSeats.forEach(([court,rank])=>{
     let o=take('official',1,c=>age0(c)>=(rank>=3?30:22))[0]||take('official',1)[0];
@@ -97,10 +97,10 @@ function genWorld(homeId){
   });
   return W;
 }
-/* ---------- 巡迴官員：本城三院的五、六階官員每三個月來本城一個月 ----------
- * 行政院一、四、七、十月；財務院二、五、八、十一月；司法院三、六、九、十二月。 */
+/* ---------- 巡迴官員：本城三系官署的五、六階官員每三個月來本城一個月 ----------
+ * 行政系統一、四、七、十月；財務系統二、五、八、十一月；司法系統三、六、九、十二月。 */
 const TOUR_MONTH={administration:1,finance:2,judiciary:3};
-/** 是否為本城的巡迴官員（三院五階以上）。 */
+/** 是否為本城的巡迴官員（三系官署五階以上）。 */
 function touring(n){return !!(n&&n.pos&&TOUR_MONTH[n.pos.court]&&n.pos.rank>=5&&n.cityId===G.cityId)}
 /** 巡迴官員在某月（預設本月）是否在本城。 */
 function tourHere(n,m){return (((m||G.month)-TOUR_MONTH[n.pos.court])%3+3)%3===0}
@@ -108,7 +108,7 @@ function tourHere(n,m){return (((m||G.month)-TOUR_MONTH[n.pos.court])%3+3)%3===0
 function awayNow(n){return touring(n)&&!tourHere(n)}
 /** 下次來本城的月份。 */
 function tourNext(n){for(let k=1;k<=3;k++){const m=(G.month-1+k)%12+1;if(tourHere(n,m))return m}return G.month}
-/** 每旬：補上本城官署空缺；每月上旬一則巡察消息（本月抵達的院別、上月在城而本月已離城的院別），不寫姓名。 */
+/** 每旬：補上本城官署空缺；每月上旬一則巡察消息（本月抵達的系統、上月在城而本月已離城的系統），不寫姓名。 */
 function tourTick(log){
   officialMigrate();                              // 本城官署若有空缺（病故、遭害而無人遞補），由名冊補上
   if(G.cycle!==1)return;
@@ -118,7 +118,7 @@ function tourTick(log){
   if(!arr&&!gone)return;
   const t=NEWS('tour.month',{part:(arr?arr+'高官抵達本城，停留一月':'')+(arr&&gone?'；':'')+(gone?gone+'高官已離城':'')});pushNews(t);log.push(t);
 }
-/** 舊存檔整理：已刪除的官職換成同院同階的官職；本城缺的三院官署（含五、六階）由名冊補上。 */
+/** 舊存檔整理：已刪除的官職換成同系統同階的官職；本城缺的三系官署席位（含五、六階）由名冊補上。 */
 function officialMigrate(){
   Object.values(G.world.npcs).forEach(n=>{if(n.pos&&!OFF_POS[n.pos.posId]){const p=posPick(n.pos.court,n.pos.rank);if(p)n.pos.posId=p.id}});
   CITY_COURTS.forEach(court=>[1,2,3,4,5,6].forEach(rank=>{
@@ -186,13 +186,14 @@ function newGame(sysKey,regionPref){
     silver:S.silver,gold:S.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
-    cartel:{state:'pledged',comp:65,sanction:0,quotaPct:0.06,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0},   // 開局即入會，擔保金由開局贈送
+    cartel:{state:'pledged',comp:65,sanction:0,quotaPct:0.06,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
     staple:{streak:0,peak:1},ships:[],
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1};
+  G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
   G.me.given=pick(GIVEN);G.me.name=G.me.family+'屋 '+G.me.given;
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
   const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
@@ -200,6 +201,8 @@ function newGame(sysKey,regionPref){
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c));
   {const sc=cs.filter(canSea);if(sc.length)cs=sc}   // 所有流派都在港口開局（委託採買的海運要港口）
   G.cityId=pick(cs).id;
+  G.cityPopulation=parseInt(CITY(G.cityId).population,10)||0;
+  G.supplyQuarter={stable:0,unstable:0,turns:0};
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
   G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
@@ -211,7 +214,7 @@ function newGame(sysKey,regionPref){
   recordSilver();
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
-  pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond'))}));
+  pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond')),policy:guildPolicyName()}));
   pushNews(G.emps.length?'🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。':'🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。');
   return G;
 }

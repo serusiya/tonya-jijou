@@ -46,7 +46,7 @@ function showTurnReport(reps,logs,n,kind){
     h+='<div class="rp-sec">📤 出貨收入</div>'+Object.keys(T.ship).map(k=>repRow('📦',esc(k)+' ×'+T.ship[k].q,T.ship[k].rev,max,'in')).join('');
   }else h+='<div class="rp-sec">📤 出貨收入</div><div class="rp-empty">本旬沒有出貨</div>';
   if(voyBack>0)h+=repRow('⛵','委託金退回',voyBack,max,'in');
-  if(T.guildDiv>0)h+=repRow('⚖️','公會分紅',T.guildDiv,max,'in');
+  if(T.guildDiv>0)h+=repRow('⚖️','協議分紅',T.guildDiv,max,'in');
   if(other>0)h+=repRow('✨','其他進帳',other,max,'in');
   h+='<div class="rp-sec">🧾 固定支出</div>'+(costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||'<div class="rp-empty">無</div>');
   if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
@@ -54,7 +54,7 @@ function showTurnReport(reps,logs,n,kind){
   if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
   if(T.fame!==0||T.short.length||T.squeeze.length){
     const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?'<span class="tag gray">…共 '+L.length+' 項</span>':'');
-    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">公會減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
+    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">協議減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
   }
   if(T.voy.length)h+='<div class="rp-sec">⛵ 船隻歸航</div>'+T.voy.map(v=>'<div class="card" style="margin:3px 0"><b class="small">船長「'+esc(v.capt)+'」·委託金 '+fmt(v.budget)+' 兩'+(v.wreck?' <span class="tag red">遇海難</span>':'')+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('');
   const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢/.test(t)&&!/【查貨】|【借錢】|【官吏硬塞】/.test(t));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列

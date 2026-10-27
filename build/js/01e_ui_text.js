@@ -8,7 +8,6 @@
  * ===================================================================== */
 const UI_TXT={
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
-  'nav.home':'🏠 宅邸',
   'nav.menu':'⚙️',
   'nav.month':'▶▶ 月',
   'nav.next':'推進一旬 ▶',
@@ -35,11 +34,11 @@ const UI_TXT={
   'btn.planMax':'最大',
   'btn.planQuota':'照配額',
   'btn.planClear':'清除',
-  'btn.cartel':'🤝 表態遵守配額',
+  'btn.cartel':'🤝 表態遵守協議配額',
   'btn.cartel2':'🤫 簽署暗約偷跑（{c}）',
   'btn.cartel3':'退出協議，各憑本事',
-  'btn.cartelJoin':'🤝 入會守約（擔保金 {c}）',
-  'btn.cartel2Join':'🤫 入會簽暗約（擔保金 {c}·{g}）',
+  'btn.cartelJoin':'🤝 參加協議並守約（擔保金 {c}）',
+  'btn.cartel2Join':'🤫 參加協議並簽暗約（擔保金 {c}·{g}）',
   'btn.cartel3Lose':'退出協議（擔保金沒收）',
   'btn.charity':'施粥',
   'btn.encGive':'💰 給他 {c}',
@@ -69,7 +68,7 @@ const UI_TXT={
   'btn.promote':'升遷',
   'btn.punish':'追討',
   'btn.quotaDone':'本次例會已提案',
-  'btn.quotaUp':'提案增加配額 10%',
+  'btn.quotaUp':'提案提高減供配額 10%',
   'btn.ransom':'💍 贖身納為側室（{c}）',
   'btn.recruit':'物色',
   'btn.recruitView':'查看',

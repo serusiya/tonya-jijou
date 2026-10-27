@@ -4,9 +4,8 @@
 <div id="game-app">
   <header id="top">
     <div class="hrow">
-      <div class="row" style="gap:5px"><span style="font-size:15px;color:#e5a93b">🏮 問屋事情</span></div>
+      <div class="row" style="gap:5px"><span style="font-size:17px;color:#e5a93b">🏮 問屋事情</span></div>
       <div class="row" style="gap:4px">
-        <button id="b-home" class="hbtn hidden" data-t="nav.home">🏠 宅邸</button>
         <button id="b-menu" class="hbtn" data-t="nav.menu">☰</button>
         <button id="b-next3" class="hbtn" title="推進一個月" data-t="nav.month">▶▶ 月</button>
         <span id="d-ap" class="ap">行動 5/5</span><button id="b-next" class="hbtn go" data-t="nav.next">推進一旬 ▶</button>
@@ -15,7 +14,7 @@
     <div class="stats">
       <div class="stat"><div class="k" id="k-date">曆法·時節</div><div class="v" id="d-date" style="color:#e5a93b">1年 春</div><div class="k" id="d-age">主角 20 歲</div></div>
       <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div><div class="k hidden" id="d-debt"></div></div>
-      <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:15px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat"><div class="k"><i class="cmark koban"></i>私房錢 <button id="b-purse" class="hbtn" style="padding:0 5px;min-height:0;line-height:17px" title="私房錢：從商號帳上挪用／每旬抽成" data-t="nav.purse">＋</button></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
       <div class="stat"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0</div><div class="k" id="d-fame">知名度 0</div></div>
     </div>
     <div class="row small" style="background:#1c1921;border:1px solid var(--line);padding:2px 6px">
@@ -36,12 +35,12 @@
       <div id="home-tip" class="notice hidden" style="margin-top:6px"></div>
       <div class="loc-title"><span>🚪 出門前往（點擊後有過場）</span><span class="muted" id="loc-city" style="color:#a09aa7"></span></div>
       <div class="loc-grid">
-        <div class="pixel-box loc" data-go="yamen"><div><div class="row"><h4>🏛️ 町奉行所</h4><span class="tag red">要衝</span></div><p>行政、財務、司法三院官署。經介紹人引薦求見，投其所好打點。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-off" class="muted"></b><span>求見官老 ▶</span></div></div>
+        <div class="pixel-box loc" data-go="yamen"><div><div class="row"><h4>🏛️ 町奉行所</h4><span class="tag red">要衝</span></div><p>行政、財務、司法三系官署。經介紹人引薦求見，投其所好打點。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-off" class="muted"></b><span>求見官老 ▶</span></div></div>
         <div class="pixel-box loc" data-go="flower"><div><div class="row"><h4 style="color:#9b2c3a">🌸 吉原花街</h4><span class="tag gold">奢靡</span></div><p>夜宴廣結官商、指名名伶，好感滿了還能贖身納為側室。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-flower" class="muted"></b><span>入席 ▶</span></div></div>
         <div class="pixel-box loc" data-go="residences"><div><div class="row"><h4>🏯 名門商邸</h4><span class="tag gray">人脈</span></div><p>投名帖拜會同行巨賈與名士，結交、送禮、結為介紹人。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-res" class="muted"></b><span>投名帖 ▶</span></div></div>
         <div class="pixel-box loc" data-go="regional"><div><div class="row"><h4>🏯 遠國奉行所</h4><span class="tag red">許可</span></div><p>海路、陸路的運入許可，由地區官員核發。</p></div><div class="row tiny" style="margin-top:4px"><b class="muted"></b><span>遞名帖 ▶</span></div></div>
         <div class="pixel-box loc wide" data-go="warehouse"><div class="row"><div><h4>⛵ 河岸碼頭</h4><p id="wh-line"></p></div><div style="text-align:right"><span class="tag green" id="wh-state">安全</span><div class="tiny muted" id="wh-guard"></div></div></div></div>
-        <div class="pixel-box loc wide" data-go="guild"><div class="row"><div><h4 style="color:#1e2d4a">⚖️ 問屋公會</h4><p>同業卡特爾會所。減供以量控價，或暗中偷跑背刺。</p></div><div style="text-align:right"><span class="tag navy">同盟</span><div class="tiny muted" id="n-guild"></div></div></div></div>
+        <div class="pixel-box loc wide" data-go="guild"><div class="row"><div><h4 style="color:#1e2d4a">⚖️ 問屋公會</h4><p>同業株仲間會所。聯合決議以量制價或正常供應，各家依配額出貨。</p></div><div style="text-align:right"><span class="tag navy">同盟</span><div class="tiny muted" id="n-guild"></div></div></div></div>
       </div>
     </section>
 

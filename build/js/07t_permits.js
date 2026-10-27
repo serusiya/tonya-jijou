@@ -1,6 +1,6 @@
 'use strict';
 /* ======================= 許可（資格）：倉地、船株、人別帳、馬幫株、帶刀、交易許可、減罪狀 =======================
- *  - 三院官員的一般請託都是「資格」：拿到許可才能擴充倉庫、船長、飛腳、店員、保鏢，或買賣本業最貴的兩項貨。
+ *  - 三系官署官員的一般請託都是「資格」：拿到許可才能擴充倉庫、船長、飛腳、店員、保鏢，或買賣本業最貴的兩項貨。
  *  - 許可分等級：核發官員的官階越高，給的上限越高（一～四階，四階以上同四階）。取得後永久有效，只升不降。
  *  - 狀態：G.lic={wh,ship,horse,guard,staff}（已取得的等級 0～4）；G.trade＝已許可交易的貨名；G.lessen＝減罪狀張數（0／1）。 */
 /** 各項許可：caps[等級]＝上限（等級 0＝未申請）。 */
@@ -11,6 +11,11 @@ const LIC={
   guard:{name:'帶刀護衛許可',caps:[1,1,2,3,4]},
   staff:{name:'人別帳增補',caps:[{手代:1,番頭:1},{手代:1,番頭:1},{手代:3,番頭:1},{手代:4,番頭:2},{手代:6,番頭:2}]}
 };
+const LIC_RANK_NAME=['','一階','二階','三階','四階'];
+/** 官員實際能核發的資格等級；現行最高為四階。 */
+const licGrantLv=rank=>Math.min(4,rank);
+/** 顯示含實際核發等級的資格名稱。 */
+const licFavorName=(k,rank)=>LIC[k].name+'（'+LIC_RANK_NAME[licGrantLv(rank)]+'）';
 const licOf=()=>G.lic||(G.lic={wh:0,ship:0,horse:0,guard:0,staff:0});
 /** 某項許可目前的等級（0～4）。 */
 const licLv=k=>Math.min(4,licOf()[k]||0);
@@ -29,7 +34,7 @@ function slotCap(rank){
 }
 /** 取得許可：等級取較高者，回傳敘事訊息。 */
 function grantLic(k,rank){
-  const L=licOf(),lv=Math.min(4,rank);L[k]=Math.max(L[k]||0,lv);
+  const L=licOf(),lv=licGrantLv(rank);L[k]=Math.max(L[k]||0,lv);
   if(k==='wh')return '倉庫最多可建 '+whMax()+' 棟。';
   if(k==='ship')return '船長名額增為 '+slotCap('船長')+' 名，一名船長帶一艘船。';
   if(k==='horse')return '飛腳名額增為 '+slotCap('飛腳')+' 名，一名飛腳帶一支馬幫。';
@@ -56,17 +61,29 @@ function tradeLockMsg(name){const i=lockedTrade().indexOf(name);return '「'+COM
 
 /* ---------- 請託共用：名稱、是否已辦妥 ---------- */
 /** 把請託項目的名稱換成實際內容（交易許可帶貨名）。 */
-const resolveFavor=f=>f&&f.trade!==undefined?Object.assign({},f,{name:tradeFavorName(f.trade)}):f;
+function resolveFavor(f,n){
+  if(!f)return f;
+  if(f.trade!==undefined)return Object.assign({},f,{name:tradeFavorName(f.trade)});
+  if(f.lic&&n&&n.pos)return Object.assign({},f,{name:licFavorName(f.lic,n.pos.rank)});
+  return f;
+}
 /** 這位官員能辦的是否已經辦妥（許可等級已不低於他能核發的、交易許可已取得、一次性地區許可已持有）。 */
 function favorDone(f,n){
-  if(f.lic)return licLv(f.lic)>=Math.min(4,n.pos.rank);
+  if(f.lic)return licLv(f.lic)>=licGrantLv(n.pos.rank);
   if(f.trade!==undefined)return (G.trade||[]).includes(lockedTrade()[f.trade]);
   if(f.once)return regionHeld(f.k,n);
   return false;
 }
+/** 同一項資格是否已有申請在審理；資格審理中時不再向其他官員重複顯示。 */
+function favorPending(f){
+  const L=G.apps||[];
+  if(f.lic)return L.some(a=>a.state==='wait'&&a.lic===f.lic);
+  if(f.trade!==undefined)return L.some(a=>a.state==='wait'&&a.trade===f.trade);
+  return false;
+}
 /** 申請獲准時的效果；不是許可類回傳 null。 */
 function grantFavorApp(A){
-  if(A.lic)return '取得「'+LIC[A.lic].name+'」：'+grantLic(A.lic,A.rank||2);
+  if(A.lic)return '取得「'+licFavorName(A.lic,A.rank||2)+'」：'+grantLic(A.lic,A.rank||2);
   if(A.trade!==undefined){const nm=lockedTrade()[A.trade];G.trade=G.trade||[];if(!G.trade.includes(nm))G.trade.push(nm);return '從此可以買賣「'+COMM_MAP[nm].short+'」。'}
   return null;
 }
@@ -84,5 +101,5 @@ function licCard(){
     +row('手代／番頭',s.手代+'／'+s.番頭+' 名')
     +row('交易許可',L.map(n=>COMM_MAP[n].short+(tradeOK(n)?' ✅':' 🔒')).join('、'))
     +row('減罪狀',(G.lessen||0)>0?'持有 1 張':'無')
-    +'<div class="tiny muted" style="margin-top:3px">許可由三院官員核發，官階越高給得越多。</div></div>';
+    +'<div class="tiny muted" style="margin-top:3px">許可由三系官署官員核發，官階越高給得越多。</div></div>';
 }

@@ -40,7 +40,7 @@ function showEncounter(enc,cont){
   ENC={cid:enc.cid,cont};
   const n=npc(enc.cid),c=CH(enc.cid),r=R(enc.cid),known=!!r.bond;
   const role=n.pos?posTitle(n):(ROLE_LABEL[n.role]||'');
-  const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:15px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
+  const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:17px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
    +'<div class="small" style="margin:6px 0">'+esc(TX('enc.ask',{why:ENC_WHY[Math.floor(rnd()*ENC_WHY.length)],cost:ENC_COST}))+'</div>'
    +'<div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="encGive">'+UT('btn.encGive',{c:costBtn('encounter')})+'</button><button class="pixel-btn btn-sm" data-act="encNo">'+UT('btn.encNo')+'</button></div></div>';
   UI.showInfo('🚶 路遇急難',h);

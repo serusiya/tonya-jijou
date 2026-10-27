@@ -63,7 +63,7 @@ function oiranBlock(cid){
   if(nom){
     if(r.oGiftT===r.nomT)h+='<div class="tiny muted" style="margin-top:4px">這次指名已經送過禮了，下次指名才能再送。</div>';
     else{
-      h+='<div class="row" style="gap:4px;margin-top:4px"><span class="tiny">送禮（私房錢，花費加倍）</span><select class="og-sel" style="flex:1;font-size:11px">'+OIRAN_GIFTS.map(g=>'<option value="'+g.k+'">'+g.icon+' '+g.name+'（'+costTxt('oiranGift_'+g.k,COSTS.oiranGiftMul.amt)+'）</option>').join('')+'</select></div>';
+      h+='<div class="row" style="gap:4px;margin-top:4px"><span class="tiny">送禮（私房錢，花費加倍）</span><select class="og-sel" style="flex:1">'+OIRAN_GIFTS.map(g=>'<option value="'+g.k+'">'+g.icon+' '+g.name+'（'+costTxt('oiranGift_'+g.k,COSTS.oiranGiftMul.amt)+'）</option>').join('')+'</select></div>';
       h+='<div style="margin-top:3px"><button class="pixel-btn btn-sm" style="width:100%" data-act="oGift" data-cid="'+cid+'">'+UT('btn.oGift')+'</button></div>';
     }
   }

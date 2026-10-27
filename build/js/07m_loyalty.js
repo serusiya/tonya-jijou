@@ -1,7 +1,7 @@
 /* ======================= 雇員好感：零用錢、保鏢暗殺、手代番頭放火、船長走私 =======================
  *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5，滿 100 後不能再給；每人每旬只能給一次。
- *  - 保鏢好感 100：出現「暗殺」指令，可對認識的人下手。
- *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長只列在河岸碼頭。
+ *  - 保鏢好感 100：出現「暗殺」指令，只能對仇人或本城同業下手；名單不列成功率與職位。
+ *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長、飛腳只列在河岸碼頭。
  *  - 大番頭好感 100：可替你做帳，公款 500 兩轉私房錢、或私房錢 1000 兩轉公款；每次好感 −20，他私吞 5～10%（記入私吞帳，查帳可追回）。不加風聲。 */
 const empAff=e=>{if(e.aff===undefined)e.aff=40;return e.aff};
 /** 好感列＋零用錢鈕；保鏢、船長滿格時另有專屬指令。 */
@@ -43,16 +43,19 @@ ACT.allow=el=>{
   UI.render();refreshSheet();
 };
 
-/* ---------- 河岸碼頭：船長名單 ---------- */
+/* ---------- 河岸碼頭：船長、飛腳名單 ---------- */
 function dockCrewHtml(){
-  const cs=G.emps.filter(e=>e.rank==='船長');
-  let h='<div class="small bold" style="margin:8px 0 2px">⚓ 船長（'+cs.length+'／'+slotCap('船長')+'）</div>';
-  if(!cs.length)return h+'<div class="notice tiny">還沒有船長。到「商號」頁請介紹人物色，聘為專職。</div>'+smuggleButton();
-  return h+smuggleButton()+cs.map(e=>{
-    const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
-    return '<div class="card" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【船長】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">出海中</span>':'<span class="tag green">在港</span>')+'<div class="tiny muted">月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬</div></div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
-      +empAffHtml(e,'dock')+'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
-  }).join('');
+  const block=(rk,icon,away,home,none)=>{
+    const cs=G.emps.filter(e=>e.rank===rk);
+    let h='<div class="small bold" style="margin:8px 0 2px">'+icon+' '+rk+'（'+cs.length+'／'+slotCap(rk)+'）</div>';
+    if(!cs.length)return h+'<div class="notice tiny">'+none+'</div>'+(rk==='船長'?smuggleButton():'');
+    return h+(rk==='船長'?smuggleButton():'')+cs.map(e=>{
+      const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
+      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+rk+'】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>')+'<div class="tiny muted">月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬</div></div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
+        +empAffHtml(e,'dock')+'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
+    }).join('');
+  };
+  return block('船長','⚓','出海中','在港','還沒有船長。到「商號」頁請介紹人物色，聘為專職。')+block('飛腳','🐎','出門中','在店','還沒有飛腳。到「商號」頁請介紹人物色，聘為專職。');
 }
 {const _wh=SHEETS.warehouse;SHEETS.warehouse=()=>{const r=_wh();r.html+=dockCrewHtml();return r}}
 ACT.fireDock=el=>{ACT.fire(el);if(!G.emps.some(x=>x.id===el.dataset.id))refreshSheet()};
@@ -65,24 +68,26 @@ function smugCaptain(){
 }
 
 /* ---------- 保鏢暗殺 ---------- */
+/** 暗殺對象：只限仇人與本城同業（仇人在前）。 */
 function assTargets(){
-  return Object.keys(G.rel).filter(cid=>{const r=G.rel[cid],n=npc(cid);return r&&r.bond&&n&&alive(cid)&&!G.emps.some(x=>x.cid===cid)})
-    .map(cid=>npc(cid)).sort((a,b)=>(b.pos?b.pos.rank:0)-(a.pos?a.pos.rank:0));
+  const ok=n=>n&&alive(n.cid)&&!G.emps.some(x=>x.cid===n.cid);
+  const foes=enemies().map(cid=>npc(cid)).filter(ok);
+  return foes.concat(rivalsHere().filter(n=>ok(n)&&!foes.includes(n)));
 }
 const assRank=n=>n.pos?n.pos.rank:(['rival','smuggler'].includes(n.role)?3:2);
 function assChance(e,n){const s=statsOfEmp(e),A_=ODDS.assassin;return clamp(A_.base+s.audacity_courage/A_.courageDiv+s.commerce_skill/A_.commerceDiv-assRank(n)*A_.perRank,A_.min,A_.max)}
 function assassinHtml(e){
   const ts=assTargets();
-  let h='<div class="card warn" style="margin:4px 0"><b class="small">🗡️ 暗殺</b><div class="tiny muted">他願為你除掉一個你認識的人。'+costTxt('assassin')+'、耗 1 行動；成敗看他的膽識與對方官階，事後可能被官府追查。失手則他一去不回，對方成為仇人。</div>';
-  if(!ts.length)return h+'<div class="tiny muted">你還沒有認識的人可下手。</div></div>';
-  h+='<div class="row" style="gap:4px;margin-top:3px"><select class="ass-sel" style="flex:1;font-size:11px">'+ts.map(n=>'<option value="'+n.cid+'">'+esc(nameOf(n.cid))+'（'+esc(n.pos?posTitle(n):(ROLE_LABEL[n.role]||''))+'·成功約 '+Math.round(assChance(e,n)*100)+'%）</option>').join('')+'</select>'
+  let h='<div class="card warn" style="margin:4px 0"><b class="small">🗡️ 暗殺</b><div class="tiny muted">他願為你除掉一名仇人或同業。'+costTxt('assassin')+'、耗 1 行動；失手則他一去不回，對方成為仇人。</div>';
+  if(!ts.length)return h+'<div class="tiny muted">眼下沒有可下手的對象。</div></div>';
+  h+='<div class="row" style="gap:4px;margin-top:3px"><select class="ass-sel" style="flex:1">'+ts.map(n=>'<option value="'+n.cid+'">'+esc(nameOf(n.cid))+'（'+(isEnemy(n.cid)?'仇人':'同業巨賈')+'）</option>').join('')+'</select>'
     +'<button class="pixel-btn btn-sm btn-red" data-act="assassinate" data-id="'+e.id+'">'+UT('btn.assassinate')+'</button></div></div>';
   return h;
 }
 ACT.assassinate=el=>{
   const e=G.emps.find(x=>x.id===el.dataset.id),card=el.closest('.card'),sel=card&&card.querySelector('.ass-sel');
   if(!e||e.rank!=='保鏢'||empAff(e)<100||!sel)return;
-  const cid=sel.value,n=npc(cid);if(!n)return;
+  const cid=sel.value,n=npc(cid);if(!n||!assTargets().includes(n))return;
   if((G.exile||0)>0){toast(MSG('assassinate.1'));return}
   if(!afford('assassin')){toast(shortMsg('assassin'));return}
   if(!spendAP())return;

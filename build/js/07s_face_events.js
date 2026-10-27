@@ -31,7 +31,7 @@ function faceEventCard(e){
     line='掌櫃的，眼下周轉不靈。可否借我 '+fmt(O.loan)+' 兩？我拿「'+xName(O.name)+'」'+O.qty+' 單位作抵押。';effect='若他還不出錢，抵押的貨便歸你。';
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div>';
   }else return null;
-  return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:15px">'+esc(name)+'</b> <span class="tag gray">'+esc(tag)+'</span></div><div class="small" style="margin:7px 0">「'+esc(line)+'」</div><div class="tiny muted" style="margin:4px 0 7px">'+esc(effect)+'</div>'+buttons+'</div>';
+  return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:17px">'+esc(name)+'</b> <span class="tag gray">'+esc(tag)+'</span></div><div class="small" style="margin:7px 0">「'+esc(line)+'」</div><div class="tiny muted" style="margin:4px 0 7px">'+esc(effect)+'</div>'+buttons+'</div>';
 }
 
 function showNextFaceEvent(){

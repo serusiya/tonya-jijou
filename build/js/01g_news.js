@@ -9,9 +9,12 @@
 const NEWS_TXT={
   /* —— newGame —— */
   "newGame.1":"📜【開業】{name}接掌家業，於【{CITY}】懸掛「{firm}」暖簾。",
-  "newGame.guild":"⚖️【公會】開業時已加入株仲間，擔保金 {c} 兩由家中長輩代墊。入會向大盤進貨享公會價，記得守住配額。",
+  "newGame.guild":"⚖️【公會】開業時已是株仲間會員，並參加聯合採購與出貨協議；擔保金 {c} 兩由家中長輩代墊。本期決議為「{policy}」，參加協議可享聯合採購價與進貨配額加給，記得守住協議配額。",
   "guild.rivalCaught":"⚖️【公會】同業「{n}」超量拋售「{item}」被查獲，擔保金沒收。",
-  "guild.div":"⚖️【公會分紅】本期 {k} 家同業違約被沒收擔保金，由守約的 {n} 家平分，你分得 {sh} 兩。",
+  "guild.div":"⚖️【協議分紅】本期 {k} 家同業違約被沒收擔保金，由守約的 {n} 家平分，你分得 {sh} 兩。",
+  "guild.policy.restrict":"⚖️【協議決議】本期採「以量制價」：各家依減供配額出貨，壓低供給以維持行情。",
+  "guild.policy.normal":"⚖️【協議決議】本期採「正常供應」：全體總配額以本城需求為準，你的配額等於穩定供貨線，其餘由同行依市占率分配。",
+  "guild.policy.normalNone":"⚖️【協議決議】本期採「正常供應」：全體總配額以本城需求為準；你未參加協議、沒有保留配額，供應量全數由協議內同行依市占率分配。",
   /* —— receiveOrders —— */
   "rivalDump":"🏪【同業】「{who}」大舉拋售「{name}」，存貨傾巢而出，近日行情恐怕被壓低。",
   "luxDry":"🏮【行情】近來「{name}」門庭冷落，達官貴人不再問津，不知何時才有買家。",
@@ -43,7 +46,7 @@ const NEWS_TXT={
   "inspection.2":"🕵️【欽差突查】中央巡按徹查官商往來，查獲你的私房錢往來痕跡！罰銀 {fine} 兩，知名度 -6，靠山受牽連。",
   "inspection.3":"🕵️【欽差巡視】中央巡按入城巡視，所幸你向來謹慎，無事。",
   /* —— officialFall —— */
-  "officialFall.1":"📜【官場】三院官署人事微調，一批吏員調任他處。",
+  "officialFall.1":"📜【官場】三系官署人事微調，一批吏員調任他處。",
   "officialFall.2":"⚡【政爭】「{nm}」受你牽連遭上司申斥，為求自保把罪責推到你頭上：罰銀 {fine} 兩，知名度 -3。",
   "officialFall.3":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，對你頗有怨言。",
   "peopleMove.official":"📜【官員調任】「{out}」調往【{dest}】；「{in}」自【{from}】調來本城，接掌{post}。",
@@ -70,6 +73,7 @@ const NEWS_TXT={
   /* —— cityTick —— */
   "cityTick.1":"🏮【節慶】【{name}】「{festival}」開幕！宵禁解除，全城買氣大旺，酒、油、布料尤其搶手。",
   "cityTick.2":"📜【城史】【{name}】{title}。",
+  "city.population":"🏯【城勢】近三個月穩定供貨 {stable} 旬、不穩定 {unstable} 旬；{result}。人口由約 {before} 人變為約 {after} 人（{rate}）。",
   /* —— peopleTick —— */
   "peopleTick.1":"⏰【失信】對「{cid}」的承諾已逾期，對方頗為不快。",
   "peopleTick.due":"🏦【還款】有一筆 {d} 兩的借款，兩旬後到期。",

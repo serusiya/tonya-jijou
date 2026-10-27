@@ -8,9 +8,9 @@
 const MSG_TXT={
   /* —— buyGoods —— */
   'buyGoods.1':'請輸入進貨數量',
-  'buyGoods.2':'倉庫容量不足（已存 {invUsed}，在途 {transitQty}，倉庫共可放 {invCap}）',
-  'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含在途）。還能進 {itemRoom} 單位。',
-  'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（依公會配額與番頭、大番頭人手而定），還能進 {buyLeft} 單位。要大量進貨請到商路委託船長或飛腳採買。',
+  'buyGoods.2':'倉庫容量不足（已存 {invUsed}，已下單待到貨 {pendingQty}，倉庫共可放 {invCap}）',
+  'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含已下單待到貨）。還能進 {itemRoom} 單位。',
+  'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（依市占率、協議參加狀態與番頭、大番頭人手而定），還能進 {buyLeft} 單位。未參加協議沒有協議配額加給；要大量進貨請到商路委託船長或飛腳採買。',
   'buyGoods.5':'現款不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
   /* —— sellGoods —— */
@@ -105,13 +105,14 @@ const MSG_TXT={
   /* —— quotaUp —— */
   'quotaUp.1':'本次例會已提案過了。',
   'quotaUp.2':'提案通過！配額提高為每項需求的 {quotaPct}%。',
+  'quotaUp.normal':'本期決議為正常供應，配額依穩定供貨線與市占率分配，不能提案提高固定比例。',
   /* —— cartel —— */
-  'cartel.1':'你在會上誓言嚴守配額，同行信任上升。',
-  'cartel.2':'已私下簽署暗約：配額照樣遵守的表象下，你準備偷跑。小心被查獲！',
-  'cartel.3':'退出株仲間協議。',
+  'cartel.1':'你在會上誓言嚴守協議配額，同行信任上升。',
+  'cartel.2':'已私下簽署暗約：表面遵守協議配額，暗中準備偷跑。小心被查獲！',
+  'cartel.3':'退出聯合採購與出貨協議。',
   'cartel.same':'你目前就是這個立場。',
-  'cartel.join':'押上擔保金 {c} 兩，入會！向大盤進貨改用公會價。',
-  'cartel.lose':'擔保金 {c} 兩沒收，往後向大盤照市價進貨。',
+  'cartel.join':'押上擔保金 {c} 兩，參加聯合採購與出貨協議！向大盤進貨改用聯合採購價。',
+  'cartel.lose':'協議擔保金 {c} 兩沒收，退出協議後向大盤照市價進貨。',
   /* —— whUp —— */
   'whUp.1':'新建倉庫一棟！庫容增至 {invCap}。',
   'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向行政官員申請「河岸倉地拜領」。',
@@ -240,8 +241,8 @@ const MSG_TXT={
   'buyMax.none':'目前無法再進貨（倉庫、額度或現款已到上限）。',
   'sell.shipping':'出貨中……',
   'encGive.noMoney':'{short}，只能不理會。',
-  'plan.quota':'每項進貨都照公會配額。',
-  'plan.quotaShort':'每項進貨照公會配額；有幾項受進貨上限、倉位或現款所限，進不足。',
+  'plan.quota':'每項進貨都照協議配額。',
+  'plan.quotaShort':'每項進貨照協議配額；有幾項受進貨上限、倉位或現款所限，進不足。',
   'plan.clear':'已清除本旬的進貨安排。',
   'sendVoyage.ok':'{crew}「{name}」帶著 {budget} 兩委託金前往【{dest}】，約 {d} 旬後歸來。',
   'voyage.depart':'出發！',

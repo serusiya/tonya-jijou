@@ -145,7 +145,7 @@ function revealWeakness(cid){
 const BRIBE_RATE=15;
 
 /* ---------- 官員請託 ---------- */
-/** 官員請託項目（依院別）：rank 所需官階、cost 成本、once 一次性、cd 冷卻。新增請託在此加一筆並在 doFavor 實作效果。 */
+/** 官員請託項目（依系統別）：rank 所需官階、exactRank 限定該官階、once 一次性、cd 冷卻。新增請託在此加一筆並在 doFavor 實作效果。 */
 const FAVORS={
   administration:[
     {k:'licWh',apply:true,lic:'wh',name:'河岸倉地拜領',rank:1,desc:'核准增建倉庫的建地，官階越高給得越多。'},
@@ -156,23 +156,23 @@ const FAVORS={
     {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
     {k:'trade1',apply:true,trade:0,name:'交易許可',rank:4,desc:'核准買賣本業最貴的貨。'},
     {k:'licHorse',apply:true,lic:'horse',name:'馬幫株',rank:2,desc:'核准多聘飛腳，一名飛腳帶一支馬幫。'},
-    {k:'smallLoan',name:'小額周轉',rank:1,cd:3,desc:'先借 750 兩應急，六旬後連本帶一成利息歸還。'},
-    {k:'loan',name:'官倉平準貸款',rank:2,cd:12,desc:'官府低息借款，九旬後連本帶利歸還。'}
+    {k:'smallLoan',name:'小額周轉',rank:1,exactRank:true,cd:3,desc:'先借 750 兩應急，六旬後連本帶一成利息歸還。'},
+    {k:'loan',name:'官倉平準貸款',rank:2,exactRank:true,cd:12,desc:'官府低息借款，九旬後連本帶利歸還。'}
   ],
   judiciary:[
     {k:'licGuard',apply:true,lic:'guard',name:'帶刀護衛許可',rank:2,desc:'核准多聘保鏢。'},
-    {k:'sellAid',name:'協助銷貨',rank:1,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，再請座客商人代售）。'},
-    {k:'blind',name:'袖之下',rank:2,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
+    {k:'sellAid',name:'協助銷貨',rank:1,exactRank:true,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，再請座客商人代售）。'},
+    {k:'blind',name:'袖之下',rank:2,exactRank:true,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
     {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'}
   ]
 };
-/** 某官員可受理的請託清單（已取得的交易許可不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&!(f.trade!==undefined&&favorDone(f,n))).map(resolveFavor):[]}
+/** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))).map(f=>resolveFavor(f,n)):[]}
 /** 執行請託（只在拜訪打勝、好感 ≥60 時出現）：看官階、冷卻與是否已辦妥；不另收錢。辦成後好感：一般 −10、許可 −20（申請受理時扣）、減罪狀 −30。 */
 function doFavor(cid,key){
-  const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key));
+  const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
-  if(n.pos.rank<f.rank)return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
+  if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};

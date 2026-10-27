@@ -1,6 +1,6 @@
 'use strict';
 /* ★檔案總覽：地區官制（遠國奉行所）與海運、陸運許可
- * - 在城市三院之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
+ * - 在各城官署之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
  * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發；船奉行的朱印狀＝全地區通用；遠國奉行的通商特許＝該地區海陸皆通）。
  * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發；道中奉行的通行狀＝通用、航程 −1）。
  * - 其餘請託：驛馬優先、產地買付便宜、船手護送、雜費減免狀、請巡見使美言。中央巡見使巡視時，風聲太緊會吊銷許可。
@@ -9,7 +9,7 @@
 const REG_LIST=[...new Map(CITIES.map(c=>[c.region_id,{id:c.region_id,name:c.region_name}])).values()];
 const REG_NAME=id=>{const r=REG_LIST.find(x=>x.id===id);return r?r.name:id};
 /** 地區首府＝該地區人口最多的城市。 */
-function capitalOf(regId){return CITIES.filter(c=>c.region_id===regId).sort((a,b)=>b.population-a.population)[0]}
+function capitalOf(regId){return CITIES.filter(c=>c.region_id===regId).sort((a,b)=>cityPop(b)-cityPop(a))[0]}
 /** 為每個地區排好 10 位地區官員（冊內官吏型人物優先同鄉）。W＝{npcs}，used＝已用 id 集合，pool＝候選人。 */
 function addRegionOfficials(W,used,pool){
   const poss=OFFICIALS.systems.region.positions;
@@ -91,7 +91,7 @@ function regionTick(log){
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   const ps=permitSummary(),P=permitsOf();
-  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府在城市三院之上。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。</div>';
+  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府位階高於各城官署。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。</div>';
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?'（本地）':'')+'</span>').join('')+'</div>';
   h+='<div class="card"><div class="row small"><span>⛵ 海運許可：<b>'+esc(ps.sea)+'</b></span><span>🐎 陸運許可：<b>'+esc(ps.land)+'</b></span></div>'+((G.flags.horse>0||G.flags.escort>0||G.flags.taxfree>0||G.flags.cheap>0)?'<div class="tiny muted">效期：'+[['horse','驛馬'],['escort','護送'],['taxfree','減免'],['cheap','便宜']].filter(x=>G.flags[x[0]]>0).map(x=>x[1]+' '+G.flags[x[0]]+' 旬').join('、')+'</div>':'')+'</div>';
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
@@ -114,6 +114,7 @@ function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
 function applyFavor(cid,n,r,f){
   if(favorDone(f,n))return {ok:true,status:'held',msg:MSG(f.lic?'doFavor.licHeld':'doFavor.3')};
+  if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
   if(appsList().some(a=>a.key===f.k&&a.cid===cid))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
   const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n)};
   r.aff=Math.max(0,r.aff-REQ_AFF.apply);
@@ -143,4 +144,3 @@ function appsCard(){
     return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·審理中，剩 <b>'+A.left+'</b> 旬</div></span></div>';
   }).join('')+'</div>';
 }
-
