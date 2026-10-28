@@ -247,4 +247,4 @@ function resTier(cid,role){const w=RES_TIER_W[role];if(!w)return 1;const x=seede
 /** 見某人所需知名度階（官員看官階；名伶看固定門檻；名門商邸人物依身分與人物編號固定；其餘 1）。 */
 function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):resTier(cid,n.role)}
 const TIER_NAME=['','一階','二階','三階','四階'];
-function updateFame(){const e=document.getElementById('d-fame');if(e&&G)e.textContent='名望 '+TIER_NAME[fameTier()]}
+function updateFame(){const e=document.getElementById('d-rep');if(e&&G)e.textContent=Math.round(G.fame||0)+'/'+TIER_NAME[fameTier()]}

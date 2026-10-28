@@ -49,11 +49,11 @@ function errandTrim(cid,a0,r){
   if(d>1)q.aff=a0+Math.floor(d*errandFactor());
   if(r&&r.msg)r.msg+=MSG('errandTrim.1',{q:sgn(Math.round(q.aff-a0))});
 }
-/** 派丁稚按鈕：無丁稚或本旬次數用完就半透明不可按。 */
+/** 派丁稚按鈕「丁稚代送（禮金）」：不寫剩餘次數；無丁稚或本旬次數用完就半透明不可按。 */
 function errandBtn(cid){
-  if(R(cid).aff>=FRIEND_AFF)return '<button class="pixel-btn btn-sm" style="flex:1" disabled title="交情已深，要你親自登門">👦 交情已深，須親自登門</button>';
+  if(R(cid).aff>=FRIEND_AFF)return '<button class="pixel-btn btn-sm" style="flex:1" disabled title="交情已深，要你親自登門">須親自登門</button>';
   const left=errandLeft(),off=left<=0;
-  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">👦 派丁稚代送禮金'+(nEmp('丁稚')?'（'+coinHtml('silver',btTiers(cid)[1])+'·剩 '+left+'）':'')+'</button>';
+  return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">丁稚代送'+(nEmp('丁稚')?'（'+coinHtml('silver',btTiers(cid)[1])+'）':'')+'</button>';
 }
 /* ---------- 大番頭：旬末代出席公會例會；新旬處理自動問候等事務 ---------- */
 /** 新旬由大番頭處理的其他事務：依機率自動問候（可能結識新朋友）、意外之財、或無事。 */

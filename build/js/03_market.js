@@ -144,12 +144,16 @@ function rivalSupply(c,m,first){
 function syncPrices(){
   Object.entries(G.mk).forEach(([name,m])=>{m.price=marketIndex(name);if(m.hist.length)m.hist[m.hist.length-1]=Math.round(m.price*10)/10});
 }
+/** 推進一旬、日期前進之前：記下本旬的有效需求、同業供給與我方出貨，供 refreshMarket 寫入九旬紀錄。
+ *  （若等日期前進後才算，節慶倍率會用到下一旬的日期：節慶前一旬被記成節慶、節慶當旬反而記成平常，節慶當旬的價格因此算了兩次。） */
+function snapMarket(){Object.entries(G.mk).forEach(([name,m])=>{const c=COMM_MAP[name];m.snap={d:demandEff(c,m),so:supplyEff(c,m),my:m.shipped}})}
 /** 每旬換季刷新：需求、事件倍率回歸、他家供給、進貨壓力回落、市價與歷史曲線。 */
 function refreshMarket(first){
   Object.entries(G.mk).forEach(([name,m])=>{
     const c=COMM_MAP[name];
-    if(!first){m.past=(m.past||pastOf(m)).concat([{d:demandEff(c,m),so:supplyEff(c,m),my:m.shipped}]).slice(-(ODDS.rivalShip.win-1))}
+    if(!first){const rec=m.snap||{d:demandEff(c,m),so:supplyEff(c,m),my:m.shipped};m.past=(m.past||pastOf(m)).concat([rec]).slice(-(ODDS.rivalShip.win-1))}   // 用日期前進前記下的本旬需求（snapMarket），節慶、買氣才不會錯記到前一旬
     else m.past=[];
+    delete m.snap;
     m.D=cityD(homeCity(),c);
     if(c.luxury)luxTick(c,m,first);
     m.ev=1+(m.ev-1)*(first?0:0.75);if(Math.abs(m.ev-1)<0.03)m.ev=1;
@@ -573,16 +577,17 @@ function populationTick(log){
 }
 
 /* ---------- 旬推進 ---------- */
-/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→日期前進→訂單到貨→公會結算→季度人口→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
+/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→記下本旬需求與出貨→日期前進→訂單到貨→公會結算→季度人口→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
 function advanceTurn(){
   syncPeaks();
   const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   autoShip(log);
   autoBuy(log);
   chiefGuildTick(log);                            // 玩家整旬未出席例會，才由大番頭於旬末代席
+  snapMarket();                                   // 日期前進前，記下本旬的需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
-  G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};
+  G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};G.voyQueue=[];   // 出運清單只在本旬有效
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
   tourTick(log);

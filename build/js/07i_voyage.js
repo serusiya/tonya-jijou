@@ -3,14 +3,23 @@
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
  *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
+ *   目的地沒有本業貨時：80% 空手而回（只扣雜費），20% 改買跨行貨。
  *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫，風聲 +0.2 × 危險度）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_CAPT={sea:'船長',land:'飛腳'};
-const idleCaptains=mode=>{
+/** 本旬出運清單（存檔）：[{capt,mode,dest,budget}]；推進一旬時清空。 */
+const voyQ=()=>G.voyQueue||(G.voyQueue=[]);
+/** 清單裡已排的委託金合計。 */
+const voyQTotal=()=>voyQ().reduce((a,q)=>a+q.budget,0);
+/** 空閒的船長／飛腳：不在採買、走私途中；inclQ＝連已排進出運清單的也算（出發時用）。 */
+const idleCaptains=(mode,inclQ)=>{
   const used=new Set(G.ships.map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));
+  if(!inclQ)voyQ().forEach(q=>used.add(q.capt));
   return G.emps.filter(e=>e.rank===MODE_CAPT[mode]&&!used.has(e.id));
 };
+/** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
+function voyQPrune(){if(!G.voyQueue)return;G.voyQueue=G.voyQueue.filter(q=>idleCaptains(q.mode,true).some(e=>e.id===q.capt))}
 const ownNameSet=()=>new Set(ownComms().map(c=>c.name));
 /** 本業中已可交易的貨（委託採買時船長只買這些）。 */
 const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
@@ -25,17 +34,17 @@ function destList(mode){
     own:ct.connected_commodities.filter(n=>own.has(n)&&COMM_MAP[n]),oth:ct.connected_commodities.filter(n=>!all.has(n)&&COMM_MAP[n])}))
     .sort((x,y)=>(y.own.length>0)-(x.own.length>0)||x.d-y.d||y.own.length-x.own.length);
 }
-/** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）。 */
-function sendVoyage(captId,budget,destId,mode,free){
+/** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）；batch＝出運清單一起出發（行動點數由 vGoAll 統一扣一次）。 */
+function sendVoyage(captId,budget,destId,mode,free,batch){
   mode=mode||'sea';
-  const cap=idleCaptains(mode).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:MODE_CAPT[mode]})};
+  const cap=idleCaptains(mode,true).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:MODE_CAPT[mode]})};
   const dest=CITY(destId),dl=destList(mode).find(x=>x.ct.id===destId);if(!dest||!dl)return {ok:false,msg:MSG('sendVoyage.3')};
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?'進港泊位許可':'關所通行手形')})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
   if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG('sendVoyage.hurt',{injured:G.injured})};
-  if(!free&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣）
-  if(!free){G.ap--;updateAP()}
+  if(!free&&!batch&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣；出運清單一起出發只扣一次）
+  if(!free&&!batch){G.ap--;updateAP()}
   const st=statsOfEmp(cap);let d=dl.d;
   if(mode==='land'){if(G.flags.horse>0)d--;if(G.flags.road)d--;d=Math.max(1,d)}
   if(!free)payPublic('委託採買：'+dest.name,budget);
@@ -56,9 +65,12 @@ function resolveVoyage(s,log){
     const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
     if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
   }
-  let kind=rnd()<ODDS.voyageKind.cross?'cross':'own',note='';
-  if(kind==='own'&&!ownP.length){if(othP.length){kind='cross';note='【'+(dest?dest.name:'此地')+'】沒有出產你本業的貨，'+MODE_CAPT[mode]+'改買了別行的貨。'}}
-  if(kind==='cross'&&!othP.length)kind='own';
+  let kind,note='';
+  if(ownP.length){kind=rnd()<ODDS.voyageKind.cross?'cross':'own';if(kind==='cross'&&!othP.length)kind='own'}
+  else{                                                 // 目的地沒有本業貨：八成空手而回，兩成改買他行貨（當地也沒有他行貨就空手）
+    kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
+    note='【'+(dest?dest.name:'此地')+'】沒有出產你本業的貨，'+MODE_CAPT[mode]+(kind==='cross'?'改買了別行的貨。':'只好空手而回。');
+  }
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[]};
   let refund=budget-fee,income=0;
   const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(mode==='sea'?'遇上風暴':'遭山賊襲擊'):'';
@@ -103,7 +115,7 @@ function resolveVoyage(s,log){
   E.back=refund+income;
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
-  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':'帶回跨行貨'),sea:(wreck?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
+  const t=NEWS('kind.8',{mode:MODE_CAPT[mode],captName:s.captName,dest:E.dest,cross:(kind==='own'?'帶回本業貨':kind==='cross'?'帶回跨行貨':'空手而回'),sea:(wreck&&kind!=='empty'?'（'+(mode==='sea'?'遇海難':'遇山賊')+'）':'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
 /* ---------- 商路畫面 ---------- */
@@ -112,21 +124,24 @@ function voyagePanel(){
   const mode=R_.mode;
   if(mode==='land'&&!landPermit())return '<div class="notice">尚未取得【'+REG_NAME(homeCity().region_id)+'】的「關所通行手形」。請到「遠國奉行所」請託（關所番頭／道中奉行）。</div>';
   if(mode==='sea'&&!anySea())return '<div class="notice">尚未取得任何地區的「進港泊位許可」。請到「遠國奉行所」請託（津口番所役／船奉行）。</div>';
+  voyQPrune();
   const caps=idleCaptains(mode);
-  if(!caps.length)return '<div class="notice">沒有空閒的'+MODE_CAPT[mode]+'。到私宅請介紹人物色，聘為「'+MODE_CAPT[mode]+'」。</div>';
+  if(!caps.length)return '<div class="notice">'+(idleCaptains(mode,true).length?'空閒的'+MODE_CAPT[mode]+'都已排進出運清單。':'沒有空閒的'+MODE_CAPT[mode]+'。到私宅請介紹人物色，聘為「'+MODE_CAPT[mode]+'」。')+'</div>';
   const dl=destList(mode).slice(0,10);
   if(!dl.length)return '<div class="notice">'+(mode==='land'?'陸路只通同一地區、2 旬內的城市；跨地區或島嶼須走海運。':'本城或對方不是港灣，海運無路可走。')+'</div>';
   if(!caps.some(e=>e.id===R_.capt))R_.capt=caps[0].id;
   if(!dl.some(x=>x.ct.id===R_.dest))R_.dest=dl[0].ct.id;
-  const maxB=Math.max(100,Math.min(5000,Math.floor(G.silver)));
+  const cash=Math.floor(G.silver-voyQTotal());
+  if(cash<100)return '<div class="notice">現款都已排進出運清單，沒有餘錢再委託。</div>';
+  const maxB=Math.max(100,Math.min(5000,cash));
   R_.budget=clamp(Math.round((R_.budget||500)/50)*50,100,maxB);
   const cap=caps.find(e=>e.id===R_.capt);
   let h='<div class="small" style="margin:4px 0">選'+MODE_CAPT[mode]+'：'+caps.map(e=>'<span class="pill '+(e.id===R_.capt?'on':'')+'" data-act="vCapt" data-id="'+e.id+'">'+esc(e.name)+' '+ratingStars(e.cid||statsOfEmp(e))+'</span>').join('')+'</div>';
   h+='<div class="small bold" style="margin-top:4px">📍 目的地</div>'+dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="vDest" data-id="'+x.ct.id+'"><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':' <span class="tag red">🔒 無許可</span>')+'<div class="tiny muted">'+x.d+' 旬·風險約 '+Math.round(voyRisk(cap,x.d,mode)*100)+'%</div></div><div style="text-align:right" class="tiny">'+(x.own.length?'<b style="color:#1e7e34">可買本業貨：'+esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join('、'))+(x.own.length>2?'…':'')+'</b>':'<span class="muted">無本業貨</span>')+'<div class="muted">另有 '+x.oth.length+' 種他行貨</div></div></div>').join('');
   h+='<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">'+fmt(R_.budget)+' 兩</b></div>';
   h+=stepRow('<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'">','slider-voy',R_.budget<=100,R_.budget>=maxB)+'<div class="row tiny muted"><span>100</span><span>雜費約 '+Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)+'%</span><span>'+fmt(maxB)+'</span></div></div>';
-  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>'+(G.sysKey==='medicine'?'；唐物藥種的船隊常<b>夾帶唐船私貨</b>':'')+'。歸來那一旬的旬報會詳列帶回了什麼。每次委託要親自到碼頭交代，扣 1 行動點數。</div>';
-  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vGo" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGo')+'</button></div>';
+  h+='<div class="notice tiny">'+MODE_CAPT[mode]+'會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才，當地產好幾樣時，委託金與運量平均分給每一樣；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找座客商人代售</b>；目的地<b>沒有本業貨</b>時，多半<b>空手而回</b>，只扣雜費'+(G.sysKey==='medicine'?'；唐物藥種的船隊常<b>夾帶唐船私貨</b>':'')+'。歸來那一旬的旬報會詳列帶回了什麼。先把要派的人排進出運清單，再一次全部出發：只要親自到碼頭交代一趟，扣 1 行動點數；分批出發，每批各扣 1 點。</div>';
+  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vAdd">'+UT('btn.vAdd')+'</button></div>';
   return h;
 }
 function voyLogCard(){
@@ -136,9 +151,41 @@ function voyLogCard(){
 ACT.vCapt=el=>{UI.s.route.capt=el.dataset.id;renderRoutes()};
 ACT.vDest=el=>{UI.s.route.dest=el.dataset.id;renderRoutes()};
 CHG.rModeDummy=()=>{};
-ACT.vGo=()=>{
-  const R_=UI.s.route,r0=sendVoyage(R_.capt,R_.budget,R_.dest,R_.mode);
-  if(!r0.ok){toast(r0.msg,4200);return}
-  playFx(R_.mode==='sea'?'boat':'cart',MSG('voyage.depart'),CITY(R_.dest).name,()=>{toast(r0.msg,5000);UI.render()},1000);
+/** 本旬出運清單：每列人名、目的地、旬數、委託金與取消鈕；底部合計與「全部出發」（只扣 1 行動點數）。 */
+function voyQueueCard(){
+  voyQPrune();const Q=voyQ();if(!Q.length)return '';
+  const a=homeCity();
+  let h='<div class="card" style="background:#fff8eb"><b class="small">📋 本旬出運清單</b>';
+  h+=Q.map((q,i)=>{const e=G.emps.find(x=>x.id===q.capt),ct=CITY(q.dest),ok=ct&&permitOf(q.mode,ct);
+    return '<div class="row small" style="margin-top:4px;gap:4px"><span>'+MODE_ICON[q.mode]+' '+esc(e?e.name:'？')+' → '+esc(ct?ct.name:'？')+'（'+(ct?distTurns(a,ct,q.mode):'?')+' 旬）'+(ok?'':' <span class="tag red">🔒 無許可</span>')+'</span><span style="white-space:nowrap">'+fmt(q.budget)+' 兩 <button class="pixel-btn btn-sm" data-act="vDel" data-i="'+i+'">'+UT('btn.vDel')+'</button></span></div>'}).join('');
+  h+='<div class="row tiny muted" style="margin-top:4px;border-top:1px dashed #b5a98f;padding-top:3px"><span>共 '+Q.length+' 人</span><span>委託金合計 '+fmt(voyQTotal())+' 兩</span></div>';
+  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">一次全部出發，只扣 1 行動點數。</span><button class="pixel-btn btn-gold" data-act="vGoAll" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGoAll')+'</button></div>';
+  return h+'</div>';
+}
+/** 加入出運清單（不扣行動點數、不扣錢）：檢查人、目的地、許可、委託金與餘錢。 */
+ACT.vAdd=()=>{
+  const R_=UI.s.route,mode=R_.mode,cap=idleCaptains(mode).find(e=>e.id===R_.capt);
+  if(!cap){toast(MSG('sendVoyage.2',{mode:MODE_CAPT[mode]}));return}
+  const dest=CITY(R_.dest);if(!dest||!destList(mode).some(x=>x.ct.id===R_.dest)){toast(MSG('sendVoyage.3'));return}
+  if(!permitOf(mode,dest)){toast(MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?'進港泊位許可':'關所通行手形')}),4200);return}
+  const b=Math.floor(R_.budget||0);if(!(b>=100)){toast(MSG('sendVoyage.5'));return}
+  if(b>G.silver-voyQTotal()){toast(MSG('voyQ.short',{c:fmt(b+voyQTotal())}),4200);return}
+  voyQ().push({capt:cap.id,mode,dest:dest.id,budget:b});sfx.tap();
+  toast(MSG('voyQ.add',{crew:MODE_CAPT[mode],name:cap.name,dest:dest.name,budget:fmt(b)}));UI.render();
+};
+ACT.vDel=el=>{voyQ().splice(+el.dataset.i,1);sfx.tap();UI.render()};
+/** 全部出發：一次檢查現款、傷勢與行動點數；逐一出發，失去許可的留在清單；有人出發就扣 1 行動點數。 */
+ACT.vGoAll=()=>{
+  voyQPrune();const Q=voyQ();if(!Q.length){toast(MSG('voyQ.empty'));return}
+  if((G.injured||0)>0){toast(MSG('sendVoyage.hurt',{injured:G.injured}),4200);return}
+  if(apLeft()<=0){toast(MSG('sendVoyage.ap'));return}
+  if(voyQTotal()>G.silver){toast(MSG('voyQ.short',{c:fmt(voyQTotal())}),4200);return}
+  const ok=[],fail=[];
+  Q.slice().forEach(q=>{const r=sendVoyage(q.capt,q.budget,q.dest,q.mode,false,true);if(r.ok)ok.push(q);else fail.push(r.msg)});
+  G.voyQueue=Q.filter(q=>!ok.includes(q));
+  if(!ok.length){toast(fail[0]||MSG('voyQ.empty'),4200);UI.render();return}
+  G.ap--;updateAP();save();
+  const names=[...new Set(ok.map(q=>CITY(q.dest).name))].join('、'),msg=MSG('voyQ.done',{n:ok.length,dest:names})+(fail.length?MSG('voyQ.fail',{n:fail.length}):'');
+  playFx(ok.some(q=>q.mode==='sea')?'boat':'cart',MSG('voyage.depart'),names,()=>{toast(msg,5000);UI.render()},1000);
 };
 document.addEventListener('input',e=>{if(e.target.id==='slider-voy'){UI.s.route.budget=+e.target.value;const b=$('#v-b');if(b)b.textContent=fmt(UI.s.route.budget)+' 兩'}});

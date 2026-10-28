@@ -17,7 +17,7 @@ const PURSE_BACK=100;
 /** 轉出私房錢後若跌破名望門檻，提醒一句。 */
 const purseTierNote=()=>'<div class="tiny muted">私房錢滿 '+fmt(ODDS.fame.goldTier)+' 兩時名望多一階，不滿就少這一階。</div>';
 
-/** 私房錢面板（點最上方私房錢旁的「＋」）：從現款挪用／設定每旬抽成。 */
+/** 私房錢面板（點最上方「私房錢」欄）：從現款挪用／設定每旬抽成。 */
 SHEETS.purse=()=>{
   const pct=(G.skimPct||0)*100;
   let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，用在<b>吉原</b>、<b>走私</b>這類見不得光的事；攢滿 2,000 兩，身分也高一階。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
@@ -31,6 +31,7 @@ SHEETS.purse=()=>{
   h+='<div class="tiny muted">私房錢現有 <b>'+Math.round(G.gold)+'</b> 兩；現款 '+fmt(G.silver)+' 兩。</div>';
   return {title:'🟨 私房錢',html:h};
 };
+ACT.purse=()=>UI.openSheet('purse');
 /** 從現款挪用：隨機 30～50 兩，扣 1 行動點數。 */
 ACT.skim=()=>{
   const amt=Math.min(Math.floor(G.silver),SKIM_MIN+Math.floor(rnd()*(SKIM_MAX-SKIM_MIN+1)));

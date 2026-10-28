@@ -1,6 +1,6 @@
 'use strict';
 /* ★檔案總覽：啟動與全域事件
- * - doTurn：「推進一旬/一月」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
+ * - doTurn：「推進一旬」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
  * - 以事件委派處理所有 data-act / data-chg；DOMContentLoaded 綁定頂部按鈕與開局。 */
 /* ======================= 08 啟動、事件委派、推進時間 ======================= */
 /** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次現款變化。 */
@@ -38,11 +38,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   $$('.loc').forEach(el=>el.dataset.act='go');
   $$('#bottom button').forEach(b=>b.addEventListener('click',()=>{UI.go(UI.s.tab===b.dataset.tab?'home':b.dataset.tab)}));
   $('#b-next').addEventListener('click',()=>doTurn(1));
-  $('#b-next3').addEventListener('click',()=>doTurn(3));
-  $('#b-purse').addEventListener('click',()=>UI.openSheet('purse'));
   $('#b-menu').addEventListener('click',()=>UI.openSheet('menu'));
-  $('#d-city').parentNode.style.cursor='pointer';
-  $('#d-city').parentNode.addEventListener('click',()=>{if(G)UI.openSheet('city')});
   $('#sh-close').addEventListener('click',()=>UI.closeSheet());
   $('#info-close').addEventListener('click',()=>UI.hideInfo());
   $('#info-bd').addEventListener('click',e=>{if(e.target.id==='info-bd')UI.hideInfo()});

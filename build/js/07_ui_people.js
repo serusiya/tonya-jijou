@@ -255,11 +255,13 @@ SHEETS.city=()=>{
   const s=c.seasonal_annual_rhythms;h+='<div class="card text-prose"><b>四季節律</b><br>春：'+esc(s.spring)+'<br>夏：'+esc(s.summer)+'<br>秋：'+esc(s.autumn)+'<br>冬：'+esc(s.winter)+'</div>';
   return {title:'🏙️ 城志·'+c.name,html:h};
 };
+/** 私宅的駐節城市欄：開啟城志。 */
+ACT.cityInfo=()=>UI.openSheet('city');
 /** 選單面板（說明、存檔、規則摘要）。 */
 SHEETS.menu=()=>{
-  let h=audioSettingsHtml()+'<button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
+  let h=audioSettingsHtml()+'<button class="pixel-btn" style="width:100%;margin-bottom:6px" data-act="exportSave">'+UT('btn.exportSave')+'</button><div class="tiny muted" style="margin:-2px 0 8px">'+esc(UT('txt.exportNote'))+'</div><button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+='<div class="notice tiny" style="margin-top:6px">每旬推進時自動存檔於此瀏覽器。</div>';
-  h+='<div class="card text-prose"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點「＋」可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
+  h+='<div class="card text-prose"><b>📖 遊戲規則摘要</b><br>• <b>現款／私房錢</b>：現款是商號帳上的錢（進貨、薪資、賄賂、拜訪）；私房錢只用於吉原、走私與暗中辦事，點最上方「私房錢」欄可補充。<br>• <b>知名度</b>：分一～四階，階級越高越能見到高階官員與名伶；有介紹人可再提高一階。<br>• <b>保鏢</b>：出門有機會遇襲；有保鏢能擋災，沒有保鏢會受傷靜養。<br>• <b>無固定目標</b>：沒有勝負，只有一生。<br>• <b>六項隱藏數值</b>：人物數值不顯示，要從言行、風評、帳目推敲。<br>• <b>介紹人</b>：僱人、拜官、說媒都靠介紹人的性向與信任。<br>• <b>行動次數</b>：每旬 5 次，登門辦事各扣 1 次，聘用員工不扣。';
   return {title:'⚙️ 設定',html:h};
 };
 /** 開關音效。 */
@@ -363,6 +365,7 @@ function ratingStars(src){
 function renderEstate(){
   const sp=G.family.spouse,kids=G.family.kids;
   let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>🏯 私宅內苑·商號與家族</b><div class="tiny muted">介紹人、夥計、家族與傳承。</div></div><span class="tag red">'+esc(G.me.name)+'·第'+G.me.gen+'代</span></div>';
+  h+='<div class="grid2 small" style="margin:6px 0 0;text-align:center"><div class="card" style="margin:0">本業<br><b>'+esc(G.firm)+'</b></div><div class="card" data-act="cityInfo" style="margin:0;cursor:pointer">駐節<br><b>【'+esc(homeCity().name)+'】</b></div></div>';
   h+='<div class="grid3 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">淨資產<br><b>'+fmt(netWorth())+' 兩</b></div><div class="card" style="margin:0">每旬開銷<br><b>'+fmt(G.lastCost||0)+' 兩</b></div><div class="card" style="margin:0">黑帳風聲<br><b>'+(G.heat>6?'很緊':G.heat>3?'偏緊':'平靜')+'</b></div></div>';
   // 宴會
   h+=banquetCard();
@@ -550,6 +553,7 @@ UI.showStart=function(){
   h+='<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div><div class="tiny" style="text-align:center;color:#cfc6b6;margin-bottom:6px">越往下，起手資源越多。</div>';
   h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'：'+s.res+'</div></div>').join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
+  h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
   $('#start-inner').innerHTML=h;$('#start').classList.remove('hidden');
 };
 /** 選擇流派。 */
@@ -563,4 +567,6 @@ ACT.begin=()=>{
   LASTREP=null;showTurnReport([{}],G.news.map(x=>x.t).reverse(),0,'open');   // 開業旬報：進出貨皆空，列開局消息
 };
 /** 繼續上次存檔。 */
-ACT.resume=()=>{musicWant('market');G=loadSave();LASTREP=G.lastRep||null;sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))};
+ACT.resume=()=>enterSave(loadSave());
+/** 以一份存檔進入遊戲（繼續人生、匯入存檔共用）。 */
+function enterSave(o){if(!o)return;musicWant('market');G=o;LASTREP=G.lastRep||null;sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))}

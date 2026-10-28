@@ -88,18 +88,50 @@ function grantFavorApp(A){
   return null;
 }
 
-/* ---------- 許可一覽（奉行所面板頂端） ---------- */
+/* ---------- 已取得的資格（町奉行所面板頂端；遠國奉行所的資格另列在該面板） ---------- */
+/** 資格一列：名稱靠左、名額或效果靠右。 */
+const licRow=(k,v)=>'<div class="row tiny" style="margin-top:2px"><span>'+k+'</span><b>'+v+'</b></div>';
+/** 町奉行所三系官署核發的資格：每項只列已取得的最高一級（名稱與請託選單一致），右邊寫這一級給的名額；交易許可各列一項；減罪狀另起一列。都沒有時寫一句提示。 */
 function licCard(){
-  const L=lockedTrade(),s=LIC.staff.caps[licLv('staff')];
-  const row=(k,v)=>'<div class="row tiny" style="margin-top:2px"><span>'+k+'</span><b>'+v+'</b></div>';
-  return '<div class="card"><b class="small">📜 手上的許可</b>'
-    +row('倉庫',G.wh.n+'／'+whMax()+' 棟')
-    +row('船長',G.emps.filter(e=>e.rank==='船長').length+'／'+slotCap('船長')+' 名')
-    +row('飛腳',G.emps.filter(e=>e.rank==='飛腳').length+'／'+slotCap('飛腳')+' 名')
-    +row('保鏢',guardCount()+'／'+slotCap('保鏢')+' 名')
-    +row('丁稚',nEmp('丁稚')+'／'+APPRENTICE_CAP+' 名')
-    +row('手代／番頭',s.手代+'／'+s.番頭+' 名')
-    +row('交易許可',L.map(n=>COMM_MAP[n].short+(tradeOK(n)?' ✅':' 🔒')).join('、'))
-    +row('減罪狀',(G.lessen||0)>0?'持有 1 張':'無')
-    +'<div class="tiny muted" style="margin-top:3px">許可由三系官署官員核發，官階越高給得越多。</div></div>';
+  const nm=k=>LIC[k].name+'（'+LIC_RANK_NAME[licLv(k)]+'）',rows=[];
+  if(licLv('wh')>0)rows.push([nm('wh'),'倉庫 '+whMax()+' 棟']);
+  if(licLv('ship')>0)rows.push([nm('ship'),'船長 '+slotCap('船長')+' 人']);
+  if(licLv('horse')>0)rows.push([nm('horse'),'飛腳 '+slotCap('飛腳')+' 人']);
+  if(licLv('guard')>0)rows.push([nm('guard'),'保鏢 '+slotCap('保鏢')+' 人']);
+  if(licLv('staff')>0){const s=LIC.staff.caps[licLv('staff')];rows.push([nm('staff'),'手代 '+s.手代+' 人·番頭 '+s.番頭+' 人'])}
+  lockedTrade().slice().reverse().forEach(n=>{if((G.trade||[]).includes(n))rows.push(['交易許可：'+COMM_MAP[n].short,'可以買賣'])});
+  if((G.lessen||0)>0)rows.push(['減罪狀',G.lessen+' 張']);
+  return '<div class="card"><b class="small">📜 已取得的資格</b>'
+    +(rows.length?rows.map(([k,v])=>licRow(esc(k),esc(v))).join(''):'<div class="tiny muted" style="margin-top:2px">尚未取得任何資格。官階越高的官員，給得越多。</div>')
+    +'</div>';
+}
+/** 遠國奉行所核發的資格：上級資格取代下級（朱印狀取代各地海運泊位許可、五街道通行狀取代陸運通行手形）；限期的方便另列剩餘旬數。 */
+function regLicCard(){
+  const P=permitsOf(),rows=[],ch=G.flags.charter||0;
+  if(P.sea.all)rows.push(['朱印狀','各地區港口']);
+  else{const L=Object.keys(P.sea).filter(k=>k!=='all');if(L.length)rows.push(['海運泊位許可',L.map(REG_NAME).join('、')])}
+  if(G.flags.road||P.land.all)rows.push(['五街道通行狀','各地區陸路·航程少 1 旬']);
+  else{const L=Object.keys(P.land).filter(k=>k!=='all');if(L.length)rows.push(['陸運通行手形',L.map(REG_NAME).join('、')])}
+  if(ch>0)rows.push(['地區通商特許狀','採買雜費再省 '+ch+' 成']);
+  [['horse','驛馬優先'],['cheap','產地買付便宜'],['escort','船手組護送'],['taxfree','勘定所雜費減免狀']].forEach(([f,n])=>{if(G.flags[f]>0)rows.push([n,'剩 '+G.flags[f]+' 旬'])});
+  return '<div class="card"><b class="small">📜 已取得的資格</b>'
+    +(rows.length?rows.map(([k,v])=>licRow(esc(k),esc(v))).join(''):'<div class="tiny muted" style="margin-top:2px">尚未取得任何地區資格。</div>')
+    +'</div>';
+}
+
+/* ---------- 職位能辦的請託（百科、職位說明用；直接取自請託表，改請託時說明自動跟著變；好感 100 的特殊請託不列） ---------- */
+/** 某職位能辦的請託：三系官署看系統別與官階（限定官階的只在該階），遠國奉行所看職位。回傳 [{name,desc}]。 */
+function posFavors(id){
+  const p=OFF_POS[id];if(!p)return [];
+  return (FAVORS[p.court]||[]).filter(f=>(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
+    let name=f.name;
+    if(f.lic)name=licFavorName(f.lic,p.rank);
+    else if(f.trade!==undefined)name=G&&G.sysKey?tradeFavorName(f.trade):'交易許可（本業'+(f.trade?'第二貴':'最貴')+'的貨）';
+    return {name,desc:f.desc||''};
+  });
+}
+/** 職位說明裡的「能辦的請託」欄。 */
+function posFavorsHtml(id){
+  const L=posFavors(id);
+  return '<div class="ik">能辦的請託</div><div class="iv">'+(L.length?L.map(f=>'<div style="margin-top:3px"><b>'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc)+'</div></div>').join(''):'（沒有可開口的請託）')+'</div>';
 }

@@ -46,17 +46,13 @@ UI.render=function(){
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
   $('#d-date').textContent=yearStr(G.year)+' '+G.month+'月'+CYCLE_NAMES[G.cycle-1];
-  $('#k-date').textContent='曆法·'+season()+'季';
   $('#d-age').textContent=G.me.given+' '+myAge()+' 歲';
   $('#d-silver').textContent=fmt(G.silver)+' 兩';
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent='欠'+fmt(tot)+'·'+(near?near+'旬':'本旬');e.title='欠款 '+fmt(tot)+' 兩，最近一筆'+(near?near+' 旬後':'本旬')+'到期';e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=Math.round(G.gold)+' 兩';
-  $('#d-rep').textContent=Math.round(G.fame||0)+' / '+ODDS.fame.cap;
-  $('#d-firm').textContent=G.firm;
   updateAP();updateFame();
   { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent='⛓️ 遠島 '+G.exile+' 旬'; else if(a&&(G.injured||0)>0) a.textContent='🤕 養傷 '+G.injured+' 旬'; }
-  $('#d-city').textContent='【'+homeCity().name+'】';
   setTicker();
 }
 let _tk='';
@@ -107,6 +103,8 @@ function spark(h,up){
 function chgAmt(name,cur){const h=G.mk[name].hist;if(h.length<2)return 0;return Math.round(cur-h[h.length-2])}
 /** 價差文字：「約 +3 兩」「約 -2 兩」「持平」。 */
 const amtTxt=d=>d===0?'持平':'約 '+(d>0?'+':'-')+Math.abs(d)+' 兩';
+/** 價格欄（市價）下方的短版價差：「+3」「-2」「持平」。 */
+const amtShort=d=>d===0?'持平':(d>0?'+':'-')+Math.abs(d);
 function chg(name){const h=G.mk[name].hist;if(h.length<2)return 0;return (h[h.length-1]-h[h.length-2])/Math.max(0.01,h[h.length-2])*100}
 /** 大盤畫面：行情、本旬買賣（出貨與進貨合併）、本旬買賣總表、市佔率、行情表。 */
 function renderMarket(){
@@ -120,21 +118,20 @@ function renderMarket(){
   const ex=(G.cartel.state==='pledged'?'已表態守配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未表態');
   let h='<div class="pixel-box" style="padding:8px">';
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📊 本旬大盤（'+guildPolicyName()+'）</b><div class="tiny muted">價格不能自訂，只能決定出貨量。'+(cartelPolicy()==='normal'?(guildMember()?'本期全體總配額等於本城需求；你的配額為穩定供貨線，其餘由同行依市占率分配。':'本期全體總配額等於本城需求；你未參加協議，沒有保留配額，其餘同業分配全部協議供應量。'):'本期依減供配額以量控價。')+'近九旬裡，賣得少則市價較高，賣得多則較低；同業偶爾也會超賣。</div></div><span class="tag gold">'+season()+'季</span></div>';
-  {const p=G.supplyQuarter||{stable:0,unstable:0,turns:0};h+='<div class="tiny muted" style="margin-top:4px">🏯 三個月人口檢視：已記錄 '+p.turns+'/9 旬（穩定 '+p.stable+'·不穩定 '+p.unstable+'）</div>'}
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
-  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩／'+esc(c.unit.split(' ')[0])+'</div></div>';
-  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtTxt(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'聯合採購價':'未參加協議·市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">平均入庫價 '+fmt1(avgCostOf(name))+'</div>':'')+'<div class="tiny muted">容量 '+invUsed()+'/'+invCap()+'</div></div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div></div>';
+  h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+c.kind+'</span>'+(c.flam?'<span class="tag red">易燃</span>':'')+'</div><div style="text-align:right" class="small">基準價 '+fmt1(c.base)+' 兩</div></div>';
+  h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">市價<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">較上旬 '+amtShort(chgAmt(name,mkt))+'</div></div><div class="card" style="margin:0">進貨價<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+(guildMember()?'聯合採購價':'市價')+'</div>'+'</div><div class="card" style="margin:0">庫存<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">均價 '+fmt1(avgCostOf(name))+'</div>':'')+'</div></div>';
+  h+='</div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
   else h+=tradeCard(name);
+  h+=G.lastSpoil?'<div class="notice" style="margin-top:6px">🧺 上旬'+esc(G.lastSpoil)+'</div>':'';
   h+=planCard()+shareCard();
   // 行情表
   h+='<div class="small bold" style="margin:6px 0 3px">🏛️ 本業物資行情（近 12 旬）</div>';
   h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">庫存 '+(G.inv[x.name]||0)+'·損耗 '+(x.decay*100).toFixed(1)+'%/旬</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(mm.price)+'</b><div class="'+(chgAmt(x.name,mm.price)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,mm.price))+'</div></div></div></div>'}).join('');
   h+='<div class="small bold" style="margin:6px 0 3px">🍚 民生必需品（打毀指標）</div>';
   h+=STAPLE_KEYS.filter(k=>G.mk[k]).map(k=>{const si=stapleIndex(k);return '<div class="mkt-row lock"><div><b class="small">'+esc(COMM_MAP[k].short)+'</b>'+infoBtn(k)+'<div class="tiny muted">基準 '+fmt1(COMM_MAP[k].base)+'</div></div><div class="row" style="gap:8px">'+spark(G.mk[k].hist,chg(k)>=0)+'<div style="text-align:right;width:70px"><b class="'+(si>2?'up':'')+'">'+Math.round(si*100)+'%</b><div class="tiny muted">對基準</div></div></div></div>'}).join('');
-  h+=G.lastSpoil?'<div class="notice" style="margin-top:6px">🧺 上旬'+esc(G.lastSpoil)+'</div>':'';
   h+='</div>';
   $('#view-market').innerHTML=h;updateQuote();
 }
@@ -157,18 +154,19 @@ function nextStock(name,ship,buy){
 function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
 /** 【本旬買賣】單項貨的出貨與進貨：頂端看「現有→賣出後→下旬開頭」，下面是兩個滑桿與快速按鈕。 */
 function tradeCard(name){
-  const c=COMM_MAP[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
+  const c=COMM_MAP[name],m=G.mk[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
   const ex=(G.cartel.state==='pledged'?'已表態守協議配額':G.cartel.state==='secret'?'已簽暗約偷跑':'未參加協議');
-  let h='<div class="card" id="trade-card"><b class="small">📦 本旬買賣·'+esc(c.short)+'</b>';
+  let h='<div class="card" id="trade-card"><div class="row"><b class="small">📦 本旬買賣·'+esc(c.short)+'</b><span class="tiny muted" style="text-align:right">容量 '+invUsed()+'/'+invCap()+'</span></div>';
   h+='<div class="small" style="margin:4px 0;text-align:center">現有 <b>'+have+'</b> → 賣出後 <b id="f-after">'+Math.max(0,have-ship)+'</b> → 下旬開頭約 <b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">📤 出貨</b><b id="q-q" style="color:#9b2c3a">'+ship+' 單位</b></div>';
   h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
   h+='<div class="tiny muted">協議配額 '+quota+'（'+ex+'）·穩定供貨線 '+supplyLine(name)+'</div><div class="tiny">出貨後市價 <b id="q-price">'+fmt1(q.price)+' 兩</b>·約入帳 <b id="q-rev" style="color:#1e7e34">'+fmt(q.revenue)+' 兩</b></div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">📥 進貨</b><b id="b-q" style="color:#9b2c3a">'+bq+' 單位</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
-  h+='<div class="tiny muted">本旬還能進 '+buyLeft(name)+(guildMember()?'　協議配額已有加給':'　未參加協議，只按市占率分配')+(tempHelp()!==null?'　<span style="color:#1e7e34">'+esc(G.tempHelp.name)+'臨時幫忙，進貨上限變高</span>':nEmp('番頭')||nEmp('大番頭')?'　<span style="color:#1e7e34">'+(nEmp('番頭')?'番頭':'大番頭')+'幫忙，進貨上限變高</span>':'')+'</div><div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
+  h+='<div class="tiny">單價 '+fmt1(buy)+' 兩·約花 <b id="b-cost">'+fmt(Math.round(buy*bq))+' 兩</b></div></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">本城需求 '+m.D+'／旬·同業本旬出貨 '+m.so+'（近九旬合計 '+Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))+'）　'+(m.ev>1.15?'<span class="up">行情看漲</span>':m.ev<0.9?'<span class="down">行情走軟</span>':'行情持平')+(festActive()?' <span class="up">'+(FEST_KW.some(k=>c.name.includes(k))?'節慶搶手':'節慶需求大增')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">買家久無音訊，行情冷清</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">大單湧入！</span>':'')+'</div>';
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>⚠️ 打毀警戒</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">推進一旬時照這裡辦理；進的貨在新的一旬開頭到倉。</div></div>';
+  h+='</div>';
   return h;
 }
 /** 【本旬買賣總表】所有本業貨這一旬的出貨、進貨與下旬開頭；點一列切換到那項貨。 */
@@ -252,6 +250,7 @@ function renderRoutes(){
   else h+='<div class="notice">目前沒有出門採買的船長或飛腳。</div>';
   h+='<hr class="sep"><div class="small bold">📦 委託採買</div><div style="margin:4px 0">'+['sea','land'].map(m=>'<span class="pill '+(R_.mode===m?'on':'')+'" data-act="rMode" data-m="'+m+'">'+UT(m==='sea'?'opt.modeSea':'opt.modeLand')+'</span>').join('')+'</div>';
   h+=voyagePanel();
+  h+=voyQueueCard();
   h+=voyLogCard();
   h+='<hr class="sep"><div class="tiny muted">一名船長帶一艘船、一名飛腳帶一支馬幫。聘船長時另付造船費。名額由奉行所核發：船長看「船株鑑札」（行政），飛腳看「馬幫株」（財務）。</div></div>';
   $('#view-routes').innerHTML=h;
@@ -267,15 +266,15 @@ UI.showInfo=(title,html)=>{$('#info-title').textContent=title;$('#info-body').in
 UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
 /** 說明視窗的欄位格式。 */
 const ik=(k,v)=>v?'<div class="ik">'+k+'</div><div class="iv">'+esc(v)+'</div>':'';
-/** 官吏職位說明內容（職掌、貪腐破口、升遷等，資料來自 OFFICIALS）。 */
+/** 官吏職位說明內容（職掌、能辦的請託、升遷等；請託由請託表產生，見 posFavors）。 */
 function posInfoHtml(id){
   const p=OFF_POS[id];if(!p)return '<div class="notice">查無此職位。</div>';
   const sys=OFFICIALS.systems[p.court],rk=RANK_INFO[p.rank];
   const nm=x=>OFF_POS[x]?OFF_POS[x].title+'（'+RANK_INFO[OFF_POS[x].rank].title.split(/[\u30FB\u00B7]/)[0]+'）':x;
   return '<div class="small"><span class="tag '+COURTS[p.court].cls+'">'+COURTS[p.court].name+'</span> <span class="tag gold">'+esc(rk.title)+'</span></div>'
    +ik('所屬',sys.name+'·'+sys.department)+ik('職掌',p.duties)+(p.court!=='region'?ik('駐地',p.rank>=5?'巡迴各城，每三個月來本城一個月（'+[TOUR_MONTH[p.court],TOUR_MONTH[p.court]+3,TOUR_MONTH[p.court]+6,TOUR_MONTH[p.court]+9].join('、')+'月）':'常駐城中'):'')+ik('官階權力',rk.influence)+ik('與商人的關係',sys.merchant_interaction)
-   +ik('貪腐破口',p.corruption_hooks)+ik('可升遷至',(p.promotes_to||[]).map(nm).join('、')||'（已達頂點）')+ik('升遷條件',p.promotion_conditions)
-   +'<div class="ik">官階待遇</div><div class="iv">年俸 '+rk.salary_koku+' 石·賄賂基準 '+rk.bribe_base_gold+' 兩金</div>';
+   +posFavorsHtml(id)+ik('可升遷至',(p.promotes_to||[]).map(nm).join('、')||'（已達頂點）')+ik('升遷條件',p.promotion_conditions)
+   +'<div class="ik">官階待遇</div><div class="iv">年俸 '+rk.salary_koku+' 石</div>';
 }
 /** 顯示單一官吏職位說明。 */
 ACT.posInfo=el=>{const p=OFF_POS[el.dataset.id];UI.pushInfo('官吏職位：'+(p?p.title:''),posInfoHtml(el.dataset.id))};

@@ -54,7 +54,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽識影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
-  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
+  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
