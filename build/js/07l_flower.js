@@ -125,7 +125,7 @@ ACT.feast=()=>{
   if(F.feast===G.turn){toast(MSG('feast.1'));return}
   if(!afford('feast')){toast(shortMsg('feast'));return}
   const pool=cityNpcs(G.cityId).filter(n=>!isEnemy(n.cid)&&((n.role==='official'&&n.pos&&n.pos.court!=='region'&&!awayNow(n))||['rival','guest','broker'].includes(n.role)));
-  F.feast=G.turn;G.heat+=0.5;addFame(0.3);const note=flowerSpend(spend('feast'));
+  F.feast=G.turn;addHeat(0.5);addFame(0.3);const note=flowerSpend(spend('feast'));
   playFx('walk',MSG('feast.fx'),MSG('feast.fxTitle'),()=>{
     if(!pool.length){toast(MSG('feast.2',{note}));UI.render();refreshSheet();return}
     const guests=shuffle(pool.slice()).slice(0,rint(1,3));

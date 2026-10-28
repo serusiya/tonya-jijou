@@ -91,7 +91,7 @@ ACT.assassinate=el=>{
   if((G.exile||0)>0){toast(MSG('assassinate.1'));return}
   if(!afford('assassin')){toast(shortMsg('assassin'));return}
   if(!spendAP())return;
-  spend('assassin');G.heat=(G.heat||0)+3;
+  spend('assassin');addHeat(3,true);
   const p=assChance(e,n),name=nameOf(cid),rank=assRank(n),log=[];
   playFx('walk',MSG('assassinate.fx'),MSG('assassinate.fxTitle'),()=>{
     if(chance(p)){
@@ -110,7 +110,7 @@ ACT.assassinate=el=>{
       }
       toast(msg,5200);
     }else{
-      G.emps=G.emps.filter(x=>x!==e);G.heat=(G.heat||0)+2;
+      G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
       const r=R(cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(cid,'遭人行刺未遂，視你為仇。');
       sfx.bad();toast(MSG('assassinate.4',{name:e.name,name2:name}),5200);
     }
@@ -131,7 +131,7 @@ ACT.arson=el=>{
   const rv=rivalsHere().filter(n=>alive(n.cid));if(!rv.length){toast(MSG('arson.noRival'));return}
   if(!afford('arson')){toast(shortMsg('arson'));return}
   if(!spendAP())return;
-  spend('arson');G.heat=(G.heat||0)+3;
+  spend('arson');addHeat(3,true);
   const tg=pick(rv),p=arsonChance(e),name=nameOf(tg.cid),log=[];
   playFx('walk',MSG('arson.fx',{rank:e.rank}),MSG('arson.fxTitle'),()=>{
     if(chance(p)){
@@ -148,7 +148,7 @@ ACT.arson=el=>{
       }
       toast(msg,5200);
     }else{
-      G.emps=G.emps.filter(x=>x!==e);G.heat=(G.heat||0)+2;
+      G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
       const r=R(tg.cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(tg.cid,'派人縱火未遂，視你為仇。');
       sfx.bad();toast(MSG('arson.fail',{rank:e.rank,name:e.name,target:name}),5200);
     }

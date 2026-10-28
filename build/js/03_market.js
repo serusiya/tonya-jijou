@@ -270,9 +270,9 @@ function randomEvent(log){
   for(const e of pool){r-=e.w;if(r<=0){ev=e;break}}
   const t=ev.f();if(t)pushNews(t),log.push(t);
 }
-/** 事件：中央欽差突查（黑帳 heat 高會被罰、靠山受牽連）。 */
+/** 事件：中央欽差突查（風聲高於 ODDS.imperial.heat 才會被罰、靠山受牽連）。 */
 function inspection(){
-  if(G.heat>3){
+  if(G.heat>ODDS.imperial.heat){
     const fine=Math.round(Math.max(0,G.silver)*clamp(0.05+G.heat*0.012,0.06,0.2));
     G.silver-=fine;loseFame('inspect');sfx.bad();
     const top=Object.entries(G.rel).filter(([id,r])=>npc(id)&&npc(id).role==='official').sort((a,b)=>b[1].aff-a[1].aff)[0];

@@ -163,7 +163,7 @@ function outsiderGossip(){
     const n=npc(cached);if(!n||!alive(cached)||isEnemy(cached))return null;
     return {kind:'外人傳聞（免費探聽）',text:'「'+TX('gossip.outsider',{n:nameOf(cached),t:top3(cached).join('、')})+'」',cid:cached};
   }
-  const all=Object.values(G.world.npcs).filter(n=>alive(n.cid)&&!R(n.cid).topKnown&&!isEnemy(n.cid));
+  const all=cityNpcs(G.cityId).filter(n=>!R(n.cid).topKnown&&!isEnemy(n.cid));   // 只講本城的人
   if(!all.length)return null;
   const met=all.filter(n=>R(n.cid).met);
   const n=pick(met.length&&rnd()<ODDS.gossipMet.p?met:all),cid=n.cid,r=R(cid);
@@ -204,7 +204,7 @@ function openChat(ent){
 function applyStartBoost(sysKey){
   const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
-    const ns=Object.values(G.world.npcs),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
+    const ns=cityNpcs(G.cityId),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
     if(cand){
       const cid=cand.cid,r=R(cid);r.met=true;r.seen=true;r.aff=Math.max(r.aff,45);r.bond={mult:1,label:'介紹人',introId:null};
       addKnown(cid);G.intros.push({cid});G.introId=cid;logRel(cid,'開業之初，答應當你的介紹人。');

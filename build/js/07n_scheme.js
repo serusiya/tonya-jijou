@@ -15,7 +15,7 @@ function startScheme(cid){
   if((G.exile||0)>0){toast(MSG('scheme.exile'));return}
   const ts=schemeTargets();if(!ts.length){toast(MSG('scheme.noRival'));return}
   if(!afford(k)){toast(shortMsg(k));return}
-  spend(k);G.heat=(G.heat||0)+3;
+  spend(k);addHeat(3,true);
   const tg=pick(ts),p=schemeChance(n,k),name=nameOf(tg.cid),log=[];
   playFx('walk',MSG(k==='frame'?'scheme.fxFrame':'scheme.fxSuppress',{off}),MSG(k==='frame'?'scheme.fxTitleFrame':'scheme.fxTitleSuppress'),()=>{
     if(chance(p)){
@@ -35,7 +35,7 @@ function startScheme(cid){
       }
       toast(msg,5200);
     }else{
-      G.heat=(G.heat||0)+2;
+      addHeat(2,true);
       const r=R(cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(cid,'運作同業失手，與你決裂。');
       const r2=R(tg.cid);r2.aff=0;r2.peak=Math.max(r2.peak||0,40);logRel(tg.cid,'察覺有人暗中對付自己，視你為仇。');
       sfx.bad();toast(MSG('scheme.fail',{off,target:name}),5200);

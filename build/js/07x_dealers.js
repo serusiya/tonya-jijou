@@ -90,7 +90,7 @@ function dealerDo(cid,k){
   if(k.startsWith('cs_')){
     const key=k.slice(3),q=contra()[key]||0,it=SMUG_BY[key];if(q<=0)return '密庫裡已經沒有這批貨了。';
     const net=Math.round(smugPrice(key,q)*q);
-    contra()[key]-=q;G.gold+=net;G.heat=(G.heat||0)+0.2*it.danger;G.life.smuggled=(G.life.smuggled||0)+net;
+    contra()[key]-=q;G.gold+=net;addHeat(0.2*it.danger);G.life.smuggled=(G.life.smuggled||0)+net;
     r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;r.smugT=G.turn;logRel(cid,'替你在黑市脫手「'+it.name+'」'+q+' 單位，好感 -'+REQ_AFF.normal+'。');
     coinFx();return '「'+nm+'」連夜把「'+it.name+'」'+q+' 單位運走脫手，私房錢 +'+fmt(net)+' 兩（好感 -'+REQ_AFF.normal+'，風聲 +'+fmt1(0.2*it.danger)+'）。';
   }

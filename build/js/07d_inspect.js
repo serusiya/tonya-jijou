@@ -26,7 +26,7 @@ function inspectResolve(bribe,log){
   if(bribe){
     const cost=inspectBribe(rk);
     if(!affordAmt('inspectBribe',cost)){G.inspect=I;return shortMsg('inspectBribe',rk)}
-    spendAmt('inspectBribe',cost);G.heat=(G.heat||0)+0.5;
+    spendAmt('inspectBribe',cost);addHeat(0.5);
     const gain=8+rk*2;r.aff=clamp(r.aff+gain,0,100);
     const first=!r.bond;
     if(first){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk)}}

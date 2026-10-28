@@ -39,7 +39,7 @@ function xgoodsTick(log){
   const npcs=Object.values(G.world.npcs);
   // ②商人拿貨抵押借錢
   if(roll('xLoan')){
-    const ms=npcs.filter(n=>['rival','broker'].includes(n.role)&&alive(n.cid)&&R(n.cid).met&&!isEnemy(n.cid));
+    const ms=npcs.filter(n=>n.cityId===G.cityId&&['rival','broker'].includes(n.role)&&alive(n.cid)&&R(n.cid).met&&!isEnemy(n.cid));
     if(ms.length){
       const n=pick(ms),c=pick(oth),loan=rint(150,500),qty=Math.max(1,Math.round(1.25*loan/(c.base*0.6)));
       G.xoffer={cid:n.cid,name:c.name,qty,loan,turn:G.turn};

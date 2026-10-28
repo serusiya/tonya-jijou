@@ -113,7 +113,7 @@ function regLicCard(){
   if(G.flags.road||P.land.all)rows.push(['五街道通行狀','各地區陸路·航程少 1 旬']);
   else{const L=Object.keys(P.land).filter(k=>k!=='all');if(L.length)rows.push(['陸運通行手形',L.map(REG_NAME).join('、')])}
   if(ch>0)rows.push(['地區通商特許狀','採買雜費再省 '+ch+' 成']);
-  [['horse','驛馬優先'],['cheap','產地買付便宜'],['escort','船手組護送'],['taxfree','勘定所雜費減免狀']].forEach(([f,n])=>{if(G.flags[f]>0)rows.push([n,'剩 '+G.flags[f]+' 旬'])});
+  [['horse','驛馬優先'],['cheap','產地買付便宜'],['escort','船手組護送'],['taxfree','勘定所雜費減免狀'],['calm','巡見使美言']].forEach(([f,n])=>{if(G.flags[f]>0)rows.push([n,'剩 '+G.flags[f]+' 旬'])});
   return '<div class="card"><b class="small">📜 已取得的資格</b>'
     +(rows.length?rows.map(([k,v])=>licRow(esc(k),esc(v))).join(''):'<div class="tiny muted" style="margin-top:2px">尚未取得任何地區資格。</div>')
     +'</div>';

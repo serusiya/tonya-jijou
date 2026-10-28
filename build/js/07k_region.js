@@ -47,7 +47,7 @@ const REG_FAVORS=[
   {k:'rroad',apply:true,name:'五街道通行狀',rank:5,once:true,pos:['reg_07'],desc:'各地區陸路通用，陸運航程永久少 1 旬。'},
   {k:'rshuin',apply:true,name:'朱印狀',rank:5,once:true,pos:['reg_08'],desc:'船隊可前往任何地區。'},
   {k:'rcharter',apply:true,name:'地區通商特許狀',rank:6,once:true,pos:['reg_09'],desc:'本地區海陸許可一併發給，採買雜費永久再省一成。'},
-  {k:'rvisit',name:'請巡見使美言',rank:6,cd:12,pos:['reg_10'],desc:'巡見使替你說好話，風聲大減。'}
+  {k:'rvisit',name:'請巡見使美言',rank:6,cd:12,pos:['reg_10'],desc:'巡見使替你說好話：九旬內風聲不再增加（重罪除外）。'}
 ];
 FAVORS.region=REG_FAVORS;
 const regOfNpc=n=>CITY(n.cityId).region_id;
@@ -71,11 +71,11 @@ const REG_FAVOR={
   rroad:()=>{G.flags.road=true;permitsOf().land.all=true;return '得到五街道通行狀：陸路通行無阻，陸運航程永久少 1 旬。'},
   rshuin:()=>{permitsOf().sea.all=true;return '船奉行發下朱印狀！你的船隊可前往任何地區的港口。'},
   rcharter:n=>{const rid=regOfNpc(n);grantSea(rid);grantLand(rid);G.flags.charter=Math.min(3,(G.flags.charter||0)+1);return NEWS('regionHeld.3',{REG_NAME:REG_NAME(rid)})},
-  rvisit:()=>{G.heat=Math.max(0,(G.heat||0)-3);return '巡見使在報告裡替你美言幾句，風聲減輕。'}
+  rvisit:()=>{G.flags.calm=ODDS.calm.turns;return TX('favor.calm')}
 };
 /* ---------- 每旬：許可效果倒數、巡見使吊銷 ---------- */
 function regionTick(log){
-  ['horse','escort','taxfree','cheap'].forEach(k=>{if(G.flags[k]>0)G.flags[k]--});
+  ['horse','escort','taxfree','cheap','calm'].forEach(k=>{if(G.flags[k]>0)G.flags[k]--});
   if((G.heat||0)>=ODDS.regionRevoke.heat&&roll('regionRevoke')){
     const P=permitsOf(),held=[];
     Object.keys(P.sea).forEach(k=>held.push(['sea',k]));Object.keys(P.land).forEach(k=>held.push(['land',k]));

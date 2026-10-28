@@ -198,7 +198,7 @@ ACT.smugGo=()=>{
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
   if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
   if(!spendAP()){toast(MSG('smugGo.ap'));return}     // 走私出海也要親自到碼頭交代：扣 1 行動點數
-  G.gold-=cost;G.heat=(G.heat||0)+0.3;
+  G.gold-=cost;addHeat(0.3);
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});
   sfx.step();toast(MSG('smugGo.6',{name:cap.name,d:d.d}));
   UI.render();refreshSheet();

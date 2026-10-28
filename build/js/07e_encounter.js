@@ -17,11 +17,11 @@ var ENC=null;
 
 /** 人物的路遇官階分組（非官員、官階 1～2 皆為 1）。 */
 function encTier(n){const rk=n.pos?n.pos.rank:1;return rk<=2?1:rk}
-/** 擲路遇：回傳 {cid} 或 null。 */
+/** 擲路遇：只從此刻在本城的人裡抽，回傳 {cid} 或 null。 */
 function rollEncounter(){
   if(G.encounterTurn===G.turn)return null;                 // 同一旬至多遇到一次急難救助
   if(!chance(ENC_CHANCE))return null;
-  const all=Object.values(G.world.npcs).filter(n=>alive(n.cid)&&!(G.emps||[]).some(e=>e.cid===n.cid));
+  const all=cityNpcs(G.cityId).filter(n=>!n.hired&&!(G.emps||[]).some(e=>e.cid===n.cid)&&!awayNow(n)&&!jailed(n)&&!(n.pos&&n.pos.court==='region'));   // 只有此刻在本城的人（含名伶；不含巡迴在外的高官、在牢裡的私梟、地區官員）
   if(!all.length)return null;
   const wantKnown=chance(ODDS.encounter.known);
   let pool=all.filter(n=>!!R(n.cid).bond===wantKnown);

@@ -44,6 +44,8 @@ const ODDS={
   enemyFire:{name:'每位仇人增加的失火機率',p:0.02},
   enemyThief:{name:'每位仇人增加的盜賊機率',p:0.02},
   /* —— 官府 —— */
+  imperial:{name:'欽差突查：風聲高於此值才會被罰款',heat:4},
+  calm:{name:'請巡見使美言：一般風聲不增加的旬數（重罪照加）',turns:9},
   inspect:{name:'町奉行查貨（每旬）',base:0.30,perFame:0.25,min:0.05,max:0.30},
   regionRevoke:{name:'風聲≥5 時，巡見使吊銷許可（每旬）',p:0.03,heat:5},
   /* —— 走私 —— */

@@ -107,7 +107,7 @@ function resolveVoyage(s,log){
   }
   if(carry){                                            // 唐物藥種：夾帶唐船私貨
     const {it,q,cost}=carry,got=Math.round(q*keep);refund-=cost;
-    contra()[it.k]=(contra()[it.k]||0)+got;G.heat=(G.heat||0)+ODDS.voyageKind.carryHeat*it.danger;
+    contra()[it.k]=(contra()[it.k]||0)+got;addHeat(ODDS.voyageKind.carryHeat*it.danger);
     L.push(NEWS('kind.6',{mode:MODE_CAPT[mode],name:it.name,q,cost:fmt(cost),got:(wreck?'，'+wn+'只剩 '+got+' 單位':'')}));
   }
   refund=Math.max(0,refund);G.silver+=refund+income;

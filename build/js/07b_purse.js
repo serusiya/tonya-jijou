@@ -38,7 +38,7 @@ ACT.skim=()=>{
   if(amt<1){toast(MSG('skim.1'));return}
   if(G.silver<amt){toast(MSG('skim.1'));return}
   if(!spendAP())return;
-  G.silver-=amt;G.gold+=amt;G.heat=(G.heat||0)+0.2;G.life.skimmed=(G.life.skimmed||0)+amt;
+  G.silver-=amt;G.gold+=amt;addHeat(0.2);G.life.skimmed=(G.life.skimmed||0)+amt;
   sfx.coin();toast(MSG('skim.2',{amt}));
   UI.render();refreshSheet();
 };

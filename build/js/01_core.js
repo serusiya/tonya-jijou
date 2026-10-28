@@ -229,6 +229,8 @@ function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLe
 /** 醜聞：直接扣知名度（key 見 ODDS.fameLoss），回傳實際扣除量。 */
 function loseFame(key,mult){if(!G)return 0;const x=ODDS.fameLoss[key]*(mult||1),f=G.fame||0;G.fame=clamp(f-x,0,ODDS.fame.cap);return Math.round((f-G.fame)*10)/10}
 function addFame(x){if(!G)return 0;const f=G.fame||0;G.fame=clamp(f+x*Math.max(ODDS.fame.floor,1-f/ODDS.fame.damp),0,ODDS.fame.cap);return Math.round((G.fame-f)*10)/10}
+/** 【風聲】增加 x；巡見使美言期間（G.flags.calm）一般的風聲不增加，severe＝重罪（暗殺、放火、栽贓、打壓及事敗被查）照樣增加。回傳實際增量。 */
+function addHeat(x,severe){if(!G||!(x>0))return 0;if(!severe&&(G.flags&&G.flags.calm>0))return 0;G.heat=(G.heat||0)+x;return x}
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */
 const fameCut=()=>clamp((G.fame||0)/ODDS.fame.cap*0.30,0,0.30);
 /** 更新頂部知名度顯示。 */

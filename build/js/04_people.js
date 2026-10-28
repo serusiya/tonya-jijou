@@ -163,11 +163,14 @@ const FAVORS={
     {k:'licGuard',apply:true,lic:'guard',name:'帶刀護衛許可',rank:2,desc:'核准多聘保鏢。'},
     {k:'sellAid',name:'協助銷貨',rank:1,exactRank:true,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，再請座客商人代售）。'},
     {k:'blind',name:'袖之下',rank:2,exactRank:true,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
-    {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'}
+    {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'},
+    {k:'hush',name:'流言杜絕',rank:4,cd:12,desc:'把城裡的密報與流言壓下來，風聲減輕；官階越高，壓得越乾淨。'}
   ]
 };
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
 function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))).map(f=>resolveFavor(f,n)):[]}
+/** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
+const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 執行請託（只在拜訪打勝、好感 ≥60 時出現）：看官階、冷卻與是否已辦妥；不另收錢。辦成後好感：一般 −10、許可 −20（申請受理時扣）、減罪狀 −30。 */
 function doFavor(cid,key){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
@@ -183,10 +186,11 @@ function doFavor(cid,key){
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
   else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back});msg='借得 '+fmt(amt)+' 兩，六旬後須還 '+fmt(back)+' 兩。'}
-  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;G.heat=(G.heat||0)+0.5;msg='官府沒收的「'+L.c.short+'」'+L.q+' 單位交給你處理，已入倉；可請座客商人代售。'}
+  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;addHeat(0.5);msg='官府沒收的「'+L.c.short+'」'+L.q+' 單位交給你處理，已入倉；可請座客商人代售。'}
   else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='blind'){G.flags.blind=12;msg='十二旬內搜查時多半睜隻眼。'}
   else if(key==='lessen'){G.lessen=1;msg='取得減罪狀，下次被定罪時刑罰減輕一等。'}
+  else if(key==='hush'){const cut=HUSH_CUT(n.pos.rank);G.heat=Math.max(0,(G.heat||0)-cut);msg=TX('favor.hush'+Math.min(6,Math.max(4,n.pos.rank)))}
   logRel(cid,'請託「'+f.name+'」：'+msg+'好感 -'+drop+'。');
   return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg+'（好感 -'+drop+'）'};
 }
@@ -267,7 +271,7 @@ function payPromise(cid,idx){
   if(p.kind==='tribute'){
     const amtS=p.amount*BRIBE_RATE;
     if(G.silver<amtS)return {ok:false,msg:MSG('payPromise.2',{amtS:fmt(amtS)})};
-    payPublic('進獻現款：'+nameOf(cid),amtS);G.life.gold+=p.amount;G.heat=(G.heat||0)+1;p.done=true;r.aff=clamp(r.aff+3,0,100);logRel(cid,'依約進獻現款 '+amtS+' 兩，官員稍感滿意。');
+    payPublic('進獻現款：'+nameOf(cid),amtS);G.life.gold+=p.amount;addHeat(1);p.done=true;r.aff=clamp(r.aff+3,0,100);logRel(cid,'依約進獻現款 '+amtS+' 兩，官員稍感滿意。');
     return {ok:true,msg:MSG('payPromise.3',{amtS:fmt(amtS)})};
   }
   p.done=true;return {ok:true,msg:MSG('payPromise.4')};

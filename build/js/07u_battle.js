@@ -133,7 +133,7 @@ function battleHit(amt,tier){
   const B=BT,n=npc(B.cid),hit=tier!==undefined&&tier===B.expect;
   if(hit)B.hits++;
   payPublic('拜訪賄賂：'+nameOf(B.cid),amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult*(hit?BT_HIT_X:1);sfx.coin();
-  if(n&&n.pos&&!B.heat){B.heat=true;G.heat=(G.heat||0)+(officialKind(n)==='greedy'?0.3:0.2);G.life.gold+=1}
+  if(n&&n.pos&&!B.heat){B.heat=true;addHeat(officialKind(n)==='greedy'?0.3:0.2);G.life.gold+=1}
   B.line=btLine(B.cid,B.dmg/B.hp);
 }
 ACT.btEnd=()=>{if(BT&&!BT.done)battleEnd()};
