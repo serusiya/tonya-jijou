@@ -194,7 +194,7 @@ let SFX_VOL=1;
 /** 播放一個短音（方波/三角波）。 */
 function tone(f,type='square',d=0.08,v=0.08){
   if(!soundOn||!AC)return;
-  try{if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,AC.currentTime);g.gain.setValueAtTime(Math.max(0.0001,v*SFX_VOL),AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}
+  try{if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,AC.currentTime);g.gain.setValueAtTime(Math.max(0.0001,v*SFX_VOL),AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(e){}};o.start();o.stop(AC.currentTime+d)}catch(e){}
 }
 /** 音效集合：coin 金幣、step 腳步、gift 送禮、bad 壞事、fanfare 喜事…（受 soundOn 控制）。 */
 const sfx={

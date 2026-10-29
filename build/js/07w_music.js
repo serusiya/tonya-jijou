@@ -22,40 +22,43 @@ function musOut(){if(!AC)return null;if(!MUS.out){MUS.out=AC.createGain();MUS.ou
 function musNoise(){if(MUS.noise)return MUS.noise;const n=AC.sampleRate*0.5,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return MUS.noise=b}
 /** 一個音：依樂器組合振盪器與音量包絡。 */
 function musVoice(inst,midi,t,dur){
-  const out=AC.createGain();out.connect(MUS.out);
+  const made=[],K=n=>{made.push(n);return n};       // 這個音用到的聲音元件；全部播完後一起斷開，讓瀏覽器回收（Safari 不斷開會越積越多）
+  const out=K(AC.createGain());out.connect(MUS.out);
   const env=(g,a,peak,decay,sustain,rel)=>{g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(Math.max(0.0001,peak*sustain),t+a+decay);g.gain.exponentialRampToValueAtTime(0.0001,t+Math.max(dur,a+decay)+rel)};
-  const osc=(type,f,det)=>{const o=AC.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);if(det)o.detune.value=det;return o};
+  const osc=(type,f,det)=>{const o=K(AC.createOscillator());o.type=type;o.frequency.setValueAtTime(f,t);if(det)o.detune.value=det;return o};
   if(inst==='koto'||inst==='kotoLow'){
-    const f=mtof(midi),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(inst==='koto'?4200:1600,t);lp.frequency.exponentialRampToValueAtTime(inst==='koto'?900:400,t+0.6);lp.connect(out);
-    const a=osc('triangle',f),b=osc('square',f,7),c=osc('sine',f*2),gb=AC.createGain(),gc=AC.createGain();gb.gain.value=0.18;gc.gain.value=0.25;
+    const f=mtof(midi),lp=K(AC.createBiquadFilter());lp.type='lowpass';lp.frequency.setValueAtTime(inst==='koto'?4200:1600,t);lp.frequency.exponentialRampToValueAtTime(inst==='koto'?900:400,t+0.6);lp.connect(out);
+    const a=osc('triangle',f),b=osc('square',f,7),c=osc('sine',f*2),gb=K(AC.createGain()),gc=K(AC.createGain());gb.gain.value=0.18;gc.gain.value=0.25;
     a.connect(lp);b.connect(gb);gb.connect(lp);c.connect(gc);gc.connect(lp);
     env(out,0.004,inst==='koto'?0.42:0.3,inst==='koto'?0.9:1.2,0.05,0.4);[a,b,c].forEach(o=>{o.start(t);o.stop(t+dur+1.6)});
   }else if(inst==='shami'){
-    const f=mtof(midi),bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f*3;bp.Q.value=1.2;bp.connect(out);
-    const a=osc('sawtooth',f),b=osc('square',f*2.01),gb=AC.createGain();gb.gain.value=0.3;a.connect(bp);b.connect(gb);gb.connect(bp);
+    const f=mtof(midi),bp=K(AC.createBiquadFilter());bp.type='bandpass';bp.frequency.value=f*3;bp.Q.value=1.2;bp.connect(out);
+    const a=osc('sawtooth',f),b=osc('square',f*2.01),gb=K(AC.createGain());gb.gain.value=0.3;a.connect(bp);b.connect(gb);gb.connect(bp);
     env(out,0.002,0.55,0.18,0.02,0.08);[a,b].forEach(o=>{o.start(t);o.stop(t+dur+0.5)});
   }else if(inst==='fue'){
-    const f=mtof(midi),a=osc('sine',f),b=osc('triangle',f*2),gb=AC.createGain();gb.gain.value=0.12;
-    const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=5.5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*0.012,t+Math.min(0.35,dur*0.6));lfo.connect(lg);lg.connect(a.frequency);lg.connect(b.frequency);
+    const f=mtof(midi),a=osc('sine',f),b=osc('triangle',f*2),gb=K(AC.createGain());gb.gain.value=0.12;
+    const lfo=K(AC.createOscillator()),lg=K(AC.createGain());lfo.frequency.value=5.5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*0.012,t+Math.min(0.35,dur*0.6));lfo.connect(lg);lg.connect(a.frequency);lg.connect(b.frequency);
     a.connect(out);b.connect(gb);gb.connect(out);
-    const n=AC.createBufferSource();n.buffer=musNoise();const nf=AC.createBiquadFilter();nf.type='bandpass';nf.frequency.value=f*2;nf.Q.value=2;const ng=AC.createGain();ng.gain.value=0.025;n.connect(nf);nf.connect(ng);ng.connect(out);
+    const n=K(AC.createBufferSource());n.buffer=musNoise();const nf=K(AC.createBiquadFilter());nf.type='bandpass';nf.frequency.value=f*2;nf.Q.value=2;const ng=K(AC.createGain());ng.gain.value=0.025;n.connect(nf);nf.connect(ng);ng.connect(out);
     out.gain.setValueAtTime(0.0001,t);out.gain.linearRampToValueAtTime(0.26,t+0.05);out.gain.setValueAtTime(0.24,t+Math.max(0.06,dur-0.06));out.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.12);
     [a,b,lfo].forEach(o=>{o.start(t);o.stop(t+dur+0.2)});n.start(t);n.stop(t+dur+0.2);
   }else if(inst==='taiko'){
     const a=osc('sine',110);a.frequency.exponentialRampToValueAtTime(48,t+0.25);a.connect(out);
-    const n=AC.createBufferSource();n.buffer=musNoise();const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=320;const ng=AC.createGain();ng.gain.setValueAtTime(0.5,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.12);n.connect(lp);lp.connect(ng);ng.connect(out);
+    const n=K(AC.createBufferSource());n.buffer=musNoise();const lp=K(AC.createBiquadFilter());lp.type='lowpass';lp.frequency.value=320;const ng=K(AC.createGain());ng.gain.setValueAtTime(0.5,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.12);n.connect(lp);lp.connect(ng);ng.connect(out);
     out.gain.setValueAtTime(0.9,t);out.gain.exponentialRampToValueAtTime(0.0001,t+0.5);a.start(t);a.stop(t+0.55);n.start(t);n.stop(t+0.2);
   }else if(inst==='shime'){
     const a=osc('triangle',330);a.frequency.exponentialRampToValueAtTime(220,t+0.06);a.connect(out);
     out.gain.setValueAtTime(0.35,t);out.gain.exponentialRampToValueAtTime(0.0001,t+0.12);a.start(t);a.stop(t+0.15);
   }else if(inst==='ka'){
-    const n=AC.createBufferSource();n.buffer=musNoise();const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;n.connect(hp);hp.connect(out);
+    const n=K(AC.createBufferSource());n.buffer=musNoise();const hp=K(AC.createBiquadFilter());hp.type='highpass';hp.frequency.value=2500;n.connect(hp);hp.connect(out);
     out.gain.setValueAtTime(0.22,t);out.gain.exponentialRampToValueAtTime(0.0001,t+0.05);n.start(t);n.stop(t+0.06);
   }else if(inst==='kane'){
-    const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=1800;hp.connect(out);
+    const hp=K(AC.createBiquadFilter());hp.type='highpass';hp.frequency.value=1800;hp.connect(out);
     const a=osc('square',2240),b=osc('square',3170,9);a.connect(hp);b.connect(hp);
     out.gain.setValueAtTime(0.07,t);out.gain.exponentialRampToValueAtTime(0.0001,t+0.22);a.start(t);b.start(t);a.stop(t+0.25);b.stop(t+0.25);
   }
+  const src=made.filter(n=>typeof n.stop==='function');let left=src.length;
+  src.forEach(n=>{n.onended=()=>{if(--left>0)return;made.forEach(x=>{try{x.disconnect()}catch(e){}})}});
 }
 
 /* ======================= 曲目 ======================= */

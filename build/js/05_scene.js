@@ -203,11 +203,15 @@ function drawScene(now){
   c.fillStyle='#1a1612cc';c.fillRect(2,166,96,12);c.fillStyle='#f4ece1';c.font='8px DotGothic16,monospace';c.textBaseline='top';
   c.fillText('倉 '+G.wh.n+' 棟｜庫 '+invUsed()+'/'+invCap(),5,168);
 }
+/** 場景每秒 30 格（像素畫看不出差別，運算量減半）。 */
+const SCENE_FRAME=1000/30;
+/** 場景看不見時暫停重畫：切到背景、不在主畫面、被面板或說明視窗蓋住。畫面停在最後一格，回來後接著動（drawScene 的時間差最多算 0.1 秒）。 */
+function sceneIdle(){if(document.hidden||!G||UI.s.tab!=='home')return true;const sb=document.getElementById('sheet-bd'),ib=document.getElementById('info-bd');return !!((sb&&!sb.classList.contains('hidden'))||(ib&&!ib.classList.contains('hidden')))}
 /** 啟動場景動畫迴圈。 */
 function sceneStart(){
   const cv=$('#scene');if(!cv)return;SCENE.cv=cv;SCENE.ctx=cv.getContext('2d');SCENE.ctx.imageSmoothingEnabled=false;
   if(SCENE.timer)cancelAnimationFrame(SCENE.timer);
-  const loop=t=>{drawScene(t);SCENE.timer=requestAnimationFrame(loop)};SCENE.timer=requestAnimationFrame(loop);
+  const loop=t=>{SCENE.timer=requestAnimationFrame(loop);if(sceneIdle()||t-(SCENE.lastDraw||0)<SCENE_FRAME-2)return;SCENE.lastDraw=t;drawScene(t)};SCENE.timer=requestAnimationFrame(loop);
   cv.addEventListener('click',ev=>{
     const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*320,y=(ev.clientY-r.top)/r.height*180;
     let best=null,bd=14;SCENE.ents.forEach(e=>{const d=Math.hypot(e.x-x,(e.y-6)-y);if(d<bd){bd=d;best=e}});
