@@ -94,7 +94,7 @@ nav#bottom button .ic{font-size:18px}.nav-dot{position:absolute;right:6px;top:3p
 #sheet .sh-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:6px;position:sticky;top:-8px;background:var(--paper);z-index:2}
 #sheet .sh-title{font-weight:bold;font-size:16px;color:var(--red)}
 /* toast */
-#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:90;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:99;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
 #toast.on{opacity:1}
 /* transition overlay */
 #fx{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
@@ -247,6 +247,8 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 /* 索引標籤列（名門商邸、町奉行所）：手機一行放得下六個 */
 .tabrow{margin:4px 0;display:flex;gap:3px}
 .tabrow .pill{margin:0;padding:6px 1px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}
+/* 開局畫面上開啟的說明視窗（更新紀錄）要蓋在開局畫面之上；toast 也提高到最上層，開局畫面的匯入、匯出訊息才看得到 */
+#info-bd.over-start{z-index:97}
 
 </style>
 </head>
@@ -1099,6 +1101,7 @@ const UI_TXT={
   'btn.marryOpen':'說親',
   'btn.newLife':'🆕 重新開始新人生',
   'btn.exportSave':'📤 匯出存檔',
+  'btn.changelog':'📜 更新紀錄',
   'btn.importSave':'📥 匯入存檔',
   'txt.exportNote':'把目前的人生存成一個檔案（.sav），可以帶到別的裝置匯入。',
   'txt.importNote':'選擇之前匯出的存檔檔案（.sav）。版本不同、內容被修改過的存檔無法匯入。',
@@ -1630,6 +1633,36 @@ function NEWS(key,vars){
   const v=NEWS_TXT[key];if(v===undefined)return key;
   return vars?v.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):v;
 }
+
+/* =====================================================================
+ * 01h_changelog.js — 更新紀錄（開局畫面「📜 更新紀錄」）
+ *  新的在上；每筆一個日期與幾行給玩家看的白話說明（不寫程式名稱與公式）。
+ *  每次送出新版時，在最上面加一筆當天的更新內容。
+ * ===================================================================== */
+const CHANGELOG=[
+  {date:'2026年10月29日',items:[
+    '開局畫面新增「更新紀錄」，可以查看每次更新的內容。',
+    '旬報的貨物收支改成長條：一種貨一條，綠色是出貨收入、紅色是大盤進貨，右邊是淨賺或淨賠。',
+    '旬報補上大盤進貨的支出，大番頭談成的意外之財也獨立一行，不再和進貨互相抵消。',
+    '每年一月上旬，有機會在某座城市試種本業貨成功，多出一處新產地；產地越少的貨越容易出現。',
+    '拜訪時的對話大幅增加，同一場拜訪不會再出現重複的句子。'
+  ]},
+  {date:'2026年10月28日',items:[
+    '商路的出運清單改版：每筆兩行，最下面一顆「全部出發」大按鈕。',
+    '取消大番頭「延續上旬數量」的規則，出貨一律預設照本旬配額，不再被誤判供貨不穩或超量；遠島期間會自動照配額進貨與出貨。',
+    '員工查帳改版：要先在家裡聽到某人的風聲才能查帳；查出後可以追討、寬恕或辭退，各有後果；冤枉了好人也會傷人情。',
+    '員工每年都會長進一點；從底下提拔上來的「自家栽培」更忠心、手腳也更乾淨。員工的好感也會影響私吞。',
+    '司法四階以上官員新增請託「流言杜絕」，可以壓低風聲；巡見使美言改為九旬內風聲不再增加（重罪除外）；欽差突查要風聲更高才會罰款。',
+    '公會頁的同業家數改為實際人數；路上遇到急難求助的，都是本城的人。',
+    '存檔可以匯出成檔案（.sav），帶到別的裝置匯入；檔案經過壓縮與檢查，被修改過就無法匯入。',
+    '委託採買改為先排「出運清單」，一次全部出發只扣一點行動。',
+    '百科的官員說明改為列出每個職位「能辦的請託」，並新增請託規則說明；玩法頁的「家業傳承」改為「人生終章」。',
+    '町奉行所與遠國奉行所的頂端，改為列出已取得的資格與名額。',
+    '修正節慶需求在節慶當旬多算一次的問題。',
+    '委託採買的目的地若不產本業貨，船長或飛腳多半會空手而回。',
+    '大盤的價格欄文字縮短；派丁稚的按鈕改為「丁稚代送」，交情已深時寫「須親自登門」。'
+  ]}
+];
 
 'use strict';
 /* ★檔案總覽：世界生成
@@ -3993,7 +4026,7 @@ var INFO_AFTER=null;
 /** 顯示置中的說明視窗（官吏職位、貿易物品）。 */
 UI.showInfo=(title,html)=>{$('#info-title').textContent=title;$('#info-body').innerHTML=html;$('#info-bd').classList.remove('hidden');$('#info-body').scrollTop=0};
 /** 關閉說明視窗。 */
-UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
+UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');$('#info-bd').classList.remove('over-start');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
 /** 說明視窗的欄位格式。 */
 const ik=(k,v)=>v?'<div class="ik">'+k+'</div><div class="iv">'+esc(v)+'</div>':'';
 /** 官吏職位說明內容（職掌、能辦的請託、升遷等；請託由請託表產生，見 posFavors）。 */
@@ -4643,8 +4676,11 @@ UI.showStart=function(){
   h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'：'+s.res+'</div></div>').join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
+  h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
   $('#start-inner').innerHTML=h;$('#start').classList.remove('hidden');
 };
+/** 更新紀錄視窗：新的在上，日期加條列說明。 */
+ACT.changelog=()=>{$('#info-bd').classList.add('over-start');UI.showInfo('📜 更新紀錄',CHANGELOG.map(c=>'<div style="margin-bottom:8px"><b>'+esc(c.date)+'</b>'+c.items.map(t=>'<div class="small" style="margin-top:3px;padding-left:1em;text-indent:-1em">• '+esc(t)+'</div>').join('')+'</div>').join(''))};
 /** 選擇流派。 */
 ACT.pickSys=el=>{UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
 /** 開始新局。 */
