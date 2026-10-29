@@ -30,7 +30,7 @@ function tributeTick(log){
     G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,'把答應的「'+short+'」'+T.qty+' 單位備齊送去，對方很滿意。');
     const t=NEWS('tribute.ok',{off,item:short,qty:T.qty,rev:fmt(rev),fame:gf});log.push(t);pushNews(t);sfx.coin();
   }else{
-    const r=R(T.cid);r.aff=Math.max(0,r.aff-A.failAff);loseFame('tributeFail');
+    const r=R(T.cid);setAff(r,Math.max(0,r.aff-A.failAff));loseFame('tributeFail');
     logRel(T.cid,'答應的貨沒備齊，對方很不高興。');
     const t=NEWS('tribute.fail',{off,item:short,qty:T.qty,have,aff:A.failAff});log.push(t);pushNews(t);sfx.bad();
   }

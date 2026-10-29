@@ -146,6 +146,10 @@ function R(cid){
   if(!r){r=G.rel[cid]={aff:0,met:false,bond:null,topKnown:false,verified:false,note:'',log:[],promises:[],gifts:0,seen:false};}
   return r;
 }
+/** 設定對某人的好感（0～100）。所有改好感的地方都走這裡；r.lockAff（生死之交）時一律維持 100，任何原因都不下降。 */
+function setAff(r,v){if(!r)return;r.aff=r.lockAff?100:clamp(Number(v)||0,0,100)}
+/** 增減好感（走 setAff）。 */
+const addAff=(r,d)=>setAff(r,(r&&r.aff||0)+d);
 /** 把人物列入『已聽聞』名單（筆記只顯示已結識者，見 noteSeen）。 */
 function addKnown(cid){if(!G.known.includes(cid)){G.known.push(cid);R(cid).seen=true}}
 /** 在往來實錄追加一筆（最多保留 40 筆）。 */
@@ -192,7 +196,7 @@ function newGame(sysKey,regionPref){
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
-    fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1};
+    fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
   G.me.given=pick(GIVEN);G.me.name=G.me.family+'屋 '+G.me.given;
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地

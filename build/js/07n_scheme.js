@@ -36,8 +36,8 @@ function startScheme(cid){
       toast(msg,5200);
     }else{
       addHeat(2,true);
-      const r=R(cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(cid,'運作同業失手，與你決裂。');
-      const r2=R(tg.cid);r2.aff=0;r2.peak=Math.max(r2.peak||0,40);logRel(tg.cid,'察覺有人暗中對付自己，視你為仇。');
+      const r=R(cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(cid,'運作同業失手，與你決裂。');
+      const r2=R(tg.cid);setAff(r2,0);r2.peak=Math.max(r2.peak||0,40);logRel(tg.cid,'察覺有人暗中對付自己，視你為仇。');
       sfx.bad();toast(MSG('scheme.fail',{off,target:name}),5200);
     }
     UI.render();refreshSheet();

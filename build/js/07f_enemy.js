@@ -20,7 +20,7 @@ const ENEMY_AMBUSH=ODDS.ambush.perEnemy,ENEMY_FIRE=ODDS.enemyFire.p,ENEMY_THIEF=
 /** 同步所有人物的「曾經最高好感度」（舊存檔從目前好感起算）。 */
 function syncPeaks(){
   if(!G||!G.rel)return;
-  Object.values(G.rel).forEach(r=>{if(r.peak===undefined||r.aff>r.peak)r.peak=r.aff});
+  Object.values(G.rel).forEach(r=>{if(r.lockAff)r.aff=100;if(r.peak===undefined||r.aff>r.peak)r.peak=r.aff});   // 生死之交的好感鎖在 100（保險：萬一有漏網的改法）
   Object.keys(G.rel).forEach(cid=>{                // 記下成仇（或再被得罪）的那一旬，供淡忘計時
     const r=G.rel[cid];
     if(isEnemy(cid)){if(r.enemyT===undefined||r.aff<=r.enemyAff-5)r.enemyT=G.turn;r.enemyAff=r.aff}   // 一次掉 5 以上才算再被得罪（名伶久未點召的 −4 疏遠不算）
@@ -38,7 +38,7 @@ function introResign(){
 }
 /** 某人是否為仇人（在世且已有往來）。 */
 function isEnemy(cid){
-  const r=G.rel[cid];if(!r||!r.bond||!CH(cid)||!alive(cid))return false;
+  const r=G.rel[cid];if(!r||r.lockAff||!r.bond||!CH(cid)||!alive(cid))return false;
   return (r.peak!==undefined?r.peak:r.aff)-r.aff>=ENEMY_GAP;
 }
 /** 目前仇人名單。 */

@@ -45,12 +45,12 @@ function yearEndParty(log){
   /* 效果 */
   const cost=Math.min(Math.max(0,Math.round(G.silver)),att.length*PARTY_FEE);
   if(cost>0){G.silver-=cost;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['忘年會宴席']=(TURNRP.inTurn['忘年會宴席']||0)+cost}}   // 推進途中付的錢記在本旬（不放進 G.publicSpend，以免下一旬重複計入）
-  friends.forEach(cid=>{const r=R(cid);r.aff=clamp(r.aff+PARTY_GAIN.friend,0,100);logRel(cid,'出席年底的忘年會，好感 +'+PARTY_GAIN.friend+'。')});
+  friends.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,'出席年底的忘年會，好感 +'+PARTY_GAIN.friend+'。')});
   staff.forEach(e=>{e.aff=Math.min(100,empAff(e)+PARTY_GAIN.staff)});
   const lines=partyLines(att,L,G.silver-s0);
   /* 巡迴在外的高官好友：不出席，託人送來賀禮（好感照加） */
   const gifts=Object.keys(G.rel).filter(cid=>{const n=npc(cid),r=G.rel[cid];return n&&r&&r.bond&&alive(cid)&&touring(n)&&!tourHere(n,12)&&!isEnemy(cid)&&r.aff>=PARTY_FRIEND_AFF});
-  gifts.forEach(cid=>{const r=R(cid);r.aff=clamp(r.aff+PARTY_GAIN.friend,0,100);logRel(cid,'巡察在外，託人送來忘年會賀禮，好感 +'+PARTY_GAIN.friend+'。')});
+  gifts.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,'巡察在外，託人送來忘年會賀禮，好感 +'+PARTY_GAIN.friend+'。')});
   if(gifts.length)lines.splice(lines.length-1,0,{who:-1,t:TX('party.gift',{n:gifts.slice(0,2).map(nameOf).join('、')+(gifts.length>2?'等 '+gifts.length+' 位':'')})});
   G.party={year,att,lines,cost,nf:friends.length,ns:staff.length};
   const t=NEWS('party.held',{year:yearStr(year),n:att.length});pushNews(t);log.push(t);

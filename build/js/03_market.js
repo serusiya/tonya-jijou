@@ -292,7 +292,7 @@ function inspection(){
     const fine=Math.round(Math.max(0,G.silver)*clamp(0.05+G.heat*0.012,0.06,0.2));
     G.silver-=fine;loseFame('inspect');sfx.bad();
     const top=Object.entries(G.rel).filter(([id,r])=>npc(id)&&npc(id).role==='official').sort((a,b)=>b[1].aff-a[1].aff)[0];
-    if(top){top[1].aff=Math.max(0,top[1].aff-20);logRel(top[0],'中央巡按突查，因黑帳牽連，彼此交情受損。')}
+    if(top){setAff(top[1],Math.max(0,top[1].aff-20));logRel(top[0],'中央巡按突查，因黑帳牽連，彼此交情受損。')}
     G.heat=Math.max(0,G.heat-3);
     return NEWS('inspection.2',{fine:fmt(fine)});
   }
@@ -303,7 +303,7 @@ function officialFall(){
   const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30);
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
-  const loss=Math.round(r.aff*0.7);r.aff-=loss;                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
+  const loss=Math.round(r.aff*0.7);setAff(r,r.aff-(loss));                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
   const nm=nameOf(n.cid);logRel(n.cid,'受你牽連遭上司申斥，好感 -'+loss+'。');
   if(r.aff<10&&roll('fallScapegoat')){                             // 好感見底：為求自保，把罪責推到你頭上
     const fine=Math.round(Math.max(0,G.silver)*0.04);G.silver-=fine;loseFame('scapegoat');
@@ -342,7 +342,7 @@ function evalCartel(log){
     if(over>0){
       C.cheated++;G.life.cheats++;
       if(chance(Math.min(ODDS.cartelPledged.max,ODDS.cartelPledged.base+ODDS.cartelPledged.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-12);loseFame('cartelPledged');sfx.bad();const lost=guildForfeit();
+        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-12);loseFame('cartelPledged');sfx.bad();caughtAdd('me');const lost=guildForfeit();
         const t=NEWS('evalCartel.1',{bond:lost?'擔保金 '+fmt(lost)+' 兩沒收，':''});pushNews(t);log.push(t);
       }else C.comp=Math.max(30,C.comp-3);
     }else if(shippedAny){C.comp=Math.min(90,C.comp+2);G.life.pledges++;addFame(0.1)}
@@ -350,7 +350,7 @@ function evalCartel(log){
     if(over>0){
       C.cheated++;G.life.cheats++;
       if(chance(Math.min(ODDS.cartelSecret.max,ODDS.cartelSecret.base+ODDS.cartelSecret.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');const lost=guildForfeit();
+        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');caughtAdd('me');const lost=guildForfeit();
         let fine=0;if(G.flags.exempt<=0){fine=Math.round(Math.max(0,G.silver)*0.06);G.silver-=fine}
         const t=NEWS('evalCartel.2',{fine:(lost?'擔保金 '+fmt(lost)+' 兩沒收，':'')+(fine?'官府查抄罰銀 '+fmt(fine)+' 兩，':'靠司法人脈壓下了查抄，')});pushNews(t);log.push(t);sfx.bad();
       }else C.comp=Math.max(30,C.comp-2);
@@ -366,14 +366,14 @@ function invUpkeep(log){
   const sum=season()==='夏'?1.6:1;let lost=[];
   Object.keys(G.inv).forEach(n=>{
     const c=COMM_MAP[n],q=G.inv[n];if(!q)return;
-    const l=Math.min(q,Math.floor(q*c.decay*(c.staple?sum:1)+rnd()));
+    const l=Math.min(q,Math.floor(q*c.decay*(c.staple?sum:1)*keeperMul()+rnd()));   // 手代第 5 名起減損耗
     if(l>0){G.inv[n]-=l;lost.push(c.short+'×'+l)}
   });
   if(lost.length)G.lastSpoil='損耗：'+lost.slice(0,3).join('、');else G.lastSpoil='';
   // 火災：易燃品（油、硫磺、樟腦、木、炭）
   let flam=0;Object.keys(G.inv).forEach(n=>{if(COMM_MAP[n].flam)flam+=G.inv[n]});
   if(flam>0){
-    const F_=ODDS.fire,p=F_.base*(1+flam/F_.flamDiv)*(season()==='冬'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount();   // 每位仇人 +2% 縱火
+    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='冬'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1);   // 每位仇人 +2% 縱火；火除地拜領後減半
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));G.inv[n]-=l;tot+=l});
@@ -389,7 +389,7 @@ function listValue(name){const c=COMM_MAP[name];return c.base*cityMod(homeCity()
 function holdTick(log){
   const H=ODDS.hold;let value=0;G.holdFee=0;
   Object.keys(G.inv).forEach(n=>{if(G.inv[n]>0)value+=G.inv[n]*listValue(n)});
-  const fee=Math.min(Math.max(0,G.silver),Math.round(value*H.rate));
+  const fee=Math.min(Math.max(0,G.silver),Math.round(value*H.rate*keeperMul()));   // 手代第 5 名起減倉儲保險
   if(fee>0){G.silver-=fee;G.holdFee=fee}
   Object.keys(G.inv).forEach(n=>{
     const q=G.inv[n];if(!(q>0))return;
@@ -487,12 +487,16 @@ function msTick(log){
 
 /* ---------- 商路：距離、陸海路與運量（委託採買用） ---------- */
 /** 城市是否有港口/水路可通海運。 */
-const canSea=ct=>ct.region_id==='reg_west'||ct.region_id==='reg_south'||/水/.test(ct.location_type);
+const canSea=ct=>ct.region_id==='reg_west'||ct.region_id==='reg_south'||/水/.test(ct.location_type)||cityRouteSea(ct);
+/** 後天開通的海運（0.8 外港開闢寫入 G.cityRoutes[城市id].sea；目前一律沒有）。 */
+const cityRouteSea=ct=>!!(G&&ct&&G.cityRoutes&&G.cityRoutes[ct.id]&&G.cityRoutes[ct.id].sea);
+/** 開闢的道路（0.8 開闢道路寫入 G.openedRoads＝[地區id]；本店所在地區與這些地區陸路相通。目前一律沒有）。 */
+const roadOpen=(a,b)=>!!(G&&a&&b&&a.region_id!==b.region_id&&(G.openedRoads||[]).length&&[a,b].some(x=>x.region_id===(CITY(G.cityId)||{}).region_id)&&[a,b].some(x=>(G.openedRoads||[]).includes(x.region_id)));
 /* 陸路：只限陸地相連的同一地區（南海諸島是島嶼，無陸路），且行程須在 2 旬內 */
 /** 陸路行程上限（旬）。 */
 const LAND_MAX_TURNS=2;
 /** 陸路條件：同一地區、非島嶼（南海）、行程 ≤2 旬。 */
-const canLand=(a,b)=>a.region_id===b.region_id&&a.region_id!=='reg_south'&&distTurns(a,b,'land')<=LAND_MAX_TURNS;
+const canLand=(a,b)=>(a.region_id===b.region_id&&a.region_id!=='reg_south'&&distTurns(a,b,'land')<=LAND_MAX_TURNS)||roadOpen(a,b);   // 開闢道路的旬數算法 0.8 再接上 distTurns
 /* 地理：各地區中心座標（公里，虛構地圖）＋城市在地區內的固定偏移 */
 /** 各地區中心座標（公里，虛構地圖），用來估距離。 */
 const REGION_XY={reg_central:[0,0],reg_east:[330,-40],reg_west:[-320,-60],reg_south:[-520,-300],reg_north:[60,330]};

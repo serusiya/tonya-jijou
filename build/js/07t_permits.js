@@ -1,24 +1,25 @@
 'use strict';
 /* ======================= 許可（資格）：倉地、船株、人別帳、馬幫株、帶刀、交易許可、減罪狀 =======================
  *  - 三系官署官員的一般請託都是「資格」：拿到許可才能擴充倉庫、船長、飛腳、店員、保鏢，或買賣本業最貴的兩項貨。
- *  - 許可分等級：核發官員的官階越高，給的上限越高（一～四階，四階以上同四階）。取得後永久有效，只升不降。
- *  - 狀態：G.lic={wh,ship,horse,guard,staff}（已取得的等級 0～4）；G.trade＝已許可交易的貨名；G.lessen＝減罪狀張數（0／1）。 */
+ *  - 許可分等級：核發官員的官階越高，給的上限越高（一～六級，核發等級＝官員官階）。取得後永久有效，只升不降。
+ *  - 狀態：G.lic={wh,ship,horse,guard,staff}（已取得的等級 0～6）；G.trade＝已許可交易的貨名；G.lessen＝減罪狀張數（0／1）。 */
 /** 各項許可：caps[等級]＝上限（等級 0＝未申請）。 */
 const LIC={
-  wh:{name:'河岸倉地拜領',caps:[1,2,3,5,8]},
-  ship:{name:'船株鑑札',caps:[1,1,2,3,4]},
-  horse:{name:'馬幫株',caps:[1,1,2,3,4]},
-  guard:{name:'帶刀護衛許可',caps:[1,1,2,3,4]},
-  staff:{name:'人別帳增補',caps:[{手代:1,番頭:1},{手代:1,番頭:1},{手代:3,番頭:1},{手代:4,番頭:2},{手代:6,番頭:2}]}
+  wh:{name:'河岸倉地拜領',caps:[1,2,3,5,8,10,12]},
+  ship:{name:'船株鑑札',caps:[1,1,2,3,4,5,6]},
+  horse:{name:'馬幫株',caps:[1,1,2,3,4,5,6]},
+  guard:{name:'帶刀護衛許可',caps:[1,1,2,3,4,5,6]},
+  staff:{name:'人別帳增補',caps:[{手代:1,番頭:1},{手代:1,番頭:1},{手代:3,番頭:1},{手代:4,番頭:2},{手代:6,番頭:2},{手代:8,番頭:3},{手代:10,番頭:3}]}
 };
-const LIC_RANK_NAME=['','一階','二階','三階','四階'];
-/** 官員實際能核發的資格等級；現行最高為四階。 */
-const licGrantLv=rank=>Math.min(4,rank);
+const LIC_MAX=6;
+const LIC_RANK_NAME=['','一階','二階','三階','四階','五階','六階'];
+/** 官員實際能核發的資格等級＝官階（最高六級）。 */
+const licGrantLv=rank=>Math.min(LIC_MAX,rank);
 /** 顯示含實際核發等級的資格名稱。 */
 const licFavorName=(k,rank)=>LIC[k].name+'（'+LIC_RANK_NAME[licGrantLv(rank)]+'）';
 const licOf=()=>G.lic||(G.lic={wh:0,ship:0,horse:0,guard:0,staff:0});
-/** 某項許可目前的等級（0～4）。 */
-const licLv=k=>Math.min(4,licOf()[k]||0);
+/** 某項許可目前的等級（0～6）。 */
+const licLv=k=>Math.min(LIC_MAX,licOf()[k]||0);
 /** 倉庫最多可建幾棟。 */
 const whMax=()=>LIC.wh.caps[licLv('wh')];
 /** 某職位的名額上限（大番頭固定 1）。 */
@@ -72,6 +73,7 @@ function favorDone(f,n){
   if(f.lic)return licLv(f.lic)>=licGrantLv(n.pos.rank);
   if(f.trade!==undefined)return (G.trade||[]).includes(lockedTrade()[f.trade]);
   if(f.once)return regionHeld(f.k,n);
+  if(f.k==='firebreak')return !!G.flags.firebreak;
   return false;
 }
 /** 同一項資格是否已有申請在審理；資格審理中時不再向其他官員重複顯示。 */
@@ -79,11 +81,13 @@ function favorPending(f){
   const L=G.apps||[];
   if(f.lic)return L.some(a=>a.state==='wait'&&a.lic===f.lic);
   if(f.trade!==undefined)return L.some(a=>a.state==='wait'&&a.trade===f.trade);
+  if(f.apply)return L.some(a=>a.state==='wait'&&a.key===f.k);
   return false;
 }
 /** 申請獲准時的效果；不是許可類回傳 null。 */
 function grantFavorApp(A){
   if(A.lic)return '取得「'+licFavorName(A.lic,A.rank||2)+'」：'+grantLic(A.lic,A.rank||2);
+  if(A.key==='firebreak'){G.flags.firebreak=true;return '倉庫四周劃出防火空地，從此失火的機會減半。'}
   if(A.trade!==undefined){const nm=lockedTrade()[A.trade];G.trade=G.trade||[];if(!G.trade.includes(nm))G.trade.push(nm);return '從此可以買賣「'+COMM_MAP[nm].short+'」。'}
   return null;
 }

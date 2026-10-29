@@ -38,7 +38,7 @@ function oiranTick(log){
     const r=R(n.cid);if(!r.bond||r.aff<=1)return;
     if(r.nomT===undefined)r.nomT=G.turn;
     const last=Math.max(r.nomT,r.decT===undefined?-99:r.decT);
-    if(G.turn-last>=2){r.aff=Math.max(1,r.aff-4);r.decT=G.turn}
+    if(G.turn-last>=2){setAff(r,Math.max(1,r.aff-4));r.decT=G.turn}
   });
 }
 
@@ -83,7 +83,7 @@ ACT.nomOiran=el=>{
   if(!afford('nominate')){toast(shortMsg('nominate'));return}
   const note=flowerSpend(spend('nominate'));
   if(!r.bond){r.bond={mult:1,label:'花街指名',introId:null};r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(0.6)}}
-  r.aff=clamp(r.aff+5,0,100);r.nomT=G.turn;r.decT=G.turn;
+  setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
   logRel(cid,'於吉原指名，好感 +5。');sfx.gift();
   toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note}),3600);
   UI.render();refreshSheet();
@@ -95,7 +95,7 @@ ACT.oGift=el=>{
   const gk='oiranGift_'+g.k,cost=costOf(gk,COSTS.oiranGiftMul.amt);
   if(!affordAmt(gk,cost)){toast(shortMsg(gk,COSTS.oiranGiftMul.amt));return}
   spendAmt(gk,cost);r.oGiftT=r.nomT;const note=flowerSpend(cost);
-  const gain=rint(5,10);r.aff=clamp(r.aff+gain,0,100);r.gifts++;G.life.gifts++;addFame(0.15);
+  const gain=rint(5,10);setAff(r,clamp(r.aff+gain,0,100));r.gifts++;G.life.gifts++;addFame(0.15);
   const cand=cityNpcs(G.cityId).filter(m=>m.cid!==cid&&!['guard','oiran'].includes(m.role)&&!R(m.cid).verified);
   let tip=TX('flower.tipNone');
   if(cand.length){const m=pick(cand);R(m.cid).verified=true;addKnown(m.cid);tip=TX('flower.tip',{n:nameOf(m.cid),w:CH(m.cid).weakness});logRel(m.cid,'經吉原名伶「'+nameOf(cid)+'」透露，得知其軟肋：'+CH(m.cid).weakness+'。')}
@@ -112,7 +112,7 @@ ACT.ransom=el=>{
   spendAmt('ransom',price);const note=flowerSpend(price);
   const name=nameOf(cid);
   (G.family.conc=G.family.conc||[]).push({cid,name,since:G.turn});
-  delete G.world.npcs[cid];r.ransomed=true;G.fame=clamp((G.fame||0)+20,0,ODDS.fame.cap);
+  delete G.world.npcs[cid];r.ransomed=true;setFame((G.fame||0)+20);
   pushNews(NEWS('ransom.1',{name:G.me.name,name2:name}));
   logRel(cid,'由你贖身，成為側室。');sfx.fanfare();
   toast(MSG('ransom.3',{name,note}),5200);
@@ -133,7 +133,7 @@ ACT.feast=()=>{
     guests.forEach(n=>{
       const r=R(n.cid),gain=rint(3,5);
       if(!r.bond){r.bond={mult:0.8,label:'花街結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(n.pos?0.8:0.4)}}
-      addKnown(n.cid);r.aff=clamp(r.aff+gain,0,100);logRel(n.cid,'吉原夜宴上結識，好感 +'+gain+'。');
+      addKnown(n.cid);setAff(r,clamp(r.aff+gain,0,100));logRel(n.cid,'吉原夜宴上結識，好感 +'+gain+'。');
       const lk=n.role==='official'?'flower.thanksOfficial':'flower.thanksMerchant';
       h+='<div class="card" style="display:flow-root">'+portraitHtml(n.cid,40)+'<b>'+esc(nameOf(n.cid))+'</b> <span class="tag gray">'+esc(ROLE_LABEL[n.role]||'')+'</span> <span class="tag green">好感 +'+gain+'</span><div class="small" style="margin-top:3px">「'+esc(TX(lk))+'」</div></div>';
     });

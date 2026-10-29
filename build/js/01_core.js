@@ -20,6 +20,9 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let G=null;                       // 遊戲狀態（可序列化）
 /** 遊戲版本。存檔版本與此不同就不相容（0.7 起改為許可制，舊存檔不相容）。 */
 const GAME_VER='0.7';
+/** 讀檔與匯入時接受的存檔版本（讀進來後由 migrateSave 補欄位、改標為 GAME_VER）。0.8 時加入 '0.7'。 */
+const SAVE_VERS=[GAME_VER];
+const saveVerOK=v=>SAVE_VERS.includes(String(v));
 const SAVE_KEY='tonya_jijou_save';
 const OLD_SAVE_KEYS=['tenka_gomen_v2_save','toiya_jijou_save'];   // 舊版存檔鍵（0.6 起不再讀取，只在啟動時清掉）
 
@@ -175,7 +178,7 @@ function loadSave(){
     let s=localStorage.getItem(SAVE_KEY);if(!s)return null;
     COMM_RENAME.forEach(([a,b])=>{s=s.split(a).join(b)});   // 舊存檔：改名的貨物（庫存、行情、計畫等鍵值一併換新名）
     const o=JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v);
-    if(o&&typeof o==='object'&&o.ver===GAME_VER&&o.me&&o.rel&&o.inv&&o.emps)return o;
+    if(o&&typeof o==='object'&&saveVerOK(o.ver)&&o.me&&o.rel&&o.inv&&o.emps)return o;
     localStorage.removeItem(SAVE_KEY);OLD_SAVE_FOUND=true;return null;
   }catch(e){return null}
 }
@@ -227,8 +230,14 @@ function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLe
 /* ---------- 知名度：做任何事都有一點，結識高階官吏更多；降低拜訪被拒的機率，也影響市佔率 ---------- */
 /** 【知名度】增加 x 點（越高越難漲，上限 100）。做事、結識高官、賣貨、施粥等都會呼叫。 */
 /** 醜聞：直接扣知名度（key 見 ODDS.fameLoss），回傳實際扣除量。 */
-function loseFame(key,mult){if(!G)return 0;const x=ODDS.fameLoss[key]*(mult||1),f=G.fame||0;G.fame=clamp(f-x,0,ODDS.fame.cap);return Math.round((f-G.fame)*10)/10}
-function addFame(x){if(!G)return 0;const f=G.fame||0;G.fame=clamp(f+x*Math.max(ODDS.fame.floor,1-f/ODDS.fame.damp),0,ODDS.fame.cap);return Math.round((G.fame-f)*10)/10}
+/** 永久知名度下限（新町取立、國產取立等；尚無時為 0）。 */
+const fameFloor=()=>Math.max(0,(G&&G.fameFloor)||0);
+/** 設定知名度：介於永久下限與上限之間。所有改知名度的地方都走這裡。 */
+function setFame(v){if(!G)return;G.fame=clamp(Math.max(Number(v)||0,fameFloor()),0,ODDS.fame.cap)}
+/** 提高永久知名度下限（只升不降），並把知名度拉到下限以上。 */
+function raiseFameFloor(v){if(!G)return;G.fameFloor=Math.max(fameFloor(),v);setFame(G.fame||0)}
+function loseFame(key,mult){if(!G)return 0;const x=ODDS.fameLoss[key]*(mult||1),f=G.fame||0;setFame(f-x);return Math.round((f-G.fame)*10)/10}
+function addFame(x){if(!G)return 0;const f=G.fame||0;setFame(f+x*Math.max(ODDS.fame.floor,1-f/ODDS.fame.damp));return Math.round((G.fame-f)*10)/10}
 /** 【風聲】增加 x；巡見使美言期間（G.flags.calm）一般的風聲不增加，severe＝重罪（暗殺、放火、栽贓、打壓及事敗被查）照樣增加。回傳實際增量。 */
 function addHeat(x,severe){if(!G||!(x>0))return 0;if(!severe&&(G.flags&&G.flags.calm>0))return 0;G.heat=(G.heat||0)+x;return x}
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */

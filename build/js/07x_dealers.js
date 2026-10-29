@@ -65,25 +65,25 @@ function dealerDo(cid,k){
   if(k.startsWith('rv_')){
     const L=rivalLot(cid);if(!L||L.n!==k.slice(3))return '他倉裡這批貨已經調不出來了。';
     G.silver-=L.cost;addStock(L.n,L.q,L.unit);G.inv[L.n]=(G.inv[L.n]||0)+L.q;
-    r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;logRel(cid,'調給你「'+L.c.short+'」'+L.q+' 單位，好感 -'+REQ_AFF.normal+'。');
+    setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,'調給你「'+L.c.short+'」'+L.q+' 單位，好感 -'+REQ_AFF.normal+'。');
     coinFx();return '「'+nm+'」從自家倉裡勻出「'+L.c.short+'」'+L.q+' 單位，已入倉；現款 -'+fmt(L.cost)+' 兩（好感 -'+REQ_AFF.normal+'）。';
   }
   if(k.startsWith('bk_')){
     const L=brokerLot(cid);if(!L||L.n!==k.slice(3))return '倉裡這批貨已經不夠了。';
     G.inv[L.n]-=L.q;G.silver+=L.rev;
-    r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;logRel(cid,'替你把「'+L.c.short+'」'+L.q+' 單位轉到外地脫手，好感 -'+REQ_AFF.normal+'。');
+    setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,'替你把「'+L.c.short+'」'+L.q+' 單位轉到外地脫手，好感 -'+REQ_AFF.normal+'。');
     coinFx();return '「'+nm+'」把「'+L.c.short+'」'+L.q+' 單位轉到外地脫手，現款 +'+fmt(L.rev)+' 兩（好感 -'+REQ_AFF.normal+'）。';
   }
   if(k==='tmp_help'){
     G.tempHelp={turn:G.turn,cs:CH(cid).derived_stats.commerce_skill,name:nm,cid};
-    r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;logRel(cid,'到店裡臨時幫忙一旬，好感 -'+REQ_AFF.normal+'。');
+    setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,'到店裡臨時幫忙一旬，好感 -'+REQ_AFF.normal+'。');
     return '「'+nm+'」捲起袖子，這一旬就在店裡幫忙到結算（好感 -'+REQ_AFF.normal+'）。';
   }
   if(k.startsWith('xs_')){
     const name=k.slice(3),q=(G.xinv||{})[name]||0;if(q<=0)return '貨已經不在倉裡了。';
     const Q=xsellQuote(cid,name,q,(rnd()-0.5)*0.16);
     G.silver+=Q.rev;delete G.xinv[name];addFame(0.1);
-    r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;logRel(cid,'替你代售「'+xName(name)+'」'+q+' 單位，好感 -'+REQ_AFF.normal+'。');
+    setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,'替你代售「'+xName(name)+'」'+q+' 單位，好感 -'+REQ_AFF.normal+'。');
     pushNews(NEWS('xsell.1',{introId:nm,short:xName(name),q,rev:fmt(Q.rev),m:Math.round(Q.m*100),d:REQ_AFF.normal}));
     coinFx();return '「'+nm+'」找熟識的店家把「'+xName(name)+'」'+q+' 單位整批收下，現款 +'+fmt(Q.rev)+' 兩（好感 -'+REQ_AFF.normal+'）。';
   }
@@ -91,7 +91,7 @@ function dealerDo(cid,k){
     const key=k.slice(3),q=contra()[key]||0,it=SMUG_BY[key];if(q<=0)return '密庫裡已經沒有這批貨了。';
     const net=Math.round(smugPrice(key,q)*q);
     contra()[key]-=q;G.gold+=net;addHeat(0.2*it.danger);G.life.smuggled=(G.life.smuggled||0)+net;
-    r.aff=Math.max(0,r.aff-REQ_AFF.normal);r.dealT=G.turn;r.smugT=G.turn;logRel(cid,'替你在黑市脫手「'+it.name+'」'+q+' 單位，好感 -'+REQ_AFF.normal+'。');
+    setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;r.smugT=G.turn;logRel(cid,'替你在黑市脫手「'+it.name+'」'+q+' 單位，好感 -'+REQ_AFF.normal+'。');
     coinFx();return '「'+nm+'」連夜把「'+it.name+'」'+q+' 單位運走脫手，私房錢 +'+fmt(net)+' 兩（好感 -'+REQ_AFF.normal+'，風聲 +'+fmt1(0.2*it.danger)+'）。';
   }
   return null;

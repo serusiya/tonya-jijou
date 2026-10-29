@@ -27,7 +27,7 @@ ACT.xoAccept=()=>{
   const room=Math.max(0,invCap()-invUsed()),q=Math.min(O.qty,room);
   if(q<=0){toast(MSG('xoAccept.2'));G.xoffer=null;UI.hideInfo();return}
   payPublic('商人週轉：'+xName(O.name),O.loan);G.xinv=G.xinv||{};G.xinv[O.name]=(G.xinv[O.name]||0)+q;
-  const r=R(O.cid);r.aff=clamp(r.aff+6,0,100);logRel(O.cid,'借他 '+O.loan+' 兩，收下「'+xName(O.name)+'」作抵押。好感 +6。');
+  const r=R(O.cid);setAff(r,clamp(r.aff+6,0,100));logRel(O.cid,'借他 '+O.loan+' 兩，收下「'+xName(O.name)+'」作抵押。好感 +6。');
   toast(MSG('xoAccept.3',{O:fmt(O.loan),xName:xName(O.name),q}));G.xoffer=null;sfx.coin();UI.hideInfo();UI.render();
 };
 ACT.xoDecline=()=>{G.xoffer=null;UI.hideInfo();toast(MSG('xoDecline.1'))};

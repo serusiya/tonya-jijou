@@ -27,14 +27,14 @@ function inspectResolve(bribe,log){
     const cost=inspectBribe(rk);
     if(!affordAmt('inspectBribe',cost)){G.inspect=I;return shortMsg('inspectBribe',rk)}
     spendAmt('inspectBribe',cost);addHeat(0.5);
-    const gain=8+rk*2;r.aff=clamp(r.aff+gain,0,100);
+    const gain=8+rk*2;setAff(r,clamp(r.aff+gain,0,100));
     const first=!r.bond;
     if(first){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk)}}
     addKnown(I.cid);logRel(I.cid,'查貨時奉上現款 '+cost+' 兩，好感 +'+gain+'。');
     return '奉上 '+cost+' 兩，對方收下，態度和緩。好感 +'+gain+(first?'，已結識「'+nameOf(I.cid)+'」':'')+'。';   // 只有第一次結識才提
   }
   const fine=Math.round(10*rk*(1+rnd()));G.silver-=fine;
-  r.aff=clamp(r.aff-2,0,100);logRel(I.cid,'查貨公事公辦，罰銀 '+fine+' 兩，好感 -2。');
+  setAff(r,clamp(r.aff-2,0,100));logRel(I.cid,'查貨公事公辦，罰銀 '+fine+' 兩，好感 -2。');
   const t=NEWS('inspectResolve.1',{fine});if(log)log.push(NEWS('inspectResolve.2',{t}));return t;
 }
 /** 旬報下方的查貨選項卡。 */

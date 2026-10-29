@@ -60,6 +60,7 @@ const UI_TXT={
   'btn.marryOpen':'說親',
   'btn.newLife':'🆕 重新開始新人生',
   'btn.exportSave':'📤 匯出存檔',
+  'btn.changelog':'📜 更新紀錄',
   'btn.importSave':'📥 匯入存檔',
   'txt.exportNote':'把目前的人生存成一個檔案（.sav），可以帶到別的裝置匯入。',
   'txt.importNote':'選擇之前匯出的存檔檔案（.sav）。版本不同、內容被修改過的存檔無法匯入。',

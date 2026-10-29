@@ -20,7 +20,7 @@ function sanitizeIntros(){
   if(!G.introId||!introOf(G.introId))G.introId=G.intros[0]?G.intros[0].cid:null;
 }
 /** 請介紹人辦事的代價：直接扣他對你的交情 2～5（隨機），回傳扣掉的點數。已取消舊的『人情額度』。 */
-function introCost(it){const d=2+Math.floor(rnd()*4);const r=R(it.cid);r.aff=Math.max(0,r.aff-d);logRel(it.cid,'請他出面辦事，交情 -'+d+'。');return d}
+function introCost(it){const d=2+Math.floor(rnd()*4);const r=R(it.cid);setAff(r,Math.max(0,r.aff-d));logRel(it.cid,'請他出面辦事，交情 -'+d+'。');return d}
 /** 介紹人對目標的『引薦力』＝性向相容倍率×信任係數；性向未知時依估計。 */
 function introPower(introCid,targetCid){
   const cp=compat(introCid,targetCid);const aff=R(introCid).aff;const tf=trustFactor(aff);
@@ -96,7 +96,7 @@ function meetVia(targetCid,introCid,roll){
   let gain=Math.round(base*p.score);
   let backlash=false;
   if(p.cp.matches===0&&chance(ODDS.introBacklash.p)){gain=-3;backlash=true}
-  r.aff=clamp(r.aff+gain,0,100);r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
+  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
   if(!r.bond||p.cp.m>r.bond.mult)r.bond={mult:p.cp.m,label:p.cp.label,introId:introCid};
   logRel(targetCid,'經「'+nameOf(introCid)+'」引薦初見（'+p.cp.label+'）'+(backlash?'，對方嫌介紹人庸俗，反而不悅':'，好感 +'+gain)+'。');
   logRel(introCid,'為你引薦「'+nameOf(targetCid)+'」。');
@@ -112,7 +112,7 @@ function meetCold(targetCid,roll){
   if(roll.outcome==='refuse'){spend('selfIntroRefused');r.lastIntro=G.turn;r.lastOk=false;addKnown(targetCid);logRel(targetCid,'貿然登門，被門房擋了回來。');return {ok:false,msg:MSG('meetCold.refuse',{gate:TX('visit.gateNoIntro'),c:costOf('selfIntroRefused')})}}
   spend('selfIntro');r.lastIntro=G.turn;r.lastOk=true;
   const gain=Math.round((n.pos?10/(1+(n.pos.rank-2)*0.4):8));
-  r.aff=clamp(r.aff+gain,0,100);r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
+  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
   r.bond={mult:0.6,label:'初識（無人引薦）',introId:null};
   logRel(targetCid,'貿然登門投帖，對方勉強見了一面，好感 +'+gain+'。');
   return {ok:true,gain,msg:MSG('meetCold.1',{gain})};
@@ -150,7 +150,8 @@ const FAVORS={
   administration:[
     {k:'licWh',apply:true,lic:'wh',name:'河岸倉地拜領',rank:1,desc:'核准增建倉庫的建地，官階越高給得越多。'},
     {k:'licShip',apply:true,lic:'ship',name:'船株鑑札',rank:2,desc:'核准多聘船長，一名船長帶一艘船。'},
-    {k:'licStaff',apply:true,lic:'staff',name:'人別帳增補',rank:2,desc:'核准多雇手代與番頭。'}
+    {k:'licStaff',apply:true,lic:'staff',name:'人別帳增補',rank:2,desc:'核准多雇手代與番頭。'},
+    {k:'firebreak',apply:true,name:'火除地拜領',rank:5,exactRank:true,desc:'在倉庫周圍劃出防火空地，倉庫失火的機會永久減半。只能辦一次。'}
   ],
   finance:[
     {k:'trade2',apply:true,trade:1,name:'交易許可',rank:3,desc:'核准買賣本業第二貴的貨。'},
@@ -164,15 +165,16 @@ const FAVORS={
     {k:'sellAid',name:'協助銷貨',rank:1,exactRank:true,cd:3,desc:'官府沒收的一批貨交給你處理，賣得的錢歸你（需倉位，再請座客商人代售）。'},
     {k:'blind',name:'袖之下',rank:2,exactRank:true,cd:12,desc:'十二旬內搜查時多半睜隻眼。'},
     {k:'lessen',name:'減罪狀',rank:3,cd:12,desc:'下一次被定罪時，刑罰減輕一等。最多持有一張。'},
-    {k:'hush',name:'流言杜絕',rank:4,cd:12,desc:'把城裡的密報與流言壓下來，風聲減輕；官階越高，壓得越乾淨。'}
+    {k:'hush',name:'流言杜絕',rank:4,cd:12,desc:'把城裡的密報與流言壓下來，風聲減輕；官階越高，壓得越乾淨。'},
+    {k:'reconcile',name:'解仇',rank:4,exactRank:true,cd:3,desc:'從仇人裡挑一人，由他出面說和，從此不再記恨；交情不變。'}
   ]
 };
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))).map(f=>resolveFavor(f,n)):[]}
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)).map(f=>resolveFavor(f,n)):[]}
 /** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 執行請託（只在拜訪打勝、好感 ≥60 時出現）：看官階、冷卻與是否已辦妥；不另收錢。辦成後好感：一般 −10、許可 −20（申請受理時扣）、減罪狀 −30。 */
-function doFavor(cid,key){
+function doFavor(cid,key,arg){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
@@ -182,14 +184,15 @@ function doFavor(cid,key){
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
   if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
   const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
-  r.aff=Math.max(0,r.aff-drop);if(f.cd)r.cd[key]=G.turn+f.cd;
+  setAff(r,Math.max(0,r.aff-drop));if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
-  else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back});msg='借得 '+fmt(amt)+' 兩，六旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back,cid:n.cid,kind:'小額周轉'});msg='借得 '+fmt(amt)+' 兩，六旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;addHeat(0.5);msg='官府沒收的「'+L.c.short+'」'+L.q+' 單位交給你處理，已入倉；可請座客商人代售。'}
-  else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
+  else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back,cid:n.cid,kind:'官倉平準貸款'});msg='獲准官倉貸款 '+fmt(amt)+' 兩，九旬後須還 '+fmt(back)+' 兩。'}
   else if(key==='blind'){G.flags.blind=12;msg='十二旬內搜查時多半睜隻眼。'}
   else if(key==='lessen'){G.lessen=1;msg='取得減罪狀，下次被定罪時刑罰減輕一等。'}
+  else if(key==='reconcile'){const t=arg&&G.rel[arg];if(t){t.peak=t.aff;delete t.enemyT;delete t.enemyAff;logRel(arg,'經'+nameOf(cid)+'出面說和，不再記恨。')}msg=MSG('favor.reconcile',{n:arg?nameOf(arg):'？'})}
   else if(key==='hush'){const cut=HUSH_CUT(n.pos.rank);G.heat=Math.max(0,(G.heat||0)-cut);msg=TX('favor.hush'+Math.min(6,Math.max(4,n.pos.rank)))}
   logRel(cid,'請託「'+f.name+'」：'+msg+'好感 -'+drop+'。');
   return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg+'（好感 -'+drop+'）'};
@@ -258,7 +261,7 @@ function peopleTick(log){
   peopleMoveTick(log);
   Object.entries(G.rel).forEach(([cid,r])=>{
     r.promises.forEach(p=>{
-      if(!p.done&&G.turn>p.due&&!p.late){p.late=true;r.aff=Math.max(0,r.aff-10);logRel(cid,'逾期未兌現：'+p.text+'，交情 -10。');const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
+      if(!p.done&&G.turn>p.due&&!p.late){p.late=true;setAff(r,Math.max(0,r.aff-10));logRel(cid,'逾期未兌現：'+p.text+'，交情 -10。');const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
   });
   (G.debts||[]).forEach(d=>{if(!d.paid&&!d.warned&&d.due-G.turn===2){d.warned=true;const t=NEWS('peopleTick.due',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
@@ -271,7 +274,7 @@ function payPromise(cid,idx){
   if(p.kind==='tribute'){
     const amtS=p.amount*BRIBE_RATE;
     if(G.silver<amtS)return {ok:false,msg:MSG('payPromise.2',{amtS:fmt(amtS)})};
-    payPublic('進獻現款：'+nameOf(cid),amtS);G.life.gold+=p.amount;addHeat(1);p.done=true;r.aff=clamp(r.aff+3,0,100);logRel(cid,'依約進獻現款 '+amtS+' 兩，官員稍感滿意。');
+    payPublic('進獻現款：'+nameOf(cid),amtS);G.life.gold+=p.amount;addHeat(1);p.done=true;setAff(r,clamp(r.aff+3,0,100));logRel(cid,'依約進獻現款 '+amtS+' 兩，官員稍感滿意。');
     return {ok:true,msg:MSG('payPromise.3',{amtS:fmt(amtS)})};
   }
   p.done=true;return {ok:true,msg:MSG('payPromise.4')};
@@ -309,7 +312,7 @@ function statsOfEmp(e){const b=e.cid?CH(e.cid).derived_stats:e.stats;if(!e.grow)
 /** 聘用員工（建立員工紀錄，名冊人物會被標記為已聘並結識）。 */
 function hireEmp(cid,rank,free){
   const e={id:'e'+G.turn+'_'+Math.floor(rnd()*1e6),cid:cid||null,rank,since:G.turn,skim:0,audited:G.turn,wage:RANK_WAGE[rank],aff:40};
-  if(cid){e.name=nameOf(cid);addKnown(cid);const n=npc(cid);if(n)n.hired=true;const r=R(cid);r.met=true;if(!r.bond)r.bond={mult:1,label:'雇傭',introId:null};r.aff=Math.max(r.aff,30)}
+  if(cid){e.name=nameOf(cid);addKnown(cid);const n=npc(cid);if(n)n.hired=true;const r=R(cid);r.met=true;if(!r.bond)r.bond={mult:1,label:'雇傭',introId:null};setAff(r,Math.max(r.aff,30))}
   else{const rd=seeded('ap'+G.turn+rnd());e.name=pick(KID_NAMES);e.stats=randStats(rd);e.age0=G.year-12}
   if(cid){const c=CH(cid).derived_stats.commerce_skill;e.wage=Math.round(RANK_WAGE[rank]*(0.8+c/150))}
   addFame(0.3);G.emps.push(e);return e;
@@ -331,7 +334,7 @@ function empTick(log){
       const t=NEWS('empTick.1',{rank:e.rank,name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();
     }
   });
-  if(rm.length){G.emps=G.emps.filter(e=>!rm.includes(e));rm.forEach(e=>{if(e.cid&&npc(e.cid))npc(e.cid).hired=false;if(e.cid)R(e.cid).aff=0})}
+  if(rm.length){G.emps=G.emps.filter(e=>!rm.includes(e));rm.forEach(e=>{if(e.cid&&npc(e.cid))npc(e.cid).hired=false;if(e.cid)setAff(R(e.cid),0)})}
 }
 /** （舊）查帳：已改為 07zs_staffcare.js 的風聲制；保留函式名供舊程式呼叫。 */
 function auditEmpOld(id){
@@ -353,7 +356,7 @@ function fireEmp(id){
   const e=G.emps.find(x=>x.id===id);if(!e)return '';
   G.emps=G.emps.filter(x=>x!==e);if(e.cid&&npc(e.cid))npc(e.cid).hired=false;
   if(!e.cid)return '';
-  syncPeaks();const r=R(e.cid);r.aff=Math.max(0,r.aff-FIRE_AFF);logRel(e.cid,'被你辭退，好感 -'+FIRE_AFF+'。');
+  syncPeaks();const r=R(e.cid);setAff(r,Math.max(0,r.aff-FIRE_AFF));logRel(e.cid,'被你辭退，好感 -'+FIRE_AFF+'。');
   return isEnemy(e.cid)?'「'+nameOf(e.cid)+'」記恨在心，成了你的仇人。':'「'+nameOf(e.cid)+'」好感 -'+FIRE_AFF+'。';
 }
 /** 某職位是否還有名額。 */
@@ -469,14 +472,14 @@ function marry(kind,targetCid,introCid){
   else sc=trustFactor(R(introCid).aff);
   spend(mk);introCost(it);
   const p=clamp(ODDS.marry.base+ODDS.marry.perScore*sc,ODDS.marry.min,ODDS.marry.max);
-  if(!chance(p)){if(targetCid)R(targetCid).aff=Math.max(0,R(targetCid).aff-5);logRel(introCid,'為你說親未成。');return {ok:true,fail:true,msg:MSG('marry.4',{p:Math.round(p*100)})}}
+  if(!chance(p)){if(targetCid)setAff(R(targetCid),Math.max(0,R(targetCid).aff-5));logRel(introCid,'為你說親未成。');return {ok:true,fail:true,msg:MSG('marry.4',{p:Math.round(p*100)})}}
   const fam={rival:'同行',official:'官家',commoner:'町人'}[kind];
   const fn=['阿梅','阿園','小百合','阿花','阿鶴','阿雪','千代','阿初'];
   const spouse={name:pick(fn)+'（'+fam+'之女）',kind,birthYear:G.year-rint(17,24)};
   addFame(3);G.family.spouse=spouse;G.family.married=true;G.life.spouseKind=kind;
   let extra='';
-  if(kind==='rival'&&targetCid){R(targetCid).aff=clamp(R(targetCid).aff+25,0,100);G.cartel.comp=Math.min(90,G.cartel.comp+5);extra='同行聯姻化敵為友，株仲間信任上升。'}
-  if(kind==='official'&&targetCid){R(targetCid).aff=clamp(R(targetCid).aff+20,0,100);extra='政商聯姻，對方視你為自家人。'}
+  if(kind==='rival'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+25,0,100));G.cartel.comp=Math.min(90,G.cartel.comp+5);extra='同行聯姻化敵為友，株仲間信任上升。'}
+  if(kind==='official'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+20,0,100));extra='政商聯姻，對方視你為自家人。'}
   if(kind==='commoner'){extra='家庭和睦，雖無政治助力，倒也安穩。'}
   pushNews(NEWS('marry.1',{name:G.me.name,name2:spouse.name}));
   return {ok:true,msg:MSG('marry.5',{extra})};

@@ -48,12 +48,12 @@ async function decodeSaveFile(buf){
   const nonce=b.slice(p,p+8);p+=8;const chk=b.slice(p,p+8);p+=8;
   const z=saveXor(b.slice(p),nonce),want=saveCheck(z,nonce);
   if(want.some((v,i)=>chk[i]!==v))throw MSG('save.tampered');
-  if(ver!==GAME_VER)throw MSG('save.badVer',{v:ver,g:GAME_VER});
+  if(!saveVerOK(ver))throw MSG('save.badVer',{v:ver,g:GAME_VER});
   let s;try{s=new TextDecoder().decode(await saveStream(z,new DecompressionStream('deflate-raw')))}catch(e){throw MSG('save.tampered')}
   if(/[<>]/.test(s))throw MSG('save.badContent');
   COMM_RENAME.forEach(([a,c])=>{s=s.split(a).join(c)});
   let o;try{o=JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v)}catch(e){throw MSG('save.badContent')}
-  if(!o||typeof o!=='object'||o.ver!==GAME_VER)throw MSG('save.badVer',{v:o&&o.ver||ver,g:GAME_VER});
+  if(!o||typeof o!=='object'||!saveVerOK(o.ver))throw MSG('save.badVer',{v:o&&o.ver||ver,g:GAME_VER});
   if(!(o.me&&o.rel&&o.inv&&o.emps&&o.world&&o.world.npcs&&o.mk&&o.cityId&&CITY(o.cityId)&&SYS_BY_KEY[o.sysKey]))throw MSG('save.badContent');
   if(o.ended)throw MSG('save.ended');
   return {o,s};

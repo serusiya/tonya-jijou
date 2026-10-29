@@ -82,7 +82,7 @@ nav#bottom button .ic{font-size:18px}.nav-dot{position:absolute;right:6px;top:3p
 #sheet .sh-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:6px;position:sticky;top:-8px;background:var(--paper);z-index:2}
 #sheet .sh-title{font-weight:bold;font-size:16px;color:var(--red)}
 /* toast */
-#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:90;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:99;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
 #toast.on{opacity:1}
 /* transition overlay */
 #fx{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
@@ -235,3 +235,5 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 /* 索引標籤列（名門商邸、町奉行所）：手機一行放得下六個 */
 .tabrow{margin:4px 0;display:flex;gap:3px}
 .tabrow .pill{margin:0;padding:6px 1px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}
+/* 開局畫面上開啟的說明視窗（更新紀錄）要蓋在開局畫面之上；toast 也提高到最上層，開局畫面的匯入、匯出訊息才看得到 */
+#info-bd.over-start{z-index:97}

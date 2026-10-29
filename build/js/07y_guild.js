@@ -49,6 +49,13 @@ function rivalOverMul(r,c,first){
   if(m.ovDec!==G.turn){m.ovDec=G.turn;m.ovItem=null;if(roll('rivalShip',R.overRival)){m.ovItem=pick(ownComms()).name;m.ovMul=R.mulMin+rnd()*(R.mulMax-R.mulMin)}}
   return m.ovItem===c.name?m.ovMul:0;
 }
+/** 違約查獲的公開紀錄：G.caughtLog[年]={cid 或 'me': 次數}，只留最近三年。0.8 公會長候選人看「去年度被查獲次數」。 */
+function caughtAdd(key){
+  const L=G.caughtLog||(G.caughtLog={}),y=String(G.year);L[y]=L[y]||{};L[y][key]=(L[y][key]||0)+1;
+  Object.keys(L).forEach(k=>{if(+k<G.year-2)delete L[k]});
+}
+/** 某人某年被查獲的次數（key＝人物 cid，玩家為 'me'；year 預設去年）。 */
+const caughtCount=(key,year)=>((G.caughtLog||{})[String(year===undefined?G.year-1:year)]||{})[key]||0;
 /** 每旬（市場刷新之後）：查同業超賣、期滿分配違約金。 */
 function guildTick(log){
   guildEnsure();
@@ -56,7 +63,7 @@ function guildTick(log){
   rivalsHere().forEach(n=>{
     const m=msOf(n);if(m.ovDec!==G.turn||!m.ovItem||m.caught)return;
     if(!chance(Math.min(P.max,P.base+P.slope*(m.ovMul-1))))return;
-    m.caught=true;m.ev=Math.min(m.ev||1,0.7);m.evT=Math.max(m.evT||0,3);
+    m.caught=true;caughtAdd(n.cid);m.ev=Math.min(m.ev||1,0.7);m.evT=Math.max(m.evT||0,3);
     if(C.bond>0)C.pot=(C.pot||0)+amt;
     const t=NEWS('guild.rivalCaught',{n:nameOf(n.cid),item:COMM_MAP[m.ovItem].short});pushNews(t);log.push(t);
   });

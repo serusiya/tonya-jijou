@@ -419,7 +419,7 @@ ACT.banquet=()=>{
     let h='<div class="notice tiny">'+esc(TX('banquet.open'))+'</div>';
     const lines=shuffle(Ls('banquet.intro').slice());   // 介紹人台詞不重複（人多時才循環）
     intros.forEach((cid,k)=>{
-      const r=R(cid);r.aff=clamp(r.aff+BANQUET_INTRO,0,100);logRel(cid,'應邀赴宴，好感 +'+BANQUET_INTRO+'。');
+      const r=R(cid);setAff(r,clamp(r.aff+BANQUET_INTRO,0,100));logRel(cid,'應邀赴宴，好感 +'+BANQUET_INTRO+'。');
       h+='<div class="card" style="display:flow-root">'+portraitHtml(cid,40)+'<b>'+esc(nameOf(cid))+'</b> <span class="tag gray">介紹人</span> <span class="tag green">好感 +'+BANQUET_INTRO+'</span><div class="small" style="margin-top:3px">'+esc(lines[k%lines.length])+'</div></div>';
     });
     emps.forEach(e=>{
@@ -551,8 +551,11 @@ UI.showStart=function(){
   h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+s.perk+'：'+s.res+'</div></div>').join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
+  h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
   $('#start-inner').innerHTML=h;$('#start').classList.remove('hidden');
 };
+/** 更新紀錄視窗：新的在上，日期加條列說明。 */
+ACT.changelog=()=>{$('#info-bd').classList.add('over-start');UI.showInfo('📜 更新紀錄',CHANGELOG.map(c=>'<div style="margin-bottom:8px"><b>'+esc(c.date)+'</b>'+c.items.map(t=>'<div class="small" style="margin-top:3px;padding-left:1em;text-indent:-1em">• '+esc(t)+'</div>').join('')+'</div>').join(''))};
 /** 選擇流派。 */
 ACT.pickSys=el=>{UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
 /** 開始新局。 */
@@ -566,4 +569,4 @@ ACT.begin=()=>{
 /** 繼續上次存檔。 */
 ACT.resume=()=>enterSave(loadSave());
 /** 以一份存檔進入遊戲（繼續人生、匯入存檔共用）。 */
-function enterSave(o){if(!o)return;musicWant('market');G=o;LASTREP=G.lastRep||null;sanitizeIntros();officialMigrate();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))}
+function enterSave(o){if(!o)return;musicWant('market');G=o;LASTREP=G.lastRep||null;migrateSave();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))}

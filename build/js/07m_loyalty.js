@@ -111,7 +111,7 @@ ACT.assassinate=el=>{
       toast(msg,5200);
     }else{
       G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
-      const r=R(cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(cid,'遭人行刺未遂，視你為仇。');
+      const r=R(cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(cid,'遭人行刺未遂，視你為仇。');
       sfx.bad();toast(MSG('assassinate.4',{name:e.name,name2:name}),5200);
     }
     UI.render();refreshSheet();
@@ -149,7 +149,7 @@ ACT.arson=el=>{
       toast(msg,5200);
     }else{
       G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
-      const r=R(tg.cid);r.aff=0;r.peak=Math.max(r.peak||0,40);logRel(tg.cid,'派人縱火未遂，視你為仇。');
+      const r=R(tg.cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(tg.cid,'派人縱火未遂，視你為仇。');
       sfx.bad();toast(MSG('arson.fail',{rank:e.rank,name:e.name,target:name}),5200);
     }
     UI.render();refreshSheet();

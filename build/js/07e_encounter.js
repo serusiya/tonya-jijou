@@ -54,11 +54,11 @@ ACT.encGive=()=>{
   spend('encounter');
   if(!r.bond){
     r.bond={mult:0.6,label:'雪中送炭',introId:null};r.met=true;r.seen=true;addKnown(cid);
-    r.aff=Math.max(r.aff,10);
+    setAff(r,Math.max(r.aff,10));
     if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?0.5*n.pos.rank:0.4)}
     toast(MSG('encGive.1',{cid:nameOf(cid)}));
   }else{
-    r.aff=clamp(r.aff+10,0,100);toast(MSG('encGive.2',{cid:nameOf(cid)}));
+    setAff(r,clamp(r.aff+10,0,100));toast(MSG('encGive.2',{cid:nameOf(cid)}));
   }
   logRel(cid,'路遇急難，贈銀 '+ENC_COST+' 兩救急，好感提升。');addFame(0.2);sfx.coin();
   UI.render();encFinish();

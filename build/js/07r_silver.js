@@ -39,5 +39,18 @@ SHEETS.silver=()=>{
     h+='<div class="row small" style="margin-top:6px"><span>最高 <b>'+fmt(Math.max(...pts.map(p=>p.v)))+'</b> 兩</span><span>最低 <b>'+fmt(Math.min(...pts.map(p=>p.v)))+'</b> 兩</span></div>'
       +'<div class="small" style="margin-top:3px">這'+pts.length+'旬 '+(dd>0?'<b class="up">增加約 '+fmt(dd)+' 兩</b>':dd<0?'<b class="down">減少約 '+fmt(-dd)+' 兩</b>':'<b>持平</b>')+'</div>';
   }
+  h+=debtCard();
   return {title:'📈 現款走勢',html:h};
 };
+/** 借款一覽（現款走勢下方）：每筆列債主、種類、應還金額與剩餘旬數，最快到期的在前；兩旬內到期標紅。舊存檔沒有債主的寫「舊帳」。 */
+function debtCard(){
+  const D=(G.debts||[]).filter(d=>!d.paid).slice().sort((a,b)=>a.due-b.due);
+  let h='<div class="card" style="margin-top:8px"><b class="small">📜 借款</b>';
+  if(!D.length)return h+'<div class="tiny muted" style="margin-top:2px">目前沒有借款。</div></div>';
+  D.forEach(d=>{
+    const left=Math.max(0,d.due-G.turn),who=d.cid&&CH(d.cid)?nameOf(d.cid)+(alive(d.cid)?'':'（已故）'):'舊帳';
+    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?'（'+esc(d.kind)+'）':'')+'</span><b style="white-space:nowrap;margin-left:6px">'+fmt(d.amt)+' 兩·'+(left?left+' 旬後到期':'本旬到期')+'</b></div>';
+  });
+  if(D.length>1)h+='<div class="row tiny" style="margin-top:4px;border-top:1px solid #d8ccb0;padding-top:3px"><span>合計</span><b>'+fmt(D.reduce((a,d)=>a+d.amt,0))+' 兩</b></div>';
+  return h+'</div>';
+}

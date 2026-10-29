@@ -40,6 +40,8 @@ const MSG_TXT={
   'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
   'doFavor.sellAidFull':'倉庫放不下，這批貨沒法接手。',
   'doFavor.lessenHeld':'你手上已有一張減罪狀，用掉之前不必再求。',
+  'favor.reconcile':'{n}那邊已經有人出面說和，從此不再記恨你。',
+  'favor.reconcilePick':'「說吧，你想和誰化解恩怨？」',
   'doFavor.4':'現款不足（需 {total} 兩）。',
   'doFavor.5':'本業行情走強。',
   'doFavor.6':'應允！{msg}',

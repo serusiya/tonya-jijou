@@ -8,7 +8,7 @@
 /** 各職位的職能一句話。 */
 const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
-  手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
+  手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。手代超過四名時，多出來的人照料庫存，損耗與倉儲保險減少（最多三成）。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
   大番頭:'總管：也算一名番頭，大盤進貨上限加大；已參加協議時代出席公會例會（退出協議後不代席，重新加入要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
@@ -24,6 +24,9 @@ function tellerBonus(){const t=tempHelp();return Math.min(0.04,empsOf('手代').
 const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('番頭').concat(empsOf('大番頭')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('手代')+(tempHelp()===null?0:2)));
+/** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。只算本店手代（臨時打工不算）。回傳乘數。 */
+const KEEP_FROM=4,KEEP_PER=0.05,KEEP_MAX=0.3;
+const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,nEmp('手代')-KEEP_FROM));
 /** 大番頭：壓低其他店員私吞的係數。 */
 function guardF(e){
   if(e.rank==='大番頭')return 1;
@@ -46,7 +49,7 @@ function spendVisitAP(){
 function errandTrim(cid,a0,r){
   if(!ERR_ACTIVE)return;ERR_ACTIVE=false;
   const q=R(cid),d=q.aff-a0;
-  if(d>1)q.aff=a0+Math.floor(d*errandFactor());
+  if(d>1)setAff(q,a0+Math.floor(d*errandFactor()));
   if(r&&r.msg)r.msg+=MSG('errandTrim.1',{q:sgn(Math.round(q.aff-a0))});
 }
 /** 派丁稚按鈕「丁稚代送（禮金）」：不寫剩餘次數；無丁稚或本旬次數用完就半透明不可按。 */
@@ -113,7 +116,7 @@ function chiefVisit(log){
     for(;k<w.length-1;k++){x-=w[k];if(x<=0)break}
     const [cid,r]=pool.splice(k,1)[0];
     const gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
-    const g0=Math.min(gain,FRIEND_AFF-r.aff);r.aff=clamp(r.aff+g0,0,100);logRel(cid,'大番頭代為登門問候，好感 +'+g0+'。');
+    const g0=Math.min(gain,FRIEND_AFF-r.aff);setAff(r,clamp(r.aff+g0,0,100));logRel(cid,'大番頭代為登門問候，好感 +'+g0+'。');
     got.push(nameOf(cid)+' +'+g0);
   }
   if(got.length){const t=NEWS('chief.visit',{list:got.join('、')});pushNews(t);log.push(t)}
@@ -121,7 +124,7 @@ function chiefVisit(log){
     const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)});
     if(cand.length){
       const m=pick(cand),cid=m.cid,r=R(cid),gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
-      r.aff=clamp(r.aff+gain,0,100);r.met=true;r.seen=true;addKnown(cid);
+      setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(cid);
       r.bond={mult:0.6,label:'大番頭代為結識',introId:null};
       logRel(cid,'大番頭代為登門結識，好感 +'+gain+'。');
       const t=NEWS('chief.friend',{who:nameOf(cid),gain});pushNews(t);log.push(t);
@@ -208,7 +211,7 @@ function applyStartBoost(sysKey){
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
     const ns=cityNpcs(G.cityId),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
     if(cand){
-      const cid=cand.cid,r=R(cid);r.met=true;r.seen=true;r.aff=Math.max(r.aff,45);r.bond={mult:1,label:'介紹人',introId:null};
+      const cid=cand.cid,r=R(cid);r.met=true;r.seen=true;setAff(r,Math.max(r.aff,45));r.bond={mult:1,label:'介紹人',introId:null};
       addKnown(cid);G.intros.push({cid});G.introId=cid;logRel(cid,'開業之初，答應當你的介紹人。');
     }
   }
@@ -224,7 +227,7 @@ function applyStartBoost(sysKey){
     const cap=hireEmp(null,'船長');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
     {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(idx>=5)G.fame=Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]);   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
+  if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
     const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('大番頭')&&!introOf(n.cid));
     const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];

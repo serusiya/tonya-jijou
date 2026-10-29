@@ -158,7 +158,7 @@ function battleEnd(){
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   const hiOff=n&&n.pos&&n.pos.rank>=4;            // 四～六階官員：打勝知名度＝結識時的一半（0.75×官階，隨知名度遞減）
-  r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1);
+  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
   const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
@@ -177,7 +177,7 @@ function errandVisit(cid){
   BT={cid,gift:null,mult:1,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:true,errand:true,open:'',line:''};
   battleHit(amt);BT=null;
   const gain=Math.max(0,Math.min(rint(ERRAND_GAIN[0],ERRAND_GAIN[1]),FRIEND_AFF-r.aff));
-  r.aff=clamp(r.aff+gain,0,100);r.lastOk=true;addFame(0.1);
+  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(0.1);
   logRel(cid,'丁稚代為送上禮金 '+amt+' 兩，好感 +'+gain+'。');
   toast(MSG('errand.done',{cid:nameOf(cid),amt:fmt(amt),gain}),4200);sfx.gift();
   UI.render();refreshSheet();
@@ -206,20 +206,28 @@ function requestHtml(cid,msg){
     +'<div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">今日只敘舊</button></div>';
 }
 ACT.reqDone=()=>{BT=null;UI.hideInfo()};
+/** 解仇：先挑一位仇人（在世的仇人都列出，不分城市）。 */
+function reconcilePick(cid){
+  const L=enemies();
+  return portraitHtml(cid,56)+'<div class="notice tiny">'+esc(MSG('favor.reconcilePick'))+'</div>'
+    +L.map(t=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(nameOf(t))+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="reconcile" data-t="'+t+'">說和</button></div></div>').join('')
+    +'<div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">作罷</button></div>';
+}
 /** 請託辦成後扣的好感：一般 −10、許可 −20、減罪狀 −30；特殊請託 −30。 */
 const REQ_AFF={normal:10,apply:20,lessen:30,special:30};
 ACT.reqAsk=el=>{
   const cid=el.dataset.cid,k=el.dataset.k,r=R(cid);BT=null;
   const sp=specialList(cid).find(x=>x.k===k);
   if(sp){
-    r.specialUsed=true;r.aff=Math.max(0,r.aff-REQ_AFF.special);logRel(cid,'開口請他「'+sp.name+'」，好感 -'+REQ_AFF.special+'。');
+    r.specialUsed=true;setAff(r,Math.max(0,r.aff-REQ_AFF.special));logRel(cid,'開口請他「'+sp.name+'」，好感 -'+REQ_AFF.special+'。');
     UI.hideInfo();
     if(sp.special==='tribute')startTribute(cid);else startScheme(cid);
     return;
   }
   const dm=dealerDo(cid,k);
   if(dm!==null){UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(dm)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');sfx.coin();UI.render();refreshSheet();return}
-  const res=doFavor(cid,k);
+  if(k==='reconcile'&&!el.dataset.t){UI.showInfo('📜 解仇·'+nameOf(cid),reconcilePick(cid));return}
+  const res=doFavor(cid,k,el.dataset.t);
   UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(res.msg)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');
   if(res.status==='done')sfx.coin();else sfx.bad();UI.render();refreshSheet();
 };

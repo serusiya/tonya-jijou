@@ -263,7 +263,7 @@ var INFO_AFTER=null;
 /** 顯示置中的說明視窗（官吏職位、貿易物品）。 */
 UI.showInfo=(title,html)=>{$('#info-title').textContent=title;$('#info-body').innerHTML=html;$('#info-bd').classList.remove('hidden');$('#info-body').scrollTop=0};
 /** 關閉說明視窗。 */
-UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
+UI.hideInfo=()=>{ $('#info-bd').classList.add('hidden');$('#info-bd').classList.remove('over-start');const f=INFO_AFTER;INFO_AFTER=null;if(f)setTimeout(f,0) };
 /** 說明視窗的欄位格式。 */
 const ik=(k,v)=>v?'<div class="ik">'+k+'</div><div class="iv">'+esc(v)+'</div>':'';
 /** 官吏職位說明內容（職掌、能辦的請託、升遷等；請託由請託表產生，見 posFavors）。 */
@@ -322,7 +322,7 @@ function autoShip(log){
   if(short.length||squeeze.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short;rep.squeeze=squeeze}   // 兩種扣分相同
   else if(allMet&&judged>0)rep.fame=1+Math.floor(rnd()*3);   // 沒有任何一項貨的供貨線 ≥1：這一旬不判定
   rep.supplyStable=judged>0&&allMet;               // 季度人口：全品項達線才記為穩定供貨旬
-  if(rep.fame)G.fame=clamp((G.fame||0)+rep.fame,0,ODDS.fame.cap);
+  if(rep.fame)setFame((G.fame||0)+rep.fame);
   if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}
   TURNRP=rep;
