@@ -23,11 +23,27 @@ function cityD(city,c){
   const w=c.staple?0.5:c.luxury?0.06:0.25,mn=c.staple?30:c.luxury?6:20;
   return Math.max(mn,Math.round(cityPop(city)/1000*w));
 }
+/** 城市物產：資料表原有物產＋本局新增的產地（G.devProd，存檔）。城市資料表不可直接改，以免同頁新局被上一局污染。所有讀物產的地方都用它（開局選城除外）。 */
+function cityProds(ct){const b=(ct&&ct.connected_commodities)||[];const d=(G&&G.devProd||[]).filter(x=>x.cityId===ct.id&&!b.includes(x.name)).map(x=>x.name);return d.length?b.concat(d):b}
+/** 某城是否為某貨的新增產地。 */
+const isDevProd=(ct,name)=>!!(G&&G.devProd||[]).some(x=>x.cityId===ct.id&&x.name===name);
+/** 本局新增的城史（新產地等）。 */
+const cityHistExtra=ct=>(G&&G.cityHist&&G.cityHist[ct.id])||[];
+/** 每年一月上旬：一定機率在隨機城市新增一項本業貨的產地（產地越少的貨越容易抽中；不限到不到得了；排除本店所在城與已產者）。 */
+function newProdTick(log){
+  if(!roll('newProd'))return;
+  const L=ownComms().map(c=>{const cs=CITIES.filter(ct=>ct.id!==G.cityId&&!cityProds(ct).includes(c.name));return {c,cs,w:1/(CITIES.filter(ct=>cityProds(ct).includes(c.name)).length+1)}}).filter(x=>x.cs.length);
+  if(!L.length)return;
+  let x=rnd()*L.reduce((a,o)=>a+o.w,0),o=L[0];for(const it of L){x-=it.w;if(x<=0){o=it;break}}
+  const ct=pick(o.cs);G.devProd=G.devProd||[];G.devProd.push({cityId:ct.id,name:o.c.name,year:G.year});
+  G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:'試種「'+o.c.short+'」有成，成為產地'});
+  const t=NEWS('newProd',{city:ct.name,name:o.c.short});pushNews(t);log.push(t);
+}
 /** 城市價格係數：固定雜訊、產地便宜（×0.8）、大城偏貴（×1.08）。 */
 function cityMod(city,c){
   const noise=0.92+0.16*seeded(city.id+c.name)();
   let m=noise;
-  if(city.connected_commodities.includes(c.name))m*=0.8;             // 產地便宜
+  if(cityProds(city).includes(c.name))m*=0.8;                         // 產地便宜（含新增產地）
   else if(city.location_type==='重要行政都市')m*=1.08;               // 消費大城偏貴
   return m;
 }

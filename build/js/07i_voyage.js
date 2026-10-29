@@ -31,7 +31,7 @@ function destList(mode){
   const a=homeCity(),own=tradeNameSet(),all=ownNameSet();
   const ok=mode==='sea'?(ct=>canSea(a)&&canSea(ct)):(ct=>canLand(a,ct));
   return CITIES.filter(ct=>ct.id!==a.id&&ok(ct)).map(ct=>({ct,d:distTurns(a,ct,mode),
-    own:ct.connected_commodities.filter(n=>own.has(n)&&COMM_MAP[n]),oth:ct.connected_commodities.filter(n=>!all.has(n)&&COMM_MAP[n])}))
+    own:cityProds(ct).filter(n=>own.has(n)&&COMM_MAP[n]),oth:cityProds(ct).filter(n=>!all.has(n)&&COMM_MAP[n])}))
     .sort((x,y)=>(y.own.length>0)-(x.own.length>0)||x.d-y.d||y.own.length-x.own.length);
 }
 /** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）；batch＝出運清單一起出發（行動點數由 vGoAll 統一扣一次）。 */
@@ -55,7 +55,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
 function resolveVoyage(s,log){
   const mode=s.mode,cs=s.cs||50,budget=s.budget||0,wreck=chance(s.risk),keep=wreck?0.3:1;
   const dest=CITY(s.origId),own=tradeNameSet(),all=ownNameSet();
-  const prod=(dest?dest.connected_commodities:[]).filter(n=>COMM_MAP[n]);
+  const prod=(dest?cityProds(dest):[]).filter(n=>COMM_MAP[n]);
   const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
   let spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
@@ -157,9 +157,11 @@ function voyQueueCard(){
   const a=homeCity();
   let h='<div class="card" style="background:#fff8eb"><b class="small">📋 本旬出運清單</b>';
   h+=Q.map((q,i)=>{const e=G.emps.find(x=>x.id===q.capt),ct=CITY(q.dest),ok=ct&&permitOf(q.mode,ct);
-    return '<div class="row small" style="margin-top:4px;gap:4px"><span>'+MODE_ICON[q.mode]+' '+esc(e?e.name:'？')+' → '+esc(ct?ct.name:'？')+'（'+(ct?distTurns(a,ct,q.mode):'?')+' 旬）'+(ok?'':' <span class="tag red">🔒 無許可</span>')+'</span><span style="white-space:nowrap">'+fmt(q.budget)+' 兩 <button class="pixel-btn btn-sm" data-act="vDel" data-i="'+i+'">'+UT('btn.vDel')+'</button></span></div>'}).join('');
-  h+='<div class="row tiny muted" style="margin-top:4px;border-top:1px dashed #b5a98f;padding-top:3px"><span>共 '+Q.length+' 人</span><span>委託金合計 '+fmt(voyQTotal())+' 兩</span></div>';
-  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">一次全部出發，只扣 1 行動點數。</span><button class="pixel-btn btn-gold" data-act="vGoAll" '+(apLeft()<=0?'disabled':'')+'>'+UT('btn.vGoAll')+'</button></div>';
+    return '<div style="margin-top:4px;padding-top:4px'+(i?';border-top:1px dashed #b5a98f':'')+'"><div class="row small" style="gap:6px;align-items:flex-start"><span>'+MODE_ICON[q.mode]+' '+esc(e?e.name:'？')+' → '+esc(ct?ct.name:'？')+'（'+(ct?distTurns(a,ct,q.mode):'?')+' 旬）'+(ok?'':' <span class="tag red">🔒 無許可</span>')+'</span><button class="pixel-btn btn-sm" style="flex:none" data-act="vDel" data-i="'+i+'">'+UT('btn.vDel')+'</button></div><div class="small">'+fmt(q.budget)+' 兩</div></div>'}).join('');
+  h+='<div class="row tiny muted" style="margin-top:6px;border-top:1px solid #b5a98f;padding-top:4px"><span>共 '+Q.length+' 人</span><span>委託金合計 '+fmt(voyQTotal())+' 兩</span></div>';
+  const noAP=apLeft()<=0;
+  h+='<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px;padding:8px" data-act="vGoAll" '+(noAP?'disabled':'')+'>'+UT('btn.vGoAll')+'</button>';
+  h+='<div class="tiny muted" style="margin-top:4px;text-align:center">'+(noAP?UT('txt.vGoAllNoAP'):UT('txt.vGoAll'))+'</div>';
   return h+'</div>';
 }
 /** 加入出運清單（不扣行動點數、不扣錢）：檢查人、目的地、許可、委託金與餘錢。 */

@@ -53,13 +53,21 @@ function btGroups(cid){
   if(c.gender==='女')out.push(L.fem);
   return out;
 }
+/** 本場拜訪已說過的句子（每場開始時清空）與最近說過的 30 句（跨場，不存檔）。 */
+const BT_USED=new Set(),BT_RECENT=[];
 /** 拜訪戰鬥取句：原句與所有適用的增補句合成一池，平均抽一句。stage：openHit／openMiss／openFriend／low／mid／close／win／lose／snub／hint.small…。 */
 function btSay(cid,stage,vars){
   const n=npc(cid),L=LINES.battle,at=(o,p)=>p.split('.').reduce((x,k)=>x&&x[k],o),kind=n&&n.pos?officialKind(n):'merchant';
   let pool=[].concat(['low','mid','close','win'].includes(stage)?L[stage][kind]:at(L,stage)||[]);
   btGroups(cid).forEach(g=>{const v=at(g,stage);if(Array.isArray(v))pool=pool.concat(v)});
   if(stage==='snub'){if(n&&n.pos)pool=pool.concat(L.snubX.official);else if(n&&n.role==='smuggler')pool=pool.concat(L.snubX.smuggler);if(CH(cid)&&CH(cid).gender==='女')pool=pool.concat(L.snubX.fem)}
-  const s=pool.length?pool[Math.floor(rnd()*pool.length)]:'';
+  /* 避免重複：先排除本場已說過的句子與最近說過的 30 句；用完再放寬，至少不與上一句相同 */
+  let cand=pool.filter(x=>!BT_USED.has(x)&&!BT_RECENT.includes(x));
+  if(!cand.length)cand=pool.filter(x=>!BT_USED.has(x));
+  if(!cand.length)cand=pool.filter(x=>x!==BT_RECENT[BT_RECENT.length-1]);
+  if(!cand.length)cand=pool;
+  const s=cand.length?cand[Math.floor(rnd()*cand.length)]:'';
+  if(s){BT_USED.add(s);BT_RECENT.push(s);if(BT_RECENT.length>30)BT_RECENT.shift()}
   return vars?s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):s;
 }
 /** 是否正在氣頭上（被嫌不善言辭：本旬與下一旬不能拜訪）。 */
@@ -99,6 +107,7 @@ function btLine(cid,ratio){
 var BT=null;
 /** 見到面後開始戰鬥。 */
 function battleStart(cid,giftKey){
+  BT_USED.clear();                                       // 新的一場：本場說過的句子清空
   const r=R(cid),friend=r.aff>=FRIEND_AFF,g=GIFT_MAP[giftKey];
   const mult=btMult(cid,giftKey),hit=!friend&&mult>=1;
   if(hit)r.verified=true;

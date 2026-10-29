@@ -28,10 +28,11 @@ const ODDS={
   guildPolicy:{name:'每九旬協議決議（以量制價／正常供應各半）',normal:0.5},
   guildBond:{name:'協議擔保金一期的旬數（自動續押，期滿分配違約金）',turns:9},
   cityPopulation:{name:'城市人口每九旬依穩定供貨調整（全穩定 ±2%；多數穩定或不穩定 ±0.6%）',turns:9,all:0.02,majority:0.006,min:1000},
+  newProd:{name:'每年一月上旬，隨機城市新增一項本業貨產地',p:0.10},
   /* —— 人際·員工·家族 —— */
   introBacklash:{name:'引薦性向全不合時反遭嫌棄',p:0.35},
-  skim:{name:'員工私吞（每旬）',greed:0.6,betray:0.5,loyal:0.7,cap:0.6,lateMul:1.5,lateTurns:18},
-  flee:{name:'番頭／大番頭捲款潛逃',p:0.004,lateMul:2},
+  skim:{name:'員工私吞（每旬；其餘倍率見 07zs_staffcare.js 的 STAFF）',greed:0.6,betray:0.5,loyal:0.7,cap:0.6},
+  flee:{name:'番頭／大番頭捲款潛逃',p:0.004},
   auditDetect:{name:'查帳查出私吞',base:0.5,commerceDiv:200,max:0.95},
   marry:{name:'說親成功率',base:0.45,perScore:0.2,min:0.15,max:0.95},
   prodigal:{name:'子女淪為敗家子（每年）',p:0.3},

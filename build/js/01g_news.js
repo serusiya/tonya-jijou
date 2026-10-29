@@ -131,8 +131,8 @@ const NEWS_TXT={
   /* —— seize —— */
   "seize.1":"🚨【{replace}】{g}",
   "seize.lessen":"減罪狀派上用場，刑罰減輕一等。",
-  /* —— 大番頭延續上旬設定 —— */
-  "chief.keepBuy":"🧾【大番頭照舊】照上旬的量進貨：{got} 已下單。",
+  /* —— 遠島期間（主人不在）照配額進貨 —— */
+  "away.buy":"🧾【主人不在】照協議配額進貨：{got} 已下單。",
   /* —— kind —— */
   "kind.1":"前往【{dest}】採買。{note}",
   "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約大盤基準價的 {pf}），共 {cost} 兩。",
@@ -169,6 +169,8 @@ const NEWS_TXT={
   "tribute.ok":"🎁【上貢】你把答應的「{item}」{qty} 單位送到「{off}」手上。對方爽快付了 {rev} 兩，知名度 +{fame}，商號的名聲也更響亮了。",
   "tribute.fail":"💢【上貢失約】約定的日子到了，「{item}」卻只備了 {have} 單位，離答應「{off}」的 {qty} 單位還差一截。對方臉色很難看，交情 -{aff}，知名度 -1。",
   "arson.1":"🔥【縱火】同業「{name}」的倉庫深夜失火，庫存付之一炬，市面風聲鶴唳。",
+  "staff.grow":"🎓【店員】{list}",
+  "newProd":"🌱【物產】{city}試種「{name}」有成，今後成為產地，委託採買可以去那裡買了。",
 };
 function NEWS(key,vars){
   const v=NEWS_TXT[key];if(v===undefined)return key;

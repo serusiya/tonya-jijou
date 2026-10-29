@@ -51,8 +51,8 @@ function dockCrewHtml(){
     if(!cs.length)return h+'<div class="notice tiny">'+none+'</div>'+(rk==='船長'?smuggleButton():'');
     return h+(rk==='船長'?smuggleButton():'')+cs.map(e=>{
       const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
-      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+rk+'】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>')+'<div class="tiny muted">月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬</div></div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
-        +empAffHtml(e,'dock')+'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
+      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+rk+'】'+esc(e.name)+'</b> '+(busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>')+'<div class="tiny muted">月例 '+e.wage+' 兩／旬·'+staffTenure(e)+'</div>'+staffTags(e)+'</div><div class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'
+        +empAffHtml(e,'dock')+'<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">'+auditBtns(e)+'<button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
     }).join('');
   };
   return block('船長','⚓','出海中','在港','還沒有船長。到「商號」頁請介紹人物色，聘為專職。')+block('飛腳','🐎','出門中','在店','還沒有飛腳。到「商號」頁請介紹人物色，聘為專職。');

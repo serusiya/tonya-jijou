@@ -248,8 +248,8 @@ SHEETS.city=()=>{
   const c=homeCity(),d=c.demographics;
   let h='<div class="card"><div class="row"><b style="font-size:16px">'+esc(c.name)+'</b><span class="tag navy">'+esc(c.region_name)+'</span></div><div class="text-meta muted">'+esc(c.location_type)+'·人口 '+fmt(cityPop(c))+'</div><p class="text-prose" style="margin:4px 0">'+esc(c.geography_description)+'</p>';
   h+='<div class="tiny">男 '+d.gender_ratio.male_pct+'％·女 '+d.gender_ratio.female_pct+'％</div><div class="grid3 tiny" style="margin-top:4px;text-align:center"><div class="card" style="margin:0">豪商 '+d.class_ratio.wealthy_elite_pct+'%</div><div class="card" style="margin:0">中產 '+d.class_ratio.middle_class_pct+'%</div><div class="card" style="margin:0">勞力 '+d.class_ratio.poor_labor_pct+'%</div></div></div>';
-  h+='<div class="card"><b class="small">本地連結物產（產地價較便宜）</b><div class="small">'+c.connected_commodities.map(esc).join('、')+'</div></div>';
-  h+='<div class="card"><b class="small">城史</b>'+(c.history_100_years.filter(x=>parseInt(x.year,10)<=G.year).map(x=>'<div class="tiny" style="margin-top:3px"><b>'+yearStr(parseInt(x.year,10))+'</b>·'+esc(x.title)+'</div>').join('')||'<div class="tiny muted">——</div>')+'</div>';
+  h+='<div class="card"><b class="small">本地連結物產（產地價較便宜）</b><div class="small">'+cityProds(c).map(n=>(isDevProd(c,n)?'🌱':'')+esc(n)).join('、')+'</div></div>';
+  h+='<div class="card"><b class="small">城史</b>'+(c.history_100_years.filter(x=>parseInt(x.year,10)<=G.year).concat(cityHistExtra(c)).map(x=>'<div class="tiny" style="margin-top:3px"><b>'+yearStr(parseInt(x.year,10))+'</b>·'+esc(x.title)+'</div>').join('')||'<div class="tiny muted">——</div>')+'</div>';
   const f=c.special_festival;
   h+='<div class="card"><b class="text-brief">🏮 '+esc(f.name)+'</b> <span class="tag gold">'+esc(f.date)+'</span><div class="text-brief">'+esc(f.cultural_lore)+'</div><div class="text-meta muted" style="margin-top:2px">'+esc(f.economic_impact)+'</div></div>';
   const s=c.seasonal_annual_rhythms;h+='<div class="card text-prose"><b>四季節律</b><br>春：'+esc(s.spring)+'<br>夏：'+esc(s.summer)+'<br>秋：'+esc(s.autumn)+'<br>冬：'+esc(s.winter)+'</div>';
@@ -379,9 +379,8 @@ function renderEstate(){
   h+=SPECIAL.filter(k=>k!=='船長'&&k!=='飛腳').concat(RANKS.slice().reverse()).map(rk=>{
     const ls=G.emps.filter(e=>e.rank===rk);
     return ls.map(e=>{
-      const s=statsOfEmp(e);const tag=e.flag?'<span class="tag red">疑似私吞 '+fmt(e.flag)+' 兩</span>':'';
-      const idl=G.turn-e.audited>18;
-      return '<div class="card '+(e.flag?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+tag+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·任職 '+(G.turn-e.since)+' 旬'+(idl?'·<b style="color:#c18a00">久未查帳</b>':'')+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm" data-act="audit" data-id="'+e.id+'">'+UT('btn.audit',{c:costBtn('audit')})+'</button>'+(e.flag?'<button class="pixel-btn btn-sm btn-red" data-act="punish" data-id="'+e.id+'">'+UT('btn.punish')+'</button>':'')+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
+      if(e.flag&&!e.caught)e.caught=e.flag;                                  // 舊存檔：已查出的私吞改為待處置
+      return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+portraitEmp(e,56)+'<div class="row"><div><b>【'+e.rank+'】'+esc(e.name)+'</b> '+staffTags(e)+'<div class="tiny muted">'+(e.cid?'':'少年·')+'月例 '+e.wage+' 兩／旬·'+staffTenure(e)+'</div></div><div style="text-align:right" class="tiny">評價 '+ratingStars(e.cid||statsOfEmp(e))+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='大番頭'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
   h+='<div class="card"><div class="row"><div><b class="small">🔎 請介紹人物色人才</b><div class="tiny muted">禮金 '+costTxt('recruitIntro')+'·交情 -2～5。介紹人愈信任你、與人才圈愈投契，聘得到的職階愈高、人選愈可靠。</div></div><button class="pixel-btn btn-sm btn-gold" data-act="recruit">'+UT('btn.recruit')+'</button></div></div>';
@@ -442,9 +441,7 @@ ACT.apprentice=()=>{
   visitFx({cid:G.introId,outcome:'ok',kind:'contract',prop:'contract'},()=>{const it=introOf(G.introId);introCost(it);const r=hireApprentice();toast(r.msg);UI.render()});
 };
 /** 查帳。 */
-ACT.audit=el=>{const r=auditEmp(el.dataset.id);toast(r.msg);UI.render()};
 /** 追討。 */
-ACT.punish=el=>{toast(punishEmp(el.dataset.id));UI.render()};
 /** 升遷。 */
 ACT.promote=el=>{const r=promoteEmp(el.dataset.id);toast(r.msg);UI.render()};
 /** 辭退。 */

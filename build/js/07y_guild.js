@@ -23,7 +23,7 @@ function guildEnsure(){
 function guildPolicyRoll(log){
   const C=G.cartel,prev=cartelPolicy();
   C.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
-  if(C.policy!==prev){delete G.lastShip;G.plan={}}
+  if(C.policy!==prev)G.plan={}
   const key=C.policy==='normal'&&!guildMember()?'guild.policy.normalNone':'guild.policy.'+C.policy;
   const t=NEWS(key);pushNews(t);if(log)log.push(t);
 }

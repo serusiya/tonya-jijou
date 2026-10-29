@@ -2,7 +2,7 @@
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
  * - 手代：出貨價小幅加成（上限 +4%）、穩定供貨線略降。 番頭：只加大大盤進貨上限。
- * - 大番頭：延續上旬的出貨與進貨數量、已參加協議時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
+ * - 大番頭：已參加協議時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
@@ -10,7 +10,7 @@ const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
-  大番頭:'總管：也算一名番頭，大盤進貨上限加大；替你延續上旬的出貨與進貨數量、已參加協議時代出席公會例會（退出協議後不代席，重新加入要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
+  大番頭:'總管：也算一名番頭，大盤進貨上限加大；已參加協議時代出席公會例會（退出協議後不代席，重新加入要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
@@ -75,7 +75,7 @@ function chiefUneasy(log){
 function chiefWindfall(log){
   const C=ODDS.chief,amt=Math.round(Math.max(0,G.silver)*(C.windfallMin+rnd()*(C.windfallMax-C.windfallMin)));
   if(amt<=0)return;
-  G.silver+=amt;G.lastRev+=amt;sfx.coin();
+  G.silver+=amt;G.lastRev+=amt;sfx.coin();if(TURNRP)TURNRP.windfall=(TURNRP.windfall||0)+amt;   // 旬報收入獨立一行
   const b=empsOf('大番頭')[0];if(b)b.wind=(b.wind||0)+amt;
   if(b)queueFaceEvent({type:'windfall',empId:b.id,amt});
   const t=NEWS('chief.windfall',{amt:fmt(amt)});pushNews(t);log.push(t);
@@ -149,13 +149,14 @@ function staffGossip(ent){
   if(!others.length)return null;
   const x=pick(others),s=statsOfEmp(x),n='『'+x.name+'』（'+x.rank+'）';
   let t;
-  if(x.skim>0||x.flag)t=TX('gossip.staff.skim',{n});
+  let rumor=false;
+  if(rumorOf(x)){t=TX('gossip.staff.skim',{n});x.rumorUntil=G.turn+STAFF.rumorTurns;rumor=true}   // 私吞流言（可能是冤枉）：標記風聲，才能查帳
   else if(s.betrayal_risk>=60&&s.integrity_loyalty<=45)t=TX('gossip.staff.betray',{n});
   else if(s.greed_index>=70)t=TX('gossip.staff.greedy',{n});
   else if(s.integrity_loyalty>=70)t=TX('gossip.staff.loyal',{n});
   else if(s.commerce_skill>=70)t=TX('gossip.staff.skill',{n});
   else t=TX('gossip.staff.plain',{n});
-  return {kind:'店員流言',text:'「'+t+'」'};
+  return {kind:'店員流言',text:'「'+t+'」',rumorEmp:rumor?x.id:null};
 }
 function outsiderGossip(){
   const cached=G.chat&&G.chat.gossipCid;
@@ -196,6 +197,7 @@ function openChat(ent){
   const who=e?'【'+e.rank+'】'+e.name:ent.label;
   let h='<div style="display:flow-root">'+(e?portraitEmp(e,56):'')+'<div class="tiny muted">'+esc(c.kind)+'</div><div style="margin-top:4px">'+esc(c.text)+'</div></div>';
   if(c.cid)h+='<div class="notice tiny" style="margin-top:6px">已記入「'+esc(nameOf(c.cid))+'」的性向資料（免費）。</div>';
+  if(c.rumorEmp){const x=G.emps.find(y=>y.id===c.rumorEmp);if(x){if(G.chat.turn===G.turn&&!hasRumor(x))x.rumorUntil=G.turn+STAFF.rumorTurns;h+='<div class="notice tiny" style="margin-top:6px">'+esc(MSG('audit.heard',{name:x.name,rank:x.rank}))+'</div>'}}
   UI.showInfo(who,h);
 }
 

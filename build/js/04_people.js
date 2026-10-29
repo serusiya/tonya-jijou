@@ -304,8 +304,8 @@ const crewBusy=mode=>G.ships.filter(s=>s.mode===mode).length;
 const KID_NAMES=['吉松','太吉','與助','小次郎','勘太','源吉','久藏','茂平','福助','千松'];
 /** 為無名冊的少年員工生成隱藏數值。 */
 function randStats(r){r=r||rnd;const g=()=>Math.round(25+r()*55);return {commerce_skill:g(),integrity_loyalty:g(),greed_index:g(),audacity_courage:g(),diplomacy_charm:g(),betrayal_risk:Math.round(10+r()*50)}}
-/** 員工的隱藏數值（有名冊者取名冊）。 */
-function statsOfEmp(e){return e.cid?CH(e.cid).derived_stats:e.stats}
+/** 員工的隱藏數值：原始能力（有名冊者取名冊）＋久任與升遷的成長（e.grow，見 07zs_staffcare.js）。名冊資料不可直接改。 */
+function statsOfEmp(e){const b=e.cid?CH(e.cid).derived_stats:e.stats;if(!e.grow)return b;const o=Object.assign({},b);Object.entries(e.grow).forEach(([k,v])=>{o[k]=(o[k]||0)+v});return o}
 /** 聘用員工（建立員工紀錄，名冊人物會被標記為已聘並結識）。 */
 function hireEmp(cid,rank,free){
   const e={id:'e'+G.turn+'_'+Math.floor(rnd()*1e6),cid:cid||null,rank,since:G.turn,skim:0,audited:G.turn,wage:RANK_WAGE[rank],aff:40};
@@ -321,20 +321,20 @@ function empTick(log){
   const rm=[];
   G.emps.forEach(e=>{
     const s=statsOfEmp(e);
-    const K_=ODDS.skim,p=clamp((s.greed_index*K_.greed+s.betrayal_risk*K_.betray-s.integrity_loyalty*K_.loyal)/100,0,K_.cap)*RANK_SKIM[e.rank]*(G.turn-e.audited>K_.lateTurns?K_.lateMul:1)*guardF(e);
+    const K_=ODDS.skim,p=clamp((s.greed_index*K_.greed+s.betrayal_risk*K_.betray-s.integrity_loyalty*K_.loyal)/100,0,K_.cap)*RANK_SKIM[e.rank]*skimMul(e)*guardF(e);   // 久未查帳 ×1.5 已取消；好感、自家栽培、收斂、記恨等倍率見 07zs_staffcare.js
     if(chance(p)){
-      const amt=Math.round(Math.max(0,G.lastRev)*(0.005+rnd()*0.015)+(({丁稚:1,手代:4,番頭:10,大番頭:25,船長:6,飛腳:3,保鏢:3})[e.rank]||3));
+      const amt=Math.round(Math.max(0,(TURNRP&&TURNRP.rev)||0)*(0.005+rnd()*0.015)+(({丁稚:1,手代:4,番頭:10,大番頭:25,船長:6,飛腳:3,保鏢:3})[e.rank]||3));
       e.skim+=amt;G.silver-=amt;
     }
-    if((e.rank==='大番頭'||e.rank==='番頭')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*(G.turn-e.audited>ODDS.skim.lateTurns?ODDS.flee.lateMul:1)))){
+    if((e.rank==='大番頭'||e.rank==='番頭')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*fleeMul(e)))){
       const take=Math.round(Math.max(0,G.silver)*0.3);G.silver-=take;rm.push(e);
       const t=NEWS('empTick.1',{rank:e.rank,name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();
     }
   });
   if(rm.length){G.emps=G.emps.filter(e=>!rm.includes(e));rm.forEach(e=>{if(e.cid&&npc(e.cid))npc(e.cid).hired=false;if(e.cid)R(e.cid).aff=0})}
 }
-/** 查帳：大番頭越精明越容易查出私吞。 */
-function auditEmp(id){
+/** （舊）查帳：已改為 07zs_staffcare.js 的風聲制；保留函式名供舊程式呼叫。 */
+function auditEmpOld(id){
   if(!afford('audit'))return {ok:false,msg:shortMsg('audit')};
   const e=G.emps.find(x=>x.id===id);if(!e)return {ok:false};
   spend('audit');
@@ -346,8 +346,8 @@ function auditEmp(id){
   if(e.skim>0){return {ok:true,found:false,msg:MSG('auditEmp.2')}}
   return {ok:true,found:false,msg:MSG('auditEmp.3')};
 }
-/** 追討：追回八成私吞款。 */
-function punishEmp(id){const e=G.emps.find(x=>x.id===id);if(!e)return;const back=Math.round(e.skim*0.8);G.silver+=back;e.skim=0;e.flag=0;e.audited=G.turn;return '追回 '+fmt(back)+' 兩並嚴加警告。'}
+/** （舊）追討：已改為 auditDecide。 */
+function punishEmpOld(id){const e=G.emps.find(x=>x.id===id);if(!e)return;const back=Math.round(e.skim*0.8);G.silver+=back;e.skim=0;e.flag=0;e.audited=G.turn;return '追回 '+fmt(back)+' 兩並嚴加警告。'}
 /** 辭退員工。 */
 function fireEmp(id){
   const e=G.emps.find(x=>x.id===id);if(!e)return '';
@@ -450,10 +450,11 @@ function promoteEmp(id){
   if(SPECIAL.includes(e.rank))return {ok:false,msg:MSG('promote.special',{rank:e.rank})};
   const i=RANKS.indexOf(e.rank);if(i>=3)return {ok:false,msg:MSG('promoteEmp.1')};
   const nr=RANKS[i+1];
-  if(G.turn-e.since<24)return {ok:false,msg:MSG('promoteEmp.2')};
+  if(G.turn-(e.promotedAt!==undefined?e.promotedAt:e.since)<24)return {ok:false,msg:MSG('promoteEmp.2')};   // 年資（e.since）不因升遷重算，升遷間隔看上次升遷
   if(!slotFree(nr))return {ok:false,msg:MSG('slotFull',{rank:nr})};
-  e.rank=nr;e.wage=Math.round(RANK_WAGE[nr]*(e.cid?(0.8+CH(e.cid).derived_stats.commerce_skill/150):1));e.since=G.turn;
-  return {ok:true,msg:MSG('promoteEmp.3',{name:e.name,nr})};
+  e.rank=nr;e.wage=Math.round(RANK_WAGE[nr]*(e.cid?(0.8+CH(e.cid).derived_stats.commerce_skill/150):1));e.promotedAt=G.turn;
+  promoteBoon(e);                                  // 升遷：好的能力各 +5%、忠誠 +5、好感 +15、自家栽培
+  return {ok:true,msg:MSG('promoteEmp.3',{name:e.name,nr})+MSG('promote.boon',{a:STAFF.promoteAff})};
 }
 
 /* ---------- 家族 ---------- */
@@ -526,6 +527,8 @@ function yearTick(log){
   if(G.family.spouse&&G.family.kids.length<4&&G.year-G.family.spouse.birthYear<=42&&roll('birth')){
     const k=newKid();G.family.kids.push(k);const tt=NEWS('yearTick.6',{gender:(k.gender==='男'?'男':'女'),name:k.name});pushNews(tt);log.push(tt);
   }
+  staffYearTick(log);                              // 員工久任成長
+  newProdTick(log);                                // 一月上旬：一定機率新增本業貨產地
   // 壽數：四十五歲後逐年遞增，另有小機率橫禍
   const age=myAge();
   const p=Math.max(0,age-ODDS.death.startAge)*ODDS.death.perYear+ODDS.death.base;

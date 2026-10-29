@@ -14,7 +14,7 @@ const WIKI_GUIDE=[
   ['⚖️ 問屋公會（株仲間）','開業時你已是問屋公會成員；公會會員身分不會因你的選擇而消失。會員可以參加「聯合採購與出貨協議」，擔保金由家中長輩代墊。參加協議者向大盤進貨享聯合採購價，進貨上限也有協議配額加給；未參加者照市價，進貨上限只按市占率分配。協議每九旬以各半機率決議「以量制價」或「正常供應」：以量制價依固定比例減供；正常供應則以本城需求為全體總配額，先扣除你等於穩定供貨線的配額，剩餘數量由其他同業依市占率分配。兩種方針都有出貨上限。你可以表態遵守、私下簽暗約偷跑，或退出協議；只有以量制價期間能提案提高減供配額。守約卻超量出貨，或偷跑被告發，都會被聯合斷貨，協議擔保金也會被沒收；同業偷跑被抓也一樣。沒收的擔保金每九旬平分給守約的人。退出或被抓之後，仍是公會會員，但要到下一次例會親自重新押擔保金才能加入協議。大番頭只在你已參加協議時代你出席例會，不會替你重新加入協議。'],
   ['🚢 商路與委託採買','船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的進港泊位許可與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比大盤便宜，商才越高買得越多越省，當地產好幾樣本業貨時，委託金與運量平均分給每一樣；偶爾帶回別行的便宜貨，要請座客商人代售；派去沒有本業貨的地方，多半空手而回，只花掉雜費；唐物藥種的船隊還常夾帶唐船私貨。可以先把要派的人排進出運清單，再一次全部出發，只要到碼頭交代一趟、扣一次行動；分批出發就每批各扣一次。清單只在本旬有效。路上有海難與山賊，往返要等上幾旬。'],
   ['🤝 人脈','官吏、同業、名士、花街名伶，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，官吏也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。'],
-  ['👥 店員','丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，能替你延續上旬的買賣安排、在已參加聯合採購與出貨協議時代你出席公會例會、每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳，要記得查帳。保鏢平時守倉庫，出門時護著你。每種店員一開始都只能雇一名，要多雇得先向官府申請許可。'],
+  ['👥 店員','丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，能在已參加聯合採購與出貨協議時代你出席公會例會、每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳：在家裡跟人閒聊聽到風聲，才好查帳；查帳很傷人情，冤枉了好人更是。查出來可以追討、寬恕或辭退，各有後果。待得久的店員每年都會長進一點，從底下提拔上來的「自家栽培」更忠心、手腳也乾淨；平常對店員好，比事後查帳有用。保鏢平時守倉庫，出門時護著你。每種店員一開始都只能雇一名，要多雇得先向官府申請許可。'],
   ['🏛️ 官府','城裡的官員分屬行政、財務、司法三系官署，上面還有管整個地區的遠國奉行所。他們掌管許可、稅賦、查緝與審判：行政系統核發倉地、船株與人別帳，財務系統核發交易許可、馬幫株並放貸，司法系統核發帶刀許可、袖之下與減罪狀。許可分等級，官階越高的官員給得越多。官吏有各自的性格與弱點，打通關節能少很多麻煩，但也有人會反過來勒索。詳見「官吏」分頁。'],
   ['⚠️ 風險與事件','倉庫會失火、遭竊、受潮；主食價格漲得太高會引發「打毀」（市民暴動）；走私被查獲會罰銀、遠島，甚至處刑（減罪狀能讓刑罰輕一等）；醜聞會損傷知名度。同行也會鬥——有人造謠、栽贓、縱火，你也可以反擊。貨越值錢，持有的成本與風險越高。'],
   ['💎 奢侈品','每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。'],
@@ -66,9 +66,9 @@ function cityLine(ct){
   const home=ct.id===G.cityId;
   const open=UI.s.wikiOpen&&UI.s.wikiOpen['c'+ct.id];
   let h='<div class="card" style="margin-top:4px;'+(home?'border-color:#9b2c3a':'')+'"><div class="row" data-act="wikiToggle" data-k="c'+ct.id+'" style="cursor:pointer"><div><b>'+esc(ct.name)+'</b>'+(home?' <span class="tag red">駐節</span>':'')+' <span class="tag gray">'+esc(ct.location_type)+'</span></div><span class="tiny muted">約 '+fmt(cityPop(ct))+' 人 '+(open?'▲':'▼')+'</span></div>';
-  h+='<div class="tiny" style="margin-top:2px">物產：'+(ct.connected_commodities.length?ct.connected_commodities.map(n=>{const c=COMM_MAP[n];return c?'<span class="tag clk" data-act="commInfo" data-n="'+esc(n)+'">'+esc(c.short.slice(0,6))+'</span>':''}).join(' '):'無特別物產')+'</div>';
+  h+='<div class="tiny" style="margin-top:2px">物產：'+(cityProds(ct).length?cityProds(ct).map(n=>{const c=COMM_MAP[n];return c?'<span class="tag clk" data-act="commInfo" data-n="'+esc(n)+'">'+(isDevProd(ct,n)?'🌱':'')+esc(c.short.slice(0,6))+'</span>':''}).join(' '):'無特別物產')+'</div>';
   if(open){
-    const f=ct.special_festival||{},sr=ct.seasonal_annual_rhythms||{},hist=(ct.history_100_years||[]).slice(0,3);
+    const f=ct.special_festival||{},sr=ct.seasonal_annual_rhythms||{},hist=(ct.history_100_years||[]).slice(0,3).map(x=>({year:yearStr(parseInt(x.year,10)),title:x.title})).concat(cityHistExtra(ct).map(x=>({year:yearStr(x.year),title:x.title})));   // 年份一律換成遊戲年（原本直接顯示「-39年」）
     h+='<div class="text-prose" style="margin-top:5px" data-act="none"><div>'+esc(ct.geography_description)+'</div>'
       +(f.name?'<div style="margin-top:4px"><b>節慶：'+esc(f.name)+'</b>（'+esc(f.date)+'）<div class="text-brief">'+esc(f.cultural_lore)+'</div><div class="text-brief">'+esc(f.economic_impact)+'</div></div>':'')
       +'<div style="margin-top:4px"><b>四季</b>'+[['spring','春'],['summer','夏'],['autumn','秋'],['winter','冬']].map(([k,n])=>sr[k]?'<div class="text-brief">'+n+'：'+esc(sr[k])+'</div>':'').join('')+'</div>'
@@ -80,7 +80,7 @@ function wikiRegion(){
   const R_=wikiRegions();
   let id=UI.s.wikiRegion;if(!R_.some(r=>r.id===id))id=(CITY(G.cityId)||{}).region_id||R_[0].id;
   const r=R_.find(x=>x.id===id),types={},goods={};
-  r.cities.forEach(c=>{types[c.location_type]=(types[c.location_type]||0)+1;c.connected_commodities.forEach(n=>goods[n]=(goods[n]||0)+1)});
+  r.cities.forEach(c=>{types[c.location_type]=(types[c.location_type]||0)+1;cityProds(c).forEach(n=>goods[n]=(goods[n]||0)+1)});
   const top=Object.entries(goods).sort((a,b)=>b[1]-a[1]).slice(0,10);
   let h='<div>'+R_.map(x=>'<span class="pill '+(x.id===id?'on':'')+'" data-act="wikiRegion" data-id="'+x.id+'">'+esc(x.name)+'</span>').join('')+'</div>';
   h+='<div class="card" style="margin-top:5px"><b>'+esc(r.name)+'</b> <span class="tag gray">'+r.cities.length+' 城</span><div class="tiny" style="margin-top:3px">地形：'+Object.entries(types).map(([k,v])=>esc(k)+' '+v).join('、')+'</div>'
@@ -96,7 +96,7 @@ function wikiGoods(){
   let h='<div class="notice tiny">點物品查看說明（產地、季節、損耗、管制與公會）。</div>';
   SYS.forEach(s=>{
     const list=by[s.key]||[];if(!list.length)return;
-    const body=list.slice().sort((a,b)=>a.base-b.base).map(c=>{const n=(CITIES.filter(ct=>ct.connected_commodities.includes(c.name)).length);return '<div class="row tiny" style="margin-top:3px" data-act="commInfo" data-n="'+esc(c.name)+'"><span><span class="tag clk">'+esc(c.short.slice(0,8))+'</span> <span class="tag '+(c.luxury?'gold':c.staple?'green':'gray')+'">'+c.kind+'</span></span><span class="muted">基準 '+fmt1(c.base)+' 兩·產地 '+n+' 城</span></div>'}).join('');
+    const body=list.slice().sort((a,b)=>a.base-b.base).map(c=>{const n=(CITIES.filter(ct=>cityProds(ct).includes(c.name)).length);return '<div class="row tiny" style="margin-top:3px" data-act="commInfo" data-n="'+esc(c.name)+'"><span><span class="tag clk">'+esc(c.short.slice(0,8))+'</span> <span class="tag '+(c.luxury?'gold':c.staple?'green':'gray')+'">'+c.kind+'</span></span><span class="muted">基準 '+fmt1(c.base)+' 兩·產地 '+n+' 城</span></div>'}).join('');
     h+=wikiBox('s'+s.key,esc(s.name)+' 的貨品',body,list.length+' 種');
   });
   return h;

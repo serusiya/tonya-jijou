@@ -172,7 +172,7 @@ function tradeCard(name){
 /** 【本旬買賣總表】所有本業貨這一旬的出貨、進貨與下旬開頭；點一列切換到那項貨。 */
 function planCard(){
   const L=tradeComms();let rev=0,cost=0;
-  let h='<div class="card" id="order-card" style="background:#fff8eb"><b class="small">📋 本旬買賣總表</b><div class="row" style="margin:4px 0;gap:4px;justify-content:flex-start">'+['planMax','planQuota','planClear'].map(k=>'<button class="pixel-btn btn-sm" data-act="'+k+'">'+UT('btn.'+k)+'</button>').join('')+'</div>'+(nEmp('大番頭')?'<div class="tiny muted">有大番頭：沒動過的品項，照上旬的數量帶入。</div>':'');
+  let h='<div class="card" id="order-card" style="background:#fff8eb"><b class="small">📋 本旬買賣總表</b><div class="row" style="margin:4px 0;gap:4px;justify-content:flex-start">'+['planMax','planQuota','planClear'].map(k=>'<button class="pixel-btn btn-sm" data-act="'+k+'">'+UT('btn.'+k)+'</button>').join('')+'</div>'+((G.exile||0)>0?'<div class="tiny muted">遠島期間：沒動過的品項照配額出貨、照配額進貨。</div>':'');
   h+=L.map(c=>{const n=c.name,s=planOf(n),b=buyPlanOf(n);rev+=s>0?quoteSale(n,s).revenue:0;cost+=Math.round(unitBuyCost(n)*b);
     return '<div class="row small" data-act="focus" data-n="'+esc(n)+'" style="margin-top:3px;cursor:pointer'+(n===UI.s.focus?';font-weight:bold;color:#9b2c3a':'')+'"><span>'+esc(c.short)+'</span><span>出 '+s+'·進 '+b+'·下旬約 '+nextStock(n,s,b)+'</span></div>'}).join('')||'<div class="tiny muted">目前沒有能買賣的本業貨。</div>';
   h+='<div class="row tiny muted" style="margin-top:3px;border-top:1px dashed #b5a98f;padding-top:3px"><span>約進帳 '+fmt(rev)+' 兩</span><span>進貨花 '+fmt(cost)+' 兩</span></div>';
@@ -211,21 +211,21 @@ function maxBuy(name,ui){
   }
   return Math.max(0,Math.min(buyLeft(name),room,wh-oq,Math.floor((cash-oc)/u)));
 }
-/** 這項貨本旬的進貨設定（未夾上限）：你動過就照你的；沒動過時，有大番頭延續上旬的數量，否則 0。 */
-function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return nEmp('大番頭')&&G.lastBuy&&G.lastBuy[name]>0?G.lastBuy[name]:0}
+/** 這項貨本旬的進貨設定（未夾上限）：你動過就照你的；沒動過時預設 0，遠島期間（主人不在）照協議配額。大番頭延續上旬數量的規則已取消。 */
+const awayMode=()=>(G.exile||0)>0;
+function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return awayMode()?quotaOf(name):0}
 function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(buyRaw(name),0,maxBuy(name,true))}
 function autoBuy(log){
-  const plan={},got=[],kept=[],chief=nEmp('大番頭'),touched=new Set(Object.keys(G.buyPlan||{}));
+  const plan={},got=[],kept=[],touched=new Set(Object.keys(G.buyPlan||{}));
   tradeComms().forEach(c=>{const v=buyRaw(c.name);if(v>0)plan[c.name]=v});
-  if(chief){const nb={};tradeComms().forEach(c=>{nb[c.name]=buyRaw(c.name)});G.lastBuy=nb}else delete G.lastBuy;   // 大番頭延續的數字（記設定值，不是實際買到的量）
   G.buyPlan=Object.assign({},plan);                     // 只留還沒下單的計畫：maxBuy 會替它們保留倉位與現款
   tradeComms().forEach(c=>{
     const want=plan[c.name]||0;if(want<=0)return;
     delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進待到貨訂單量、也已扣現款，不能再保留一次
-    const q=Math.min(want,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok)(touched.has(c.name)?got:kept).push(c.short+'×'+q)}
+    const q=Math.min(want,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok){(touched.has(c.name)?got:kept).push(c.short+'×'+q);if(TURNRP){TURNRP.buy=TURNRP.buy||{};const o=TURNRP.buy[c.short]||(TURNRP.buy[c.short]={q:0,cost:0});o.q+=q;o.cost+=r.cost}}}   // 旬報：大盤進貨逐項記錄
   });
   if(got.length)log.push(NEWS('autoBuy.1',{got:got.join('、')}));
-  if(kept.length)log.push(NEWS('chief.keepBuy',{got:kept.join('、')}));
+  if(kept.length)log.push(NEWS('away.buy',{got:kept.join('、')}));   // 遠島期間照配額進貨
   G.buyPlan={};
 }
 /** 按下『出貨』：以目前預設/滑桿量出貨並標記本旬已出貨。 */
@@ -295,10 +295,10 @@ ACT.commInfo=el=>{
 const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">ⓘ說明</span>';
 
 /* ---------- 出貨預設＝本期有效協議配額；未按「出貨」，推進一旬時自動出貨 ---------- */
-/** 某物品本旬的預定出貨量：預設＝本期有效協議配額（正常供應時即穩定供貨線；有大番頭時延續同一方針下的上旬出貨量），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
+/** 某物品本旬的預定出貨量：預設＝本期有效協議配額（正常供應時即穩定供貨線），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
 function planOf(name){
   const have=G.inv[name]||0;G.plan=G.plan||{};
-  if(G.plan[name]===undefined)G.plan[name]=Math.min(nEmp('大番頭')&&G.lastShip&&G.lastShip[name]!==undefined?G.lastShip[name]:quotaOf(name),have);   // 有大番頭：延續上旬的出貨量
+  if(G.plan[name]===undefined)G.plan[name]=Math.min(quotaOf(name),have);   // 預設照本旬配額（大番頭延續上旬數量的規則已取消）
   return clamp(G.plan[name],0,have);
 }
 /** 【穩定供貨線】本城該物品需求 × 你的市佔率，四捨五入（可以是 0：冷門奢侈品在小城常如此）。出貨量達此線才算穩定供貨；0 的貨不列入判定。 */
@@ -326,7 +326,7 @@ function autoShip(log){
   if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}
   TURNRP=rep;
-  if(nEmp('大番頭')){G.lastShip={};own.forEach(c=>{G.lastShip[c.name]=G.plan[c.name]!==undefined?G.plan[c.name]:quotaOf(c.name)})}else delete G.lastShip;   // 大番頭延續的數字
+  delete G.lastShip;delete G.lastBuy;              // 舊存檔：大番頭延續的數字不再使用
   G.plan={};G.sold={};
 }
 
