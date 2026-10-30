@@ -5838,7 +5838,7 @@ function personBlock(cid,ctx){
   if(!r.bond){
     h+=UT('ppl.personBlock');
     const pv=G.introId?introPreview(G.introId,cid):null;
-    const pt=!pv?UT('ppl.pt'):pv.known?UT('ppl.pt.4',{a:pv.cp.label,b:pv.cp.shared.join(UT('ppl.pt.2'))||UT('ppl.pt.3')}):UT('ppl.pt.5');
+    const pt=!pv?UT('ppl.pt'):pv.known?UT('ppl.pt.4',{a:pv.cp.label,b:pv.cp.shared.map(statName).join(UT('ppl.pt.2'))||UT('ppl.pt.3')}):UT('ppl.pt.5');
     h+='<div class="notice tiny" style="margin:4px 0">'+pt+'</div>';
     const via=!!(G.introId&&introOf(G.introId));
     h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?UT('ppl.personBlock.2',{a:coinHtml('silver',introFee(cid))}):UT('ppl.personBlock.3',{a:costBtn('selfIntro')}))+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:coinHtml('silver',scoutCost(cid))})+'</button>')+'</div>';
@@ -6160,7 +6160,7 @@ function renderEstate(){
   h+=(G.family.conc||[]).map(x=>'<div class="card" style="display:flow-root">'+UT('ppl.renderEstate.24',{a:portraitHtml(x.cid,48),b:esc(x.name)})).join('');
   h+=kids.map(k=>{
     const a=kidAge(k);
-    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+UT('ppl.renderEstate.30',{a:k.gender==='m'?'👦':'👧',b:esc(k.name),c:kidStage(a),d:k.prodigal?UT('ppl.renderEstate.25'):''})+'<div class="tiny muted">'+(k.revealed?UT('ppl.renderEstate.26',{a:top3Of(k.stats)[0]})+'</b>':UT('ppl.renderEstate.27'))+(k.path?UT('ppl.renderEstate.28',{a:PATHS[k.path].name}):'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+UT('ppl.renderEstate.29',{a:P.name,b:P.cost})).join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costBtn('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
+    return '<div class="card '+(k.prodigal?'warn':'')+'"><div class="row"><div><b>'+UT('ppl.renderEstate.30',{a:k.gender==='m'?'👦':'👧',b:esc(k.name),c:kidStage(a),d:k.prodigal?UT('ppl.renderEstate.25'):''})+'<div class="tiny muted">'+(k.revealed?UT('ppl.renderEstate.26',{a:statName(top3Of(k.stats)[0])})+'</b>':UT('ppl.renderEstate.27'))+(k.path?UT('ppl.renderEstate.28',{a:PATHS[k.path].name}):'')+'</div></div></div>'+(a>=8&&!k.prodigal?'<div style="margin-top:3px">'+Object.entries(PATHS).map(([p,P])=>'<span class="pill '+(k.path===p?'on':'')+'" data-act="kidPath" data-id="'+k.id+'" data-p="'+p+'">'+UT('ppl.renderEstate.29',{a:P.name,b:P.cost})).join('')+'</div>':'')+(k.prodigal?'<div style="margin-top:3px"><button class="pixel-btn btn-sm" data-act="kidPay" data-id="'+k.id+'" data-m="pay">'+UT('btn.kidDebt',{c:costBtn('kidDebt')})+'</button> <button class="pixel-btn btn-sm btn-red" data-act="kidPay" data-id="'+k.id+'" data-m="out">'+UT('btn.kidPay')+'</button></div>':'')+'</div>';
   }).join('');
   // 隱居
   h+=UT('ppl.renderEstate.31',{a:UT('btn.retire')})+'</button></div>';
