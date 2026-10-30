@@ -742,7 +742,7 @@ const walletOf=k=>COSTS[k].cur;
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
 const affordAmt=(k,amt)=>G[COSTS[k].cur]>=amt;
 /** 主動支出帳：鍵＝「文字鍵|對象代號」（如 spend.buy|prod_0101、cost:visit），畫面以 spendLabel 轉成文字。 */
-const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a};
+const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a,'spend.staffEv':a=>UT('sev.label.'+a)};
 function spendLabel(k){
   if(k.startsWith('cost:')){const c=COSTS[k.slice(5)];return c?c.name:k}
   const i=k.indexOf('|'),t=i<0?k:k.slice(0,i),a=i<0?'':k.slice(i+1);
@@ -836,7 +836,7 @@ const ODDS={
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
   fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
-  fameLoss:{name:'醜聞扣知名度',inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
+  fameLoss:{name:'醜聞扣知名度',staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
   assInvestigate:{name:'命案後官府追查',base:0.12,perHeat:0.03,perRank:0.04,min:0.15,max:0.6},
@@ -849,6 +849,16 @@ const ODDS={
   /* —— 上貢（財務官員好感 100）：限期內備妥本業貨，到期按市價倍數自動上貢 —— */
   tribute:{name:'上貢',quotaMult:3,min:5,turns:4,priceMul:3,fame:3,shareUp:0.05,failAff:30},
   arsonInvestigate:{name:'縱火後官府追查',base:0.12,perHeat:0.03,rank:3,perRank:0.04,min:0.15,max:0.6}
+  /* 店員偶發事件（07zt_staffevents.js）：每旬每位店員約 0.9% 起事、全店每旬最多一件；權重 w*；金額 90～110 兩；
+     payAff／ignAff 出錢／不管的好感增減，payLoyal 忠誠成長，jail 關押旬數，relapse 賭癮再犯機率，creditor 債主上門機率，quit 番頭以上請辭機率 */
+  ,staffEvent:{name:'店員偶發事件',perEmp:0.009,cap:0.12,cooldown:36,wedTenure:36,costMin:90,costMax:110,
+    wWeak:6,wStat:2,wIll:1.5,wIllWeak:4,wWed:1.5,wPoach:1.5,wFrame:0.5,
+    gamble:{payAff:12,ignAff:-10,relapse:0.3,relapseMin:9,relapseMax:30,skimTurns:36,creditor:0.2},
+    drunk:{payAff:8,ignAff:-8,jail:3},
+    ill:{payAff:15,payLoyal:2,ignAff:-12,quit:0.1},
+    wed:{payAff:10,payLoyal:1,ignAff:-3},
+    poach:{payAff:5},
+    frame:{payAff:10,ignAff:-15,jail:6}}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
 const roll=(k,p)=>chance(p===undefined?ODDS[k].p:p);
@@ -2081,7 +2091,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官吏、同業、名士、花街名伶，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，官吏也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。做事、結識官員、穩定供貨都會讓商號知名度上升；名聲響徹全城之後，尋常小事不再為人稱道，要靠結識高官、上貢、饑荒時施粥這類大事才能更上一層。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
-  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點，人多了還能照料庫存、少些損耗；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳：在家裡跟人閒聊聽到風聲，才好查帳；查帳很傷人情，冤枉了好人更是。查出來可以追討、寬恕或辭退，各有後果。待得久的店員每年都會長進一點，從底下提拔上來的「自家栽培」更忠心、手腳也乾淨；平常對店員好，比事後查帳有用。保鏢平時守倉庫，出門時護著你。丁稚固定可以收兩名，大番頭只能有一名；其他店員一開始都只能雇一名，要多雇得先向官府申請許可。',
+  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點，人多了還能照料庫存、少些損耗；番頭管採購，可向大盤進更多貨；大番頭是總管，也和番頭一樣能多進貨，每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳：在家裡跟人閒聊聽到風聲，才好查帳；查帳很傷人情，冤枉了好人更是。查出來可以追討、寬恕或辭退，各有後果。待得久的店員每年都會長進一點，從底下提拔上來的「自家栽培」更忠心、手腳也乾淨；平常對店員好，比事後查帳有用。店員偶爾會惹上麻煩或遇上急事，出手幫一把，人心就跟著你。保鏢平時守倉庫，出門時護著你。丁稚固定可以收兩名，大番頭只能有一名；其他店員一開始都只能雇一名，要多雇得先向官府申請許可。',
   'wiki.WIKI_GUIDE.15':'🏛️ 官府',
   'wiki.WIKI_GUIDE.16':'城裡的官員分屬行政、財務、司法三系官署，上面還有管整個地區的遠國奉行所。他們掌管許可、稅賦、查緝與審判：行政系統核發倉地、船株與人別帳，財務系統核發交易許可、馬幫株並放貸，司法系統核發帶刀許可、袖之下與減罪狀。許可分等級，官階越高的官員給得越多。官吏有各自的性格與弱點，打通關節能少很多麻煩，但也有人會反過來勒索。詳見「官吏」分頁。',
   'wiki.WIKI_GUIDE.17':'🏮 節慶',
@@ -2460,7 +2470,42 @@ const UI_TXT={
   'body.yamenGo':'求見官老 ▶',
   'body.flowerGo':'入席 ▶',
   'body.resGo':'投名帖 ▶',
-  'body.regionalGo':'遞名帖 ▶'
+  'body.regionalGo':'遞名帖 ▶',
+  /* —— 店員偶發事件（07zt_staffevents.js） —— */
+  'face.title.staff':'👥 店員急事',
+  'sev.gamble':'東家……小的一時糊塗，在賭場欠下一筆債，債主揚言要上門來討。',
+  'sev.gamble.ask':'替他還債，約 {a} 兩。',
+  'sev.drunk':'昨夜喝多了，在酒館砸了人家的桌椅，對方說不賠錢就要告官……',
+  'sev.drunk.ask':'替他賠錢，約 {a} 兩。',
+  'sev.ill':'家母忽然病重，鄉下大夫束手無策，小的實在沒辦法了……',
+  'sev.ill.ask':'替他請名醫，約 {a} 兩。',
+  'sev.wed':'東家，小的要成親了，想請東家主婚，給小的撐個場面。',
+  'sev.wed.ask':'包賀禮出席主婚，約 {a} 兩。',
+  'sev.poach':'不瞞東家，「{r}」那邊開了好條件，要小的過去幫忙……',
+  'sev.poach.ask':'包個紅包留住他，約 {a} 兩。',
+  'sev.frame':'東家救命！小的被人誣陷偷了貨，如今關在番所裡……',
+  'sev.frame.ask':'付保釋金，約 {a} 兩。',
+  'btn.sevPay.gamble':'還債 {c}',
+  'btn.sevPay.drunk':'賠錢 {c}',
+  'btn.sevPay.ill':'請名醫 {c}',
+  'btn.sevPay.wed':'包賀禮 {c}',
+  'btn.sevPay.poach':'包紅包 {c}',
+  'btn.sevPay.frame':'保釋 {c}',
+  'btn.sevIgnore.gamble':'不管',
+  'btn.sevIgnore.drunk':'讓他自己擔',
+  'btn.sevIgnore.ill':'不聞不問',
+  'btn.sevIgnore.wed':'婉拒',
+  'btn.sevIgnore.poach':'放他走',
+  'btn.sevIgnore.frame':'不管',
+  'sev.label.gamble':'賭債',
+  'sev.label.drunk':'鬧事賠償',
+  'sev.label.ill':'請醫',
+  'sev.label.wed':'主婚賀禮',
+  'sev.label.poach':'留人紅包',
+  'sev.label.frame':'保釋金',
+  'spend.staffEv':'店員急事：{n}',
+  'staff.jailed':'<span class="tag red">⛓ 關押中·{a} 旬</span>',
+  'sev.verified':'經此一事，看清了他的軟肋：{w}。'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -2830,7 +2875,21 @@ const MSG_TXT={
   'loyal.chiefBook.2':'私房錢不足。',
   'loyal.chiefBook.3':'私房錢',
   'loyal.chiefBook.4':'現款',
-  'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）'
+  'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）',
+  /* —— 店員偶發事件（07zt_staffevents.js） —— */
+  'sev.short':'現款不夠。',
+  'sev.gamble.pay':'你替{n}還清了賭債，他連聲道謝，發誓再也不碰骰子。',
+  'sev.gamble.ign':'{n}低著頭退下，眼神有些怨懟。',
+  'sev.drunk.pay':'你替{n}賠了錢，他酒醒後羞愧不已。',
+  'sev.drunk.ign':'{n}被關進番所，要過幾旬才放出來。',
+  'sev.ill.pay':'名醫看過，{n}的家人轉危為安，他紅了眼眶。',
+  'sev.ill.ign':'{n}沒再多說什麼，只是做事沒了精神。',
+  'sev.wed.pay':'你出席主婚，{n}的婚禮辦得體面，他感激不盡。',
+  'sev.wed.ign':'{n}的婚禮冷冷清清，他有些失望。',
+  'sev.poach.pay':'你塞了個紅包，{n}笑著說哪兒也不去了。',
+  'sev.poach.ign':'{n}收拾行李，轉往「{r}」效力。',
+  'sev.frame.pay':'你付了保釋金，{n}當天就回到店裡，對你感激涕零。',
+  'sev.frame.ign':'{n}在番所關了好些日子，留下了前科。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -3051,7 +3110,12 @@ const NEWS_TXT={
   "fwalk.famWho.3":"側室",
   "enemy.introQuit":"🤝【請辭】「{a}」與你反目，辭去介紹人。",
   "rival.heir":"🏪【繼承】已故「{old}」的私生子「{name}」繼承家業，接掌商號。",
-  "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。"
+  "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。",
+  /* —— 店員偶發事件 —— */
+  "sev.auto":"👥【店員】{m}",
+  "sev.creditor":"💢【店員】債主找上店門討{n}的賭債，街坊議論紛紛。",
+  "sev.quit":"🚪【店員】{k}{n}寄來辭呈，說要回鄉照顧家人。",
+  "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -3074,11 +3138,11 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
   disaster:["holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2"];
@@ -3099,6 +3163,7 @@ const CHANGELOG=[
     '公會例會設定更新：改在每季第一旬召開，例會上同業會發言。',
     '各城物價的高低重新洗牌一次。',
     '本城同業過世後，會有人繼承家業補上。',
+    '新增店員急事：賭債、酒後鬧事、家人急病、成親、挖角、遭人誣陷，出手相助能收攏人心。',
     '存檔格式更新：舊存檔讀取時自動轉換；新存檔不能再拿回舊版讀。',
     '修改背景資料'
   ]},
@@ -4004,6 +4069,7 @@ function advanceTurn(){
   dealerTick(log);
   empTick(log);
   chiefTick(log);
+  staffEventTick(log);                            // 店員偶發事件（07zt_staffevents.js）
   upkeep(log);
   randomEvent(log);
   cityTick(log);
@@ -6329,7 +6395,7 @@ const guardPower=e=>statsOfEmp(e).audacity_courage;
  */
 function rollAmbush(){
   if(!chance(ambushChance()))return null;
-  const gs=G.emps.filter(e=>e.rank==='guard').sort((a,b)=>guardPower(b)-guardPower(a));
+  const gs=G.emps.filter(e=>e.rank==='guard'&&!jailedEmp(e)).sort((a,b)=>guardPower(b)-guardPower(a));
   if(gs.length){
     const g=gs[0],pw=guardPower(g);
     // 膽識 ≥70 必定無傷退敵；否則機率 (pw/70)^2，失敗則保鏢替你擋刀而亡
@@ -6815,8 +6881,8 @@ const confessP=loyal=>clamp(ODDS.confess.base-loyal/ODDS.confess.loyalDiv,ODDS.c
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
 const DUTY_DESC={};RANKS.concat(SPECIAL).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));   // 說明文字在 01e_ui_text.js（duty.*）
-const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
-const empsOf=rk=>G.emps.filter(e=>e.rank===rk);
+const nEmp=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e)).length;   // 關押中的店員不算（07zt_staffevents.js）
+const empsOf=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e));
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
 /** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
@@ -7032,7 +7098,7 @@ const voyQTotal=()=>voyQ().reduce((a,q)=>a+q.budget,0);
 const idleCaptains=(mode,inclQ)=>{
   const used=new Set(G.ships.map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));
   if(!inclQ)voyQ().forEach(q=>used.add(q.capt));
-  return G.emps.filter(e=>e.rank===MODE_RANK[mode]&&!used.has(e.id));
+  return G.emps.filter(e=>e.rank===MODE_RANK[mode]&&!used.has(e.id)&&!jailedEmp(e));
 };
 /** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
 function voyQPrune(){if(!G.voyQueue)return;G.voyQueue=G.voyQueue.filter(q=>idleCaptains(q.mode,true).some(e=>e.id===q.capt))}
@@ -8118,6 +8184,8 @@ function faceEventCard(e){
     const O=G.xoffer;if(!O||O.cid!==e.cid||O.turn!==e.turn)return null;
     line=UT('face.faceEventCard.10',{a:fmt(O.loan),b:xName(O.name),c:O.qty});effect=UT('face.faceEventCard.11');
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div>';
+  }else if(e.type==='staff'){
+    const C=sevCard(e,name);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 店員偶發事件（07zt_staffevents.js）
   }else return null;
   return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:17px">'+esc(name)+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(tag),b:esc(line),c:esc(effect)})+'</div>'+buttons+'</div>';
 }
@@ -8129,7 +8197,7 @@ function showNextFaceEvent(){
   save();
   if(!h)return;
   INFO_AFTER=q.length?showNextFaceEvent:null;
-  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5')}[e.type]||UT('face.faceEventCard');
+  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5'),staff:UT('face.title.staff')}[e.type]||UT('face.faceEventCard');
   UI.showInfo(title,h);
 }
 /** 在旬報開啟後登記接續動作；玩家關閉旬報才開始逐件會面。 */
@@ -9512,7 +9580,7 @@ const hasRumor=e=>e.rumorUntil>G.turn;
 /** 員工卡上的標籤（任職年資、自家栽培、前科、被冤枉、有風聲、待處置）。 */
 function staffTags(e){
   const y=Math.floor((G.turn-e.since)/STAFF.year);
-  return (e.homegrown?UT('staff.staffTags'):'')+(e.record?UT('staff.staffTags.2'):'')+(e.wronged?UT('staff.staffTags.3'):'')
+  return (jailedEmp(e)?UT('staff.jailed',{a:e.jailUntil-G.turn}):'')+(e.homegrown?UT('staff.staffTags'):'')+(e.record?UT('staff.staffTags.2'):'')+(e.wronged?UT('staff.staffTags.3'):'')
     +(e.caught?UT('staff.staffTags.4',{a:fmt(e.caught)}):hasRumor(e)?UT('staff.staffTags.5'):'');
 }
 const staffTenure=e=>{const n=G.turn-e.since,y=Math.floor(n/STAFF.year);return y>=1?UT('staff.staffTenure',{a:y}):UT('staff.staffTenure.2',{a:n})};
@@ -9557,6 +9625,89 @@ function auditDecide(id,k){
 }
 ACT.audit=el=>{const r=auditEmp(el.dataset.id);if(r.msg)UI.showInfo(UT('staff.audit'),(r.found?'<div class="notice">':'<div class="notice tiny">')+esc(r.msg)+'</div>');if(r.ok)sfx[r.found?'bad':'tap']();UI.render();refreshSheet()};
 ACT.auditDo=el=>{const m=auditDecide(el.dataset.id,el.dataset.k);if(m){toast(m,5200);sfx.coin()}UI.hideInfo();UI.render();refreshSheet()};
+
+'use strict';
+/* ======================= 店員偶發事件（第一百四十八節） =======================
+ *  賭債、酒後鬧事、家人急病、成親主婚、同行挖角、遭人誣陷：旬報後以人物事件視窗出現，只有「出錢」「不管」兩個選項，當下決定。
+ *  - 每旬全店最多一件；同一位店員一年內不再遇到（賭債再犯除外）；遠島期間、出門在外的船長飛腳不觸發。
+ *  - 出錢一律約 100 兩（90～110，現款）；畫面不顯示好感數字，只寫一句敘事。
+ *  - 名冊人物的軟肋（嗜賭、好酒、溺愛子女、懼內）會提高對應事件的機會，事件後軟肋即被證實。
+ *  - 沒選就關掉視窗：下一旬推進時視為「不管」，結果寫進旬報。
+ *  數值在 01c_odds.js 的 ODDS.staffEvent；文字在 01e（sev.*）、01f（sev.*）、01g（sev.*）。 */
+const SEV_TYPES=['gamble','drunk','ill','wed','poach','frame'];
+/** 事件與軟肋的對應：發生後證實軟肋。 */
+const SEV_WEAK={gamble:['gambling'],drunk:['wine'],ill:['children','henpecked']};
+/** 關押中的店員不做事（職能、出門、護衛都不算他）。 */
+const jailedEmp=e=>!!e&&e.jailUntil>G.turn;
+const sevAway=e=>G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
+/** 加權抽選。 */
+function sevPick(L,w){const tot=L.reduce((a,x)=>a+w(x),0);if(tot<=0)return null;let r=rnd()*tot;for(const x of L){r-=w(x);if(r<0)return x}return L[L.length-1]}
+/** 某店員各事件的權重（看軟肋與能力）。 */
+function sevWeights(e){
+  const O=ODDS.staffEvent,s=statsOfEmp(e),w=e.cid&&CH(e.cid)?CH(e.cid).weakness:null;
+  return {
+    gamble:w==='gambling'?O.wWeak:(s.greed_index>=60&&s.audacity_courage>=55?O.wStat:0),
+    drunk:w==='wine'?O.wWeak:(s.audacity_courage>=60&&s.integrity_loyalty<50?O.wStat:0),
+    ill:(w==='children'||w==='henpecked')?O.wIllWeak:O.wIll,
+    wed:G.turn-e.since>=O.wedTenure&&!e.wed?O.wWed:0,
+    poach:['banto','chief','captain'].includes(e.rank)&&s.commerce_skill>=60&&rivalsHere().length?O.wPoach:0,
+    frame:O.wFrame
+  };
+}
+/** 推進一旬時：先把上旬沒選的事件當作不管，再擲本旬的事件。 */
+function staffEventTick(log){
+  if(G.staffEv&&!G.staffEv.done){const m=sevResolve(false);if(m){const t=NEWS('sev.auto',{m});pushNews(t);log.push(t)}}
+  G.staffEv=null;
+  if((G.exile||0)>0||G.ended)return;
+  const O=ODDS.staffEvent,t=G.turn;
+  let e=G.emps.find(x=>x.relapseAt===t&&!jailedEmp(x)&&!sevAway(x)),type='gamble';   // 賭癮再犯
+  if(e)delete e.relapseAt;
+  else{
+    const L=G.emps.filter(x=>!(x.sevT>t-O.cooldown)&&!jailedEmp(x)&&!sevAway(x));
+    if(!L.length||!chance(Math.min(O.cap,O.perEmp*L.length)))return;
+    const C=L.map(x=>{const W=sevWeights(x);return {x,W,s:SEV_TYPES.reduce((a,k)=>a+W[k],0)}});
+    const c=sevPick(C,c=>c.s);if(!c)return;
+    e=c.x;type=sevPick(SEV_TYPES,k=>c.W[k]);
+  }
+  e.sevT=t;
+  const S={empId:e.id,type,cost:rint(O.costMin,O.costMax),turn:t,done:false};
+  if(type==='poach'){const r=pick(rivalsHere());S.rival=r?r.cid:null}
+  G.staffEv=S;queueFaceEvent({type:'staff',empId:e.id,turn:t});
+}
+/** 人物事件卡的內容（07s_face_events.js 呼叫）。 */
+function sevCard(e,name){
+  const S=G.staffEv;if(!S||S.done||S.turn!==e.turn||S.empId!==e.empId)return null;
+  const v={n:name,a:fmt(S.cost),r:S.rival?nameOf(S.rival):''};
+  return {line:UT('sev.'+S.type,v),effect:UT('sev.'+S.type+'.ask',v),
+    buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="sevPay" '+(G.silver<S.cost?'disabled':'')+'>'+UT('btn.sevPay.'+S.type,{c:coinHtml('silver',S.cost)})+'</button><button class="pixel-btn btn-sm" data-act="sevIgnore">'+UT('btn.sevIgnore.'+S.type)+'</button></div>'};
+}
+/** 結算：pay＝出錢；回傳要給玩家看的一句話（後果另寫旬報新聞）。 */
+function sevResolve(pay){
+  const S=G.staffEv;if(!S||S.done)return null;
+  const e=G.emps.find(x=>x.id===S.empId);S.done=true;if(!e)return null;
+  const X=ODDS.staffEvent[S.type],t=G.turn,nm=e.name,v={n:nm,r:S.rival?nameOf(S.rival):'',k:rankName(e.rank)};
+  const aff=d=>{e.aff=clamp(empAff(e)+d,0,100)},leave=()=>{G.emps=G.emps.filter(x=>x!==e);if(e.cid&&npc(e.cid))npc(e.cid).hired=false},news=k=>pushNews(NEWS(k,v));
+  let msg;
+  if(pay){
+    payPublic('spend.staffEv|'+S.type,S.cost);aff(X.payAff);if(X.payLoyal)growStat(e,'integrity_loyalty',X.payLoyal);
+    if(S.type==='gamble'&&chance(X.relapse))e.relapseAt=t+rint(X.relapseMin,X.relapseMax);
+    if(S.type==='wed')e.wed=true;
+    msg=MSG('sev.'+S.type+'.pay',v);
+  }else{
+    aff(X.ignAff||0);msg=MSG('sev.'+S.type+'.ign',v);
+    if(S.type==='gamble'){e.boldUntil=Math.max(e.boldUntil||0,t+X.skimTurns);if(chance(X.creditor)){loseFame('staffEv');news('sev.creditor')}}
+    else if(S.type==='drunk'){e.jailUntil=t+X.jail;loseFame('staffEv')}
+    else if(S.type==='ill'){if(['banto','chief'].includes(e.rank)&&chance(X.quit)){leave();news('sev.quit')}}
+    else if(S.type==='wed')e.wed=true;
+    else if(S.type==='poach'){leave();news('sev.poached')}
+    else if(S.type==='frame'){e.jailUntil=t+X.jail;e.record=true}
+  }
+  if(e.cid&&(SEV_WEAK[S.type]||[]).includes(CH(e.cid).weakness)){const r=R(e.cid);if(!r.verified){r.verified=true;logRel(e.cid,UT('sev.verified',{w:weakName(CH(e.cid).weakness)}))}}
+  return msg;
+}
+ACT.sevPay=()=>{const S=G.staffEv;if(!S||S.done)return UI.hideInfo();if(G.silver<S.cost){toast(MSG('sev.short'));return}
+  const m=sevResolve(true);sfx.coin();UI.hideInfo();if(m)toast(m,4200);UI.render()};
+ACT.sevIgnore=()=>{const m=sevResolve(false);UI.hideInfo();if(m)toast(m,4200);UI.render()};
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
