@@ -16,8 +16,8 @@ function xLot(){
 function xgoodsCard(){
   const ks=Object.keys(G.xinv||{}).filter(k=>G.xinv[k]>0);
   if(!ks.length)return '';
-  let h='<div class="card"><b class="small">📦 他行貨物（非本業）</b><div class="tiny muted">大盤不收。拜訪交情 60 以上的座客商人，打勝後可請他代售，一次一項、整批全收。</div>';
-  h+=ks.map(k=>'<div class="row small" style="margin-top:3px"><span>'+esc(xName(k))+' × '+G.xinv[k]+'</span><span class="tiny muted">基準價 '+fmt1(COMM_MAP[k].base)+' 兩</span></div>').join('');
+  let h=UT('xg.h');
+  h+=ks.map(k=>'<div class="row small" style="margin-top:3px"><span>'+UT('xg.xgoodsCard',{a:esc(xName(k)),b:G.xinv[k],c:fmt1(COMM_MAP[k].base)})).join('');
   return h+'</div>';
 }
 /* ---------- 來源②：商人拿貨抵押借錢（旬報選項卡） ---------- */
@@ -26,8 +26,8 @@ ACT.xoAccept=()=>{
   if(G.silver<O.loan){toast(MSG('xoAccept.1',{O:fmt(O.loan)}));return}
   const room=Math.max(0,invCap()-invUsed()),q=Math.min(O.qty,room);
   if(q<=0){toast(MSG('xoAccept.2'));G.xoffer=null;UI.hideInfo();return}
-  payPublic('商人週轉：'+xName(O.name),O.loan);G.xinv=G.xinv||{};G.xinv[O.name]=(G.xinv[O.name]||0)+q;
-  const r=R(O.cid);setAff(r,clamp(r.aff+6,0,100));logRel(O.cid,'借他 '+O.loan+' 兩，收下「'+xName(O.name)+'」作抵押。好感 +6。');
+  payPublic('spend.xloan|'+O.name,O.loan);G.xinv=G.xinv||{};G.xinv[O.name]=(G.xinv[O.name]||0)+q;
+  const r=R(O.cid);setAff(r,clamp(r.aff+6,0,100));logRel(O.cid,UT('xg.xoAccept',{a:O.loan,b:xName(O.name)}));
   toast(MSG('xoAccept.3',{O:fmt(O.loan),xName:xName(O.name),q}));G.xoffer=null;sfx.coin();UI.hideInfo();UI.render();
 };
 ACT.xoDecline=()=>{G.xoffer=null;UI.hideInfo();toast(MSG('xoDecline.1'))};
@@ -52,7 +52,7 @@ function xgoodsTick(log){
     const os=npcs.filter(n=>n.role==='official'&&alive(n.cid)&&R(n.cid).met&&!awayNow(n));
     if(os.length){
       const n=pick(os),L=xLot(),c=L&&L.c,q=L?L.q:0;
-      if(q>0){G.xinv[c.name]=(G.xinv[c.name]||0)+q;logRel(n.cid,'把一批「'+c.short+'」硬塞給你處理。');
+      if(q>0){G.xinv[c.name]=(G.xinv[c.name]||0)+q;logRel(n.cid,UT('xg.xgoodsTick',{a:c.short}));
         queueFaceEvent({type:'xforce',cid:n.cid,name:c.name,qty:q});
         log.push(NEWS('xgoodsTick.2',{n:nameOf(n.cid),short:c.short,q}))}
     }

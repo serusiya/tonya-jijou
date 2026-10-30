@@ -165,10 +165,8 @@ document.addEventListener('pointerdown',()=>{if(AC&&AC.state==='suspended'&&!doc
 
 /* ======================= 設定面板（選單最上方） ======================= */
 function audioSettingsHtml(){
-  const sw=(k,on,lb)=>'<button class="pixel-btn btn-sm '+(on?'btn-gold':'')+'" data-act="audioToggle" data-k="'+k+'" style="flex:1">'+lb+'：'+(on?'開':'關')+'</button>';
-  return '<div class="card"><b class="small">🎵 聲音</b><div class="row" style="gap:6px;margin-top:5px">'+sw('music',AUDIO.music,'音樂')+sw('sfx',AUDIO.sfx,'音效')+'</div>'
-    +'<div class="row small" style="gap:6px;margin-top:6px"><span>音量</span><input type="range" min="0" max="100" value="'+AUDIO.vol+'" data-audio="vol" style="flex:1"><b id="audio-vol">'+AUDIO.vol+'</b></div>'
-    +'<div class="tiny muted" style="margin-top:3px">主畫面《市井囃子》、拜訪《登門囃子》、人生終章《暖簾囃子》。設定只存在這台裝置的瀏覽器。</div></div>';
+  const sw=(k,on,lb)=>'<button class="pixel-btn btn-sm '+(on?'btn-gold':'')+'" data-act="audioToggle" data-k="'+k+'" style="flex:1">'+UT('music.sw.3',{a:lb,b:on?UT('music.sw'):UT('music.sw.2')})+'</button>';
+  return UT('music.audioSettingsHtml.3',{a:sw('music',AUDIO.music,UT('music.audioSettingsHtml')),b:sw('sfx',AUDIO.sfx,UT('music.audioSettingsHtml.2'))})+'</div>'+UT('music.audioSettingsHtml.4',{a:AUDIO.vol})+'" data-audio="vol" style="flex:1"><b id="audio-vol">'+AUDIO.vol+'</b></div>'+UT('music.audioSettingsHtml.5');
 }
 ACT.audioToggle=el=>{const k=el.dataset.k;AUDIO[k]=!AUDIO[k];audioSave();audioApply();musicSync();if(AUDIO.sfx)sfx.tap();refreshSheet()};
 document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.audio==='vol'){AUDIO.vol=+e.target.value;const v=$('#audio-vol');if(v)v.textContent=AUDIO.vol;audioApply();audioSave()}});

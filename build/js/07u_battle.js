@@ -12,12 +12,12 @@
  *  - 狀態只在 BT（不存檔）。 */
 /** 六種禮物（不花錢，只代表投其所好）：每種對應兩個軟肋；prop＝拜訪動畫用的道具樣式。 */
 const GIFTS=[
-  {k:'curio',name:'名家珍玩',icon:'🖼️',prop:'antique',weak:['喜好收受罕見字畫','癡迷古代珍奇異寶']},
-  {k:'feast',name:'花街酒宴',icon:'🍶',prop:'wine',weak:['好美酒佳釀','沉迷吉原風月名妓']},
-  {k:'family',name:'家眷厚禮',icon:'🎀',prop:'wife',weak:['溺愛幼子幼女','懼內且聽信枕邊風']},
-  {k:'plaque',name:'捐匾施賑',icon:'🏷️',prop:'fame',weak:['貪圖聲名愛好虛榮','憐憫落魄流民乞丐']},
-  {k:'amulet',name:'必勝御守',icon:'🧧',prop:'charm',weak:['篤信神佛與方術','賭性深重難以自拔']},
-  {k:'horse',name:'名馬武具',icon:'🐎',prop:'safe',weak:['天生畏懼水路遠航','心胸狹隘睚眥必報']}
+  {k:'curio',name:UT('bt.GIFTS'),icon:'🖼️',prop:'antique',weak:['art','antique']},
+  {k:'feast',name:UT('bt.GIFTS.2'),icon:'🍶',prop:'wine',weak:['wine','courtesan']},
+  {k:'family',name:UT('bt.GIFTS.3'),icon:'🎀',prop:'wife',weak:['children','henpecked']},
+  {k:'plaque',name:UT('bt.GIFTS.4'),icon:'🏷️',prop:'fame',weak:['vanity','pity']},
+  {k:'amulet',name:UT('bt.GIFTS.5'),icon:'🧧',prop:'charm',weak:['faith','gambling']},
+  {k:'horse',name:UT('bt.GIFTS.6'),icon:'🐎',prop:'safe',weak:['seafear','grudge']}
 ];
 const GIFT_MAP={};GIFTS.forEach(g=>GIFT_MAP[g.k]=g);
 /** 好友門檻：好感達此值，禮物倍率一律 1、官員出現請託。 */
@@ -50,7 +50,7 @@ function btGroups(cid){
   if(n&&n.pos){out.push(L.rank[n.pos.rank<=2?'low':n.pos.rank<=4?'mid':'high']);if(L.court[n.pos.court])out.push(L.court[n.pos.court])}
   else if(n&&L.role[n.role])out.push(L.role[n.role]);
   const a=ageOf(cid);out.push(L.age[a<35?'young':a<55?'prime':'old']);
-  if(c.gender==='女')out.push(L.fem);
+  if(c.gender==='f')out.push(L.fem);
   return out;
 }
 /** 本場拜訪已說過的句子（每場開始時清空）與最近說過的 30 句（跨場，不存檔）。 */
@@ -60,7 +60,7 @@ function btSay(cid,stage,vars){
   const n=npc(cid),L=LINES.battle,at=(o,p)=>p.split('.').reduce((x,k)=>x&&x[k],o),kind=n&&n.pos?officialKind(n):'merchant';
   let pool=[].concat(['low','mid','close','win'].includes(stage)?L[stage][kind]:at(L,stage)||[]);
   btGroups(cid).forEach(g=>{const v=at(g,stage);if(Array.isArray(v))pool=pool.concat(v)});
-  if(stage==='snub'){if(n&&n.pos)pool=pool.concat(L.snubX.official);else if(n&&n.role==='smuggler')pool=pool.concat(L.snubX.smuggler);if(CH(cid)&&CH(cid).gender==='女')pool=pool.concat(L.snubX.fem)}
+  if(stage==='snub'){if(n&&n.pos)pool=pool.concat(L.snubX.official);else if(n&&n.role==='smuggler')pool=pool.concat(L.snubX.smuggler);if(CH(cid)&&CH(cid).gender==='f')pool=pool.concat(L.snubX.fem)}
   /* 避免重複：先排除本場已說過的句子與最近說過的 30 句；用完再放寬，至少不與上一句相同 */
   let cand=pool.filter(x=>!BT_USED.has(x)&&!BT_RECENT.includes(x));
   if(!cand.length)cand=pool.filter(x=>!BT_USED.has(x));
@@ -87,10 +87,10 @@ function giftOptions(cid){
 /** 人物卡的拜訪區塊（已結識者）。 */
 function visitRowHtml(cid){
   const r=R(cid),friend=r.aff>=FRIEND_AFF;
-  let h='<div class="small bold" style="margin-top:5px">🎁 登門拜訪</div>';
-  if(friend)h+='<div class="tiny muted" style="margin-top:2px">交情已深，帶什麼禮都不計較。</div>';
-  else h+='<div class="row" style="gap:4px;margin-top:2px"><span class="tiny">禮物</span><select class="gift-sel" style="flex:1">'+giftOptions(cid)+'</select></div>';
-  const n=npc(cid);if(n&&n.pos)h+='<div class="tiny muted" style="margin-top:3px">'+(friend?'見面時表示心意，對方高興了，才好開口請託。':'交情到了，才好開口請託。')+'</div>';
+  let h=UT('bt.h');
+  if(friend)h+=UT('bt.visitRowHtml');
+  else h+=UT('bt.visitRowHtml.2',{a:giftOptions(cid)})+'</select></div>';
+  const n=npc(cid);if(n&&n.pos)h+='<div class="tiny muted" style="margin-top:3px">'+(friend?UT('bt.visitRowHtml.3'):UT('bt.visitRowHtml.4'))+'</div>';
   h+='<div style="margin-top:4px;display:flex;gap:4px"><button class="pixel-btn btn-sm btn-gold" style="flex:2" data-act="visit" data-cid="'+cid+'">'+UT('btn.visit')+'</button>'+errandBtn(cid)+'</div>';
   return h;
 }
@@ -113,22 +113,22 @@ function battleStart(cid,giftKey){
   if(hit)r.verified=true;
   if(!friend&&g&&g.k==='plaque')G.life.charity++;
   BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,
-    open:btSay(cid,friend?'openFriend':hit?'openHit':'openMiss',{g:g?g.name:'禮物'}),line:''};
+    open:btSay(cid,friend?'openFriend':hit?'openHit':'openMiss',{g:g?g.name:UT('bt.battleStart')}),line:''};
   BT.expect=btRollExpect(cid);BT.hint=btHint(cid,BT.expect);          // 開場就透露第一回合的期待
   musicWant('visit');                                   // 拜訪戰鬥換成《登門囃子》
-  logRel(cid,friend?'登門拜訪，老朋友相見。':'登門拜訪，帶去「'+(g?g.name:'禮物')+'」'+(hit?'，正中下懷。':'。'));
+  logRel(cid,friend?UT('bt.battleStart.2'):UT('bt.battleStart.5',{a:g?g.name:UT('bt.battleStart'),b:hit?UT('bt.battleStart.3'):UT('bt.battleStart.4')}));
   battleShow();
 }
 /** 對話框內容。 */
 function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
   let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
-  h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?'該怎麼表示心意？':left===2?'對方還在聽。':'對方的耐性快到頭了。')+(B.spent?'　已奉上 '+fmt(B.spent)+' 兩。':'')+'</div>';
-  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+['小','中','大'].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
-  h+='<div style="margin-top:6px;text-align:right"><button class="pixel-btn btn-sm" data-act="btEnd">閒話家常，告辭</button></div>';
+  h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?UT('bt.battleHtml'):left===2?UT('bt.battleHtml.2'):UT('bt.battleHtml.3'))+(B.spent?UT('bt.battleHtml.4',{a:fmt(B.spent)}):'')+'</div>';
+  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
+  h+=UT('bt.battleHtml.8');
   return h;
 }
-function battleShow(){UI.showInfo('🍵 拜訪·'+nameOf(BT.cid),battleHtml())}
+function battleShow(){UI.showInfo(UT('bt.battleShow',{a:nameOf(BT.cid)}),battleHtml())}
 /** 出價一回合。 */
 ACT.btOffer=el=>{
   const B=BT;if(!B||B.done)return;
@@ -141,7 +141,7 @@ ACT.btOffer=el=>{
 function battleHit(amt,tier){
   const B=BT,n=npc(B.cid),hit=tier!==undefined&&tier===B.expect;
   if(hit)B.hits++;
-  payPublic('拜訪賄賂：'+nameOf(B.cid),amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult*(hit?BT_HIT_X:1);sfx.coin();
+  payPublic('spend.bribe|'+B.cid,amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult*(hit?BT_HIT_X:1);sfx.coin();
   if(n&&n.pos&&!B.heat){B.heat=true;addHeat(officialKind(n)==='greedy'?0.3:0.2);G.life.gold+=1}
   B.line=btLine(B.cid,B.dmg/B.hp);
 }
@@ -152,18 +152,18 @@ function battleEnd(){
   if(!B.errand)musicWant('market');                     // 戰鬥結束，回到主畫面配樂
   const cid=B.cid,r=R(cid),n=npc(cid),win=B.dmg>=B.hp;
   if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
-    r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,'話不投機，對方嫌你不善言辭'+(B.spent?'（奉上 '+B.spent+' 兩）':'')+'。');sfx.bad();
+    r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,UT('bt.battleEnd.2',{a:B.spent?UT('bt.battleEnd',{a:B.spent}):''}));sfx.bad();
     UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub'),4600);BT=null;return;
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   const hiOff=n&&n.pos&&n.pos.rank>=4;            // 四～六階官員：打勝知名度＝結識時的一半（0.75×官階，隨知名度遞減）
   setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1,win&&hiOff?'mid':undefined);
-  logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
+  logRel(cid,UT('bt.battleEnd.6',{a:((win?UT('bt.battleEnd.3'):UT('bt.battleEnd.4'))+(B.spent?UT('bt.battleEnd.5',{a:B.spent}):'')),b:gain}));
   if(win)sfx.gift();
-  const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';
+  const msg=UT('bt.msg',{a:win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'),b:gain});
   UI.render();refreshSheet();
-  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo('📜 請託·'+nameOf(cid),requestHtml(cid,msg));return}
+  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg));return}
   UI.hideInfo();toast(msg,4200);BT=null;
 }
 /* 對話框被直接關掉＝閒話告辭 */
@@ -178,7 +178,7 @@ function errandVisit(cid){
   battleHit(amt);BT=null;
   const gain=Math.max(0,Math.min(rint(ERRAND_GAIN[0],ERRAND_GAIN[1]),FRIEND_AFF-r.aff));
   setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(0.1);
-  logRel(cid,'丁稚代為送上禮金 '+amt+' 兩，好感 +'+gain+'。');
+  logRel(cid,UT('bt.errandVisit',{a:amt,b:gain}));
   toast(MSG('errand.done',{cid:nameOf(cid),amt:fmt(amt),gain}),4200);sfx.gift();
   UI.render();refreshSheet();
 }
@@ -190,8 +190,8 @@ const SPECIAL_RANK=4;
 function specialList(cid){
   const r=R(cid),n=npc(cid);if(!n||!n.pos||n.pos.rank<SPECIAL_RANK||r.aff<100||r.specialUsed)return [];
   const k=schemeKind(n),out=[];
-  if(k)out.push({k:'sp_'+k,special:k,name:SCHEME[k].name,desc:'他與你交情至深，願對隨機一家同業'+SCHEME[k].name+'。'+costTxt(k)+'；成敗看他的膽識與商才，事後可能被查辦。'});
-  if(n.pos.court==='finance'&&!G.tribute)out.push({k:'sp_tribute',special:'tribute',name:'上貢',desc:'他想請你備一批本業貨，'+ODDS.tribute.turns+' 旬內備齊，他會用高價收下。'});
+  if(k)out.push({k:'sp_'+k,special:k,name:SCHEME[k].name,desc:NEWS('bt.specialList',{a:SCHEME[k].name,b:costTxt(k)})});
+  if(n.pos.court==='finance'&&!G.tribute)out.push({k:'sp_tribute',special:'tribute',name:NEWS('bt.specialList.2'),desc:NEWS('bt.specialList.3',{a:ODDS.tribute.turns})});
   return out;
 }
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
@@ -201,17 +201,13 @@ function reqList(cid){
 }
 function requestHtml(cid,msg){
   const L=reqList(cid);
-  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+esc(msg)+'</div></div><div class="small bold" style="margin-top:6px">趁著對方高興，要不要開口請託？</div>'
-    +L.map(f=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+f.k+'">開口</button></div><div class="tiny muted">'+esc(f.desc||'')+'</div></div>').join('')
-    +'<div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">今日只敘舊</button></div>';
+  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
 }
 ACT.reqDone=()=>{BT=null;UI.hideInfo()};
 /** 解仇：先挑一位仇人（在世的仇人都列出，不分城市）。 */
 function reconcilePick(cid){
   const L=enemies();
-  return portraitHtml(cid,56)+'<div class="notice tiny">'+esc(MSG('favor.reconcilePick'))+'</div>'
-    +L.map(t=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(nameOf(t))+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="reconcile" data-t="'+t+'">說和</button></div></div>').join('')
-    +'<div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">作罷</button></div>';
+  return portraitHtml(cid,56)+'<div class="notice tiny">'+esc(MSG('favor.reconcilePick'))+'</div>'+UT('bt.reconcilePick.2',{a:L.map(t=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(nameOf(t))+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="reconcile" data-t="'+UT('bt.reconcilePick',{a:t})).join('')});
 }
 /** 請託辦成後扣的好感：一般 −10、許可 −20、減罪狀 −30；特殊請託 −30。 */
 const REQ_AFF={normal:10,apply:20,lessen:30,special:30};
@@ -219,15 +215,15 @@ ACT.reqAsk=el=>{
   const cid=el.dataset.cid,k=el.dataset.k,r=R(cid);BT=null;
   const sp=specialList(cid).find(x=>x.k===k);
   if(sp){
-    r.specialUsed=true;setAff(r,Math.max(0,r.aff-REQ_AFF.special));logRel(cid,'開口請他「'+sp.name+'」，好感 -'+REQ_AFF.special+'。');
+    r.specialUsed=true;setAff(r,Math.max(0,r.aff-REQ_AFF.special));logRel(cid,UT('bt.reqAsk',{a:sp.name,b:REQ_AFF.special}));
     UI.hideInfo();
     if(sp.special==='tribute')startTribute(cid);else startScheme(cid);
     return;
   }
   const dm=dealerDo(cid,k);
-  if(dm!==null){UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(dm)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');sfx.coin();UI.render();refreshSheet();return}
-  if(k==='reconcile'&&!el.dataset.t){UI.showInfo('📜 解仇·'+nameOf(cid),reconcilePick(cid));return}
+  if(dm!==null){UI.showInfo(UT('bt.reqAsk.2',{a:nameOf(cid)}),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+UT('bt.reqAsk.3',{a:esc(dm)}));sfx.coin();UI.render();refreshSheet();return}
+  if(k==='reconcile'&&!el.dataset.t){UI.showInfo(UT('bt.reqAsk.4',{a:nameOf(cid)}),reconcilePick(cid));return}
   const res=doFavor(cid,k,el.dataset.t);
-  UI.showInfo('📜 請託結果·'+nameOf(cid),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(res.msg)+'</div><div style="margin-top:7px;text-align:right"><button class="pixel-btn btn-sm" data-act="reqDone">告辭</button></div>');
+  UI.showInfo(UT('bt.reqAsk.2',{a:nameOf(cid)}),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+UT('bt.reqAsk.3',{a:esc(res.msg)}));
   if(res.status==='done')sfx.coin();else sfx.bad();UI.render();refreshSheet();
 };

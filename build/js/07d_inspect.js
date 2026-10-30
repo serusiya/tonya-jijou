@@ -17,7 +17,7 @@ function inspectTick(log){
   const offs=officialsOf(G.cityId).filter(n=>n.pos&&n.pos.rank<=2);
   if(!offs.length)return;
   const n=pick(offs);G.inspect={cid:n.cid,turn:G.turn};queueFaceEvent({type:'inspect',cid:n.cid,turn:G.turn});   // 旬報關閉後以來訪視窗處理
-  log.push(NEWS('inspectTick.1',{n:(n.pos?posTitle(n):'官吏'),n2:nameOf(n.cid)}));
+  log.push(NEWS('inspectTick.1',{n:(n.pos?posTitle(n):UT('insp.inspectTick')),n2:nameOf(n.cid)}));
 }
 /** 結算查貨：bribe＝true 賄賂；false 公事公辦（罰銀、好感微降）。回傳訊息。 */
 function inspectResolve(bribe,log){
@@ -29,12 +29,12 @@ function inspectResolve(bribe,log){
     spendAmt('inspectBribe',cost);addHeat(0.5);
     const gain=8+rk*2;setAff(r,clamp(r.aff+gain,0,100));
     const first=!r.bond;
-    if(first){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk,'mid')}}
-    addKnown(I.cid);logRel(I.cid,'查貨時奉上現款 '+cost+' 兩，好感 +'+gain+'。');
-    return '奉上 '+cost+' 兩，對方收下，態度和緩。好感 +'+gain+(first?'，已結識「'+nameOf(I.cid)+'」':'')+'。';   // 只有第一次結識才提
+    if(first){r.bond={mult:0.6,label:UT('insp.inspectResolve'),introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk,'mid')}}
+    addKnown(I.cid);logRel(I.cid,UT('insp.inspectResolve.2',{a:cost,b:gain}));
+    return UT('insp.inspectResolve.4',{a:cost,b:gain,c:first?UT('insp.inspectResolve.3',{a:nameOf(I.cid)}):''});   // 只有第一次結識才提
   }
   const fine=Math.round(10*rk*(1+rnd()));G.silver-=fine;
-  setAff(r,clamp(r.aff-2,0,100));logRel(I.cid,'查貨公事公辦，罰銀 '+fine+' 兩，好感 -2。');
+  setAff(r,clamp(r.aff-2,0,100));logRel(I.cid,UT('insp.inspectResolve.5',{a:fine}));
   const t=NEWS('inspectResolve.1',{fine});if(log)log.push(NEWS('inspectResolve.2',{t}));return t;
 }
 /** 旬報下方的查貨選項卡。 */

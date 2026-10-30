@@ -7,10 +7,10 @@
  * - 商路：只有委託採買（07i_voyage.js）；這裡留距離 distTurns、陸海路判定 canSea/canLand、單趟運量 capOf 與歸來推進 shipsTick。
  * - advanceTurn：每旬推進的唯一入口（順序很重要，詳見該函式註解）。 */
 /* ======================= 03 市場：以量控價、株仲間、打毀、損耗、商路、旬推進 ======================= */
-/** 打毀指標：白米與粗鹽。 */
-const STAPLE_KEYS=['白米（精製越光米）','赤穗天然曬制粗鹽'];
-/** 節慶期間需求暴增的物品關鍵字。 */
-const FEST_KW=['菜籽','麻油','鯨油','棉布','錦緞'];
+/** 打毀指標：白米與粗鹽（資料檔標籤 riot）。 */
+const STAPLE_KEYS=COMM.filter(c=>commTag(c,'riot')).map(c=>c.name);
+/** 節慶期間需求 ×4 的物品（資料檔標籤 fest：菜籽油、芝麻油、鯨油、棉布、錦緞）。 */
+const festHot=c=>commTag(c,'fest');
 /** （舊）地區相鄰表；目前距離改由 REGION_XY 座標計算。 */
 const REGION_ADJ={reg_central:['reg_east','reg_west','reg_north'],reg_east:['reg_central','reg_north'],reg_west:['reg_central','reg_south'],reg_south:['reg_west'],reg_north:['reg_central','reg_east']};
 
@@ -36,26 +36,26 @@ function newProdTick(log){
   if(!L.length)return;
   let x=rnd()*L.reduce((a,o)=>a+o.w,0),o=L[0];for(const it of L){x-=it.w;if(x<=0){o=it;break}}
   const ct=pick(o.cs);G.devProd=G.devProd||[];G.devProd.push({cityId:ct.id,name:o.c.name,year:G.year});
-  G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:'試種「'+o.c.short+'」有成，成為產地'});
+  G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('cityHist.newProd',{n:o.c.short})});
   const t=NEWS('newProd',{city:ct.name,name:o.c.short});pushNews(t);log.push(t);
 }
 /** 城市價格係數：固定雜訊、產地便宜（×0.8）、大城偏貴（×1.08）。 */
 function cityMod(city,c){
-  const noise=0.92+0.16*seeded(city.id+c.name)();
+  const noise=0.92+0.16*seeded(city.id+c.id)();
   let m=noise;
   if(cityProds(city).includes(c.name))m*=0.8;                         // 產地便宜（含新增產地）
-  else if(city.location_type==='重要行政都市')m*=1.08;               // 消費大城偏貴
+  else if(city.type==='admin')m*=1.08;               // 消費大城偏貴
   return m;
 }
 /** 物品目前季節係數。 */
 function seasonCoef(c){return (SEASON_COEF[c.sys]||SEASON_COEF.timber)[season()]}
 /** 本城今天是否正逢節慶。 */
 function festActive(){
-  const city=homeCity();const f=parseFestival(city.special_festival&&city.special_festival.date);
+  const f=homeCity().special_festival;
   return !!(f&&f.month===G.month&&f.cycle===G.cycle);
 }
 /** 節慶需求倍率：本城節慶那一旬，所有貨物需求 ×3；酒、油、布料等節慶相關貨物 ×4。 */
-const festMult=c=>festActive()?(FEST_KW.some(k=>c.name.includes(k))?4:3):1;
+const festMult=c=>festActive()?(festHot(c)?4:3):1;
 /** 以量制價配額（單位/旬）＝本城需求×配額比例（初始 6%，可在公會提案 +10%）。 */
 const restrictQuotaOf=name=>Math.max(1,Math.round(G.mk[name].D*G.cartel.quotaPct));
 /** 本期有效配額：以量制價採固定比例；正常供應採玩家的穩定供貨線，兩者都是出貨上限。 */
@@ -215,7 +215,7 @@ function buyGoods(name,qty,manual){
   if(qty>buyLeft(name))return {ok:false,msg:MSG('buyGoods.4',{name:COMM_MAP[name].short,buyLimit:buyLimit(name),buyLeft:buyLeft(name),mult:fmt1(buyLimitMult())})};
   const cost=Math.round(unitBuyCost(name)*qty);
   if(G.silver<cost)return {ok:false,msg:MSG('buyGoods.5',{cost:fmt(cost)})};
-  G.silver-=cost;if(manual)notePublicSpend('大盤進貨：'+COMM_MAP[name].short,cost);sfx.coin();addFame(0.05);
+  G.silver-=cost;if(manual)notePublicSpend('spend.buy|'+name,cost);sfx.coin();addFame(0.05);
   G.bought=G.bought||{};G.bought[name]=(G.bought[name]||0)+qty;
   mk.press=Math.min(1.3,(mk.press||1)+0.15*qty/Math.max(1,itemCap(name)));   // 進貨量推高大盤價
   const o=G.orders.find(x=>x.name===name&&x.unit===+unitBuyCost(name).toFixed(2));
@@ -238,7 +238,7 @@ function receiveOrders(log){
     if(q>0)addStock(o.name,q,o.cost/Math.max(1,o.qty));
     G.inv[o.name]=(G.inv[o.name]||0)+q;G.arrived.push({name:o.name,qty:q,cost:o.cost,lost:o.qty-q});
   });
-  if(G.orders&&G.orders.length){const t=NEWS('receiveOrders.1',{items:G.arrived.map(a=>COMM_MAP[a.name].short+' ×'+a.qty+(a.lost?'（倉滿退回 '+a.lost+'）':'')).join('、')});log.push(t);pushNews(t)}
+  if(G.orders&&G.orders.length){const t=NEWS('receiveOrders.1',{items:G.arrived.map(a=>COMM_MAP[a.name].short+' ×'+a.qty+(a.lost?UT('arrive.lost',{n:a.lost}):'')).join(NAMES_SEP)});log.push(t);pushNews(t)}
   G.orders=[];
 }
 /** 出貨：扣庫存、本旬總出貨量增加（壓低市價）、入帳、增加知名度。 */
@@ -255,28 +255,29 @@ function sellGoods(name,qty){
 
 /* ---------- 新聞 ---------- */
 /** 寫入新聞與跑馬燈。 */
-function pushNews(t){if(typeof yearLogAdd==='function')yearLogAdd(t);G.news.unshift({y:G.year,m:G.month,c:G.cycle,t});if(G.news.length>60)G.news.pop();G.ticker.unshift(t);if(G.ticker.length>8)G.ticker.pop()}
+function pushNews(t){const k=newsKey(t);if(typeof yearLogAdd==='function')yearLogAdd(t,k);G.news.unshift(k?{y:G.year,m:G.month,c:G.cycle,t,k}:{y:G.year,m:G.month,c:G.cycle,t});if(G.news.length>60)G.news.pop();G.ticker.unshift(t);if(G.ticker.length>8)G.ticker.pop()}
 
 /* ---------- 隨機事件 ---------- */
 /** 對符合條件的物品事件倍率相乘（0.5～3.2）。 */
 function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.mk[n].ev=clamp(G.mk[n].ev*mult,0.5,3.2)})}
 /** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。 */
+const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['冬','春'],f(){setEv(c=>c.name.includes('吉野')||c.name.includes('白炭'),1.8+rnd()*0.9);return NEWS('setEv.1')}},
-  {w:ODDS.eventW.famine,seasons:['夏','秋'],f(){setEv(c=>c.name.includes('白米')||c.name.includes('大麥'),1.5+rnd()*0.7);return NEWS('setEv.2')}},
-  {w:ODDS.eventW.harvest,seasons:['秋'],f(){setEv(c=>c.name.includes('白米')||c.name.includes('大麥'),0.72);return NEWS('setEv.3')}},
-  {w:ODDS.eventW.typhoon,seasons:['夏','秋'],f(){setEv(c=>c.name.includes('鹽')||c.name.includes('鮮魚'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});return NEWS('setEv.4')}},
-  {w:ODDS.eventW.plague,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);return NEWS('setEv.5')}},
-  {w:ODDS.eventW.military,seasons:['春','夏','秋','冬'],f(){setEv(c=>/銅錠|鐵錠|硫磺/.test(c.name),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
-  {w:ODDS.eventW.sword,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
-  {w:ODDS.eventW.flower,seasons:['春','夏','秋','冬'],f(){return NEWS('setEv.7')}},
-  {w:ODDS.eventW.dump,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.sys===G.sysKey,0.82);return NEWS('setEv.8')}},
-  {w:ODDS.eventW.boom,seasons:['春','夏','秋','冬'],f(){setEv(c=>c.sys===G.sysKey,1.22);return NEWS('setEv.9')}},
-  {w:ODDS.eventW.inspect,seasons:['春','夏','秋','冬'],kind:'inspect',f(){return inspection()}},
-  {w:ODDS.eventW.fall,seasons:['春','夏','秋','冬'],kind:'fall',f(){return officialFall()}},
-  {w:ODDS.eventW.greed,seasons:['春','夏','秋','冬'],kind:'greed',f(){return officialExtort()}},
-  {w:ODDS.eventW.thief,seasons:['春','夏','秋','冬'],kind:'thief',f(){return thieves()}},
-  {w:ODDS.eventW.renqing,seasons:['春','夏','秋','冬'],f(){const w=Object.values(G.rel).filter(r=>r.aff>0).length;return w?'📜【人情】你的名帖在城中已有人記得，往來之人對商號多有好評。':'📜【公文】町奉行所發出告示，重申商人須守株牌專營之規。'}}
+  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);return NEWS('setEv.1')}},
+  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);return NEWS('setEv.2')}},
+  {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
+  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});return NEWS('setEv.4')}},
+  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);return NEWS('setEv.5')}},
+  {w:ODDS.eventW.military,seasons:ALL_SEASONS,f(){setEv(c=>commTag(c,'military'),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
+  {w:ODDS.eventW.sword,seasons:ALL_SEASONS,f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
+  {w:ODDS.eventW.flower,seasons:ALL_SEASONS,f(){return NEWS('setEv.7')}},
+  {w:ODDS.eventW.dump,seasons:ALL_SEASONS,f(){setEv(c=>c.sys===G.sysKey,0.82);return NEWS('setEv.8')}},
+  {w:ODDS.eventW.boom,seasons:ALL_SEASONS,f(){setEv(c=>c.sys===G.sysKey,1.22);return NEWS('setEv.9')}},
+  {w:ODDS.eventW.inspect,seasons:ALL_SEASONS,kind:'inspect',f(){return inspection()}},
+  {w:ODDS.eventW.fall,seasons:ALL_SEASONS,kind:'fall',f(){return officialFall()}},
+  {w:ODDS.eventW.greed,seasons:ALL_SEASONS,kind:'greed',f(){return officialExtort()}},
+  {w:ODDS.eventW.thief,seasons:ALL_SEASONS,kind:'thief',f(){return thieves()}},
+  {w:ODDS.eventW.renqing,seasons:ALL_SEASONS,f(){const w=Object.values(G.rel).filter(r=>r.aff>0).length;return NEWS(w?'ev.renqing':'ev.notice')}}
 ];
 /** 每旬 75% 機率依權重抽一個當季事件。 */
 function randomEvent(log){
@@ -292,7 +293,7 @@ function inspection(){
     const fine=Math.round(Math.max(0,G.silver)*clamp(0.05+G.heat*0.012,0.06,0.2));
     G.silver-=fine;loseFame('inspect');sfx.bad();
     const top=Object.entries(G.rel).filter(([id,r])=>npc(id)&&npc(id).role==='official').sort((a,b)=>b[1].aff-a[1].aff)[0];
-    if(top){setAff(top[1],Math.max(0,top[1].aff-20));logRel(top[0],'中央巡按突查，因黑帳牽連，彼此交情受損。')}
+    if(top){setAff(top[1],Math.max(0,top[1].aff-20));logRel(top[0],MSG('log.inspection'))}
     G.heat=Math.max(0,G.heat-3);
     return NEWS('inspection.2',{fine:fmt(fine)});
   }
@@ -304,10 +305,10 @@ function officialFall(){
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
   const loss=Math.round(r.aff*0.7);setAff(r,r.aff-(loss));                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
-  const nm=nameOf(n.cid);logRel(n.cid,'受你牽連遭上司申斥，好感 -'+loss+'。');
+  const nm=nameOf(n.cid);logRel(n.cid,MSG('log.fall',{d:loss}));
   if(r.aff<10&&roll('fallScapegoat')){                             // 好感見底：為求自保，把罪責推到你頭上
     const fine=Math.round(Math.max(0,G.silver)*0.04);G.silver-=fine;loseFame('scapegoat');
-    G.life.scapegoat++;logRel(n.cid,'為求自保，把罪責推到你頭上。');
+    G.life.scapegoat++;logRel(n.cid,MSG('log.scapegoat'));
     return NEWS('officialFall.2',{nm,fine:fmt(fine)});
   }
   return NEWS('officialFall.3',{nm});
@@ -319,8 +320,8 @@ function officialExtort(){
   const n=pick(offs);const r=R(n.cid);
   const amt=giftGoldCost(n.pos.rank);
   if(r.promises.some(p=>p.kind==='tribute'&&!p.done))return null;
-  r.promises.push({kind:'tribute',text:'「'+nameOf(n.cid)+'」胃口漸大，暗示三旬內需進獻現款 '+amt*BRIBE_RATE+' 兩',due:G.turn+3,amount:amt,done:false,by:'官方'});
-  logRel(n.cid,'暗示需再進獻現款 '+amt*BRIBE_RATE+' 兩，限三旬內。');
+  r.promises.push({kind:'tribute',text:MSG('promise.extort',{n:nameOf(n.cid),a:amt*BRIBE_RATE}),due:G.turn+3,amount:amt,done:false,by:'official'});
+  logRel(n.cid,MSG('log.extort',{a:amt*BRIBE_RATE}));
   queueFaceEvent({type:'extort',cid:n.cid,amt:amt*BRIBE_RATE,due:G.turn+3});
   return NEWS('officialExtort.2',{n:nameOf(n.cid)});
 }
@@ -343,7 +344,7 @@ function evalCartel(log){
       C.cheated++;G.life.cheats++;
       if(chance(Math.min(ODDS.cartelPledged.max,ODDS.cartelPledged.base+ODDS.cartelPledged.slope*over))){
         C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-12);loseFame('cartelPledged');sfx.bad();caughtAdd('me');const lost=guildForfeit();
-        const t=NEWS('evalCartel.1',{bond:lost?'擔保金 '+fmt(lost)+' 兩沒收，':''});pushNews(t);log.push(t);
+        const t=NEWS('evalCartel.1',{bond:lost?NEWS('cartel.bondLost',{a:fmt(lost)}):''});pushNews(t);log.push(t);
       }else C.comp=Math.max(30,C.comp-3);
     }else if(shippedAny){C.comp=Math.min(90,C.comp+2);G.life.pledges++;addFame(0.1)}
   }else if(C.state==='secret'){
@@ -352,7 +353,7 @@ function evalCartel(log){
       if(chance(Math.min(ODDS.cartelSecret.max,ODDS.cartelSecret.base+ODDS.cartelSecret.slope*over))){
         C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');caughtAdd('me');const lost=guildForfeit();
         let fine=0;if(G.flags.exempt<=0){fine=Math.round(Math.max(0,G.silver)*0.06);G.silver-=fine}
-        const t=NEWS('evalCartel.2',{fine:(lost?'擔保金 '+fmt(lost)+' 兩沒收，':'')+(fine?'官府查抄罰銀 '+fmt(fine)+' 兩，':'靠司法人脈壓下了查抄，')});pushNews(t);log.push(t);sfx.bad();
+        const t=NEWS('evalCartel.2',{fine:(lost?NEWS('cartel.bondLost',{a:fmt(lost)}):'')+(fine?NEWS('cartel.fine',{a:fmt(fine)}):NEWS('cartel.noFine'))});pushNews(t);log.push(t);sfx.bad();
       }else C.comp=Math.max(30,C.comp-2);
     }
   }else{C.comp+= (60-C.comp)*0.1}
@@ -363,23 +364,23 @@ function evalCartel(log){
 /* ---------- 庫存損耗、火災 ---------- */
 /** 每旬庫存損耗與火災判定（易燃品多、冬季、保鏢少→機率高）。 */
 function invUpkeep(log){
-  const sum=season()==='夏'?1.6:1;let lost=[];
+  const sum=season()==='summer'?1.6:1;let lost=[];
   Object.keys(G.inv).forEach(n=>{
     const c=COMM_MAP[n],q=G.inv[n];if(!q)return;
     const l=Math.min(q,Math.floor(q*c.decay*(c.staple?sum:1)*keeperMul()+rnd()));   // 手代第 5 名起減損耗
     if(l>0){G.inv[n]-=l;lost.push(c.short+'×'+l)}
   });
-  if(lost.length)G.lastSpoil='損耗：'+lost.slice(0,3).join('、');else G.lastSpoil='';
+  if(lost.length)G.lastSpoil=UT('spoil',{l:lost.slice(0,3).join(NAMES_SEP)});else G.lastSpoil='';
   // 火災：易燃品（油、硫磺、樟腦、木、炭）
   let flam=0;Object.keys(G.inv).forEach(n=>{if(COMM_MAP[n].flam)flam+=G.inv[n]});
   if(flam>0){
-    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='冬'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1);   // 每位仇人 +2% 縱火；火除地拜領後減半
+    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1);   // 每位仇人 +2% 縱火；火除地拜領後減半
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));G.inv[n]-=l;tot+=l});
       G.life.fires++;sfx.bad();
       const t=NEWS('invUpkeep.1',{tot});pushNews(t);log.push(t);
-      setEv(c=>c.name.includes('吉野')||c.name.includes('白炭'),1.5);
+      setEv(c=>commTag(c,'fire'),1.5);
     }
   }
 }
@@ -456,7 +457,7 @@ function marketShares(){
   const rows=rivalsHere().map(n=>{const m=msOf(n);return {cid:n.cid,name:nameOf(n.cid),stock:m.stock,fame:m.fame,ev:m.ev,raided:!!n.raided,score:sc(m.stock,m.fame,m.tmp,m.ev)*(n.raided?0.4:1),prev:m.prev}});
   G.mytmp=G.mytmp||1;
   const st=ownStockLevel(),ev=myEventFactor();
-  const me={me:true,name:'你的商號',stock:st,fame:G.fame||0,ev,score:sc(st,G.fame||0,G.mytmp,ev)};
+  const me={me:true,name:UT('share.me'),stock:st,fame:G.fame||0,ev,score:sc(st,G.fame||0,G.mytmp,ev)};
   const otherShare=ODDS.rivalShip.otherShare,named=rows.reduce((a,r)=>a+r.score,0);
   /* 初始市佔率校準為 5%：先扣除固定的零星誤差，再求出倍率 G.mybias；之後穩定供貨會微幅調高它 */
   if(G.mybias===undefined){const target=0.05;G.mybias=me.score>0&&named>0?target*named/(1-otherShare-target)/me.score:1}
@@ -478,7 +479,7 @@ function msTick(log){
     if(m.evT>0){m.evT--;if(m.evT<=0)m.ev=1}
     else if(!n.raided&&roll('rivalEvent')){
       const good=chance(ODDS.rivalEvent.good);m.ev=good?1.25:0.7;m.evT=3;
-      if(chance(ODDS.rivalEvent.news)){const t=good?'🏪【同業】「'+nameOf(n.cid)+'」新貨滿載入港，聲勢大振，搶下不少客源。':'🏪【同業】「'+nameOf(n.cid)+'」商號遭遇糾紛（失火或延誤），客源流失。';pushNews(t);log.push(t)}
+      if(chance(ODDS.rivalEvent.news)){const t=NEWS(good?'rival.good':'rival.bad',{n:nameOf(n.cid)});pushNews(t);log.push(t)}
     }
   });
   G.mytmp=0.5*(G.mytmp||1)+0.5*(0.88+rnd()*0.24);
@@ -487,7 +488,7 @@ function msTick(log){
 
 /* ---------- 商路：距離、陸海路與運量（委託採買用） ---------- */
 /** 城市是否有港口/水路可通海運。 */
-const canSea=ct=>ct.region_id==='reg_west'||ct.region_id==='reg_south'||/水/.test(ct.location_type)||cityRouteSea(ct);
+const canSea=ct=>ct.region_id==='reg_west'||ct.region_id==='reg_south'||ct.type==='water'||ct.type==='waterland'||cityRouteSea(ct);
 /** 後天開通的海運（0.8 外港開闢寫入 G.cityRoutes[城市id].sea；目前一律沒有）。 */
 const cityRouteSea=ct=>!!(G&&ct&&G.cityRoutes&&G.cityRoutes[ct.id]&&G.cityRoutes[ct.id].sea);
 /** 開闢的道路（0.8 開闢道路寫入 G.openedRoads＝[地區id]；本店所在地區與這些地區陸路相通。目前一律沒有）。 */
@@ -513,7 +514,7 @@ function distTurns(a,b,mode){
   const km=distKm(a,b);
   if(mode==='sea'){
     let d=Math.ceil(km*1.3/250)+1;
-    if(season()==='冬'&&(a.region_id==='reg_north'||b.region_id==='reg_north'||a.region_id==='reg_east'||b.region_id==='reg_east'))d+=1;
+    if(season()==='winter'&&(a.region_id==='reg_north'||b.region_id==='reg_north'||a.region_id==='reg_east'||b.region_id==='reg_east'))d+=1;
     return Math.max(2,d);
   }
   return Math.max(1,Math.ceil(km*1.2/200));
@@ -567,9 +568,10 @@ function cityTick(){
       const mon=1+Math.floor(seeded(key)()*12);
       if(mon===G.month&&G.cycle===1){
         G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));
-        if(/火/.test(h.title))setEv(c=>c.name.includes('吉野')||c.name.includes('白炭'),1.6);
-        if(/疫|霍亂/.test(h.title))setEv(c=>c.sys==='medicine',1.6);
-        if(/米|饑|荒/.test(h.title))setEv(c=>c.name.includes('白米'),1.4);
+        const fx=h.fx||[];                           // 城史事件的類型（資料檔 fx：fire 火災、plague 疫病、famine 饑荒）
+        if(fx.includes('fire'))setEv(c=>commTag(c,'fire'),1.6);
+        if(fx.includes('plague'))setEv(c=>c.sys==='medicine',1.6);
+        if(fx.includes('famine'))setEv(c=>commTag(c,'rice'),1.4);
       }
     }
   });
@@ -584,10 +586,10 @@ function populationTick(log){
   if(!isMeetingTurn())return;                     // 與例會同一期：例會旬開始時結算上一期
   const stable=Q.stable,unstable=Q.unstable;
   let rate,result;
-  if(stable===Q.turns){rate=O.all;result='供貨始終安定，人口明顯增加'}
-  else if(stable>unstable){rate=O.majority;result='穩定供貨較多，人口小幅增加'}
-  else if(stable===0){rate=-O.all;result='供貨持續不穩，人口明顯減少'}
-  else{rate=-O.majority;result='供貨不穩較多，人口小幅減少'}
+  if(stable===Q.turns){rate=O.all;result=NEWS('pop.allStable')}
+  else if(stable>unstable){rate=O.majority;result=NEWS('pop.moreStable')}
+  else if(stable===0){rate=-O.all;result=NEWS('pop.allUnstable')}
+  else{rate=-O.majority;result=NEWS('pop.moreUnstable')}
   const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(homeCity());
   G.cityPopulation=Math.max(O.min,Math.round(before*(1+rate)));
   G.supplyQuarter={stable:0,unstable:0,turns:0};
@@ -635,6 +637,7 @@ function advanceTurn(){
   if(G.silver<-3000&&!G.ended)endLife('bankrupt');
   enemyTick(log);
   officialMigrate();                              // 本旬若有官員病故、遭害或調走，旬末補上空缺
+  rivalHeirTick(log);                             // 本城同業病故或遭害：旬末由私生子繼承（07y_guild.js）
   exileTick(log);
   raidTick(log);
   inspectTick(log);

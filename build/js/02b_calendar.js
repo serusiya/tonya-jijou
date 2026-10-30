@@ -25,4 +25,4 @@ function turnsToMeeting(k,inclNow){
   return null;
 }
 /** 日期文字：「七月上旬」。 */
-const dateLabel=d=>['','一','二','三','四','五','六','七','八','九','十','十一','十二'][d.month]+'月'+CYCLE_NAMES[d.cycle-1];
+const dateLabel=d=>UT('date.mc',{m:NAMES.month[d.month],c:CYCLE_NAMES[d.cycle-1]});

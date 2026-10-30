@@ -18,7 +18,7 @@ function addRegionOfficials(W,used,pool){
     poss.forEach(p=>{
       let c=pool.filter(x=>!used.has(x.id)&&hasRole(x,'official'));
       const old=c.filter(x=>x.birth_year<=-30||x.birth_year<=(G&&G.year?G.year-30:-30));if(old.length)c=old;
-      c=shuffle(c).sort((a,b)=>(b.native_region===rg.name)-(a.native_region===rg.name));
+      c=shuffle(c).sort((a,b)=>(b.native_region===rg.id)-(a.native_region===rg.id));
       const o=c[0];if(!o)return;used.add(o.id);
       W.npcs[o.id]={cid:o.id,cityId:cap.id,role:'official',pos:{court:'region',rank:p.rank,posId:p.id}};
     });
@@ -32,22 +32,22 @@ function landPermit(){const P=permitsOf().land;return !!(P.all||P[homeCity().reg
 function grantSea(regId){permitsOf().sea[regId]=true}
 function grantLand(regId){permitsOf().land[regId]=true}
 function permitSummary(){
-  const P=permitsOf(),s=P.sea.all?'全地區':Object.keys(P.sea).map(REG_NAME).join('、')||'無';
-  const l=P.land.all?'通用':Object.keys(P.land).map(REG_NAME).join('、')||'無';
+  const P=permitsOf(),s=P.sea.all?UT('reg.s'):Object.keys(P.sea).map(REG_NAME).join(UT('reg.s.2'))||UT('reg.s.3');
+  const l=P.land.all?UT('reg.l'):Object.keys(P.land).map(REG_NAME).join(UT('reg.s.2'))||UT('reg.s.3');
   return {sea:s,land:l};
 }
 /* ---------- 請託項目 ---------- */
 const REG_FAVORS=[
-  {k:'rpass',apply:true,name:'陸運通行手形',rank:3,once:true,pos:['reg_01'],desc:'馬幫可通行本地區關所。'},
-  {k:'rport',apply:true,name:'海運泊位許可',rank:3,once:true,pos:['reg_02'],desc:'船隊可進本地區各港。'},
-  {k:'rhorse',name:'驛馬優先',rank:3,cd:12,pos:['reg_03'],desc:'十二旬內陸運航程少 1 旬。'},
-  {k:'rcheap',name:'產地買付便宜',rank:4,cd:12,pos:['reg_04'],desc:'十二旬內出發的採買，買價再低一成。'},
-  {k:'rescort',name:'船手組護送',rank:4,cd:12,pos:['reg_05'],desc:'十二旬內出發的海運，遇險率減半。'},
-  {k:'rtax',name:'勘定所雜費減免狀',rank:4,cd:12,pos:['reg_06'],desc:'十二旬內出發的採買，雜費減半。'},
-  {k:'rroad',apply:true,name:'五街道通行狀',rank:5,once:true,pos:['reg_07'],desc:'各地區陸路通用，陸運航程永久少 1 旬。'},
-  {k:'rshuin',apply:true,name:'朱印狀',rank:5,once:true,pos:['reg_08'],desc:'船隊可前往任何地區。'},
-  {k:'rcharter',apply:true,name:'地區通商特許狀',rank:6,once:true,pos:['reg_09'],desc:'本地區海陸許可一併發給，採買雜費永久再省一成。'},
-  {k:'rvisit',name:'請巡見使美言',rank:6,cd:12,pos:['reg_10'],desc:'巡見使替你說好話：九旬內風聲不再增加（重罪除外）。'}
+  {k:'rpass',apply:true,name:UT('reg.REG_FAVORS'),rank:3,once:true,pos:['reg_01'],desc:UT('reg.REG_FAVORS.2')},
+  {k:'rport',apply:true,name:UT('reg.REG_FAVORS.3'),rank:3,once:true,pos:['reg_02'],desc:UT('reg.REG_FAVORS.4')},
+  {k:'rhorse',name:UT('reg.REG_FAVORS.5'),rank:3,cd:12,pos:['reg_03'],desc:UT('reg.REG_FAVORS.6')},
+  {k:'rcheap',name:UT('reg.REG_FAVORS.7'),rank:4,cd:12,pos:['reg_04'],desc:UT('reg.REG_FAVORS.8')},
+  {k:'rescort',name:UT('reg.REG_FAVORS.9'),rank:4,cd:12,pos:['reg_05'],desc:UT('reg.REG_FAVORS.10')},
+  {k:'rtax',name:UT('reg.REG_FAVORS.11'),rank:4,cd:12,pos:['reg_06'],desc:UT('reg.REG_FAVORS.12')},
+  {k:'rroad',apply:true,name:UT('reg.REG_FAVORS.13'),rank:5,once:true,pos:['reg_07'],desc:UT('reg.REG_FAVORS.14')},
+  {k:'rshuin',apply:true,name:UT('reg.REG_FAVORS.15'),rank:5,once:true,pos:['reg_08'],desc:UT('reg.REG_FAVORS.16')},
+  {k:'rcharter',apply:true,name:UT('reg.REG_FAVORS.17'),rank:6,once:true,pos:['reg_09'],desc:UT('reg.REG_FAVORS.18')},
+  {k:'rvisit',name:UT('reg.REG_FAVORS.19'),rank:6,cd:12,pos:['reg_10'],desc:UT('reg.REG_FAVORS.20')}
 ];
 FAVORS.region=REG_FAVORS;
 const regOfNpc=n=>CITY(n.cityId).region_id;
@@ -64,12 +64,12 @@ function regionHeld(key,n){
 const REG_FAVOR={
   rpass:n=>{grantLand(regOfNpc(n));return NEWS('regionHeld.1',{REG_NAME:REG_NAME(regOfNpc(n))})},
   rport:n=>{grantSea(regOfNpc(n));return NEWS('regionHeld.2',{REG_NAME:REG_NAME(regOfNpc(n))})},
-  rhorse:()=>{G.flags.horse=12;return '驛馬優先：十二旬內陸運航程少 1 旬。'},
-  rcheap:()=>{G.flags.cheap=12;return '郡代點頭：十二旬內出發的採買，買價低一成。'},
-  rescort:()=>{G.flags.escort=12;return '船手組答應護送：十二旬內出發的海運，遇險率減半。'},
-  rtax:()=>{G.flags.taxfree=12;return '勘定所發下雜費減免狀：十二旬內出發的採買，雜費減半。'},
-  rroad:()=>{G.flags.road=true;permitsOf().land.all=true;return '得到五街道通行狀：陸路通行無阻，陸運航程永久少 1 旬。'},
-  rshuin:()=>{permitsOf().sea.all=true;return '船奉行發下朱印狀！你的船隊可前往任何地區的港口。'},
+  rhorse:()=>{G.flags.horse=12;return UT('reg.REG_FAVOR.rhorse')},
+  rcheap:()=>{G.flags.cheap=12;return UT('reg.REG_FAVOR.rcheap')},
+  rescort:()=>{G.flags.escort=12;return UT('reg.REG_FAVOR.rescort')},
+  rtax:()=>{G.flags.taxfree=12;return UT('reg.REG_FAVOR.rtax')},
+  rroad:()=>{G.flags.road=true;permitsOf().land.all=true;return UT('reg.REG_FAVOR.rroad')},
+  rshuin:()=>{permitsOf().sea.all=true;return UT('reg.REG_FAVOR.rshuin')},
   rcharter:n=>{const rid=regOfNpc(n);grantSea(rid);grantLand(rid);G.flags.charter=Math.min(3,(G.flags.charter||0)+1);return NEWS('regionHeld.3',{REG_NAME:REG_NAME(rid)})},
   rvisit:()=>{G.flags.calm=ODDS.calm.turns;return TX('favor.calm')}
 };
@@ -82,7 +82,7 @@ function regionTick(log){
     if(held.length){
       const [m,k]=pick(held);delete P[m][k];
       const fine=Math.round(Math.max(0,G.silver)*0.05);G.silver-=fine;G.heat=Math.max(0,G.heat-2);loseFame('region');
-      const t=NEWS('regionTick.1',{sea:(m==='sea'?'海運':'陸運'),k:(k==='all'?'全地區':REG_NAME(k)),fine:fmt(fine)});
+      const t=NEWS('regionTick.1',{sea:(m==='sea'?UT('reg.t'):UT('reg.t.2')),k:(k==='all'?UT('reg.s'):REG_NAME(k)),fine:fmt(fine)});
       pushNews(t);log.push(t);sfx.bad();
     }
   }
@@ -90,13 +90,13 @@ function regionTick(log){
 /* ---------- 遠國奉行所面板 ---------- */
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
-  let h=introSel()+appsCard()+'<div class="notice tiny">地區官府位階高於各城官署。<b>海路</b>要取得該地區的進港泊位許可（津口番所役），<b>陸路</b>要本地區的關所通行手形（關所番頭）；更高階的奉行能給你更大的方便（朱印狀、五街道通行狀、通商特許）。風聲太緊時，中央巡見使會吊銷許可。</div>';
-  h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?'（本地）':'')+'</span>').join('')+'</div>';
+  let h=UT('reg.h',{a:(introSel()+appsCard())});
+  h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?UT('reg.regional'):'')+'</span>').join('')+'</div>';
   h+=regLicCard();
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
   h+='<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList2')+'</button></div>';
-  h+=offs.map(n=>personBlock(n.cid,'yamen')).join('')||'<div class="notice">此地區官府暫無人在任。</div>';
-  return {title:'🏯 遠國奉行所·'+REG_NAME(rid),html:h};
+  h+=offs.map(n=>personBlock(n.cid,'yamen')).join('')||UT('reg.regional.2');
+  return {title:UT('reg.regional.3',{a:REG_NAME(rid)}),html:h};
 };
 ACT.regSel=el=>{UI.s.regSel=el.dataset.id;refreshSheet()};
 
@@ -110,7 +110,7 @@ function officialKind(n){
 }
 function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;return officialKind(n)==='greedy'?3:6}   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
-function appName(f,n){return f.name+'（'+nameOf(n.cid)+'）'}
+function appName(f,n){return UT('reg.appName',{a:f.name,b:nameOf(n.cid)})}
 function applyFavor(cid,n,r,f){
   if(favorDone(f,n))return {ok:true,status:'held',msg:MSG(f.lic?'doFavor.licHeld':'doFavor.3')};
   if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
@@ -118,15 +118,15 @@ function applyFavor(cid,n,r,f){
   const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n)};
   setAff(r,Math.max(0,r.aff-REQ_AFF.apply));
   const k=officialKind(n),msg=TX(k==='greedy'?'apply.greedyEnough':'apply.plain');
-  appsList().push(A);logRel(cid,'遞出申請「'+f.name+'」，好感 -'+REQ_AFF.apply+'。');
-  return {ok:true,status:'done',msg:MSG('applyFavor.3',{msg})+'（好感 -'+REQ_AFF.apply+'）'};
+  appsList().push(A);logRel(cid,UT('reg.applyFavor',{a:f.name,b:REQ_AFF.apply}));
+  return {ok:true,status:'done',msg:UT('reg.applyFavor.2',{a:MSG('applyFavor.3',{msg}),b:REQ_AFF.apply})};
 }
 function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
   let msg;
   msg=grantFavorApp(A);
   if(msg===null)msg=REG_FAVOR[A.key](n);
-  logRel(A.cid,'申請「'+A.name+'」獲准。');
+  logRel(A.cid,UT('reg.appGrant',{a:A.name}));
   const t=NEWS('appGrant.1',{name:A.name,msg});pushNews(t);log.push(t);sfx.fanfare();
 }
 /** 每旬：審理倒數，到期獲准。 */
@@ -139,7 +139,7 @@ function appsTick(log){
 }
 function appsCard(){
   const L=appsList();if(!L.length)return '';
-  return '<div class="card"><b class="small">📬 申請案件</b>'+L.map(A=>{
-    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+esc(nameOf(A.cid))+'·審理中，剩 <b>'+A.left+'</b> 旬</div></span></div>';
-  }).join('')+'</div>';
+  return UT('reg.appsCard.2',{a:L.map(A=>{
+    return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+UT('reg.appsCard',{a:esc(nameOf(A.cid)),b:A.left});
+  }).join('')})+'</div>';
 }

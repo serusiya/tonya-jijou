@@ -8,7 +8,7 @@
  *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pEnd（本期結束旬）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。 */
 /** 本期供給方針；舊存檔在補值前沿用原本的「以量制價」。 */
 const cartelPolicy=()=>G.cartel&&G.cartel.policy==='normal'?'normal':'restrict';
-const guildPolicyName=()=>cartelPolicy()==='normal'?'維持':'減供';
+const guildPolicyName=()=>cartelPolicy()==='normal'?UT('guild.guildPolicyName'):UT('guild.guildPolicyName.2');
 /** 是否已參加聯合採購與出貨協議（表態遵守或暗約）。 */
 const guildMember=()=>G.cartel.state==='pledged'||G.cartel.state==='secret';
 /** 舊存檔補欄位：已參加協議而沒有擔保金紀錄的，視為已押。 */
@@ -35,7 +35,7 @@ function guildPolicyTick(log){
 /** 押擔保金加入協議（新的一期從此刻算起）。inTurn＝推進一旬途中付（大番頭代席），記在本旬報告。 */
 function guildJoin(inTurn){
   const C=G.cartel,amt=costOf('guildBond');
-  if(inTurn){G.silver-=amt;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['協議擔保金']=(TURNRP.inTurn['協議擔保金']||0)+amt}}
+  if(inTurn){G.silver-=amt;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['spend.bond']=(TURNRP.inTurn['spend.bond']||0)+amt}}
   else spend('guildBond');
   C.bond=amt;C.pEnd=G.turn+ODDS.guildBond.turns;C.pot=0;
   rivalsHere().forEach(n=>{msOf(n).caught=false});
@@ -72,7 +72,40 @@ function guildTick(log){
 /** 公會面板上的擔保金卡。 */
 function guildBondCard(){
   guildEnsure();const C=G.cartel;
-  if(!guildMember()||!(C.bond>0))return '<div class="card"><b class="small">🔓 未參加協議</b><div class="tiny muted" style="margin-top:2px">你仍是問屋公會會員；向大盤照市價進貨，進貨上限只按市占率分配，出貨不受協議配額約束。參加協議要押擔保金 '+fmt(costOf('guildBond'))+' 兩。</div></div>';
+  if(!guildMember()||!(C.bond>0))return UT('guild.guildBondCard',{a:fmt(costOf('guildBond'))});
   const left=turnsToMeeting(1,false)||0,k=Math.round((C.pot||0)/costOf('guildBond'));
-  return '<div class="card"><b class="small">🔒 協議擔保金 '+fmt(C.bond)+' 兩押在公會</b><div class="tiny muted" style="margin-top:2px">向大盤進貨享聯合採購價，進貨上限另有協議配額加給。距下次例會還有 '+left+' 旬'+(k?'，已有 '+k+' 家同業偷跑被抓，下次例會時沒收的擔保金平分給守約的人。':'，至今無人違約。')+'被查獲超量或退出協議，擔保金沒收；公會會員身分不受影響。</div></div>';
+  return UT('guild.guildBondCard.4',{a:fmt(C.bond),b:left,c:k?UT('guild.guildBondCard.2',{a:k}):UT('guild.guildBondCard.3')});
+}
+
+/* ---------- 同業死亡後補人（第一百四十六節） ----------
+ *  本城同業病逝或遭暗殺而少一家時，旬末從外地挑一位你不認識的同業搬來，
+ *  說法是「已故某某的私生子繼承家業」，姓名不改。市佔狀態（知名度、庫存水位、違約紀錄）與遭查抄狀態照原店，交情從零開始。
+ *  外地找不到人時，從名冊裡尚未登場的同業抽。闕所除名的不補（闕所尚未實作）。 */
+/** 遭暗殺的同業：刪除名冊前先記下原店的市佔狀態，旬末補人。 */
+function noteRivalSlain(n){
+  if(!n||n.role!=='rival'||n.cityId!==G.cityId)return;
+  G.rivalHeirs=G.rivalHeirs||[];G.rivalHeirs.push({cid:n.cid,ms:n.ms?Object.assign({},n.ms):null,raided:!!n.raided});
+}
+/** 這個人你是否完全不認識（沒有交情、沒結識、不在筆記名冊、不是介紹人或店員、不是仇人）。 */
+function strangerTo(cid){
+  const r=G.rel[cid];
+  return !G.known.includes(cid)&&!(r&&(r.met||r.bond||r.aff>0||r.seen))&&!introOf(cid)&&!G.emps.some(e=>e.cid===cid)&&!isEnemy(cid);
+}
+/** 旬末：本城過世的同業由外地陌生同業（或名冊新人）以私生子名義繼承。 */
+function rivalHeirTick(log){
+  const W=G.world.npcs,lost=(G.rivalHeirs||[]).slice();G.rivalHeirs=[];
+  Object.values(W).forEach(n=>{if(n.role==='rival'&&n.cityId===G.cityId&&!n.heir&&!alive(n.cid))lost.push({cid:n.cid,ms:n.ms?Object.assign({},n.ms):null,raided:!!n.raided,npc:n})});
+  lost.forEach(L=>{
+    const far=Object.values(W).filter(m=>m.role==='rival'&&m.cityId!==G.cityId&&alive(m.cid)&&strangerTo(m.cid));
+    let h=far.length?pick(far):null;
+    if(!h){
+      const pool=CHARS.filter(c=>!W[c.id]&&hasRole(c,'rival')&&c.birth_year<=G.year-20&&c.death_year>G.year+2&&strangerTo(c.id));
+      if(!pool.length){G.rivalHeirs.push(L);return}            // 一時找不到人：下一旬再補
+      const c=pick(pool);h=W[c.id]={cid:c.id,cityId:G.cityId,role:'rival',pos:null};
+    }
+    h.cityId=G.cityId;h.raided=L.raided;
+    if(L.ms)h.ms=Object.assign({},L.ms);else delete h.ms;
+    if(L.npc)L.npc.heir=h.cid;
+    const t=NEWS(isFemale(CH(h.cid))?'rival.heirF':'rival.heir',{old:nameOf(L.cid),name:nameOf(h.cid)});pushNews(t);log.push(t);
+  });
 }

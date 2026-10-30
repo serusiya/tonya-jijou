@@ -14,8 +14,8 @@ function ptRng(seed){let t=ptHash(seed);return()=>{t=(t+0x6D2B79F5)>>>0;let x=Ma
 const PT_COURT={administration:'#304f72',finance:'#8b6729',judiciary:'#5c496f'};
 const PT_CLOTH={
   rival:'#70452f',manager:'#36576b',official:'#343f58',smuggler:'#405544',guard:'#34363b',
-  broker:'#665c50',guest:'#78604a',oiran:'#9e3f43',船長:'#315b68',飛腳:'#4d683d',保鏢:'#34363b',
-  丁稚:'#566c45',手代:'#3f6172',番頭:'#674b38',大番頭:'#253f58'
+  broker:'#665c50',guest:'#78604a',oiran:'#9e3f43',captain:'#315b68',courier:'#4d683d',
+  apprentice:'#566c45',clerk:'#3f6172',banto:'#674b38',chief:'#253f58'
 };
 const PT_BG=['#d9cfb9','#d2c7ae','#ddd3bf','#cfc5b1'];
 const PT_SKIN=[
@@ -28,11 +28,11 @@ const PT_SKIN=[
 /** 角色使用的江戶服飾類型。 */
 function ptDress(o){
   if(o.oiran)return 'oiran';
-  if(o.gender==='女')return 'kosode';
+  if(o.gender==='f')return 'kosode';
   if(o.rank>0||o.role==='official')return 'kamishimo';
-  if(o.role==='船長'||o.role==='smuggler')return 'captain';
-  if(o.role==='飛腳')return 'courier';
-  if(o.role==='guard'||o.role==='保鏢')return 'samurai';
+  if(o.role==='captain'||o.role==='smuggler')return 'captain';
+  if(o.role==='courier')return 'courier';
+  if(o.role==='guard')return 'samurai';
   return 'haori';
 }
 
@@ -48,9 +48,9 @@ function ptExpression(o,rg,st){
   if(v('audacity_courage')>=65)pool.push('stern','alert');
   if(v('betrayal_risk')>=68)pool.push('shrewd');
   if((o.age||30)>=58)pool.push('calm','tired');
-  if(o.oiran||o.gender==='女')pool.push('gentle','cheerful');
-  if(o.rank>0||o.role==='official'||o.role==='guard'||o.role==='保鏢')pool.push('stern','calm');
-  if(o.role==='飛腳'||o.role==='船長')pool.push('alert','cheerful');
+  if(o.oiran||o.gender==='f')pool.push('gentle','cheerful');
+  if(o.rank>0||o.role==='official'||o.role==='guard')pool.push('stern','calm');
+  if(o.role==='courier'||o.role==='captain')pool.push('alert','cheerful');
   return pool[Math.floor(rg()*pool.length)];
 }
 
@@ -61,7 +61,7 @@ function ptDraw(o){
   const R=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
   const H=(x1,x2,y,col,h=1)=>R(x1,y,x2-x1+1,h,col);
   const V=(x,y1,y2,col,w=1)=>R(x,y1,w,y2-y1+1,col);
-  const rg=ptRng(String(o.seed)),woman=o.gender==='女',age=o.age||30,st=o.st||{},dress=ptDress(o);
+  const rg=ptRng(String(o.seed)),woman=o.gender==='f',age=o.age||30,st=o.st||{},dress=ptDress(o);
   const stat=k=>st[k]===undefined?50:st[k];
   const courage=stat('audacity_courage'),loyal=stat('integrity_loyalty'),betray=stat('betrayal_risk'),charm=stat('diplomacy_charm'),comm=stat('commerce_skill');
   const expression=ptExpression(o,rg,st);
@@ -213,7 +213,7 @@ function portraitHtml(cid,px){
 function portraitEmp(e,px){
   if(e.cid)return portraitHtml(e.cid,px);
   const key='edo3|emp|'+e.id+'|'+e.rank;
-  const o={seed:e.id,gender:'男',age:14,role:e.rank,rank:0,st:e.stats,cloth:RANK_LOOK[e.rank]&&RANK_LOOK[e.rank].cloth};
+  const o={seed:e.id,gender:'m',age:14,role:e.rank,rank:0,st:e.stats,cloth:RANK_LOOK[e.rank]&&RANK_LOOK[e.rank].cloth};
   const size=px||48;
   return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
 }

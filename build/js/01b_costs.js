@@ -58,7 +58,7 @@ const COSTS={
   .forEach(([k,name,amt])=>{COSTS['oiranGift_'+k]={name:'名伶禮物：'+name,cur:'gold',amt}});
 
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
-const costTxt=(k,mul)=>CUR_NAME[COSTS[k].cur]+' '+costOf(k,mul)+' 兩';
+const costTxt=(k,mul)=>UT('cost.txt',{cur:CUR_NAME[COSTS[k].cur],a:costOf(k,mul)});
 /** 按鈕用金額：記號＋數字，不寫「兩」。現款＝方孔銀幣（深藍灰數字），私房錢＝小判金幣（深琥珀數字）。訊息與說明文字仍用 costTxt。 */
 const coinHtml=(cur,amt)=>'<span class="money '+(cur==='gold'?'mg':'ms')+'"><i class="cmark '+(cur==='gold'?'koban':'zeni')+'" aria-label="'+CUR_NAME[cur]+'"></i>'+fmt(amt)+'</span>';
 const costBtn=(k,mul)=>coinHtml(COSTS[k].cur,costOf(k,mul));
@@ -66,6 +66,14 @@ const walletOf=k=>COSTS[k].cur;
 /** 錢夠不夠（amt 可自行指定，如依官階算出的金額）。 */
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
 const affordAmt=(k,amt)=>G[COSTS[k].cur]>=amt;
+/** 主動支出帳：鍵＝「文字鍵|對象代號」（如 spend.buy|prod_0101、cost:visit），畫面以 spendLabel 轉成文字。 */
+const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a};
+function spendLabel(k){
+  if(k.startsWith('cost:')){const c=COSTS[k.slice(5)];return c?c.name:k}
+  const i=k.indexOf('|'),t=i<0?k:k.slice(0,i),a=i<0?'':k.slice(i+1);
+  if(UI_TXT[t]===undefined)return k;                 // 舊存檔留下的中文帳目，照原樣顯示
+  return UT(t,{n:SPEND_ARG[t]?SPEND_ARG[t](a):a});
+}
 /** 扣款，回傳實扣金額。 */
 function notePublicSpend(label,amt){
   if(!(amt>0))return amt;
@@ -74,10 +82,10 @@ function notePublicSpend(label,amt){
   return amt;
 }
 function payPublic(label,amt){G.silver-=amt;notePublicSpend(label,amt);return amt}
-function spend(k,mul){const c=COSTS[k],a=costOf(k,mul);if(c.cur==='silver')payPublic(c.name,a);else G[c.cur]-=a;return a}
-function spendAmt(k,amt){const c=COSTS[k];if(c.cur==='silver')payPublic(c.name,amt);else G[c.cur]-=amt;return amt}
+function spend(k,mul){const c=COSTS[k],a=costOf(k,mul);if(c.cur==='silver')payPublic('cost:'+k,a);else G[c.cur]-=a;return a}
+function spendAmt(k,amt){const c=COSTS[k];if(c.cur==='silver')payPublic('cost:'+k,amt);else G[c.cur]-=amt;return amt}
 /** 統一的不足訊息。 */
 function shortMsg(k,mul){
   const c=COSTS[k],a=costOf(k,mul);
-  return (c.cur==='silver'?'現款不足':'私房錢不足')+'，「'+c.name+'」需 '+fmt(a)+' 兩'+(c.cur==='gold'?'（可按上方「＋」補充）':'');
+  return MSG(c.cur==='silver'?'cost.shortSilver':'cost.shortGold',{n:c.name,a:fmt(a)});
 }

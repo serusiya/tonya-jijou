@@ -6,23 +6,14 @@
  *    不足時以交情最高的熟人補到 2～3 人）。坐不滿的坐墊留空。
  *  - 效果：宴席費每人 5 兩（現款）；出席友人好感 +2、出席店員好感 +3。主角遠島中則停辦。 */
 const PARTY_SEATS=30,PARTY_FEE=5,PARTY_FRIEND_AFF=80,PARTY_GAIN={friend:2,staff:3};
-/** 大事簿分類：依新聞的【標籤】判斷；不在表內的（到貨、自動進出貨、私房錢…）不記。 */
-const YEARLOG_CATS=[
-  ['disaster',/火災|失火|縱火|颱風|打毀|盜賊|失竊|查扣|海難|山賊|疫病|凶作|損失/],
-  ['trouble',/搜查|遠島|船貨被扣|命案|查抄|打壓|制裁|暗約|替罪|赦免|入獄|供出|索賄/],
-  ['official',/獲准|官場|政爭|官員調任|巡見使|欽差|上貢/],
-  ['market',/行情|傾銷|買氣|豐收|同業|名匠|拋售/],
-  ['family',/喜事|添丁|訃報|天賦|敗家子|贖身/],
-  ['firm',/捲款潛逃|人心不穩|開業|請辭|義舉|走私到貨/]
-];
-/** pushNews 時呼叫：把有分類的新聞記進今年的大事簿（最多 80 筆）。 */
-function yearLogAdd(t){
-  if(!G||!t)return;const tag=(/【([^】]+)】/.exec(t)||[])[1]||'';if(!tag||/到貨|自動|私房錢|新年|人生/.test(tag)&&!/走私到貨/.test(tag))return;
-  const cat=(YEARLOG_CATS.find(([,re])=>re.test(tag))||[])[0];if(!cat)return;
-  const L=G.yearLog||(G.yearLog=[]);L.push({cat,tag,t:partyGist(t),m:G.month});if(L.length>80)L.shift();
+/** pushNews 時呼叫：依新聞鍵的分類（01g_news.js 的 NEWS_CAT）記進今年的大事簿（最多 80 筆）；不在表內的不記。
+ *  tag＝新聞鍵：同一種新聞盡量只談一次。 */
+function yearLogAdd(t,key){
+  if(!G||!t)return;const k=key||newsKey(t),cat=k&&NEWS_CAT_OF[k];if(!cat)return;
+  const L=G.yearLog||(G.yearLog=[]);L.push({cat,tag:k,k,t:partyGist(t),m:G.month});if(L.length>80)L.shift();
 }
-/** 新聞去掉圖示與【標籤】，取一段可以說出口的話（最多約 44 字）。 */
-function partyGist(t){let s=String(t).replace(/^[^【]*【[^】]*】/,'').replace(/（[^）]*）/g,'').trim();if(s.length>44)s=s.slice(0,43)+'……';return s}
+/** 新聞去掉圖示與標籤，取一段可以說出口的話（最多約 44 字）。 */
+function partyGist(t){let s=String(t).replace(NEWS_FMT.head,'').replace(NEWS_FMT.paren,'').trim();if(s.length>44)s=s.slice(0,43)+'……';return s}
 
 /* ---------- 年底建立 ---------- */
 /** 年底呼叫（advanceTurn 進入新年時，於 yearTick 之前）：建立忘年會並結算效果。 */
@@ -31,27 +22,27 @@ function yearEndParty(log){
   G.yearLog=[];G.yearSilver0=G.silver;
   if((G.exile||0)>0||G.ended){const t=NEWS('party.skip');pushNews(t);log.push(t);return}
   const att=[];                                                       // {kind,cid?,empId?,label,look}
-  if(G.family.spouse)att.push({kind:'wife',label:'夫人·'+G.family.spouse.name,look:{cloth:'#c46a8a',cloth2:'#e0b030',woman:true}});
-  if((G.family.conc||[]).length){const x=pick(G.family.conc);att.push({kind:'conc',cid:x.cid,label:'側室·'+x.name,look:{cloth:'#d46a9a',cloth2:'#f0c040',woman:true}})}
-  if(G.family.kids.length){const k=pick(G.family.kids);att.push({kind:'kid',label:'子女·'+k.name,look:{cloth:k.gender==='女'?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,noKnot:true}})}
-  const staff=[];[...RANKS,...SPECIAL].forEach(rk=>{const l=G.emps.filter(e=>e.rank===rk);if(l.length){const e=pick(l);staff.push(e);att.push({kind:'emp',rank:rk,empId:e.id,cid:e.cid||null,label:'【'+rk+'】'+e.name,look:RANK_LOOK[rk]||RANK_LOOK['手代']})}});
+  if(G.family.spouse)att.push({kind:'wife',label:UT('party.yearEndParty',{a:G.family.spouse.name}),look:{cloth:'#c46a8a',cloth2:'#e0b030',woman:true}});
+  if((G.family.conc||[]).length){const x=pick(G.family.conc);att.push({kind:'conc',cid:x.cid,label:UT('party.yearEndParty.2',{a:x.name}),look:{cloth:'#d46a9a',cloth2:'#f0c040',woman:true}})}
+  if(G.family.kids.length){const k=pick(G.family.kids);att.push({kind:'kid',label:UT('party.yearEndParty.3',{a:k.name}),look:{cloth:k.gender==='f'?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,noKnot:true}})}
+  const staff=[];[...RANKS,...SPECIAL].forEach(rk=>{const l=G.emps.filter(e=>e.rank===rk);if(l.length){const e=pick(l);staff.push(e);att.push({kind:'emp',rank:rk,empId:e.id,cid:e.cid||null,label:UT('party.yearEndParty.4',{a:rankName(rk),b:e.name}),look:RANK_LOOK[rk]||RANK_LOOK['clerk']})}});
   const room=PARTY_SEATS-att.length;
   const ok=cid=>{const n=npc(cid),r=G.rel[cid];return n&&r&&r.bond&&alive(cid)&&n.cityId===G.cityId&&!(touring(n)&&!tourHere(n,12))&&!isEnemy(cid)&&!G.emps.some(e=>e.cid===cid)&&n.role!=='oiran'};
   let friends=shuffle(Object.keys(G.rel).filter(cid=>ok(cid)&&G.rel[cid].aff>=PARTY_FRIEND_AFF)).filter(()=>chance(0.85)).slice(0,room);
   const minF=Math.min(room,rint(2,3));
   if(friends.length<minF){const more=Object.keys(G.rel).filter(cid=>ok(cid)&&!friends.includes(cid)).sort((a,b)=>G.rel[b].aff-G.rel[a].aff).slice(0,minF-friends.length);friends=friends.concat(more)}
   friends.sort((a,b)=>((npc(b).pos?npc(b).pos.rank:0)-(npc(a).pos?npc(a).pos.rank:0))||G.rel[b].aff-G.rel[a].aff);
-  friends.forEach(cid=>{const n=npc(cid);att.push({kind:'friend',cid,label:nameOf(cid)+(n.pos?'（'+posTitle(n)+'）':''),look:hostLook(cid),off:!!n.pos})});
+  friends.forEach(cid=>{const n=npc(cid);att.push({kind:'friend',cid,label:nameOf(cid)+(n.pos?UT('party.yearEndParty.5',{a:posTitle(n)}):''),look:hostLook(cid),off:!!n.pos})});
   /* 效果 */
   const cost=Math.min(Math.max(0,Math.round(G.silver)),att.length*PARTY_FEE);
-  if(cost>0){G.silver-=cost;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['忘年會宴席']=(TURNRP.inTurn['忘年會宴席']||0)+cost}}   // 推進途中付的錢記在本旬（不放進 G.publicSpend，以免下一旬重複計入）
-  friends.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,'出席年底的忘年會，好感 +'+PARTY_GAIN.friend+'。')});
+  if(cost>0){G.silver-=cost;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['spend.party']=(TURNRP.inTurn['spend.party']||0)+cost}}   // 推進途中付的錢記在本旬（不放進 G.publicSpend，以免下一旬重複計入）
+  friends.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,UT('party.yearEndParty.6',{a:PARTY_GAIN.friend}))});
   staff.forEach(e=>{e.aff=Math.min(100,empAff(e)+PARTY_GAIN.staff)});
   const lines=partyLines(att,L,G.silver-s0);
   /* 巡迴在外的高官好友：不出席，託人送來賀禮（好感照加） */
   const gifts=Object.keys(G.rel).filter(cid=>{const n=npc(cid),r=G.rel[cid];return n&&r&&r.bond&&alive(cid)&&touring(n)&&!tourHere(n,12)&&!isEnemy(cid)&&r.aff>=PARTY_FRIEND_AFF});
-  gifts.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,'巡察在外，託人送來忘年會賀禮，好感 +'+PARTY_GAIN.friend+'。')});
-  if(gifts.length)lines.splice(lines.length-1,0,{who:-1,t:TX('party.gift',{n:gifts.slice(0,2).map(nameOf).join('、')+(gifts.length>2?'等 '+gifts.length+' 位':'')})});
+  gifts.forEach(cid=>{const r=R(cid);setAff(r,clamp(r.aff+PARTY_GAIN.friend,0,100));logRel(cid,UT('party.yearEndParty.7',{a:PARTY_GAIN.friend}))});
+  if(gifts.length)lines.splice(lines.length-1,0,{who:-1,t:TX('party.gift',{n:gifts.slice(0,2).map(nameOf).join(UT('party.yearEndParty.8'))+(gifts.length>2?UT('party.yearEndParty.9',{a:gifts.length}):'')})});
   G.party={year,att,lines,cost,nf:friends.length,ns:staff.length};
   const t=NEWS('party.held',{year:yearStr(year),n:att.length});pushNews(t);log.push(t);
 }
@@ -68,14 +59,14 @@ function partyLines(att,L,net){
   topics=shuffle(topics.slice(0,Object.keys(byCat).length)).concat(topics.slice(Object.keys(byCat).length)).slice(0,rint(6,8));
   const used={};                                                         // 同一人盡量只說一次
   const speakerFor=cat=>{
-    const pref={disaster:['emp:保鏢','emp:番頭','friend'],trouble:['emp:大番頭','friend','emp:番頭'],official:['friend:off','emp:大番頭','friend'],market:['emp:番頭','emp:手代','friend'],family:['wife','conc','friend'],firm:['emp:大番頭','emp:手代','emp:丁稚']}[cat]||['friend'];
+    const pref={disaster:['emp:guard','emp:banto','friend'],trouble:['emp:chief','friend','emp:banto'],official:['friend:off','emp:chief','friend'],market:['emp:banto','emp:clerk','friend'],family:['wife','conc','friend'],firm:['emp:chief','emp:clerk','emp:apprentice']}[cat]||['friend'];
     for(const p of pref){const [k,sub]=p.split(':');const c=att.map((a,i)=>({a,i})).filter(({a,i})=>!used[i]&&a.kind===k&&(!sub||(k==='emp'?a.rank===sub:a.off)));if(c.length)return pick(c).i}
     const free=att.map((a,i)=>i).filter(i=>!used[i]&&att[i].kind!=='kid');
     return free.length?pick(free):att.length?Math.floor(rnd()*att.length):-1;
   };
   topics.forEach(x=>{
-    const ci=att.findIndex(a=>a.rank==='船長'),fi=att.findIndex(a=>a.rank==='飛腳');
-    const i=/海難|颱風|船隊|船貨|走私船|海運|觸礁/.test(x.t)&&ci>=0&&!used[ci]?ci:/山賊|陸路|馬幫/.test(x.t)&&fi>=0&&!used[fi]?fi:speakerFor(x.cat);
+    const ci=att.findIndex(a=>a.rank==='captain'),fi=att.findIndex(a=>a.rank==='courier');
+    const i=NEWS_SEA_SET.has(x.k)&&ci>=0&&!used[ci]?ci:NEWS_LAND_SET.has(x.k)&&fi>=0&&!used[fi]?fi:speakerFor(x.cat);
     used[i]=1;
     out.push({who:i,t:TX('party.pre.'+x.cat)+x.t+TX('party.post.'+x.cat)});
   });
@@ -104,14 +95,14 @@ function partySeats(){
 function partyRender(){
   const V=PARTY_VIEW;if(!V)return;const P=V.P,L=P.lines[V.i],att=P.att;
   const sp=L.who>=0?att[L.who]:null;
-  const who=sp?sp.label:G.me.name+'（主人）';
+  const who=sp?sp.label:UT('party.who',{a:G.me.name});
   const pt=sp&&sp.cid?portraitHtml(sp.cid,48):sp&&sp.empId?portraitEmp(G.emps.find(e=>e.id===sp.empId)||{id:sp.empId,rank:sp.rank,stats:{}},48):'';
   const last=V.i>=P.lines.length-1;
   let h='<canvas id="party-cv" width="320" height="180" style="width:100%;image-rendering:pixelated;background:#3b2a1e;cursor:pointer" data-act="partyNext"></canvas>';
   h+='<div class="card" style="display:flow-root;margin-top:6px">'+pt+'<div class="tiny muted">'+esc(who)+'</div><div class="small" style="margin-top:3px">'+esc(L.t)+'</div></div>';
   if(last)h+='<div class="notice tiny" style="margin-top:4px">'+esc(MSG('party.effect',{cost:fmt(P.cost),f:P.nf,s:P.ns,fg:PARTY_GAIN.friend,sg:PARTY_GAIN.staff}))+'</div>';
-  h+='<div class="row" style="margin-top:6px"><span class="tiny muted">出席 '+att.length+' 人·坐席 '+PARTY_SEATS+'</span><span>'+(last?'':'<button class="pixel-btn btn-sm btn-gold" data-act="partyNext">下一句 ▶</button> ')+'<button class="pixel-btn btn-sm" data-act="partyEnd">散會</button></span></div>';
-  UI.showInfo('🏮 '+yearStr(P.year)+'·忘年會',h);
+  h+=UT('party.partyRender.2',{a:att.length,b:PARTY_SEATS})+'</span><span>'+UT('party.partyRender.3',{a:last?'':UT('party.partyRender')});
+  UI.showInfo(UT('party.partyRender.4',{a:yearStr(P.year)}),h);
   partyDraw();
 }
 ACT.partyNext=()=>{const V=PARTY_VIEW;if(!V)return;if(V.i<V.P.lines.length-1){V.i++;sfx.tap();partyRender()}else ACT.partyEnd()};

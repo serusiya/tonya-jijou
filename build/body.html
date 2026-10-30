@@ -4,19 +4,19 @@
 <div id="game-app">
   <header id="top">
     <div class="hrow">
-      <div class="row" style="gap:5px"><span style="font-size:17px;color:#e5a93b">🏮 問屋事情</span></div>
+      <div class="row" style="gap:5px"><span style="font-size:17px;color:#e5a93b" data-t="body.title">🏮 問屋事情</span></div>
       <div class="row" style="gap:4px">
         <button id="b-menu" class="hbtn" data-t="nav.menu">☰</button>
-        <span id="d-ap" class="ap">行動 5/5</span><button id="b-next" class="hbtn go" data-t="nav.next">推進一旬 ▶</button>
+        <span id="d-ap" class="ap"></span><button id="b-next" class="hbtn go" data-t="nav.next">推進一旬 ▶</button>
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="v" id="d-date" style="color:#e5a93b">1年 1月上旬</div><div class="k" id="d-age">主角 20 歲</div></div>
-      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i>現款 📈</div><div class="v" id="d-silver">0</div><div class="k hidden" id="d-debt"></div></div>
-      <div class="stat" data-act="purse" style="cursor:pointer" title="私房錢：從商號帳上挪用／每旬抽成"><div class="k"><i class="cmark koban"></i>私房錢</div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
-      <div class="stat" data-act="fameInfo" style="cursor:pointer"><div class="k">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b">0/一階</div></div>
+      <div class="stat"><div class="v" id="d-date" style="color:#e5a93b"></div><div class="k" id="d-age"></div></div>
+      <div class="stat" data-act="silverChart" style="cursor:pointer"><div class="k"><i class="cmark zeni"></i><span data-t="body.silver">現款 📈</span></div><div class="v" id="d-silver">0</div><div class="k hidden" id="d-debt"></div></div>
+      <div class="stat" data-act="purse" style="cursor:pointer" data-tt="body.goldTip"><div class="k"><i class="cmark koban"></i><span data-t="body.gold">私房錢</span></div><div class="v" id="d-gold" style="color:#f2cb57">0</div></div>
+      <div class="stat" data-act="fameInfo" style="cursor:pointer"><div class="k" data-t="body.fame">商號知名度</div><div class="v" id="d-rep" style="color:#5ce68b"></div></div>
     </div>
-    <div class="ticker"><span class="lbl">瓦版急報</span><div class="win"><div id="ticker-txt" class="txt">……</div></div></div>
+    <div class="ticker"><span class="lbl" data-t="body.ticker">瓦版急報</span><div class="win"><div id="ticker-txt" class="txt">……</div></div></div>
   </header>
 
   <main id="main">
@@ -30,13 +30,13 @@
       <div id="home-tip" class="notice hidden" style="margin-top:6px"></div>
       <div id="guild-meet"></div>
       <div id="fest-walk"></div>
-      <div class="loc-title"><span>🚪 出門前往（點擊後有過場）</span><span class="muted" id="loc-city" style="color:#a09aa7"></span></div>
+      <div class="loc-title"><span data-t="body.goOut">🚪 出門前往（點擊後有過場）</span><span class="muted" id="loc-city" style="color:#a09aa7"></span></div>
       <div class="loc-grid">
-        <div class="pixel-box loc" data-go="yamen"><div><div class="row"><h4>🏛️ 町奉行所</h4><span class="tag red">要衝</span></div><p>行政、財務、司法三系官署。經介紹人引薦求見，投其所好打點。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-off" class="muted"></b><span>求見官老 ▶</span></div></div>
-        <div class="pixel-box loc" data-go="flower"><div><div class="row"><h4 style="color:#9b2c3a">🌸 吉原花街</h4><span class="tag gold">奢靡</span></div><p>夜宴廣結官商、指名名伶，好感滿了還能贖身納為側室。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-flower" class="muted"></b><span>入席 ▶</span></div></div>
-        <div class="pixel-box loc" data-go="residences"><div><div class="row"><h4>🏯 名門商邸</h4><span class="tag gray">人脈</span></div><p>投名帖拜會同行巨賈與名士，結交、送禮、結為介紹人。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-res" class="muted"></b><span>投名帖 ▶</span></div></div>
-        <div class="pixel-box loc" data-go="regional"><div><div class="row"><h4>🏯 遠國奉行所</h4><span class="tag red">許可</span></div><p>海路、陸路的運入許可，由地區官員核發。</p></div><div class="row tiny" style="margin-top:4px"><b class="muted"></b><span>遞名帖 ▶</span></div></div>
-        <div class="pixel-box loc wide" data-go="warehouse"><div class="row"><div><h4>⛵ 河岸碼頭</h4><p id="wh-line"></p></div><div style="text-align:right"><span class="tag green" id="wh-state">安全</span><div class="tiny muted" id="wh-guard"></div></div></div></div>
+        <div class="pixel-box loc" data-go="yamen"><div><div class="row"><h4 data-t="body.yamen">🏛️ 町奉行所</h4><span class="tag red" data-t="body.yamenTag">要衝</span></div><p data-t="body.yamenDesc">行政、財務、司法三系官署。經介紹人引薦求見，投其所好打點。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-off" class="muted"></b><span data-t="body.yamenGo">求見官老 ▶</span></div></div>
+        <div class="pixel-box loc" data-go="flower"><div><div class="row"><h4 style="color:#9b2c3a" data-t="body.flower">🌸 吉原花街</h4><span class="tag gold" data-t="body.flowerTag">奢靡</span></div><p data-t="body.flowerDesc">夜宴廣結官商、指名名伶，好感滿了還能贖身納為側室。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-flower" class="muted"></b><span data-t="body.flowerGo">入席 ▶</span></div></div>
+        <div class="pixel-box loc" data-go="residences"><div><div class="row"><h4 data-t="body.res">🏯 名門商邸</h4><span class="tag gray" data-t="body.resTag">人脈</span></div><p data-t="body.resDesc">投名帖拜會同行巨賈與名士，結交、送禮、結為介紹人。</p></div><div class="row tiny" style="margin-top:4px"><b id="n-res" class="muted"></b><span data-t="body.resGo">投名帖 ▶</span></div></div>
+        <div class="pixel-box loc" data-go="regional"><div><div class="row"><h4 data-t="body.regional">🏯 遠國奉行所</h4><span class="tag red" data-t="body.regionalTag">許可</span></div><p data-t="body.regionalDesc">海路、陸路的運入許可，由地區官員核發。</p></div><div class="row tiny" style="margin-top:4px"><b class="muted"></b><span data-t="body.regionalGo">遞名帖 ▶</span></div></div>
+        <div class="pixel-box loc wide" data-go="warehouse"><div class="row"><div><h4 data-t="body.dock">⛵ 河岸碼頭</h4><p id="wh-line"></p></div><div style="text-align:right"><span class="tag green" id="wh-state"></span><div class="tiny muted" id="wh-guard"></div></div></div></div>
       </div>
     </section>
 
@@ -57,6 +57,6 @@
   <div id="sheet-bd" class="hidden"><div id="sheet"><div class="sh-head"><span class="sh-title" id="sh-title"></span><button class="pixel-btn btn-sm" id="sh-close" data-t="nav.close">✕ 關閉</button></div><div id="sh-body" class="small"></div></div></div>
   <div id="toast"></div>
   <div id="fx"><div class="town" id="fx-town"></div><div class="ground"></div><canvas id="fx-walker" width="14" height="21"></canvas><div class="cap" id="fx-cap"></div></div>
-  <div id="visit"><div class="vwin"><div class="vhead" id="visit-title">拜訪</div><canvas id="visit-cv" width="256" height="128"></canvas><div id="visit-cap"></div><div class="vskip">（點一下可立即跳過）</div></div></div>
+  <div id="visit"><div class="vwin"><div class="vhead" id="visit-title"></div><canvas id="visit-cv" width="256" height="128"></canvas><div id="visit-cap"></div><div class="vskip" data-t="body.skip">（點一下可立即跳過）</div></div></div>
   <div id="start" class="hidden"><div class="inner" id="start-inner"></div></div>
 </div>

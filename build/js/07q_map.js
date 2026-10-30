@@ -4,7 +4,8 @@
  * - 圖示：行政都市＝天守閣、礦產＝礦山、水路／水陸要衝＝帆船、陸路要衝＝關門、農林＝茅屋田畦；城名為直書兩字名牌；本店駐節城以朱紅標出。
  */
 /** 城市圖示類型：admin / mine / port / farm / land */
-function mapKind(ct){const t=ct.location_type;if(t.includes('行政'))return 'admin';if(t.includes('礦'))return 'mine';if(t.includes('水'))return 'port';if(t.includes('陸路'))return 'land';return 'farm'}
+const MAP_KIND={admin:'admin',mine:'mine',water:'port',waterland:'port',land:'land',farm:'farm',forest:'farm'};
+const mapKind=ct=>MAP_KIND[ct.type]||'farm';
 /** 道路（或海路）端點對：最短樹＋近鄰支線。 */
 function mapEdges(pts,islands){
   const n=pts.length,d=(a,b)=>Math.hypot(pts[a].x-pts[b].x,pts[a].y-pts[b].y),E=[],inT=new Set([0]),has=new Set();
@@ -93,15 +94,15 @@ function regionMapSvg(rid,opts){
   // 外框
   s+='<rect x="3" y="3" width="'+(W-6)+'" height="'+(H-6)+'" fill="none" stroke="'+INK+'" stroke-width="2.2"/><rect x="7" y="7" width="'+(W-14)+'" height="'+(H-14)+'" fill="none" stroke="'+INK+'" stroke-width=".6"/>';
   // 題簽（直書）
-  const reg=(list[0]||{}).region_name||'',title=reg.replace(/圈$/,'').replace(/同盟|群島|水運港灣|商賈驛站/,m=>m)+'繪圖',tl=[...title];
+  const reg=(list[0]||{}).region_name||'',sfx_=UT('map.regionSuffix'),title=UT('map.title',{r:reg.endsWith(sfx_)?reg.slice(0,-sfx_.length):reg}),tl=[...title];
   const tw=15,th=tl.length*11+8;
   s+='<g><rect x="13" y="13" width="'+tw+'" height="'+th+'" fill="#f7efd2" stroke="'+INK+'" stroke-width="1"/><rect x="15" y="15" width="'+(tw-4)+'" height="'+(th-4)+'" fill="none" stroke="'+RED+'" stroke-width=".6"/>'
    +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(25+i*13)+'" text-anchor="middle" font-size="11.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
   // 方位（北）：在幾個候選位置中挑離城市與名牌最遠者
   const cc=[[W-26,34],[W-26,H-70],[W/2,24]].map(c=>[c,Math.min(...px.map(p=>Math.hypot(p.sx-c[0],p.sy-c[1])))]).sort((a,b)=>b[1]-a[1])[0][0],cx=cc[0],cy=cc[1];
-  s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="'+INK+'">北</text>';
+  s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="'+UT('map2.regionMapSvg',{a:INK});
   // 比例尺（百里）與落款印
-  s+='<g stroke="'+INK+'" stroke-width=".8"><path d="M14 '+(H-14)+'H'+(14+50)+'M14 '+(H-17)+'V'+(H-11)+'M'+(14+50)+' '+(H-17)+'V'+(H-11)+'"/></g><text x="39" y="'+(H-18.5)+'" text-anchor="middle" font-size="8.5" fill="'+INK+'">五十里</text>';
-  s+='<g><rect x="'+(W-27)+'" y="'+(H-27)+'" width="15" height="15" fill="'+RED+'" opacity=".9"/><text x="'+(W-19.5)+'" y="'+(H-22)+'" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fbf4dc">問</text><text x="'+(W-19.5)+'" y="'+(H-14.6)+'" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fbf4dc">屋</text></g>';
+  s+='<g stroke="'+INK+'" stroke-width=".8"><path d="M14 '+(H-14)+'H'+(14+50)+'M14 '+(H-17)+'V'+(H-11)+'M'+(14+50)+' '+(H-17)+'V'+(H-11)+'"/></g><text x="39" y="'+(H-18.5)+'" text-anchor="middle" font-size="8.5" fill="'+UT('map2.regionMapSvg.2',{a:INK});
+  s+='<g><rect x="'+(W-27)+'" y="'+(H-27)+'" width="15" height="15" fill="'+RED+'" opacity=".9"/><text x="'+(W-19.5)+'" y="'+UT('map2.regionMapSvg.3',{a:H-22,b:W-19.5})+'" y="'+UT('map2.regionMapSvg.4',{a:H-14.6});
   return s+'</svg>';
 }

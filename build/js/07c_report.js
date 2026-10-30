@@ -28,13 +28,13 @@ function repRow(icon,label,amt,max,cls){
 /** 貨物收支：一種貨一條（照大盤的本業貨順序，沒買賣的不列）。長條長度看收入與支出較大者（各貨同一比例尺）；較大者為底色（綠＝出貨收入、紅＝大盤進貨），較小者按比例疊在上面；右邊淨額，賺綠賠紅。 */
 function goodsRows(T){
   const L=ownComms().map(c=>{const s=T.ship[c.short]||{q:0,rev:0},b=T.buy[c.short]||{q:0,cost:0};return {n:c.short,sq:s.q,rev:s.rev,bq:b.q,cost:b.cost}}).filter(x=>x.sq||x.bq);
-  if(!L.length)return '<div class="rp-empty">本旬沒有買賣</div>';
+  if(!L.length)return UT('rep.goodsRows');
   const mx=Math.max(1,...L.map(x=>Math.max(x.rev,x.cost)));
-  return '<div class="tiny muted" style="margin:-2px 0 3px">綠＝出貨收入，紅＝大盤進貨</div>'+L.map(x=>{
+  return UT('rep.goodsRows.2',{a:L.map(x=>{
     const big=Math.max(x.rev,x.cost),inBase=x.rev>=x.cost,w=Math.max(3,Math.round(big/mx*100)),ws=big>0?Math.round(Math.min(x.rev,x.cost)/mx*100):0,net=x.rev-x.cost;
-    const qty=(x.sq?'出'+x.sq:'')+(x.sq&&x.bq?'·':'')+(x.bq?'進'+x.bq:'');
+    const qty=(x.sq?UT('rep.qty',{a:x.sq}):'')+(x.sq&&x.bq?'·':'')+(x.bq?UT('rep.qty.2',{a:x.bq}):'');
     return '<div class="rp-row"><span class="rp-ic">📦</span><span class="rp-lb" style="white-space:normal;line-height:1.15">'+esc(x.n)+'<div class="tiny muted">'+qty+'</div></span><span class="rp-bar" style="position:relative"><i class="'+(inBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(inBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span><b class="rp-amt '+(net>=0?'in':'out')+'">'+(net>=0?'+':'−')+fmt(Math.abs(net))+'</b></div>';
-  }).join('');
+  }).join('')});
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */
 var LASTREP=null;
@@ -42,7 +42,7 @@ var LASTREP=null;
 function showTurnReport(reps,logs,n,kind){
   LASTREP={reps,logs,n,kind};if(G&&!G.ended){G.lastRep=LASTREP;save()}
   const T=mergeReports(reps);
-  const costs=[['👥','夥計月例',T.cost.wages],['🏚️','倉庫維護',T.cost.wh],['🛡️','倉儲保險',T.cost.hold],['🏠','家計開銷',T.cost.fam],['💸','透支利息',T.cost.interest]].filter(x=>x[2]>0);
+  const costs=[['👥',UT('rep.costs'),T.cost.wages],['🏚️',UT('rep.costs.2'),T.cost.wh],['🛡️',UT('rep.costs.3'),T.cost.hold],['🏠',UT('rep.costs.4'),T.cost.fam],['💸',UT('rep.costs.5'),T.cost.interest]].filter(x=>x[2]>0);
   const publicSpend=Object.entries(T.publicSpend).filter(x=>x[1]>0),publicSpendTotal=publicSpend.reduce((a,x)=>a+x[1],0);
   const exp=costs.reduce((a,x)=>a+x[2],0);
   const voyBack=T.voy.reduce((a,v)=>a+(v.back||0),0);         // 委託採買歸來退回的委託金餘額
@@ -52,27 +52,27 @@ function showTurnReport(reps,logs,n,kind){
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
   const max=Math.max(1,voyBack,T.guildDiv,T.windfall,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
-  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?'連續 '+n+' 旬·':kind==='open'?'開業·':kind==='recent'?'近況·':'')+dateStr()+'</div><div class="rp-net">'+(T.net>=0?'▲ ':'▼ ')+sgn(T.net)+' <small>兩</small></div><div class="rp-sub">現款餘額 '+fmt(G.silver)+' 兩</div></div>';
+  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>=0?'▲ ':'▼ ',b:sgn(T.net),c:fmt(G.silver)});
   h+=raidCard();
-  h+='<div class="rp-split"><i class="in" style="width:'+pi+'%"></i><i class="out" style="width:'+(100-pi)+'%"></i></div><div class="rp-legend"><span class="in">收入 '+fmt(inc)+'</span><span class="out">支出 '+fmt(outl)+'</span></div>';
-  h+='<div class="rp-sec">📦 貨物收支</div>'+goodsRows(T);
-  if(voyBack>0)h+=repRow('⛵','委託金退回',voyBack,max,'in');
-  if(T.guildDiv>0)h+=repRow('⚖️','協議分紅',T.guildDiv,max,'in');
-  if(T.windfall>0)h+=repRow('💰','大番頭意外之財',T.windfall,max,'in');
-  if(other>0)h+=repRow('✨','其他進帳',other,max,'in');
-  h+='<div class="rp-sec">🧾 固定支出</div>'+(costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||'<div class="rp-empty">無</div>');
-  if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
-  if(other<0)h+=repRow('📦','其他支出',-other,max,'out');
-  if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
+  h+='<div class="rp-split"><i class="in" style="width:'+pi+'%"></i><i class="out" style="width:'+UT('rep.showTurnReport.5',{a:100-pi,b:fmt(inc),c:fmt(outl)})+'</span></div>';
+  h+=UT('rep.showTurnReport.6',{a:goodsRows(T)});
+  if(voyBack>0)h+=repRow('⛵',UT('rep.showTurnReport.7'),voyBack,max,'in');
+  if(T.guildDiv>0)h+=repRow('⚖️',UT('rep.showTurnReport.8'),T.guildDiv,max,'in');
+  if(T.windfall>0)h+=repRow('💰',UT('rep.showTurnReport.9'),T.windfall,max,'in');
+  if(other>0)h+=repRow('✨',UT('rep.showTurnReport.10'),other,max,'in');
+  h+=UT('rep.showTurnReport.12',{a:costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||UT('rep.showTurnReport.11')});
+  if(publicSpend.length)h+=UT('rep.showTurnReport.13',{a:publicSpend.map(x=>repRow('💴',esc(spendLabel(x[0])),x[1],max,'out')).join('')});
+  if(other<0)h+=repRow('📦',UT('rep.showTurnReport.14'),-other,max,'out');
+  if(T.skim>0)h+=UT('rep.showTurnReport.16',{a:repRow('🟨',UT('rep.showTurnReport.15'),T.skim,max,'out')});
   if(T.fame!==0||T.fameGate||T.short.length||T.squeeze.length){
-    const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?'<span class="tag gray">…共 '+L.length+' 項</span>':'');
-    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:T.fameGate?'🌟 穩定供貨　名聲已響徹全城':'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">協議減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
+    const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?UT('rep.chipsOf',{a:L.length}):'');
+    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?UT('rep.showTurnReport.17',{a:T.fame}):T.fame<0?UT('rep.showTurnReport.18',{a:T.fame}):T.fameGate?UT('rep.showTurnReport.19'):UT('rep.showTurnReport.20'))+'</div>'+(T.short.length?UT('rep.showTurnReport.21',{a:chipsOf(T.short,'red')})+'</div>':'')+(T.squeeze.length?UT('rep.showTurnReport.22',{a:chipsOf(T.squeeze,'gold')}):'')+'</div>';
   }
-  if(T.voy.length)h+='<div class="rp-sec">⛵ 船隻歸航</div>'+T.voy.map(v=>'<div class="card" style="margin:3px 0"><b class="small">船長「'+esc(v.capt)+'」·委託金 '+fmt(v.budget)+' 兩'+(v.wreck?' <span class="tag red">遇海難</span>':'')+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('');
-  const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢|^🧾/.test(t)&&!/【查貨】|【借錢】|【官吏硬塞】/.test(t));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列
-  const moveEv=allEv.filter(t=>/【官員調任】|【宅邸異動】/.test(t));
-  const ev=moveEv.concat(allEv.filter(t=>!/【官員調任】|【宅邸異動】/.test(t)).slice(0,Math.max(0,15-moveEv.length))).slice(0,15);
-  if(ev.length)h+='<div class="rp-sec">📰 本旬大事</div>'+ev.map(t=>'<div class="rp-ev">'+esc(t)+'</div>').join('');
+  if(T.voy.length)h+=UT('rep.showTurnReport.25',{a:T.voy.map(v=>UT('rep.showTurnReport.24',{a:esc(v.capt),b:fmt(v.budget),c:v.wreck?UT('rep.showTurnReport.23'):''})+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('')});
+  const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢|^🧾/.test(t)&&!NEWS_HIDE_SET.has(newsKey(t)));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列
+  const isMove=t=>NEWS_MOVE_SET.has(newsKey(t)),moveEv=allEv.filter(isMove);
+  const ev=moveEv.concat(allEv.filter(t=>!isMove(t)).slice(0,Math.max(0,15-moveEv.length))).slice(0,15);
+  if(ev.length)h+=UT('rep.showTurnReport.26',{a:ev.map(t=>'<div class="rp-ev">'+esc(t)+'</div>').join('')});
   h+='</div>';
-  UI.showInfo(kind==='open'?'📜 開業旬報':kind==='recent'?'📅 近況':'📅 旬報',h);
+  UI.showInfo(kind==='open'?UT('rep.showTurnReport.27'):kind==='recent'?UT('rep.showTurnReport.28'):UT('rep.showTurnReport.29'),h);
 }

@@ -8,10 +8,10 @@
 const SCENE={w:320,h:180,ents:[],parts:[],sig:'',t:0,last:0,ctx:null,cv:null,timer:null,bubble:null};
 /** 四季色盤。 */
 const PAL={
-  春:{sky:['#9fd0ee','#e9f2f4'],hill:'#7fa58a',grass:'#78b55a',canopy:'#f3a6c0',leaf:'#f7c6d8'},
-  夏:{sky:['#5fb6e8','#cfeaf6'],hill:'#4f8a5f',grass:'#4d9e48',canopy:'#3f8f4a',leaf:'#79c26b'},
-  秋:{sky:['#e6b57e','#f6e2c2'],hill:'#9c7a52',grass:'#a8a24e',canopy:'#d9782e',leaf:'#e8a04a'},
-  冬:{sky:['#b9c6d6','#e9eef3'],hill:'#9aa7b5',grass:'#dfe7ee',canopy:'#6b5a4a',leaf:'#ffffff'}
+  spring:{sky:['#9fd0ee','#e9f2f4'],hill:'#7fa58a',grass:'#78b55a',canopy:'#f3a6c0',leaf:'#f7c6d8'},
+  summer:{sky:['#5fb6e8','#cfeaf6'],hill:'#4f8a5f',grass:'#4d9e48',canopy:'#3f8f4a',leaf:'#79c26b'},
+  autumn:{sky:['#e6b57e','#f6e2c2'],hill:'#9c7a52',grass:'#a8a24e',canopy:'#d9782e',leaf:'#e8a04a'},
+  winter:{sky:['#b9c6d6','#e9eef3'],hill:'#9aa7b5',grass:'#dfe7ee',canopy:'#6b5a4a',leaf:'#ffffff'}
 };
 /** 畫實心矩形（像素取整）。 */
 function R_(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
@@ -43,13 +43,13 @@ function drawPerson(c,x,y,o){
 }
 /** 各職位外觀（含船長、飛腳）。新增職位時在此加外觀。 */
 const RANK_LOOK={
-  丁稚:{cloth:'#b9c7d6',cloth2:'#8aa0b5',small:true},
-  手代:{cloth:'#7a5a3a',cloth2:'#e8dcc4'},
-  番頭:{cloth:'#27407a',cloth2:'#e8dcc4'},
-  大番頭:{cloth:'#4a2f6a',cloth2:'#e5a93b',abacus:true},
-  船長:{cloth:'#1f5a6e',cloth2:'#e8dcc4',hat:'#1a1612'},
-  飛腳:{cloth:'#4f7a3a',cloth2:'#e8dcc4',hat:'#8a6a3a'},
-  保鏢:{cloth:'#2b2b33',cloth2:'#b3261e',hat:'#1a1612'}
+  apprentice:{cloth:'#b9c7d6',cloth2:'#8aa0b5',small:true},
+  clerk:{cloth:'#7a5a3a',cloth2:'#e8dcc4'},
+  banto:{cloth:'#27407a',cloth2:'#e8dcc4'},
+  chief:{cloth:'#4a2f6a',cloth2:'#e5a93b',abacus:true},
+  captain:{cloth:'#1f5a6e',cloth2:'#e8dcc4',hat:'#1a1612'},
+  courier:{cloth:'#4f7a3a',cloth2:'#e8dcc4',hat:'#8a6a3a'},
+  guard:{cloth:'#2b2b33',cloth2:'#b3261e',hat:'#1a1612'}
 };
 
 /* ---------- 背景元件 ---------- */
@@ -82,16 +82,16 @@ function drawHouse(c,x,y,t,sea){
   // 看板
   R_(c,x+34,y+13,40,12,'#f4ece1');R_(c,x+34,y+13,40,1,'#1a1612');R_(c,x+34,y+24,40,1,'#1a1612');
   c.fillStyle='#1a1612';c.font='9px DotGothic16,monospace';c.textBaseline='top';
-  const nm=(G&&G.me?G.me.family+'屋':'商店');c.fillText(nm,x+37+Math.max(0,(34-nm.length*9)/2),y+14);
+  const nm=(G&&G.me?UT('scene.sign',{f:G.me.family}):UT('scene.shop'));c.fillText(nm,x+37+Math.max(0,(34-nm.length*9)/2),y+14);
   // 燈籠
   const glow=G&&G.cycle===3;
   [[x+2,y+36],[x+104,y+36]].forEach(([lx,ly])=>{R_(c,lx,ly,5,8,glow?'#ffb03a':'#b4442e');R_(c,lx+1,ly-2,3,2,'#1a1612');if(glow){c.fillStyle='#ffb03a33';c.beginPath();c.arc(lx+2.5,ly+4,11+Math.sin(t/300)*1,0,6.3);c.fill()}});
-  if(sea==='冬'){R_(c,x-4,y+3,118,2,'#fff');R_(c,x,y-3,110,2,'#fff');R_(c,x+8,y-9,94,2,'#fff');R_(c,x+20,y-14,70,2,'#fff')}
+  if(sea==='winter'){R_(c,x-4,y+3,118,2,'#fff');R_(c,x,y-3,110,2,'#fff');R_(c,x+8,y-9,94,2,'#fff');R_(c,x+20,y-14,70,2,'#fff')}
 }
 /** 畫樹（隨季節變色）。 */
 function drawTree(c,x,y,sea,t){
   const p=PAL[sea];R_(c,x-2,y-2,4,26,'#5a4030');
-  if(sea==='冬'){R_(c,x-12,y-8,2,10,'#5a4030');R_(c,x+10,y-10,2,12,'#5a4030');R_(c,x-12,y-8,24,2,'#5a4030');R_(c,x-14,y-10,6,2,'#fff');R_(c,x+8,y-12,6,2,'#fff');return}
+  if(sea==='winter'){R_(c,x-12,y-8,2,10,'#5a4030');R_(c,x+10,y-10,2,12,'#5a4030');R_(c,x-12,y-8,24,2,'#5a4030');R_(c,x-14,y-10,6,2,'#fff');R_(c,x+8,y-12,6,2,'#fff');return}
   const rows=[[ -9,-12,18],[-14,-8,28],[-16,-3,32],[-13,2,26],[-8,6,16]];
   rows.forEach(([dx,dy,w],i)=>R_(c,x+dx,y+dy,w,6,i%2?p.canopy:p.leaf));
 }
@@ -107,8 +107,8 @@ function drawBackdrop(c,t){
   // 遠方城郭
   R_(c,226,58,26,18,'#e9e2d2');R_(c,222,54,34,4,'#2a2a3a');R_(c,230,46,18,8,'#e9e2d2');R_(c,226,42,26,4,'#2a2a3a');R_(c,234,34,10,8,'#e9e2d2');R_(c,231,31,16,3,'#2a2a3a');
   // 地面
-  R_(c,0,100,320,12,p.grass);R_(c,0,112,320,68,sea==='冬'?'#cdbf9e':'#c2a572');
-  for(let i=0;i<40;i++){const sx=(i*53)%320,sy=116+((i*37)%60);R_(c,sx,sy,2,1,sea==='冬'?'#b9aa86':'#b09560')}
+  R_(c,0,100,320,12,p.grass);R_(c,0,112,320,68,sea==='winter'?'#cdbf9e':'#c2a572');
+  for(let i=0;i<40;i++){const sx=(i*53)%320,sy=116+((i*37)%60);R_(c,sx,sy,2,1,sea==='winter'?'#b9aa86':'#b09560')}
   R_(c,0,110,320,2,'#0002');
   // 石板路
   R_(c,56,112,26,68,'#bcb4a2');for(let i=0;i<8;i++)R_(c,56,114+i*9,26,1,'#9a927f');
@@ -133,18 +133,18 @@ function sceneSync(force){
   const old={};SCENE.ents.forEach(e=>old[e.id]=e);
   const out=[];const keep=(kind,id,extra)=>{const e=old[id]||newEnt(kind,id,extra);Object.assign(e,extra||{});out.push(e);return e};
   /* 每種職位、每類家人只畫一人（不畫主角）；點選時才從同類中隨機挑一名（見 sceneMember） */
-  [...RANKS,...SPECIAL].forEach((rk,i)=>{if(!G.emps.some(e=>e.rank===rk))return;const x={rank:rk,label:'【'+rk+'】',patrol:i,group:'emp'};if(rk==='保鏢')x.spd=16;keep('emp','rank_'+rk,x)});
-  if(G.family.spouse)keep('wife','wife',{label:'夫人：'+G.family.spouse.name,spd:6,group:'wife'});
-  if((G.family.conc||[]).length)keep('wife','conc',{label:'側室',spd:6,group:'conc'});
-  if(G.family.kids.length){const k=G.family.kids[0],a=kidAge(k);keep('kid','kids',{label:'子女：'+k.name+'（'+kidStage(a)+'）',spd:14,age:a,girl:k.gender==='女',group:'kid'})}
+  [...RANKS,...SPECIAL].forEach((rk,i)=>{if(!G.emps.some(e=>e.rank===rk))return;const x={rank:rk,label:UT('scene.rankTag',{r:rankName(rk)}),patrol:i,group:'emp'};if(rk==='guard')x.spd=16;keep('emp','rank_'+rk,x)});
+  if(G.family.spouse)keep('wife','wife',{label:UT('scene.wife',{n:G.family.spouse.name}),spd:6,group:'wife'});
+  if((G.family.conc||[]).length)keep('wife','conc',{label:roleName('concubine'),spd:6,group:'conc'});
+  if(G.family.kids.length){const k=G.family.kids[0],a=kidAge(k);keep('kid','kids',{label:UT('scene.kid',{n:k.name,s:kidStage(a)}),spd:14,age:a,girl:k.gender==='f',group:'kid'})}
   SCENE.ents=out;
 }
 /** 為角色挑下一個漫步目標。 */
 function pickTarget(e){
-  if(e.kind==='guard'||e.rank==='保鏢'){e.tx=e.tx>160?24:296;e.ty=e.patrol%2?158:126;return}
+  if(e.kind==='guard'||e.rank==='guard'){e.tx=e.tx>160?24:296;e.ty=e.patrol%2?158:126;return}
   if(e.kind==='proto'){const r=Math.random();if(r<0.5){e.tx=SPOTS.proto.x;e.ty=SPOTS.proto.y}else{e.tx=140+Math.random()*130;e.ty=118+Math.random()*10}return}
   if(e.kind==='wife'||e.kind==='kid'){e.tx=14+Math.random()*130;e.ty=120+Math.random()*42;return}
-  if(e.rank==='大番頭'){e.tx=40+Math.random()*60;e.ty=116+Math.random()*10;return}
+  if(e.rank==='chief'){e.tx=40+Math.random()*60;e.ty=116+Math.random()*10;return}
   e.tx=14+Math.random()*290;e.ty=118+Math.random()*44;
 }
 /** 角色移動一步。 */
@@ -165,19 +165,19 @@ function entLook(e){
     case 'guard':return {cloth:'#3a3a44',cloth2:'#8a8a98',sword:true,hat:'#1a1612',pants:'#222'};
     case 'wife':return {cloth:'#c46a8a',cloth2:'#e0b030',woman:true};
     case 'kid':return {cloth:e.girl?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,woman:false,noKnot:true};
-    default:return RANK_LOOK[e.rank]||RANK_LOOK['手代'];
+    default:return RANK_LOOK[e.rank]||RANK_LOOK.clerk;
   }
 }
 /** 畫季節粒子（櫻花、落葉、雪）。 */
 function drawParts(c,t,dt){
   const sea=season();
   if(!SCENE.parts.length)for(let i=0;i<26;i++)SCENE.parts.push({x:Math.random()*320,y:Math.random()*180,v:6+Math.random()*10,s:Math.random()*6});
-  if(sea==='夏')return;
-  const col=sea==='春'?'#f9c6d6':sea==='秋'?'#d8752a':'#ffffff';
+  if(sea==='summer')return;
+  const col=sea==='spring'?'#f9c6d6':sea==='autumn'?'#d8752a':'#ffffff';
   SCENE.parts.forEach(p=>{
-    p.y+=p.v*dt/1000;p.x+=Math.sin((t/600)+p.s)*0.25+(sea==='冬'?0:0.3);
+    p.y+=p.v*dt/1000;p.x+=Math.sin((t/600)+p.s)*0.25+(sea==='winter'?0:0.3);
     if(p.y>180){p.y=-4;p.x=Math.random()*320}
-    R_(c,p.x,p.y,sea==='冬'?1.5:2,sea==='冬'?1.5:1,col);
+    R_(c,p.x,p.y,sea==='winter'?1.5:2,sea==='winter'?1.5:1,col);
   });
 }
 /** 畫時節色調。 */
@@ -196,7 +196,7 @@ function drawScene(now){
   drawHouse(c,8,40,now,season());
   const slots=[[132,56],[180,56],[228,56],[270,86],[150,92],[210,92]];
   for(let i=0;i<Math.min(G.wh.n,slots.length);i++){const [x,y]=slots[i];drawKura(c,x,y,i===0);}
-  if(season()==='冬')R_(c,0,108,320,3,'#fff8');
+  if(season()==='winter')R_(c,0,108,320,3,'#fff8');
   if(fest){drawNobori(c,now);drawLanterns(c,now)}
   const list=SCENE.ents.map(e=>({y:e.y,draw:c=>{const L=entLook(e);drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0},L,{small:L.small||e.kind==='kid'&&e.age<12}))}}));
   if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
@@ -204,7 +204,7 @@ function drawScene(now){
   drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);
   // 庫存提示牌
   c.fillStyle='#1a1612cc';c.fillRect(2,166,96,12);c.fillStyle='#f4ece1';c.font='8px DotGothic16,monospace';c.textBaseline='top';
-  c.fillText('倉 '+G.wh.n+' 棟｜庫 '+invUsed()+'/'+invCap(),5,168);
+  c.fillText(UT('scene.store',{n:G.wh.n,u:invUsed(),c:invCap()}),5,168);
 }
 /** 場景每秒 30 格（像素畫看不出差別，運算量減半）。 */
 const SCENE_FRAME=1000/30;
@@ -225,9 +225,9 @@ function sceneStart(){
 }
 /** 點到場景中的代表人物：從同一類（同職位的員工、側室、子女）隨機挑一名，回傳聊天用的角色資料。 */
 function sceneMember(ent){
-  if(ent.group==='emp'){const L=G.emps.filter(e=>e.rank===ent.rank);if(!L.length)return null;const e=pick(L);return {kind:'emp',id:'emp_'+e.id,label:'【'+e.rank+'】'+e.name}}
-  if(ent.group==='conc'){const L=G.family.conc||[];if(!L.length)return null;const x=pick(L);return {kind:'wife',id:'conc_'+x.cid,label:'側室：'+x.name}}
-  if(ent.group==='kid'){const L=G.family.kids;if(!L.length)return null;const k=pick(L);return {kind:'kid',id:'kid_'+k.id,label:'子女：'+k.name+'（'+kidStage(kidAge(k))+'）'}}
+  if(ent.group==='emp'){const L=G.emps.filter(e=>e.rank===ent.rank);if(!L.length)return null;const e=pick(L);return {kind:'emp',id:'emp_'+e.id,label:UT('scene.rankTag',{r:rankName(e.rank)})+e.name}}
+  if(ent.group==='conc'){const L=G.family.conc||[];if(!L.length)return null;const x=pick(L);return {kind:'wife',id:'conc_'+x.cid,label:UT('scene.conc',{n:x.name})}}
+  if(ent.group==='kid'){const L=G.family.kids;if(!L.length)return null;const k=pick(L);return {kind:'kid',id:'kid_'+k.id,label:UT('scene.kid',{n:k.name,s:kidStage(kidAge(k))})}}
   if(ent.group==='wife')return {kind:'wife',id:'wife',label:ent.label};
   return null;
 }
@@ -299,7 +299,7 @@ function coinFx(from){
 /** 拜訪動畫狀態。 */
 const VIS={busy:false};
 const VIS_TIME={approach:1050,bow:1450,knock:2050,response:2500,exchange:3250,end:3700,failEnd:3100};
-const VIS_TITLE={meet:'📜 登門投帖',gift:'🎁 備禮拜訪',favor:'📜 登門請託',contract:'🖋️ 商談契約',marry:'💍 託媒說親',secret:'🏴‍☠️ 後門交易'};
+const VIS_TITLE={};['meet','gift','favor','contract','marry','secret'].forEach(k=>VIS_TITLE[k]=UT('visit.title.'+k));
 const VIS_DEFAULT_PROP={meet:'letter',gift:'letter',favor:'petition',contract:'contract',marry:'marriage',secret:'crate'};
 const GIFT_COL={gold:'#e5a93b',art:'#b04a3a',antique:'#6a4a8a',wine:'#d8d0b0',geisha:'#e07a9a',charm:'#c0392b',toy:'#4a9bd0',safe:'#6b4a2a',alms:'#e8dcc4',wife:'#d96a8a',grudge:'#444',fame:'#c9a35a',gamble:'#2f7d4f',none:'#c9b89a'};
 const vis01=v=>clamp(v,0,1);
@@ -314,16 +314,16 @@ function visitSetup(o){
 }
 function visitPropName(o){
   if(o.propName)return o.propName;
-  const fixed={letter:'名帖',petition:'請託文書',contract:'契約',gold:'銀兩',marriage:'婚書與聘禮',crate:'貨箱'};
-  return fixed[o.prop]||(typeof GIFT_MAP!=='undefined'&&GIFT_MAP[o.prop]?GIFT_MAP[o.prop].name:'禮物');
+  const fixed=UI_TXT['visit.prop.'+o.prop]!==undefined?UT('visit.prop.'+o.prop):null;
+  return fixed||(typeof GIFT_MAP!=='undefined'&&GIFT_MAP[o.prop]?GIFT_MAP[o.prop].name:UT('visit.prop.gift'));
 }
 function visitCaptions(o){
-  const nm=o.cid&&CH(o.cid)?CH(o.cid).name:'對方',prop=visitPropName(o);
-  const intro=(o.actor==='apprentice'?'丁稚':'你')+'拿著'+prop+'前往拜訪'+nm+'……';
+  const nm=o.cid&&CH(o.cid)?CH(o.cid).name:UT('visit.other'),prop=visitPropName(o);
+  const intro=UT('visit.cap.go',{who:UT(o.actor==='apprentice'?'visit.who.apprentice':'visit.who.me'),p:prop,n:nm});
   let result;
-  if(o.outcome==='absent')result='結果：'+nm+'不在。';
-  else if(o.outcome==='refuse')result='結果：'+nm+'拒絕接見。';
-  else result='結果：'+({meet:nm+'收下名帖。',gift:nm+'收下禮物。',favor:nm+'收下'+prop+'。',contract:nm+'接受商談。',marry:nm+'收下婚書與聘禮。',secret:'接頭人收下貨箱。'}[o.kind]);
+  if(o.outcome==='absent')result=UT('visit.cap.absent',{n:nm});
+  else if(o.outcome==='refuse')result=UT('visit.cap.refuse',{n:nm});
+  else result=UT('visit.cap.ok.'+o.kind,{n:nm,p:prop});
   return [intro,intro,intro,result,result,result];
 }
 /** 畫名帖、金封、實體禮物、契約與密貨木箱。x/y 為道具左上角。 */
@@ -350,7 +350,7 @@ function drawVisitProp(c,x,y,k){
 /** 依對方身分（官員/商人/名伶）決定拜訪動畫中主人的外觀。 */
 function hostLook(cid){
   const c=cid&&CH(cid),n=cid&&npc(cid);
-  if(c&&c.gender==='女')return {cloth:'#c46a8a',cloth2:'#e0b030',woman:true};
+  if(isFemale(c))return {cloth:'#c46a8a',cloth2:'#e0b030',woman:true};
   if(n&&n.pos)return {cloth:'#4a2f6a',cloth2:'#e5a93b',hat:'#1a1612'};
   if(n&&n.role==='smuggler')return {cloth:'#3a4a3a',cloth2:'#8a8a98'};
   return {cloth:'#7a5a3a',cloth2:'#e8dcc4',abacus:true};
@@ -362,7 +362,7 @@ function drawVisitScene(c,t,o){
   if(secret){for(let i=0;i<16;i++)R_(c,(i*47)%250,8+(i*23)%42,1,1,'#f7e8aa');R_(c,220,12,9,9,'#e8dc9a')}
   c.fillStyle=p.hill;c.beginPath();c.moveTo(0,70);c.lineTo(50,46);c.lineTo(100,68);c.lineTo(160,42);c.lineTo(256,66);c.lineTo(256,90);c.lineTo(0,90);c.fill();
   if(secret){c.fillStyle='#11182755';c.fillRect(0,38,256,54)}
-  R_(c,0,88,256,40,sea==='冬'?'#cdbf9e':secret?'#6e6758':'#c2a572');R_(c,0,86,256,4,secret?'#334634':p.grass);
+  R_(c,0,88,256,40,sea==='winter'?'#cdbf9e':secret?'#6e6758':'#c2a572');R_(c,0,86,256,4,secret?'#334634':p.grass);
   // 背景町家
   [[6,50,52],[66,56,44]].forEach(([x,y,w])=>{R_(c,x,y,w,36,secret?'#4a443e':'#8a7a62');R_(c,x-3,y-6,w+6,8,'#2c3552');R_(c,x+6,y+14,w-12,18,secret?'#25221f':'#5a4a3a')});
   // 目標住宅
@@ -386,7 +386,7 @@ function drawVisitScene(c,t,o){
   // 來客：丁稚代跑時換成店童；投帖前先停步整衣行禮
   const walk=visEase(t/VIS_TIME.approach),px=-8+walk*126,py=122+(t<VIS_TIME.approach?Math.sin(t/110):0),fr=Math.floor(t/150);
   const bow=visBow(t,VIS_TIME.approach,VIS_TIME.bow)+visBow(t,VIS_TIME.exchange,VIS_TIME.end);
-  const actor=o.actor==='apprentice'?Object.assign({},RANK_LOOK['丁稚'],{noKnot:true}):{cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true,hair:myAge()>=55?'#c8c8c8':'#1a1612'};
+  const actor=o.actor==='apprentice'?Object.assign({},RANK_LOOK.apprentice,{noKnot:true}):{cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true,hair:myAge()>=55?'#c8c8c8':'#1a1612'};
   drawPerson(c,px,py,Object.assign({frame:t<VIS_TIME.approach?fr:0,bow},actor));
   // 應門者會從門內走到來客面前，拒見則只由門房回話
   let hostX=dx+12,hostY=hy+62;
@@ -413,15 +413,15 @@ function drawVisitScene(c,t,o){
   }
   drawVisitProp(c,bx,by,o.prop);
   if(knocking){R_(c,px+10,py-29,32,9,'#fffdf5');R_(c,px+10,py-29,32,1,'#1a1612');R_(c,px+10,py-21,32,1,'#1a1612');R_(c,px+10,py-29,1,9,'#1a1612');R_(c,px+41,py-29,1,9,'#1a1612');
-    c.fillStyle='#1a1612';c.font='8px DotGothic16,monospace';c.textBaseline='top';c.fillText(secret?'叩、叩……':'咚咚咚',px+12,py-28)}
+    c.fillStyle='#1a1612';c.font='8px DotGothic16,monospace';c.textBaseline='top';c.fillText(UT(secret?'visit.knockSecret':'visit.knock'),px+12,py-28)}
 }
 /** 【所有人際往來的動畫入口】kind 決定情境、prop 決定道具；點一下立即完成並結算。 */
 function visitFx(o,done){
   if(VIS.busy){done&&done();return}
   VIS.busy=true;o=visitSetup(o);
   const box=$('#visit'),cv=$('#visit-cv'),c=cv.getContext('2d');c.imageSmoothingEnabled=false;
-  const nm=o.cid&&CH(o.cid)?CH(o.cid).name:'對方';
-  $('#visit-title').textContent=(VIS_TITLE[o.kind]||VIS_TITLE.gift)+'「'+nm+'」';
+  const nm=o.cid&&CH(o.cid)?CH(o.cid).name:UT('visit.other');
+  $('#visit-title').textContent=UT('visit.titleOf',{t:VIS_TITLE[o.kind]||VIS_TITLE.gift,n:nm});
   box.classList.add('on');
   const T=performance.now();let raf,fin=false,lastPh=-1;
   const END=o.outcome==='ok'?VIS_TIME.end:VIS_TIME.failEnd,caps=visitCaptions(o);

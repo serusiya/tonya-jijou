@@ -6,7 +6,7 @@
  *    檢查碼＝暗碼＋亂數＋壓縮內容的兩組 32 位元雜湊；打亂＝以暗碼與亂數為種子的亂數流做 XOR。
  *  - 防竄改的限度：擋得住直接改檔案內容；原始碼公開，有心人讀過程式仍可自製檔案。
  *  - 匯入檢查：標記、檢查碼、版本相同、欄位完整、人生未落幕；解壓縮後的文字含「<」「>」一律拒絕（遊戲存檔不會用到這兩個字元）。 */
-const SAVE_MAGIC=[84,78,89,74],SAVE_FMT=1,SAVE_SECRET='問屋事情·暖簾·serusiya·tonya-jijou·0.7';
+const SAVE_MAGIC=[84,78,89,74],SAVE_FMT=1,SAVE_SECRET=UT('save.SAVE_SECRET');
 const saveEnc=s=>new TextEncoder().encode(s);
 /** 32 位元雜湊（FNV-1a 加上混合），seed 不同得到不同的一組。 */
 function saveHash(parts,seed){
@@ -51,7 +51,6 @@ async function decodeSaveFile(buf){
   if(!saveVerOK(ver))throw MSG('save.badVer',{v:ver,g:GAME_VER});
   let s;try{s=new TextDecoder().decode(await saveStream(z,new DecompressionStream('deflate-raw')))}catch(e){throw MSG('save.tampered')}
   if(/[<>]/.test(s))throw MSG('save.badContent');
-  COMM_RENAME.forEach(([a,c])=>{s=s.split(a).join(c)});
   let o;try{o=JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v)}catch(e){throw MSG('save.badContent')}
   if(!o||typeof o!=='object'||!saveVerOK(o.ver))throw MSG('save.badVer',{v:o&&o.ver||ver,g:GAME_VER});
   if(!(o.me&&o.rel&&o.inv&&o.emps&&o.world&&o.world.npcs&&o.mk&&o.cityId&&CITY(o.cityId)&&SYS_BY_KEY[o.sysKey]))throw MSG('save.badContent');
@@ -69,11 +68,7 @@ async function importSaveFile(file){
 }
 /** 開局畫面下方：匯出（有存檔時）與匯入。 */
 function saveIoHtml(has){
-  return '<div class="hr-title" style="color:#e5a93b;margin-top:14px">存檔轉移</div><div style="display:flex;gap:6px">'
-    +(has?'<button class="pixel-btn" style="flex:1;padding:7px" data-act="exportSave">'+UT('btn.exportSave')+'</button>':'')
-    +'<button class="pixel-btn" style="flex:1;padding:7px" data-act="importSave">'+UT('btn.importSave')+'</button></div>'
-    +'<input type="file" id="save-file" style="display:none">'
-    +'<div class="tiny" style="text-align:center;color:#cfc6b6;margin-top:4px">'+esc(has?UT('txt.exportNote')+' '+UT('txt.importNote'):UT('txt.importNote'))+'</div>';
+  return UT('save.saveIoHtml',{a:has?'<button class="pixel-btn" style="flex:1;padding:7px" data-act="exportSave">'+UT('btn.exportSave')+'</button>':''})+'<button class="pixel-btn" style="flex:1;padding:7px" data-act="importSave">'+UT('btn.importSave')+'</button></div>'+'<input type="file" id="save-file" style="display:none">'+'<div class="tiny" style="text-align:center;color:#cfc6b6;margin-top:4px">'+esc(has?UT('txt.exportNote')+' '+UT('txt.importNote'):UT('txt.importNote'))+'</div>';
 }
 ACT.exportSave=()=>{exportSave()};
 ACT.importSave=()=>{const f=$('#save-file');if(f){f.value='';f.click()}};

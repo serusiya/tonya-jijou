@@ -18,7 +18,7 @@ function doTurn(n){
     UI.render();
     if(!G.ended){
       const d=G.silver-before;
-      showTurnReport(reps,logs.map(t=>t.replace(/^[^【]*/,'')?t:t),n);
+      showTurnReport(reps,logs,n);
       if(G.party)INFO_AFTER=showParty;else armFaceEvents();   // 年底：旬報後先開忘年會，散會後再接人物事件
       say(thought());
       if(d>0)coinFx();
@@ -43,7 +43,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   $('#info-close').addEventListener('click',()=>UI.hideInfo());
   $('#info-bd').addEventListener('click',e=>{if(e.target.id==='info-bd')UI.hideInfo()});
   $('#sheet-bd').addEventListener('click',e=>{if(e.target.id==='sheet-bd')UI.closeSheet()});
-  document.querySelectorAll('[data-t]').forEach(e=>{e.textContent=UT(e.dataset.t)});     // 固定按鈕文字（01e_ui_text.js）
+  document.querySelectorAll('[data-t]').forEach(e=>{e.textContent=UT(e.dataset.t)});document.querySelectorAll('[data-tt]').forEach(e=>{e.title=UT(e.dataset.tt)});     // 固定按鈕文字（01e_ui_text.js）
   sceneStart();
   UI.showStart();
 });

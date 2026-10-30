@@ -2,6 +2,7 @@
 /* ★檔案總覽：核心工具與全域狀態
  * - G：整局遊戲狀態（可 JSON 序列化存檔）；所有隨機一律走 rnd()（以 G.rs 為種子），確保存檔後可重現。
  * - 資料索引：CHARS（千人名冊）、CITIES（百城）、COMMS（43 項貿易物品）轉成 Map，並加工出 COMM（遊戲用物品）。
+ * - 內部鍵一律用英文代號：物品代號（prod_0101…）、職位（apprentice…）、季節（spring…）、能力（commerce_skill…）。顯示名稱在 00_names.js。
  * - 規則常數：六項隱藏數值 STATS、性向相容 COMPAT、七大流派 SYS、季節係數 SEASON_COEF。
  * - 曆法：指數年（0 年＝遊戲開始，主角 20 歲）、月、旬（每月 3 旬）。
  * - 通用：存檔、音效、toast、行動點數 AP、知名度 fame。 */
@@ -19,11 +20,14 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 
 let G=null;                       // 遊戲狀態（可序列化）
 /** 遊戲版本。存檔版本與此不同就不相容（0.7 起改為許可制，舊存檔不相容）。 */
-const GAME_VER='0.7';
-/** 讀檔與匯入時接受的存檔版本（讀進來後由 migrateSave 補欄位、改標為 GAME_VER）。0.8 時加入 '0.7'。 */
-const SAVE_VERS=[GAME_VER];
+const GAME_VER='0.7.1';
+/** 讀檔與匯入時接受的存檔版本（讀進來後由 migrateSave 補欄位、改標為 GAME_VER）。'0.7'＝中文鍵的舊存檔，由 migrateKeys 轉成代號。 */
+const SAVE_VERS=[GAME_VER,'0.7'];
 const saveVerOK=v=>SAVE_VERS.includes(String(v));
-const SAVE_KEY='tonya_jijou_save';
+const SAVE_KEY='tonya_jijou_save2';
+/** 0.7 中文鍵存檔用的存檔鍵：0.7.1 起改存到 SAVE_KEY，舊版網頁（快取）就讀不到新格式，不會讀壞或清掉它；
+ *  新版找不到 SAVE_KEY 時改讀這裡，轉換後寫進 SAVE_KEY，再刪掉這一份。 */
+const LEGACY_SAVE_KEY='tonya_jijou_save';
 const OLD_SAVE_KEYS=['tenka_gomen_v2_save','toiya_jijou_save'];   // 舊版存檔鍵（0.6 起不再讀取，只在啟動時清掉）
 
 /* 可存檔的偽隨機：狀態 G.rs */
@@ -53,28 +57,27 @@ function applyActiveCities(ids){const set=new Set(ids||[]);const l=set.size?ALL_
 const CH=id=>CHAR_MAP[id];
 /** 以城市 id 取城市資料。 */
 const CITY=id=>CITY_MAP[id];
+/** 人物是否為女性（名冊 gender：m／f）。 */
+const isFemale=c=>!!c&&c.gender==='f';
 
 /* 六項隱藏數值（固定順序，同分時依此順序決定前三名） */
-/** 六項隱藏數值的名稱與簡稱（遊戲中不直接顯示數值，只顯示偏重與印象）。 */
-const STATS=[
-  ['commerce_skill','商業才幹'],['integrity_loyalty','忠誠信義'],['greed_index','貪欲'],
-  ['audacity_courage','膽識魄力'],['diplomacy_charm','社交手腕'],['betrayal_risk','反骨背叛']
-];
-/** 取一組數值中最高的三項（同分依 STATS 固定順序），用於性向相容比對。 */
+/** 六項隱藏數值的代號與顯示名（遊戲中不直接顯示數值，只顯示偏重與印象）。 */
+const STATS=['commerce_skill','integrity_loyalty','greed_index','audacity_courage','diplomacy_charm','betrayal_risk'].map(k=>[k,statName(k)]);
+/** 取一組數值中最高的三項（同分依 STATS 固定順序），回傳能力代號；用於性向相容比對。 */
 function top3Of(stats){
-  return STATS.map(([k,n],i)=>({k,n,i,v:stats[k]}))
-    .sort((a,b)=>b.v-a.v||a.i-b.i).slice(0,3).map(x=>x.n);
+  return STATS.map(([k],i)=>({k,i,v:stats[k]}))
+    .sort((a,b)=>b.v-a.v||a.i-b.i).slice(0,3).map(x=>x.k);
 }
-/** 取人物最高的三項能力。 */
+/** 能力代號陣列轉成顯示名（以「、」連接）。 */
+const statNames=L=>L.map(statName).join(NAMES_SEP);
+const NAMES_SEP=NAMES.sep;
+/** 取人物最高的三項能力（代號）。 */
 function top3(cid){const c=CH(cid);return c?top3Of(c.derived_stats):[]}
-/** 性向相容表：三項同＝一見如故×3、二項＝意氣相投×2、一項＝相談甚歡×1、皆不同＝格格不入×⅓。 */
-const COMPAT=[
-  {m:0.333,label:'格格不入',cls:'red',desc:'志趣相悖，需花三倍力氣才能破冰。'},
-  {m:1,label:'相談甚歡',cls:'gray',desc:'尚有共通話題，往來效果為基準。'},
-  {m:2,label:'意氣相投',cls:'green',desc:'觀念多有契合，往來效果加倍。'},
-  {m:3,label:'一見如故',cls:'gold',desc:'志趣極度投合，所有往來效果三倍。'}
-];
-/** 比較兩組最高三項，回傳 COMPAT 中對應的等級（含共通項目）。 */
+/** 人物最高三項能力的顯示文字。 */
+const top3Txt=cid=>statNames(top3(cid));
+/** 性向相容表：三項同＝一見如故×3、二項＝意氣相投×2、一項＝相談甚歡×1、皆不同＝格格不入×⅓。名稱與說明在 NAMES.compat。 */
+const COMPAT=[{m:0.333,cls:'red'},{m:1,cls:'gray'},{m:2,cls:'green'},{m:3,cls:'gold'}].map((x,i)=>Object.assign(x,NAMES.compat[i]));
+/** 比較兩組最高三項，回傳 COMPAT 中對應的等級（含共通項目代號）。 */
 function compatOfTops(a,b){
   const n=a.filter(x=>b.includes(x)).length;
   return Object.assign({matches:n,shared:a.filter(x=>b.includes(x))},COMPAT[n]);
@@ -86,104 +89,80 @@ function compat(cidA,cidB){return compatOfTops(top3(cidA),top3(cidB))}
 const trustFactor=aff=>clamp(aff/60,0.4,1.5);
 
 /* ---------- 七大問屋流派 ---------- */
-/** 七大問屋流派：開局資金、特色與適用的物品系統。越往下起手資源越多（applyStartBoost 依順序累加）；perk＝開局畫面的短語，res＝百科裡的完整起手資源。新增流派在此加一筆。 */
+/** 七大問屋流派：開局資金。越往下起手資源越多（applyStartBoost 依順序累加）。名稱、屋號、風格與說明在 NAMES.sys。新增流派在此加一筆。 */
 const SYS=[
-  {key:'timber',match:'山林竹木',name:'材木問屋',style:'豪賭型',firm:'三河屋',silver:8000,gold:8,
-    tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
-  {key:'grain',match:'糧穀與油料',name:'米問屋',style:'政治壓力型',firm:'鴻池屋',silver:8500,gold:10,
-    tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
-  {key:'marine',match:'水產與海鹽',name:'魚鹽問屋',style:'高損耗快周轉',firm:'紀伊國屋',silver:9000,gold:12,
-    tip:'鮮魚損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
-  {key:'mining',match:'礦產金屬',name:'金物鐵石問屋',style:'重貨高價型',firm:'住友屋',silver:10000,gold:15,
-    tip:'金銀單價極高，礦錠沉重難運；逢軍需，銅鐵硫磺大漲。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
-  {key:'textile',match:'紡織纖維',name:'木棉生絲問屋',style:'守成經營型',firm:'越後屋',silver:11000,gold:20,
-    tip:'產地稀少，靠協議與大盤穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
-  {key:'medicine',match:'釀造醫藥',name:'唐物藥種問屋',style:'走私型',firm:'大和屋',silver:12500,gold:500,
-    tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的交易許可；私房錢稍多。'},
-  {key:'luxury',match:'城市精工',name:'陶磁雅玩問屋',style:'公關型',firm:'京屋',silver:15500,gold:1000,
-    tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}
-];
+  {key:'timber',silver:8000,gold:8},
+  {key:'grain',silver:8500,gold:10},
+  {key:'marine',silver:9000,gold:12},
+  {key:'mining',silver:10000,gold:15},
+  {key:'textile',silver:11000,gold:20},
+  {key:'medicine',silver:12500,gold:500},
+  {key:'luxury',silver:15500,gold:1000}
+].map(s=>Object.assign(s,NAMES.sys[s.key]));
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
-/** 依物品所屬系統名稱，找出對應的流派 key。 */
-function sysKeyOfCommodity(sysStr){const s=SYS.find(x=>sysStr.includes(x.match));return s?s.key:'timber'}
 
 /* ---------- 物產資料加工 ---------- */
-/** 【物品加工】民生必需品關鍵字（價高易引發打毀、需求彈性大）。 */
-const STAPLE_KW=['白米','大麥','黃大豆','粗鹽','鮮魚','白炭','棉布','菜籽'];
-/** 【物品加工】易燃品關鍵字（倉庫失火時損失較大）。 */
-const FLAM_KW=['菜籽','麻油','鯨油','硫磺','樟','白炭','吉野','漆','銘木','檜皮'];
-/** 【物品加工】每旬損耗率表（關鍵字→比例）。 */
-const DECAY_TABLE=[['鮮魚',0.20],['銘木',0.002],['玉鋼',0.005],['獻上棚田米',0.015],['鹽雲丹',0.005],['白米',0.02],['大麥',0.025],['黃大豆',0.02],['菜籽',0.015],['新茶',0.012],['粗鹽',0.004],['精鹽',0.003],['昆布',0.01],['乾鮑',0.008],['黃楊木',0.002],['檜皮',0.005],['當歸川芎',0.005],['伊吹艾',0.005],['點眼藥',0.01],['生絲',0.015],['棉',0.02],['藍染',0.01],['鹽',0.004]];
-/** 把原始 COMMS 資料加工成遊戲用的物品：短名、流派、基準價（原價/10）、必需品/奢侈品、需求彈性 α、損耗、易燃。 */
+/** 把原始 COMMS 資料加工成遊戲用的物品。
+ *  name＝物品代號（prod_0101…，存檔、市場、庫存的鍵）；full＝全名、short＝短名（顯示用）；sys＝所屬流派；
+ *  tags（資料檔）：staple 必需品、flam 易燃、fest 節慶搶手、riot 打毀指標、fire 火災漲價、grain 米麥、rice 米、typhoon 颱風、military 軍需。 */
 const COMM=COMMS.map((c,i)=>{
-  const short=c.short_name||c.name.replace(/（.*?）/g,'');
-  const staple=STAPLE_KW.some(k=>c.name.includes(k));
-  const luxury=c.base_price>=1000;
-  let decay=0.01;for(const [k,v] of DECAY_TABLE){if(c.name.includes(k)){decay=v;break}}
-  return {i,name:c.name,short,sys:sysKeyOfCommodity(c.system),origin:c.origin_type,base:c.base_price/10,unit:c.unit,
-    staple,luxury,alpha:staple?1.8:(luxury?0.7:1.1),decay,flam:FLAM_KW.some(k=>c.name.includes(k)),
-    kind:staple?'必需品':(luxury?'奢侈品':'一般品')};
+  const tags=c.tags||[],staple=tags.includes('staple'),luxury=c.base_price>=1000;
+  return {i,name:c.id,id:c.id,full:c.name,short:c.short_name||c.name,sys:c.sys,origin:c.origin_type,base:c.base_price/10,unit:c.unit,tags,
+    staple,luxury,alpha:staple?1.8:(luxury?0.7:1.1),decay:c.decay,flam:tags.includes('flam'),
+    kind:staple?'staple':(luxury?'luxury':'normal')};
 });
 const COMM_MAP={};COMM.forEach(c=>COMM_MAP[c.name]=c);
+/** 物品是否帶某個標籤。 */
+const commTag=(c,t)=>!!c&&c.tags.includes(t);
 /** 某流派的本業物品清單。 */
 const commsOfSys=k=>COMM.filter(c=>c.sys===k);
 /** 各流派四季價格係數（>1 表示該季偏貴）。 */
 const SEASON_COEF={
-  grain:{春:1.05,夏:1.08,秋:0.85,冬:1.0},marine:{春:1,夏:1.05,秋:1.0,冬:1.1},
-  timber:{春:1.0,夏:0.95,秋:1.0,冬:1.12},mining:{春:1,夏:0.98,秋:1.0,冬:1.06},
-  textile:{春:1.05,夏:1.02,秋:1.0,冬:1.0},medicine:{春:1.0,夏:1.1,秋:1.0,冬:1.0},
-  luxury:{春:1.0,夏:0.98,秋:1.02,冬:1.05}
+  grain:{spring:1.05,summer:1.08,autumn:0.85,winter:1.0},marine:{spring:1,summer:1.05,autumn:1.0,winter:1.1},
+  timber:{spring:1.0,summer:0.95,autumn:1.0,winter:1.12},mining:{spring:1,summer:0.98,autumn:1.0,winter:1.06},
+  textile:{spring:1.05,summer:1.02,autumn:1.0,winter:1.0},medicine:{spring:1.0,summer:1.1,autumn:1.0,winter:1.0},
+  luxury:{spring:1.0,summer:0.98,autumn:1.02,winter:1.05}
 };
 
 /* ---------- 曆法（指數年：遊戲開始年 = 0 年，主角當時 20 歲） ---------- */
-const CYCLE_NAMES=['上旬','中旬','下旬'];
-/** 月份轉季節（3～5 春、6～8 夏、9～11 秋，其餘冬）。 */
-function seasonOf(m){return m>=3&&m<=5?'春':m>=6&&m<=8?'夏':m>=9&&m<=11?'秋':'冬'}
-/** 目前季節。 */
+const CYCLE_NAMES=NAMES.cycle;
+/** 月份轉季節代號（3～5 spring、6～8 summer、9～11 autumn，其餘 winter）。 */
+function seasonOf(m){return m>=3&&m<=5?'spring':m>=6&&m<=8?'summer':m>=9&&m<=11?'autumn':'winter'}
+/** 目前季節代號。 */
 const season=()=>seasonOf(G.month);
 /** 年份顯示字串（內部仍以指數年數字運算，畫面不出現『指數年』）。 */
-const yearStr=y=>y>=0?(y+1)+'年':(-y)+'年前';   // 開局年 0→「1年」，負數→「N年前」
+const yearStr=y=>y>=0?UT('date.year',{y:y+1}):UT('date.yearAgo',{y:-y});   // 開局年 0→「1年」，負數→「N年前」
+/** 某年月旬的日期字串。 */
+const dateOf=(y,m,c)=>UT('date.full',{y:yearStr(y),m,c:CYCLE_NAMES[c-1]});
 /** 目前日期字串（年月旬）。 */
-const dateStr=()=>`${yearStr(G.year)} ${G.month}月${CYCLE_NAMES[G.cycle-1]}`;
+const dateStr=()=>dateOf(G.year,G.month,G.cycle);
 /** 主角年齡（指數年 0＝20 歲）。 */
 const myAge=()=>G.year-G.me.birthYear;
 /** 名冊人物目前年齡（以 birth_year 計）。 */
 const ageOf=cid=>G.year-CH(cid).birth_year;
 /** 人物目前是否在世（death_year 不早於今年）。 */
 const alive=cid=>{const c=CH(cid);return c&&c.death_year>=G.year&&!(G.slain&&G.slain.indexOf(cid)>=0)};
-/** 中文數字對照（解析節慶日期用）。 */
-const CN={一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10,廿:20,卅:30,正:1};
-/** 中文數字轉阿拉伯數字。 */
-function cnNum(s){let n=0,cur=0;for(const ch of s){const v=CN[ch];if(v==null)continue;if(ch==='十'){cur=(cur||1)*10;n+=cur;cur=0}else if(ch==='廿'||ch==='卅'){n+=v}else{cur+=v}}return n+cur}
-/** 解析城市節慶日期字串（如『十一月十五日』）為 {month,cycle}，供節慶判定。 */
-function parseFestival(str){
-  const m=/^(正月|臘月|[一二三四五六七八九十]{1,3}月)([一二三四五六七八九十廿卅]+)日/.exec(str||'');
-  if(!m)return null;
-  const mon=m[1]==='臘月'?12:m[1]==='正月'?1:cnNum(m[1].replace('月',''));
-  const day=cnNum(m[2]);
-  return {month:mon,cycle:day<=10?1:day<=20?2:3,day};
-}
 
 /* ---------- 存檔 ---------- */
 /** 存檔到 localStorage（key＝SAVE_KEY，G.ver＝GAME_VER）。失敗（私密模式等）時靜默略過。 */
-function save(){if(G&&G.ended)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}}   // 人生落幕後不再存檔
+function save(){if(G&&G.ended)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(G));localStorage.removeItem(LEGACY_SAVE_KEY)}catch(e){}}   // 人生落幕後不再存檔
 /** 啟動時是否發現並清掉了舊版（不相容）存檔，供開始畫面提示。 */
 let OLD_SAVE_FOUND=false;
-/** 讀檔；版本不符（0.6 之前的存檔一律不相容）或損毀回傳 null，並清掉不相容的舊存檔。 */
-/** 貨物改名對照（舊全名 → 新全名）：讀舊存檔時替換。 */
-const COMM_RENAME=[['野山參與深山雪靈芝','屋久杉與神代杉銘木'],['石見純銀礦錠（丁銀）','出雲踏鞴玉鋼'],['高山御用新茶（宇治綠茶）','獻上棚田米（將軍家御用）'],['天然海撈黑珍珠與南洋珠','越前鹽雲丹（鹽漬海膽）'],['特等灘之清酒（純米下行酒）','當歸川芎（婦人良藥）'],['野田天然本釀造濃口醬油','伊吹艾（灸用艾絨）'],['三河傳統純釀味醂與米醋','蛤殼點眼藥（眼病膏藥）'],['深山野生百花蜂蜜','薩摩黃楊木（櫛與印材）'],['厚實黑熊皮與鞣製鹿皮','檜皮（檜皮葺屋根材）']];
+/** 解析存檔文字（擋掉 __proto__ 等鍵）。 */
+const parseSave=s=>JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v);
+/** 讀檔；版本不符或損毀回傳 null，並清掉不相容的舊存檔。中文鍵的舊存檔由 migrateSave（07zm_migrate.js）轉成代號。 */
 function loadSave(){
   try{
     OLD_SAVE_KEYS.forEach(k=>{if(localStorage.getItem(k)!==null){localStorage.removeItem(k);OLD_SAVE_FOUND=true}});
-    let s=localStorage.getItem(SAVE_KEY);if(!s)return null;
-    COMM_RENAME.forEach(([a,b])=>{s=s.split(a).join(b)});   // 舊存檔：改名的貨物（庫存、行情、計畫等鍵值一併換新名）
-    const o=JSON.parse(s,(k,v)=>(k==='__proto__'||k==='constructor'||k==='prototype')?undefined:v);
+    const key=localStorage.getItem(SAVE_KEY)!==null?SAVE_KEY:LEGACY_SAVE_KEY;
+    const s=localStorage.getItem(key);if(!s)return null;
+    const o=parseSave(s);
     if(o&&typeof o==='object'&&saveVerOK(o.ver)&&o.me&&o.rel&&o.inv&&o.emps)return o;
-    localStorage.removeItem(SAVE_KEY);OLD_SAVE_FOUND=true;return null;
+    localStorage.removeItem(key);OLD_SAVE_FOUND=true;return null;
   }catch(e){return null}
 }
 /** 清除存檔。 */
-function clearSave(){try{localStorage.removeItem(SAVE_KEY);OLD_SAVE_KEYS.forEach(k=>localStorage.removeItem(k))}catch(e){}}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(LEGACY_SAVE_KEY);OLD_SAVE_KEYS.forEach(k=>localStorage.removeItem(k))}catch(e){}}
 
 /* ---------- 音效 ---------- */
 /** WebAudio 內容（音效用，無法使用時為 null）。 */
@@ -221,21 +200,20 @@ const AP_MAX=5;
 function apLeft(){if(G.ap===undefined)G.ap=AP_MAX;return G.ap}
 /** 消耗 1 點行動點數；不足時提示並回傳 false。所有「實際外出辦事」的動作應先呼叫它。 */
 function spendAP(){
-  if(apLeft()<=0){toast('本旬行動次數已用完（5/5），請「推進一旬」。');return false}
+  if(apLeft()<=0){toast(MSG('ap.out',{m:AP_MAX}));return false}
   G.ap--;updateAP();return true;
 }
 /** 更新頂部『行動 x/5』顯示。 */
-function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent='行動 '+a+'/'+AP_MAX;e.className='ap'+(a<=1?' low':'')}}
+function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent=UT('top.ap',{a,m:AP_MAX});e.className='ap'+(a<=1?' low':'')}}
 
 /* ---------- 知名度：做任何事都有一點，結識高階官吏更多；降低拜訪被拒的機率，也影響市佔率 ---------- */
-/** 【知名度】增加 x 點（越高越難漲，上限 100）。做事、結識高官、賣貨、施粥等都會呼叫。 */
-/** 醜聞：直接扣知名度（key 見 ODDS.fameLoss），回傳實際扣除量。 */
 /** 永久知名度下限（新町取立、國產取立等；尚無時為 0）。 */
 const fameFloor=()=>Math.max(0,(G&&G.fameFloor)||0);
 /** 設定知名度：介於永久下限與上限之間。所有改知名度的地方都走這裡。 */
 function setFame(v){if(!G)return;G.fame=clamp(Math.max(Number(v)||0,fameFloor()),0,ODDS.fame.cap)}
 /** 提高永久知名度下限（只升不降），並把知名度拉到下限以上。 */
 function raiseFameFloor(v){if(!G)return;G.fameFloor=Math.max(fameFloor(),v);setFame(G.fame||0)}
+/** 醜聞：直接扣知名度（key 見 ODDS.fameLoss），回傳實際扣除量。 */
 function loseFame(key,mult){if(!G)return 0;const x=ODDS.fameLoss[key]*(mult||1),f=G.fame||0;setFame(f-x);return Math.round((f-G.fame)*10)/10}
 /** 知名度門檻（ODDS.fame.gate＝125）：門檻以下照遞減規則加；門檻以上小事件不加、中事件（tier='mid'）加原值的三分之一、大事件（tier='major'）照原值加。
  *  一次加分跨過門檻時：小事件只加到門檻，中事件跨過的部分改按三分之一。扣分不受影響。 */
@@ -247,12 +225,12 @@ function fameGain(f,x,tier){
   const g=tier==='midRaw'?x:x*Math.max(F.floor,1-f/F.damp);if(f+g<=T||tier==='major')return g;
   return mid?(T-f)+(f+g-T)*F.midCut:T-f;
 }
+/** 【知名度】增加 x 點（越高越難漲）。回傳實際增量。 */
 function addFame(x,tier){if(!G)return 0;const f=G.fame||0;setFame(f+fameGain(f,x,tier));return Math.round((G.fame-f)*10)/10}
 /** 【風聲】增加 x；巡見使美言期間（G.flags.calm）一般的風聲不增加，severe＝重罪（暗殺、放火、栽贓、打壓及事敗被查）照樣增加。回傳實際增量。 */
 function addHeat(x,severe){if(!G||!(x>0))return 0;if(!severe&&(G.flags&&G.flags.calm>0))return 0;G.heat=(G.heat||0)+x;return x}
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */
 const fameCut=()=>clamp((G.fame||0)/ODDS.fame.cap*0.30,0,0.30);
-/** 更新頂部知名度顯示。 */
 /** 【知名度階級】1～4：知名度 0／30／80／150 分界（ODDS.fame.tiers）；私房錢滿 2000 兩（ODDS.fame.goldTier）再加一階，只加這一階（上限 4）。 */
 function fameTier(){const f=G.fame||0,T=ODDS.fame.tiers;return Math.min(4,1+(f>=T[0])+(f>=T[1])+(f>=T[2])+((G.gold||0)>=ODDS.fame.goldTier?1:0))}
 /** 見官員所需知名度階：官階 1～2 免限制(1)，3→2，4→3，5 以上→4。 */
@@ -267,5 +245,6 @@ const RES_TIER_W={guest:[70,30,0,0],broker:[60,40,0,0],manager:[40,40,20,0],smug
 function resTier(cid,role){const w=RES_TIER_W[role];if(!w)return 1;const x=seeded('res'+cid)()*100;let a=0;for(let i=0;i<4;i++){a+=w[i];if(x<a)return i+1}return 1}
 /** 見某人所需知名度階（官員看官階；名伶看固定門檻；名門商邸人物依身分與人物編號固定；其餘 1）。 */
 function meetTierNeed(cid){const n=npc(cid);if(!n)return 1;return n.role==='oiran'?oiranTier(cid):n.pos?needTierOfRank(n.pos.rank):resTier(cid,n.role)}
-const TIER_NAME=['','一階','二階','三階','四階'];
+const TIER_NAME=NAMES.tier;
+/** 更新頂部知名度顯示。 */
 function updateFame(){const e=document.getElementById('d-rep');if(e&&G)e.textContent=Math.round(G.fame||0)+'/'+TIER_NAME[fameTier()]}

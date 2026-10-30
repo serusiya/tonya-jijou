@@ -40,10 +40,10 @@ function showEncounter(enc,cont){
   ENC={cid:enc.cid,cont};
   const n=npc(enc.cid),c=CH(enc.cid),r=R(enc.cid),known=!!r.bond;
   const role=n.pos?posTitle(n):(ROLE_LABEL[n.role]||'');
-  const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:17px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?'<span class="tag green">舊識</span>':'<span class="tag">素不相識</span>')+'</div>'
+  const h='<div class="card warn" style="display:flow-root">'+portraitHtml(enc.cid,56)+'<div><b style="font-size:17px">'+esc(c.name)+'</b> <span class="tag gray">'+esc(role)+'</span> '+(known?UT('enc.h'):UT('enc.h.2'))+'</div>'
    +'<div class="small" style="margin:6px 0">'+esc(TX('enc.ask',{why:ENC_WHY[Math.floor(rnd()*ENC_WHY.length)],cost:ENC_COST}))+'</div>'
    +'<div class="grid2"><button class="pixel-btn btn-gold btn-sm" data-act="encGive">'+UT('btn.encGive',{c:costBtn('encounter')})+'</button><button class="pixel-btn btn-sm" data-act="encNo">'+UT('btn.encNo')+'</button></div></div>';
-  UI.showInfo('🚶 路遇急難',h);
+  UI.showInfo(UT('enc.showEncounter'),h);
 }
 /** 結束路遇並繼續出門。 */
 function encFinish(){const e=ENC;ENC=null;UI.hideInfo();if(e&&e.cont)e.cont()}
@@ -53,14 +53,14 @@ ACT.encGive=()=>{
   const cid=ENC.cid,r=R(cid),n=npc(cid);
   spend('encounter');
   if(!r.bond){
-    r.bond={mult:0.6,label:'雪中送炭',introId:null};r.met=true;r.seen=true;addKnown(cid);
+    r.bond={mult:0.6,label:UT('enc.encGive'),introId:null};r.met=true;r.seen=true;addKnown(cid);
     setAff(r,Math.max(r.aff,10));
     if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?0.5*n.pos.rank:0.4)}
     toast(MSG('encGive.1',{cid:nameOf(cid)}));
   }else{
     setAff(r,clamp(r.aff+10,0,100));toast(MSG('encGive.2',{cid:nameOf(cid)}));
   }
-  logRel(cid,'路遇急難，贈銀 '+ENC_COST+' 兩救急，好感提升。');addFame(0.2);sfx.coin();
+  logRel(cid,UT('enc.encGive.2',{a:ENC_COST}));addFame(0.2);sfx.coin();
   UI.render();encFinish();
 };
 ACT.encNo=()=>{if(ENC)encFinish()};

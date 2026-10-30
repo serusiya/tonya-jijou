@@ -5,7 +5,7 @@
  *  - 每位在世的仇人：出門遇襲機率 +3%、倉庫失火機率 +2%、盜賊上門機率 +2%。
  *  - peak 只會升不會降；好感變動散在各處，所以在每次重繪與推進一旬時統一同步。
  *  - 淡忘：成仇滿 36 旬（期間好感一次再掉 5 以上就重新起算），peak 重設為目前好感，不再是仇人；好感本身不變。
- *    弱點是「心胸狹隘睚眥必報」的人不會淡忘（畫面不提示，讓玩家自己發現）。
+ *    軟肋是 grudge（心胸狹隘睚眥必報）的人不會淡忘（畫面不提示，讓玩家自己發現）。
  * ===================================================================== */
 
 /** 仇人門檻：最高好感與目前好感的落差達到此值（含）。 */
@@ -33,7 +33,7 @@ function introResign(){
   if(!G.intros||!G.intros.length)return;
   const gone=G.intros.filter(i=>isEnemy(i.cid));if(!gone.length)return;
   G.intros=G.intros.filter(i=>!gone.includes(i));
-  gone.forEach(i=>{const t='🤝【請辭】「'+nameOf(i.cid)+'」與你反目，辭去介紹人。';pushNews(t);logRel(i.cid,'與你反目，辭去介紹人。');try{toast(t,4200)}catch(e){}});
+  gone.forEach(i=>{const t=NEWS('enemy.introQuit',{a:nameOf(i.cid)});pushNews(t);logRel(i.cid,UT('enemy.introResign'));try{toast(t,4200)}catch(e){}});
   autoIntro(null);
 }
 /** 某人是否為仇人（在世且已有往來）。 */
@@ -50,10 +50,10 @@ function enemyTick(log){
   syncPeaks();
   Object.keys(G.rel).forEach(cid=>{                // 成仇滿 36 旬：怨氣淡去（睚眥必報者除外）
     const r=G.rel[cid];if(r.enemyT===undefined||G.turn-r.enemyT<ENEMY_FADE||!isEnemy(cid))return;
-    if((CH(cid).weakness||'')==='心胸狹隘睚眥必報')return;
+    if(CH(cid).weakness==='grudge')return;
     r.peak=r.aff;delete r.enemyT;delete r.enemyAff;
-    const m=NEWS('enemy.fade',{name:nameOf(cid)});pushNews(m);log.push(m);logRel(cid,'多年過去，對你的怨氣漸漸淡了。');
+    const m=NEWS('enemy.fade',{name:nameOf(cid)});pushNews(m);log.push(m);logRel(cid,UT('enemy.enemyTick'));
   });
   const n=enemyCount();if(!n||!chance(ENEMY_THIEF*n))return;
-  const t=thieves();if(t){const m=NEWS('enemyTick.1',{replace:t.replace(/^[^】]*】/,'')});pushNews(m);log.push(m)}
+  const t=thieves();if(t){const m=NEWS('enemyTick.1',{replace:t.replace(NEWS_FMT.tagEnd,'')});pushNews(m);log.push(m)}
 }

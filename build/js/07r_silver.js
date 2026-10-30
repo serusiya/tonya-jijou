@@ -4,7 +4,7 @@ const SILVER_WIN=9;
 /** 記錄「此刻（新一旬開始）」的現款。 */
 function recordSilver(){
   G.silverHist=G.silverHist||[];
-  G.silverHist.push({l:G.month+'月'+CYCLE_NAMES[G.cycle-1].slice(0,1),v:Math.round(G.silver)});
+  G.silverHist.push({l:UT('silver.recordSilver',{a:G.month,b:CYCLE_NAMES[G.cycle-1].slice(0,1)}),v:Math.round(G.silver)});
   while(G.silverHist.length>SILVER_WIN)G.silverHist.shift();
 }
 ACT.silverChart=()=>UI.openSheet('silver');
@@ -15,7 +15,7 @@ function silverChartSvg(pts){
   if(hi-lo<1){hi+=1;lo-=1}
   const pad=(hi-lo)*0.12;lo-=pad;hi+=pad;
   const X=i=>L+(n<2?0:(W-L-R)*i/(n-1)),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
-  const short=v=>Math.abs(v)>=10000?(v/10000).toFixed(2)+'萬':fmt(v);
+  const short=v=>Math.abs(v)>=10000?UT('silver.short',{a:(v/10000).toFixed(2)}):fmt(v);
   let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block;background:#fffaf0;border:2px solid #b5a98f" font-family="inherit">';
   for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#e2d7bd" stroke-width="1"/><text x="'+(L-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="11" fill="#6b6256">'+short(Math.round(v))+'</text>'}
   const d=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join('');
@@ -31,34 +31,31 @@ function silverChartSvg(pts){
 }
 SHEETS.silver=()=>{
   const pts=(G.silverHist||[]).slice(-SILVER_WIN);
-  let h='<div class="tiny muted" style="margin-bottom:5px">近九旬，每旬開始時的現款。</div>';
-  if(pts.length<2)h+='<div class="notice tiny">紀錄還不夠，推進幾旬之後再來看。</div>';
+  let h=UT('silver.h');
+  if(pts.length<2)h+=UT('silver.silver');
   else{
     h+=silverChartSvg(pts);
     const a=pts[0].v,b=pts[pts.length-1].v,dd=b-a;
-    h+='<div class="row small" style="margin-top:6px"><span>最高 <b>'+fmt(Math.max(...pts.map(p=>p.v)))+'</b> 兩</span><span>最低 <b>'+fmt(Math.min(...pts.map(p=>p.v)))+'</b> 兩</span></div>'
-      +'<div class="small" style="margin-top:3px">這'+pts.length+'旬 '+(dd>0?'<b class="up">增加約 '+fmt(dd)+' 兩</b>':dd<0?'<b class="down">減少約 '+fmt(-dd)+' 兩</b>':'<b>持平</b>')+'</div>';
+    h+=UT('silver.silver.5',{a:fmt(Math.max(...pts.map(p=>p.v))),b:fmt(Math.min(...pts.map(p=>p.v))),c:pts.length,d:dd>0?UT('silver.silver.2',{a:fmt(dd)}):dd<0?UT('silver.silver.3',{a:fmt(-dd)}):UT('silver.silver.4')})+'</div>';
   }
   h+=debtCard();
-  return {title:'📈 現款走勢',html:h};
+  return {title:UT('silver.silver.6'),html:h};
 };
 /** 借款一覽（現款走勢下方）：每筆列債主、種類、應還金額與剩餘旬數，最快到期的在前；兩旬內到期標紅。舊存檔沒有債主的寫「舊帳」。 */
 function debtCard(){
   const D=(G.debts||[]).filter(d=>!d.paid).slice().sort((a,b)=>a.due-b.due);
-  let h='<div class="card" style="margin-top:8px"><b class="small">📜 借款</b>';
-  if(!D.length)return h+'<div class="tiny muted" style="margin-top:2px">目前沒有借款。</div></div>';
+  let h=UT('silver.h.2');
+  if(!D.length)return UT('silver.debtCard',{a:h});
   D.forEach(d=>{
-    const left=Math.max(0,d.due-G.turn),who=d.cid&&CH(d.cid)?nameOf(d.cid)+(alive(d.cid)?'':'（已故）'):'舊帳';
-    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?'（'+esc(d.kind)+'）':'')+'</span><b style="white-space:nowrap;margin-left:6px">'+fmt(d.amt)+' 兩·'+(left?left+' 旬後到期':'本旬到期')+'</b></div>';
+    const left=Math.max(0,d.due-G.turn),who=d.cid&&CH(d.cid)?nameOf(d.cid)+(alive(d.cid)?'':UT('silver.who')):UT('silver.who.2');
+    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?UT('silver.debtCard.2',{a:esc(d.kind)}):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(d.amt),b:left?UT('silver.debtCard.3',{a:left}):UT('silver.debtCard.4')})+'</b></div>';
   });
-  if(D.length>1)h+='<div class="row tiny" style="margin-top:4px;border-top:1px solid #d8ccb0;padding-top:3px"><span>合計</span><b>'+fmt(D.reduce((a,d)=>a+d.amt,0))+' 兩</b></div>';
+  if(D.length>1)h+=UT('silver.debtCard.6',{a:fmt(D.reduce((a,d)=>a+d.amt,0))});
   return h+'</div>';
 }
 /** 點頂部「商號知名度」：目前名望與一句說明；到了門檻（ODDS.fame.gate）加一句「尋常小事不再為人稱道」。 */
 ACT.fameInfo=()=>{
   if(!G)return;
   const f=Math.round(G.fame||0),gated=fameGated();
-  UI.showInfo('🌟 商號知名度','<div class="row small"><span>知名度</span><b>'+f+'·名望'+TIER_NAME[fameTier()]+'</b></div>'
-    +'<div class="tiny muted" style="margin-top:6px">名聲越響，登門越少吃閉門羹，老主顧也越多；高階官員只見有名望的商號。私房錢存滿 2,000 兩，名望再高一階。</div>'
-    +(gated?'<div class="notice tiny" style="margin-top:6px">名聲已響徹全城，尋常小事不再為人稱道。要結識高官、上貢、饑荒時施粥這類大事，名聲才會再往上。</div>':''));
+  UI.showInfo(UT('silver.fameInfo'),UT('silver.fameInfo.3',{a:f,b:TIER_NAME[fameTier()]})+'</b></div>'+UT('silver.fameInfo.4',{a:gated?UT('silver.fameInfo.2'):''}));
 };

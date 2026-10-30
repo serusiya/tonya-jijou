@@ -6,18 +6,17 @@
  * - R(cid)：人物關係資料（好感、羈絆、性向是否已知、往來紀錄、承諾）。
  * - newGame：建立全新一局的 G 初始狀態（無員工、無介紹人）。 */
 /* ======================= 02 世界：千人抽樣、官制、新局 ======================= */
-/** 名冊『適任職務』文字→遊戲角色的對照。 */
-const ROLE_MAP=[['商業競爭對手','rival'],['大番頭候選','manager'],['港務與稅務奉行','official'],['遠洋海運走私首領','smuggler'],['用心棒保鑣總頭目','guard'],['情報販子與掮客','broker'],['地方商號座客散戶','guest'],['吉原花魁名伶','oiran']];
-/** 角色顯示名稱。 */
-const ROLE_LABEL={rival:'同業巨賈',manager:'經營好手',official:'官吏',smuggler:'私梟',guard:'武侍頭目',broker:'掮客',guest:'座客商人',oiran:'花街名伶',concubine:'側室'};
-/** 取人物的主要角色（依第一個適任職務）。 */
-const roleOf=c=>{const r=(c.suitable_roles&&c.suitable_roles[0])||'';for(const [k,v] of ROLE_MAP)if(r.includes(k))return v;return 'guest'};
-/** 人物是否『適任』某角色（任一適任職務符合即可）。 */
-const hasRole=(c,key)=>(c.suitable_roles||[]).some(r=>{const m=ROLE_MAP.find(x=>r.includes(x[0]));return m&&m[1]===key});
+/** 角色顯示名稱（代號→名稱，在 00_names.js）。 */
+const ROLE_LABEL=NAMES.role;
+/** 取人物的主要角色（名冊 roles 的第一項：rival／manager／official／smuggler／guard／broker／guest／oiran）。 */
+const roleOf=c=>(c.roles&&c.roles[0])||'guest';
+/** 人物是否『適任』某角色（roles 任一項符合即可）。 */
+const hasRole=(c,key)=>(c.roles||[]).includes(key);
 
 /* 官制索引 */
 /** 三系官署定義（行政/財務/司法）與介面配色。 */
-const COURTS={administration:{key:'administration',name:'行政',cls:'navy',short:'政'},finance:{key:'finance',name:'財務',cls:'gold',short:'財'},judiciary:{key:'judiciary',name:'司法',cls:'purple',short:'法'},region:{key:'region',name:'地區',cls:'red',short:'域'}};
+const COURTS={administration:{cls:'navy'},finance:{cls:'gold'},judiciary:{cls:'purple'},region:{cls:'red'}};
+Object.keys(COURTS).forEach(k=>Object.assign(COURTS[k],{key:k,name:NM('court',k),short:NM('courtShort',k)}));
 /** 城市層級的三系官署（地區官制另有人事，不在城市官署內）。 */
 const CITY_COURTS=['administration','finance','judiciary'];
 /** 職位 id→職位資料（含所屬 court），由 OFFICIALS 展開。 */
@@ -38,7 +37,7 @@ function npcs(){return G.world.npcs}
 /** 取本局登場人物（含所在城市、角色、官職）；未登場者回傳 undefined。 */
 function npc(cid){return G.world.npcs[cid]}
 /** 人物姓名。 */
-const nameOf=cid=>{const c=CH(cid);return c?c.name:'？'};
+const nameOf=cid=>{const c=CH(cid);return c?c.name:UT('misc.unknown')};
 /** 某城在世的登場人物，可依角色過濾。 */
 function cityNpcs(cityId,roleKey){
   return Object.values(G.world.npcs).filter(n=>n.cityId===cityId&&alive(n.cid)&&(!roleKey||n.role===roleKey));
@@ -48,7 +47,7 @@ function officialsOf(cityId){
   return cityNpcs(cityId,'official').filter(n=>n.pos&&n.pos.court!=='region').sort((a,b)=>a.pos.court.localeCompare(b.pos.court)||a.pos.rank-b.pos.rank);
 }
 /** 官員職稱。 */
-function posTitle(n){const p=OFF_POS[n.pos.posId];return p?p.title:'官吏'}
+function posTitle(n){const p=OFF_POS[n.pos.posId];return p?p.title:roleName('official')}
 /** 官員官階名稱。 */
 function rankLabel(n){return RANK_INFO[n.pos.rank].title}
 
@@ -60,7 +59,7 @@ function genWorld(homeId){
   const used=new Set();const W={npcs:{},sampleSize:0};
   const take=(roleKey,n,pred)=>{
     let c=shuffle(pool.filter(x=>!used.has(x.id)&&hasRole(x,roleKey)&&(!pred||pred(x))));
-    c.sort((a,b)=>(b.native_region===home.region_name)-(a.native_region===home.region_name));
+    c.sort((a,b)=>(b.native_region===home.region_id)-(a.native_region===home.region_id));
     const out=c.slice(0,n);out.forEach(x=>used.add(x.id));return out;
   };
   const add=(c,cityId,extra)=>{W.npcs[c.id]=Object.assign({cid:c.id,cityId,role:roleOf(c),pos:null},extra||{})};
@@ -83,7 +82,7 @@ function genWorld(homeId){
   take('guard',2).forEach(c=>add(c,homeId,{role:'guard'}));
   // 其餘：隨機抽樣至 600~700 人；若在世名冊不足 700 人，以上限人數為準
   const target=rint(Math.min(600,pool.length),Math.min(700,pool.length));W.sampleSize=target;
-  const byRegion={};CITIES.forEach(ct=>{(byRegion[ct.region_name]=byRegion[ct.region_name]||[]).push(ct)});
+  const byRegion={};CITIES.forEach(ct=>{(byRegion[ct.region_id]=byRegion[ct.region_id]||[]).push(ct)});
   const rest=shuffle(pool.filter(c=>!used.has(c.id))).slice(0,Math.max(0,target-used.size));
   rest.forEach(c=>{
     const list=byRegion[c.native_region]||CITIES;
@@ -113,10 +112,10 @@ function tourTick(log){
   officialMigrate();                              // 本城官署若有空缺（病故、遭害而無人遞補），由名冊補上
   if(G.cycle!==1)return;
   const prev=(G.month+10)%12+1,tour=Object.values(G.world.npcs).filter(n=>touring(n)&&alive(n.cid));
-  const courts=f=>CITY_COURTS.filter(k=>tour.some(n=>n.pos.court===k&&f(n))).map(k=>COURTS[k].name).join('、');
+  const courts=f=>CITY_COURTS.filter(k=>tour.some(n=>n.pos.court===k&&f(n))).map(k=>COURTS[k].name).join(NAMES_SEP);
   const arr=courts(n=>tourHere(n)),gone=courts(n=>tourHere(n,prev)&&!tourHere(n));
   if(!arr&&!gone)return;
-  const t=NEWS('tour.month',{part:(arr?arr+'高官抵達本城，停留一月':'')+(arr&&gone?'；':'')+(gone?gone+'高官已離城':'')});pushNews(t);log.push(t);
+  const t=NEWS('tour.month',{part:(arr?NEWS('tour.arrive',{c:arr}):'')+(arr&&gone?NEWS('tour.sep'):'')+(gone?NEWS('tour.gone',{c:gone}):'')});pushNews(t);log.push(t);
 }
 /** 舊存檔整理：已刪除的官職換成同系統同階的官職；本城缺的三系官署席位（含五、六階）由名冊補上。 */
 function officialMigrate(){
@@ -156,12 +155,8 @@ function addKnown(cid){if(!G.known.includes(cid)){G.known.push(cid);R(cid).seen=
 function logRel(cid,text){const r=R(cid);r.log.push({y:G.year,m:G.month,c:G.cycle,t:text});if(r.log.length>40)r.log.shift()}
 
 /* ---------- 新局 ---------- */
-/** 主角名字候選。 */
-const GIVEN=['甚左衛門','藤兵衛','彌七郎','傳右衛門','平次郎','利兵衛','宗右衛門','嘉兵衛','太郎左衛門','宗兵衛','清十郎','與三郎'];
-/** 男孩名字候選。 */
-const CHILD_M=['甚太郎','藤吉','彌市','傳之助','平八','利助','宗吉','嘉七'];
-/** 女孩名字候選。 */
-const CHILD_F=['小梅','阿鶴','千鶴','阿菊','小雪','阿滿','美代','阿秋'];
+/** 主角、子女的名字候選（00_names.js 的 NAMES.given／childM／childF）。 */
+const GIVEN=NAMES.given,CHILD_M=NAMES.childM,CHILD_F=NAMES.childF;
 /** 每局抽 30～40 座城市：五大地區各取約六到八城，必含本店所在城市與各地區人口最多的主城；本業每項貨品至少要有 2 處產地（該貨全國不足 2 處則全收）。 */
 function pickActiveCities(homeId,own){
   const N=rint(30,40),regs=[...new Set(ALL_CITIES.map(c=>c.region_id))],base=Math.floor(N/regs.length);
@@ -185,8 +180,8 @@ function pickActiveCities(homeId,own){
 function newGame(sysKey,regionPref){
   const S=SYS_BY_KEY[sysKey];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,firm:S.firm+'·'+S.name,
-    me:{family:S.firm.replace('屋',''),given:'',name:'',birthYear:-20,gen:1},
+    sysKey,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
+    me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
     silver:S.silver,gold:S.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
@@ -198,7 +193,7 @@ function newGame(sysKey,regionPref){
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
-  G.me.given=pick(GIVEN);G.me.name=G.me.family+'屋 '+G.me.given;
+  G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
   const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
   let cs=ALL_CITIES.filter(c=>c.population>=60000&&!producesOwn(c)&&(!regionPref||regionPref==='rand'||c.region_id===regionPref));
@@ -220,6 +215,6 @@ function newGame(sysKey,regionPref){
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
   pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond')),policy:guildPolicyName()}));
   newMeeting();pushNews(NEWS('meet.today'));     // 開局那一旬（3 月上旬）就是第一次例會；平手時沿用開局隨機決定的方針
-  pushNews(G.emps.length?'🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。':'🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。');
+  pushNews(NEWS(G.emps.length?'newGame.crew':'newGame.alone'));
   return G;
 }

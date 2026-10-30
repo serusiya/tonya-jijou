@@ -7,7 +7,7 @@ const tributeOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='offic
 function tributeStatus(cid){
   const T=G.tribute;if(!T||T.cid!==cid)return '';
   const have=G.inv[T.name]||0,left=Math.max(0,T.due-G.turn);
-  return '<div class="card warn" style="margin:4px 0"><b class="small">🎁 上貢</b><div class="tiny">你答應替他準備「'+esc(COMM_MAP[T.name].short)+'」<b>'+T.qty+'</b> 單位，還有 <b>'+left+'</b> 旬。目前手上有 '+have+(have>=T.qty?'，已經備齊了 ✅':'，還差 '+(T.qty-have)+' 單位 ⚠️')+'。</div></div>';
+  return UT('trib.tributeStatus.3',{a:esc(COMM_MAP[T.name].short),b:T.qty,c:left,d:have,e:have>=T.qty?UT('trib.tributeStatus'):UT('trib.tributeStatus.2',{a:T.qty-have})});
 }
 /** 拜訪請託中選了「上貢」（好感 100、每位官員一次；行動點數已在拜訪時扣過）。 */
 function startTribute(cid){
@@ -27,11 +27,11 @@ function tributeTick(log){
     const rev=Math.round(quoteSale(T.name,T.qty).perUnit*T.qty*A.priceMul);
     G.inv[T.name]-=T.qty;G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
     const f0=G.fame||0;addFame(A.fame,'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));G.share=marketShares();
-    G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,'把答應的「'+short+'」'+T.qty+' 單位備齊送去，對方很滿意。');
+    G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,UT('trib.tributeTick',{a:short,b:T.qty}));
     const t=NEWS('tribute.ok',{off,item:short,qty:T.qty,rev:fmt(rev),fame:gf});log.push(t);pushNews(t);sfx.coin();
   }else{
     const r=R(T.cid);setAff(r,Math.max(0,r.aff-A.failAff));loseFame('tributeFail');
-    logRel(T.cid,'答應的貨沒備齊，對方很不高興。');
+    logRel(T.cid,UT('trib.tributeTick.2'));
     const t=NEWS('tribute.fail',{off,item:short,qty:T.qty,have,aff:A.failAff});log.push(t);pushNews(t);sfx.bad();
   }
 }

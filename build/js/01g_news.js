@@ -177,8 +177,73 @@ const NEWS_TXT={
   "arson.1":"🔥【縱火】同業「{name}」的倉庫深夜失火，庫存付之一炬，市面風聲鶴唳。",
   "staff.grow":"🎓【店員】{list}",
   "newProd":"🌱【物產】{city}試種「{name}」有成，今後成為產地，委託採買可以去那裡買了。",
+  /* —— 巡察、開局 —— */
+  "tour.arrive":"{c}高官抵達本城，停留一月",
+  "tour.sep":"；",
+  "tour.gone":"{c}高官已離城",
+  "newGame.crew":"🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。",
+  "newGame.alone":"🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。",
+  /* —— 市場事件、協議、人口 —— */
+  "cityHist.newProd":"試種「{n}」有成，成為產地",
+  "ev.renqing":"📜【人情】你的名帖在城中已有人記得，往來之人對商號多有好評。",
+  "ev.notice":"📜【公文】町奉行所發出告示，重申商人須守株牌專營之規。",
+  "cartel.bondLost":"擔保金 {a} 兩沒收，",
+  "cartel.fine":"官府查抄罰銀 {a} 兩，",
+  "cartel.noFine":"靠司法人脈壓下了查抄，",
+  "rival.good":"🏪【同業】「{n}」新貨滿載入港，聲勢大振，搶下不少客源。",
+  "rival.bad":"🏪【同業】「{n}」商號遭遇糾紛（失火或延誤），客源流失。",
+  "pop.allStable":"供貨始終安定，人口明顯增加",
+  "pop.moreStable":"穩定供貨較多，人口小幅增加",
+  "pop.allUnstable":"供貨持續不穩，人口明顯減少",
+  "pop.moreUnstable":"供貨不穩較多，人口小幅減少",
+  /* —— 07i_voyage.js —— */
+  "voy.resolveVoyage.5":"🌊 歸途{a}，損失 {b} 單位，只有 {c} 單位入倉。",
+  "voy.resolveVoyage.6":"✅ {a} 單位已入倉，可到大盤分旬出貨。",
+  "voy.resolveVoyage.7":"🌊 歸途{a}，損失 {b} 單位，",
+  "voy.resolveVoyage.8":"{a} 單位已入倉。這不是你的本業，得請座客商人代售。",
+  /* —— 07u_battle.js —— */
+  "bt.specialList":"他與你交情至深，願對隨機一家同業{a}。{b}；成敗看他的膽識與商才，事後可能被查辦。",
+  "bt.specialList.2":"上貢",
+  "bt.specialList.3":"他想請你備一批本業貨，{a} 旬內備齊，他會用高價收下。",
+  /* —— 07zf_festwalk.js —— */
+  "fwalk.famWho":"夫人",
+  "fwalk.famWho.2":"孩子們",
+  "fwalk.famWho.3":"側室",
+  "enemy.introQuit":"🤝【請辭】「{a}」與你反目，辭去介紹人。",
+  "rival.heir":"🏪【繼承】已故「{old}」的私生子「{name}」繼承家業，接掌商號。",
+  "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。"
 };
+/** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
+const NEWS_SEEN=new Map(),NEWS_RECENT=[];
 function NEWS(key,vars){
   const v=NEWS_TXT[key];if(v===undefined)return key;
-  return vars?v.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):v;
+  const t=vars?v.replace(/\{(\w+)\}/g,(m,k)=>vars[k]===undefined?m:vars[k]):v;
+  NEWS_SEEN.set(t,key);NEWS_RECENT.unshift(t);if(NEWS_RECENT.length>60)NEWS_RECENT.pop();if(NEWS_SEEN.size>3000)NEWS_SEEN.clear();
+  return t;
 }
+/** 新聞文字→新聞鍵（找不到時看是否以某則新聞開頭，例如後面再接損失說明）；不是新聞則回傳 null。 */
+function newsKey(t){
+  if(t==null)return null;t=String(t);
+  const k=NEWS_SEEN.get(t);if(k)return k;
+  const p=NEWS_RECENT.find(x=>x&&t.startsWith(x));return p?NEWS_SEEN.get(p)||null:null;
+}
+/** 新聞的顯示格式：開頭圖示與【標籤】、括號註記（忘年會轉述時去掉）。 */
+const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^）]*）/g};
+/* —— 新聞分類（依新聞鍵；新增新聞時記得歸類） ——
+ *  NEWS_CAT：年度大事簿（忘年會話題）分類；不在表內的不記。
+ *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
+ *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
+const NEWS_CAT={
+  firm:["newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
+  disaster:["holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
+  official:["inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  trouble:["officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
+};
+const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2"];
+const NEWS_MOVE=["peopleMove.official","peopleMove.residence"];
+const NEWS_SEA=["setEv.4","smugTick.2","regionHeld.2"];
+const NEWS_LAND=["regionHeld.1"];
+const NEWS_CAT_OF={};Object.entries(NEWS_CAT).forEach(([c,L])=>L.forEach(k=>NEWS_CAT_OF[k]=c));
+const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA_SET=new Set(NEWS_SEA),NEWS_LAND_SET=new Set(NEWS_LAND);

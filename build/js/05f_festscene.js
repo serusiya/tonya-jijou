@@ -73,7 +73,7 @@ function festMikoshi(now,dt){
 }
 /** 煙火：只在夏天的節慶或下旬（傍晚）時，天空偶爾綻開一朵。 */
 function festFireworks(c,now){
-  if(!(season()==='夏'||G.cycle===3))return;
+  if(!(season()==='summer'||G.cycle===3))return;
   if(now>=FEST.nextFw){
     const cols=['#ff6b6b','#ffd166','#6bd3ff','#c77dff','#9cff6b'];
     FEST.fw.push({x:150+Math.random()*150,y:10+Math.random()*28,t0:now,col:cols[Math.floor(Math.random()*cols.length)],n:10+Math.floor(Math.random()*5)});

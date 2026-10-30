@@ -15,21 +15,18 @@ const SKIM_PCT_MAX=0.03;
 /** 私房錢撥回現款：每次金額（每旬一次）。 */
 const PURSE_BACK=100;
 /** 轉出私房錢後若跌破名望門檻，提醒一句。 */
-const purseTierNote=()=>'<div class="tiny muted">私房錢滿 '+fmt(ODDS.fame.goldTier)+' 兩時名望多一階，不滿就少這一階。</div>';
+const purseTierNote=()=>UT('purse.purseTierNote',{a:fmt(ODDS.fame.goldTier)});
 
 /** 私房錢面板（點最上方「私房錢」欄）：從現款挪用／設定每旬抽成。 */
 SHEETS.purse=()=>{
   const pct=(G.skimPct||0)*100;
-  let h='<div class="notice tiny"><b>現款</b>是商號帳上的錢，進貨、薪資、賄賂與拜訪都花它。<b>私房錢</b>是你自己的口袋，用在<b>吉原</b>、<b>走私</b>這類見不得光的事；攢滿 2,000 兩，身分也高一階。兩邊要分清楚，被抓到挪用商號的錢可是大罪。</div>';
-  h+='<div class="card"><b>1. 從現款挪用</b><div class="tiny muted">每次挪走 '+SKIM_MIN+'～'+SKIM_MAX+' 兩（隨機），扣 1 行動點數。</div>'
-    +'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="skim">'+UT('btn.skim')+'</button></div></div>';
-  h+='<div class="card"><b>2. 每旬盈餘自動抽成</b><div class="tiny muted">每旬若有盈餘，按此比例撥入私房錢（0～3%），目前 <b id="skim-pct-v">'+pct.toFixed(1)+'%</b>。</div>'
-    +'<input type="range" min="0" max="30" step="1" value="'+Math.round(pct*10)+'" data-chg="skimPct" style="width:100%"></div>';
+  let h=UT('purse.h');
+  h+=UT('purse.purse',{a:SKIM_MIN,b:SKIM_MAX})+'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="skim">'+UT('btn.skim')+'</button></div></div>';
+  h+=UT('purse.purse.2',{a:pct.toFixed(1)})+'<input type="range" min="0" max="30" step="1" value="'+Math.round(pct*10)+'" data-chg="skimPct" style="width:100%"></div>';
   const back=G.purseBackT===G.turn;
-  h+='<div class="card"><b>3. 撥回現款</b><div class="tiny muted">從私房錢拿 '+PURSE_BACK+' 兩補進商號帳上；每旬一次，扣 1 行動點數。</div>'
-    +'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" data-act="purseBack" '+(back||G.gold<PURSE_BACK?'disabled':'')+'>'+(back?'本旬已撥回':'撥回 '+PURSE_BACK+' 兩')+'</button></div>'+purseTierNote()+'</div>';
-  h+='<div class="tiny muted">私房錢現有 <b>'+Math.round(G.gold)+'</b> 兩；現款 '+fmt(G.silver)+' 兩。</div>';
-  return {title:'🟨 私房錢',html:h};
+  h+=UT('purse.purse.5',{a:PURSE_BACK})+'<div class="row" style="margin-top:4px"><button class="pixel-btn btn-sm btn-green" data-act="purseBack" '+(back||G.gold<PURSE_BACK?'disabled':'')+'>'+(back?UT('purse.purse.3'):UT('purse.purse.4',{a:PURSE_BACK}))+'</button></div>'+purseTierNote()+'</div>';
+  h+=UT('purse.purse.6',{a:Math.round(G.gold),b:fmt(G.silver)});
+  return {title:UT('purse.purse.7'),html:h};
 };
 ACT.purse=()=>UI.openSheet('purse');
 /** 從現款挪用：隨機 30～50 兩，扣 1 行動點數。 */
@@ -44,11 +41,11 @@ ACT.skim=()=>{
 };
 /** 私房錢撥回現款：每旬一次、扣 1 行動點數、一次 100 兩。 */
 ACT.purseBack=()=>{
-  if(G.purseBackT===G.turn){toast('這一旬已經撥回過了。');return}
-  if(G.gold<PURSE_BACK){toast('私房錢不足 '+PURSE_BACK+' 兩。');return}
+  if(G.purseBackT===G.turn){toast(MSG('purse.purseBack'));return}
+  if(G.gold<PURSE_BACK){toast(MSG('purse.purseBack.2',{a:PURSE_BACK}));return}
   if(!spendAP())return;
   G.gold-=PURSE_BACK;G.silver+=PURSE_BACK;G.purseBackT=G.turn;
-  sfx.coin();toast('從私房錢撥回 '+PURSE_BACK+' 兩到帳上。');
+  sfx.coin();toast(MSG('purse.purseBack.3',{a:PURSE_BACK}));
   UI.render();refreshSheet();
 };
 /** 設定每旬抽成比例（滑桿 0～30 → 0～3.0%）。 */
@@ -84,7 +81,7 @@ const guardPower=e=>statsOfEmp(e).audacity_courage;
  */
 function rollAmbush(){
   if(!chance(ambushChance()))return null;
-  const gs=G.emps.filter(e=>e.rank==='保鏢').sort((a,b)=>guardPower(b)-guardPower(a));
+  const gs=G.emps.filter(e=>e.rank==='guard').sort((a,b)=>guardPower(b)-guardPower(a));
   if(gs.length){
     const g=gs[0],pw=guardPower(g);
     // 膽識 ≥70 必定無傷退敵；否則機率 (pw/70)^2，失敗則保鏢替你擋刀而亡
