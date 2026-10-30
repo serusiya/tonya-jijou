@@ -3870,7 +3870,7 @@ function inspection(){
 }
 /** 事件：政敵拿你和交好官員（好感 ≥30）的往來做文章，他受你牽連遭申斥：好感扣七成（可能成仇），官職不變；好感見底時可能把罪責推給你。 */
 function officialFall(){
-  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30);
+  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30&&!n.ronin);   // 自己扶持的浪人官員不受牽連
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
   const loss=Math.round(r.aff*0.7);setAff(r,r.aff-(loss));                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
@@ -3884,7 +3884,7 @@ function officialFall(){
 }
 /** 事件：官員索賄，不理會會影響交情或衍生麻煩。 */
 function officialExtort(){
-  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=40&&CH(n.cid).derived_stats.greed_index>=55);
+  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=40&&CH(n.cid).derived_stats.greed_index>=55&&!n.ronin);   // 浪人官員另有要錢事件
   if(!offs.length)return NEWS('officialExtort.1');
   const n=pick(offs);const r=R(n.cid);
   const amt=giftGoldCost(n.pos.rank);
@@ -6642,7 +6642,7 @@ const inspectBribe=rk=>costOf('inspectBribe',rk);
 function inspectTick(log){
   if(G.inspect){inspectResolve(false,log)}
   if(!chance(inspectChance()))return;
-  const offs=officialsOf(G.cityId).filter(n=>n.pos&&n.pos.rank<=2);
+  const offs=officialsOf(G.cityId).filter(n=>n.pos&&n.pos.rank<=2&&!n.ronin);   // 自己扶持的浪人官員不來查貨
   if(!offs.length)return;
   const n=pick(offs);G.inspect={cid:n.cid,turn:G.turn};queueFaceEvent({type:'inspect',cid:n.cid,turn:G.turn});   // 旬報關閉後以來訪視窗處理
   log.push(NEWS('inspectTick.1',{n:(n.pos?posTitle(n):UT('insp.inspectTick')),n2:nameOf(n.cid)}));
