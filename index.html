@@ -2519,7 +2519,18 @@ const UI_TXT={
   'home.dis.fire':'🔥 大火之後',
   'home.dis.famine':'🌾 凶作',
   'home.dis.typhoon':'🌀 颱風過境',
-  'home.dis.plague':'🦠 疫病流行'
+  'home.dis.plague':'🦠 疫病流行',
+  /* —— 採買日誌表格 —— */
+  'voy.log.wreckSea':'海難',
+  'voy.log.wreckLand':'山賊',
+  'voy.log.who':'{c}「{n}」·前往【{p}】',
+  'voy.log.thName':'貨名',
+  'voy.log.thQty':'數量',
+  'voy.log.thCost':'總價',
+  'voy.log.lost':'損 {n}',
+  'voy.log.thUnit':'單價',
+  'voy.log.sum':'採買花 {a} 兩，雜費 {b} 兩，退回 {c} 兩。',
+  'voy.log.empty':'空手而回。雜費 {b} 兩，退回 {c} 兩。'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -7180,7 +7191,7 @@ function resolveVoyage(s,log){
     kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
     note=UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
   }
-  const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[]};
+  const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
   let refund=budget-fee,income=0;
   const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(mode==='sea'?UT('voy.wn'):UT('voy.wn.2')):'';
   L.push(NEWS('kind.1',{dest:E.dest,note}));
@@ -7201,7 +7212,7 @@ function resolveVoyage(s,log){
     its.filter(x=>x.q>0).forEach(x=>{
       const q=x.q,got=Math.round(q*keep),cost=Math.round(x.unit*q);refund-=cost;bought+=got;lost+=q-got;
       if(got>0)addStock(x.n,got,cost/got);G.inv[x.n]=(G.inv[x.n]||0)+got;
-      L.push(NEWS('kind.2',{short:x.c.short,q,unit:fmt1(x.unit),pf:pc(x.pf),cost:fmt(cost)}));
+      L.push(NEWS('kind.2',{short:x.c.short,q,unit:fmt1(x.unit),pf:pc(x.pf),cost:fmt(cost)}));E.items.push({n:x.c.short,q,unit:x.unit,cost,lost:q-got});
     });
     if(bought+lost>0)L.push(wreck?NEWS('voy.resolveVoyage.5',{a:wn,b:lost,c:bought}):NEWS('voy.resolveVoyage.6',{a:bought}));
     else L.push(NEWS('kind.3',{short:first.short}));
@@ -7210,13 +7221,13 @@ function resolveVoyage(s,log){
     const room=Math.max(0,invCap()-invUsed());
     const q=Math.max(0,Math.min(Math.floor(spend/unit),capOf(c.name,mode),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
-      L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));
+      L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));E.items.push({n:c.short,q,unit,cost,lost:q-got});
       L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{a:wn,b:q-got}):'')+got)}))}
     else L.push(NEWS('kind.5',{short:c.short}));
   }
   if(carry){                                            // 唐物藥種：夾帶唐船私貨
     const {it,q,cost}=carry,got=Math.round(q*keep);refund-=cost;
-    contra()[it.k]=(contra()[it.k]||0)+got;addHeat(ODDS.voyageKind.carryHeat*it.danger);
+    contra()[it.k]=(contra()[it.k]||0)+got;addHeat(ODDS.voyageKind.carryHeat*it.danger);E.items.push({n:it.name,q,unit:q?cost/q:0,cost,lost:q-got});
     L.push(NEWS('kind.6',{mode:NM('crew',mode),name:it.name,q,cost:fmt(cost),got:(wreck?UT('voy.resolveVoyage.9',{a:wn,b:got}):'')}));
   }
   refund=Math.max(0,refund);G.silver+=refund+income;
@@ -7253,9 +7264,25 @@ function voyagePanel(){
   h+=UT('voy.voyagePanel.19',{a:UT('btn.vAdd')})+'</button></div>';
   return h;
 }
+/** 採買日誌：時間（遭難時紅字）、人名與去處、貨物表（貨名、數量、總價；遭難時數量下方紅字損失）、花費與退回。
+ *  舊紀錄沒有分項資料，照原文完整列出。 */
+function voyLogEntry(v){
+  const mode=v.mode||'sea';
+  if(!v.items)return '<div class="card"><div class="tiny muted">'+UT('voy.voyLogCard',{a:esc(v.date),b:NM('crew',mode),c:esc(v.capt),d:fmt(v.budget),e:v.lines.map(l=>'<div class="tiny" style="margin-top:2px">'+esc(l)+'</div>').join('')})+'</div>';
+  const spent=v.items.reduce((a,x)=>a+x.cost,0);
+  let h='<div class="card"><div class="small"><b>'+esc(v.date)+'</b>'+(v.wreck&&v.items.length?' <b style="color:#b3261e">'+UT(mode==='sea'?'voy.log.wreckSea':'voy.log.wreckLand')+'</b>':'')+'</div>'
+    +'<div class="tiny muted">'+UT('voy.log.who',{c:NM('crew',mode),n:esc(v.capt),p:esc(v.dest)})+'</div>';
+  if(v.items.length){
+    const td='padding:2px 6px;border-bottom:1px dashed #d8ccb0';
+    h+='<table class="tiny" style="width:100%;border-collapse:collapse;margin:4px 0"><tr style="text-align:left"><th style="'+td+'">'+UT('voy.log.thName')+'</th><th style="'+td+';text-align:right">'+UT('voy.log.thQty')+'</th><th style="'+td+';text-align:right">'+UT('voy.log.thUnit')+'</th><th style="'+td+';text-align:right">'+UT('voy.log.thCost')+'</th></tr>'
+      +v.items.map(x=>'<tr><td style="'+td+'">'+esc(x.n)+'</td><td style="'+td+';text-align:right">'+x.q+(x.lost>0?'<br><span style="color:#b3261e">'+UT('voy.log.lost',{n:x.lost})+'</span>':'')+'</td><td style="'+td+';text-align:right">'+fmt1(x.unit!==undefined?x.unit:(x.q?x.cost/x.q:0))+'</td><td style="'+td+';text-align:right">'+fmt(x.cost)+'</td></tr>').join('')+'</table>'
+      +'<div class="tiny">'+UT('voy.log.sum',{a:fmt(spent),b:fmt(v.fee||0),c:fmt(v.back||0)})+'</div>';
+  }else h+='<div class="tiny" style="margin-top:3px">'+UT('voy.log.empty',{b:fmt(v.fee||0),c:fmt(v.back||0)})+'</div>';
+  return h+'</div>';
+}
 function voyLogCard(){
   const L=G.voyLog||[];if(!L.length)return '';
-  return UT('voy.voyLogCard.2',{a:L.slice(0,5).map(v=>'<div class="card"><div class="tiny muted">'+UT('voy.voyLogCard',{a:esc(v.date),b:NM('crew',v.mode||'sea'),c:esc(v.capt),d:fmt(v.budget),e:v.lines.slice(0,3).map(l=>'<div class="tiny" style="margin-top:2px">'+esc(l)+'</div>').join('')})+'</div>').join('')});
+  return UT('voy.voyLogCard.2',{a:L.slice(0,5).map(voyLogEntry).join('')});
 }
 ACT.vCapt=el=>{UI.s.route.capt=el.dataset.id;renderRoutes()};
 ACT.vDest=el=>{UI.s.route.dest=el.dataset.id;renderRoutes()};
