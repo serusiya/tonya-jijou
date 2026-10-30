@@ -700,6 +700,7 @@ const COSTS={
   recruitIntro:{name:'請介紹人物色人才禮金',cur:'silver',amt:40},
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
   allowance:{name:'雇員零用錢',cur:'silver',amt:5},
+  reliefSoup:{name:'御救小屋合辦',cur:'silver',amt:800},
   encounter:{name:'路遇應酬',cur:'silver',amt:50},
   /* —— 產業·設施 —— */
   shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
@@ -859,6 +860,8 @@ const ODDS={
     wed:{payAff:10,payLoyal:1,ignAff:-3},
     poach:{payAff:5},
     frame:{payAff:10,ignAff:-15,jail:6}}
+  /* 災情救濟請託（07zu_relief.js）：soup 施粥（知名度、風聲減量、主食行情倍率、官員好感），import 緊急御免（旬數、進貨上限倍數、知名度），build 普請御用（每項收購約幾旬配額、收購價倍率、知名度） */
+  ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
 const roll=(k,p)=>chance(p===undefined?ODDS[k].p:p);
@@ -2505,7 +2508,18 @@ const UI_TXT={
   'sev.label.frame':'保釋金',
   'spend.staffEv':'店員急事：{n}',
   'staff.jailed':'<span class="tag red">⛓ 關押中·{a} 旬</span>',
-  'sev.verified':'經此一事，看清了他的軟肋：{w}。'
+  'sev.verified':'經此一事，看清了他的軟肋：{w}。',
+  /* —— 災情救濟請託（07zu_relief.js） —— */
+  'fav.reliefSoup':'御救小屋合辦',
+  'fav.reliefSoup.d':'災情當旬：與官府合辦御救小屋，在災區大舉施粥。花費 800 兩，名聲大增，風聲轉淡，米價也能回落一些。',
+  'fav.reliefImport':'緊急御免',
+  'fav.reliefImport.d':'災情當旬：官府特許緊急進貨。本旬與下一旬，大盤進貨上限加倍，漲價的貨照災前的價格進。',
+  'fav.reliefBuild':'普請御用',
+  'fav.reliefBuild.d':'災情當旬：官府重建災區，用比市價高四成的價格，收購你倉裡的本業貨（每項最多約兩旬的量）。',
+  'home.dis.fire':'🔥 大火之後',
+  'home.dis.famine':'🌾 凶作',
+  'home.dis.typhoon':'🌀 颱風過境',
+  'home.dis.plague':'🦠 疫病流行'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -2889,7 +2903,14 @@ const MSG_TXT={
   'sev.poach.pay':'你塞了個紅包，{n}笑著說哪兒也不去了。',
   'sev.poach.ign':'{n}收拾行李，轉往「{r}」效力。',
   'sev.frame.pay':'你付了保釋金，{n}當天就回到店裡，對你感激涕零。',
-  'sev.frame.ign':'{n}在番所關了好些日子，留下了前科。'
+  'sev.frame.ign':'{n}在番所關了好些日子，留下了前科。',
+  /* —— 災情救濟請託 —— */
+  'relief.closed':'這件事只能趁災情當下辦，如今已經錯過了。',
+  'relief.soup':'御救小屋搭起來了，災民排成長龍，全城都在談你的善舉。知名度 +{f}。',
+  'relief.import':'緊急進貨的特許下來了：這兩旬向大盤進貨，量可以加倍，價錢照災前算。知名度 +{f}。',
+  'relief.build':'官府收走{g}，付了 {a} 兩。知名度 +{f}。',
+  'relief.buildNone':'倉裡沒有本業貨可以交給官府。',
+  'log.relief':'救濟「{f}」：{m}'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -3115,7 +3136,11 @@ const NEWS_TXT={
   "sev.auto":"👥【店員】{m}",
   "sev.creditor":"💢【店員】債主找上店門討{n}的賭債，街坊議論紛紛。",
   "sev.quit":"🚪【店員】{k}{n}寄來辭呈，說要回鄉照顧家人。",
-  "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。"
+  "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。",
+  /* —— 災情救濟請託 —— */
+  "relief.soup":"🍚【義舉】你與「{n}」在災區合辦御救小屋，施粥救濟災民。",
+  "relief.import":"📦【緊急御免】官府特許你緊急進貨，接濟災區。",
+  "relief.build":"🏗️【普請】官府為重建災區向你收購本業貨，付款 {a} 兩。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -3138,10 +3163,10 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
   disaster:["holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -3163,6 +3188,7 @@ const CHANGELOG=[
     '公會例會設定更新：改在每季第一旬召開，例會上同業會發言。',
     '各城物價的高低重新洗牌一次。',
     '本城同業過世後，會有人繼承家業補上。',
+    '大火、凶作、颱風、疫病發生的那一旬，三系官員有救濟的差事可以請託。',
     '新增店員急事：賭債、酒後鬧事、家人急病、成親、挖角、遭人誣陷，出手相助能收攏人心。',
     '存檔格式更新：舊存檔讀取時自動轉換；新存檔不能再拿回舊版讀。',
     '修改背景資料'
@@ -3628,7 +3654,7 @@ const empBuyMult=()=>ODDS.rivalShip.buyMult;
 /** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（參加協議 0.93、未參加 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
-  let p=marketIndex(name,true)*empBuyMult();
+  let p=(reliefImportOn()&&reliefPrice(name)||marketIndex(name,true))*empBuyMult();   // 緊急御免：漲價的貨照災前價格（07zu_relief.js）
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
   if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未參加協議：照市價（參加者享聯合採購價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
@@ -3641,7 +3667,7 @@ function quoteSale(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()))};
+const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)))};
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -3705,11 +3731,11 @@ function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.m
 /** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。 */
 const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);return NEWS('setEv.1')}},
-  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);return NEWS('setEv.2')}},
+  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
+  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
   {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
-  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});return NEWS('setEv.4')}},
-  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);return NEWS('setEv.5')}},
+  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
+  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
   {w:ODDS.eventW.military,seasons:ALL_SEASONS,f(){setEv(c=>commTag(c,'military'),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
   {w:ODDS.eventW.sword,seasons:ALL_SEASONS,f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
   {w:ODDS.eventW.flower,seasons:ALL_SEASONS,f(){return NEWS('setEv.7')}},
@@ -4011,9 +4037,9 @@ function cityTick(){
       if(mon===G.month&&G.cycle===1){
         G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));
         const fx=h.fx||[];                           // 城史事件的類型（資料檔 fx：fire 火災、plague 疫病、famine 饑荒）
-        if(fx.includes('fire'))setEv(c=>commTag(c,'fire'),1.6);
-        if(fx.includes('plague'))setEv(c=>c.sys==='medicine',1.6);
-        if(fx.includes('famine'))setEv(c=>commTag(c,'rice'),1.4);
+        if(fx.includes('fire')){setEv(c=>commTag(c,'fire'),1.6);markDisaster('fire')}
+        if(fx.includes('plague')){setEv(c=>c.sys==='medicine',1.6);markDisaster('plague')}
+        if(fx.includes('famine')){setEv(c=>commTag(c,'rice'),1.4);markDisaster('famine')}
       }
     }
   });
@@ -4271,7 +4297,7 @@ const FAVORS={
 const favorText=f=>Object.assign(f,{name:UT('fav.'+f.k),desc:UT('fav.'+f.k+'.d')});
 Object.values(FAVORS).forEach(L=>L.forEach(favorText));
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)).map(f=>resolveFavor(f,n)):[]}
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))).map(f=>resolveFavor(f,n)):[]}
 /** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 借款種類的顯示名（舊存檔直接存中文名稱，原樣顯示）。 */
@@ -4281,6 +4307,7 @@ function doFavor(cid,key,arg){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
+  if(f.relief)return doRelief(cid,n,r,f);                      // 災情救濟（07zu_relief.js）
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
@@ -5484,7 +5511,7 @@ function renderHome(){
   const city=homeCity();
   $('#badge-season').textContent=UT('home.season',{i:SEASON_ICON[season()],s:seasonName(season()),c:CYCLE_NAMES[G.cycle-1]});
   const al=$('#badge-alert');
-  let a='';if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
+  let a='';if(disasterNow())a=UT('home.dis.'+G.disaster.type);else if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
   al.textContent=a;al.classList.toggle('hidden',!a);
   $('#loc-city').textContent=UT('home.city',{c:city.name});
   {const fw=$('#fest-walk');if(fw)fw.innerHTML=festWalkHtml()}   // 節慶當旬：逛祭典（07zf_festwalk.js）
@@ -8329,7 +8356,7 @@ function regLicCard(){
 /** 某職位能辦的請託：三系官署看系統別與官階（限定官階的只在該階），遠國奉行所看職位。回傳 [{name,desc}]。 */
 function posFavors(id){
   const p=OFF_POS[id];if(!p)return [];
-  return (FAVORS[p.court]||[]).filter(f=>(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
+  return (FAVORS[p.court]||[]).filter(f=>!f.relief&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
     let name=f.name;
     if(f.lic)name=licFavorName(f.lic,p.rank);
     else if(f.trade!==undefined)name=G&&G.sysKey?tradeFavorName(f.trade):UT('lic.posFavors.3',{a:f.trade?UT('lic.posFavors'):UT('lic.posFavors.2')});
@@ -9708,6 +9735,57 @@ function sevResolve(pay){
 ACT.sevPay=()=>{const S=G.staffEv;if(!S||S.done)return UI.hideInfo();if(G.silver<S.cost){toast(MSG('sev.short'));return}
   const m=sevResolve(true);sfx.coin();UI.hideInfo();if(m)toast(m,4200);UI.render()};
 ACT.sevIgnore=()=>{const m=sevResolve(false);UI.hideInfo();if(m)toast(m,4200);UI.render()};
+
+'use strict';
+/* ======================= 災情救濟請託（第一百四十九節） =======================
+ *  大火、凶作、颱風、疫病（含城史記載的大火、大疫、饑荒）發生的那一旬，記為「本城災情」（G.disaster），主畫面右上角提醒。
+ *  只有事件當旬，三系三階以上、交情 60 以上的官員，請託清單會各多一項救濟；同一場災情每系只能辦一次。期間外完全不出現，職位說明也不列。
+ *   行政：御救小屋合辦（現款 800 兩，大型施粥）／財務：緊急御免（兩旬內大盤進貨上限加倍、漲價的貨照災前價格進）／司法：普請御用（官府高價收購本業貨）。
+ *  數值在 01c_odds.js 的 ODDS.relief；花費 COSTS.reliefSoup。 */
+const RELIEF_KEY={administration:'reliefSoup',finance:'reliefImport',judiciary:'reliefBuild'};
+FAVORS.administration.push(favorText({k:'reliefSoup',rank:3,relief:true}));
+FAVORS.finance.push(favorText({k:'reliefImport',rank:3,relief:true}));
+FAVORS.judiciary.push(favorText({k:'reliefBuild',rank:3,relief:true}));
+/** 記下本城災情（事件當旬）。type：fire、famine、typhoon、plague。 */
+function markDisaster(type){if(!G)return;if(G.disaster&&G.disaster.turn===G.turn)return;G.disaster={type,turn:G.turn,done:{}}}
+/** 本旬是否正逢災情。 */
+const disasterNow=()=>!!(G&&G.disaster&&G.disaster.turn===G.turn);
+/** 這一系的救濟本旬還能不能辦。 */
+const reliefOpen=court=>disasterNow()&&!G.disaster.done[court];
+/** 緊急御免期間（本旬與下一旬）。 */
+const reliefImportOn=()=>!!(G&&G.reliefBuy>G.turn);
+/** 緊急御免：漲價的貨照災前價格（不計事件倍率）。 */
+function reliefPrice(name){const m=G.mk[name],ev=m.ev;if(!(ev>1))return null;m.ev=1;const p=marketIndex(name,true);m.ev=ev;return p}
+/** 普請御用：官府收購的貨（每項本業貨最多約兩旬配額）。 */
+function reliefBuildLots(){
+  return tradeComms().map(c=>{const n=c.name,have=G.inv[n]||0,want=Math.max(1,Math.round(ODDS.relief.buildTurns*Math.max(quotaOf(n),supplyLine(n))));return {c,q:Math.min(have,want)}}).filter(x=>x.q>0);
+}
+/** 執行救濟請託（doFavor 呼叫）；不扣好感。 */
+function doRelief(cid,n,r,f){
+  const court=n.pos.court,R_=ODDS.relief;
+  if(!reliefOpen(court))return {ok:true,status:'held',msg:MSG('relief.closed')};
+  let msg;
+  if(f.k==='reliefSoup'){
+    if(!afford('reliefSoup'))return {ok:true,status:'held',msg:shortMsg('reliefSoup')};
+    spend('reliefSoup');
+    const fm=addFame(R_.soupFame,'major');G.heat=Math.max(0,(G.heat||0)-R_.soupHeat);
+    Object.keys(G.mk).forEach(k=>{if(COMM_MAP[k].staple)G.mk[k].ev=Math.max(1,G.mk[k].ev*R_.soupStaple)});
+    syncPrices();G.staple.streak=0;G.staple.idx=Math.max(...STAPLE_KEYS.map(stapleIndex));
+    setAff(r,clamp(r.aff+R_.soupAff,0,100));
+    msg=MSG('relief.soup',{f:fm});pushNews(NEWS('relief.soup',{n:nameOf(cid)}));
+  }else if(f.k==='reliefImport'){
+    G.reliefBuy=G.turn+R_.importTurns;const fm=addFame(R_.importFame,'major');
+    msg=MSG('relief.import',{f:fm});pushNews(NEWS('relief.import'));
+  }else{
+    const L=reliefBuildLots();if(!L.length)return {ok:true,status:'held',msg:MSG('relief.buildNone')};
+    let rev=0;L.forEach(({c,q})=>{const p=Math.round(G.mk[c.name].price*R_.buildMul*q);G.inv[c.name]-=q;rev+=p});
+    G.silver+=rev;const fm=addFame(R_.buildFame,'major');
+    msg=MSG('relief.build',{g:L.map(x=>x.c.short+' × '+x.q).join(NAMES_SEP),a:fmt(rev),f:fm});pushNews(NEWS('relief.build',{a:fmt(rev)}));
+  }
+  G.disaster.done[court]=true;
+  logRel(cid,MSG('log.relief',{f:f.name,m:msg}));
+  return {ok:true,status:'done',msg};
+}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
