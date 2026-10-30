@@ -745,7 +745,7 @@ const walletOf=k=>COSTS[k].cur;
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
 const affordAmt=(k,amt)=>G[COSTS[k].cur]>=amt;
 /** 主動支出帳：鍵＝「文字鍵|對象代號」（如 spend.buy|prod_0101、cost:visit），畫面以 spendLabel 轉成文字。 */
-const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a,'spend.staffEv':a=>UT('sev.label.'+a)};
+const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a,'spend.staffEv':a=>UT('sev.label.'+a),'spend.ronin':a=>nameOf(a)};
 function spendLabel(k){
   if(k.startsWith('cost:')){const c=COSTS[k.slice(5)];return c?c.name:k}
   const i=k.indexOf('|'),t=i<0?k:k.slice(0,i),a=i<0?'':k.slice(i+1);
@@ -863,6 +863,7 @@ const ODDS={
     poach:{payAff:5},
     frame:{payAff:10,ignAff:-15,jail:6}}
   /* 災情救濟請託（07zu_relief.js）：soup 施粥（知名度、風聲減量、主食行情倍率、官員好感），import 緊急御免（旬數、進貨上限倍數、知名度），build 普請御用（每項收購約幾旬配額、收購價倍率、知名度） */
+  ,ronin:{name:'浪人頭（07zw_ronin.js）：最多結識人數、結識機率（指名、夜宴、遇襲）、結識好感、要錢次數門檻、各階金額（浪人、一～三階）、每升一階機率倍率',maxKnown:3,nominate:0.1,feast:0.15,ambush:0.3,aff:10,times:10,amt:[50,100,200,400],decay:0.75}
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
   ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,bribeHeat:0.5,quellFame:3}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
@@ -1188,6 +1189,12 @@ const LINES={
     hi:['「{n}兄一生待人以誠，這份情，在下記一輩子。」','「他走了，往後這城裡，再沒有這樣的知己。」','「{n}……唉，說什麼好呢，我只記得他那杯酒。」'],
     mid:['「是個有手腕的人，來往多年，倒也從未虧待過我。」','「生意場上的朋友，講究的是互利，他做得漂亮。」','「為人如何，各人心中有數；至少他守約。」'],
     lo:['「不熟，只知道他的生意做得很大。」','「聽說過這個人，大家都說他……不好說。」']
+  },
+  /* 浪人頭（07zw_ronin.js） */
+  ronin:{
+    line:['東家，在下又來叨擾了。打點門路的錢，還差一些……','聽說番所那邊快有缺了，再打點一次，事情就成了。','武士窮途，不敢多求，只要這一回就好。','在下的刀還在，志氣也還在，只是缺些打點的錢。'],
+    lineOfficial:['公事繁忙，抽空來一趟。上頭那位大人，還得再打點打點。','東家的恩情在下記著。再往上走一步，對你我都好。','衙門裡的規矩，你也明白——不打點，誰也升不上去。'],
+    visit:['東家來了？有什麼事，直說便是。','自己人不必客套，要辦什麼，在下替你張羅。']
   }
 };
 const _lineAt=path=>path.split('.').reduce((o,k)=>o&&o[k],LINES);
@@ -2099,7 +2106,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
   'wiki.WIKI_GUIDE.10':'船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的入津御免與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比相場便宜，商才越高買得越多越省，當地產好幾樣本業貨時，委託金與運量平均分給每一樣；偶爾帶回別行的便宜貨，要請旅商人代售；派去沒有本業貨的地方，多半空手而回，只花掉雜費；唐物藥種的船隊還常夾帶唐船私貨。可以先把要派的人排進出運清單，再一次全部出發，只要到河岸交代一趟、扣一次行動；分批出發就每批各扣一次。清單只在本旬有效。路上有海難與山賊，往返要等上幾旬。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
-  'wiki.WIKI_GUIDE.12':'役人、同業、名士、花魁，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，役人也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。做事、結識官員、穩定供貨都會讓商號知名度上升；名聲響徹全城之後，尋常小事不再為人稱道，要靠結識高官、上貢、饑荒時施粥這類大事才能更上一層。',
+  'wiki.WIKI_GUIDE.12':'役人、同業、名士、花魁，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，役人也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。做事、結識官員、穩定供貨都會讓商號知名度上升；名聲響徹全城之後，尋常小事不再為人稱道，要靠結識高官、上貢、饑荒時施粥這類大事才能更上一層。闇商人和落魄的浪人不會掛招牌，只能在花街或路上碰上；有些浪人還想謀個一官半職，肯資助他，也許哪天他就成了自己人。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
   'wiki.WIKI_GUIDE.14':'丁稚替你跑腿拜訪；手代在店頭，讓出貨價略好一點，人多了還能照料庫存、少些損耗；番頭管採購，可向相場進更多貨；大番頭是總管，也和番頭一樣能多進貨，每旬自動問候人脈，也能壓住其他店員的歪念。店員也會動手腳：在家裡跟人閒聊聽到風聲，才好查帳；查帳很傷人情，冤枉了好人更是。查出來可以追討、寬恕或辭退，各有後果。待得久的店員每年都會長進一點，從底下提拔上來的「自家栽培」更忠心、手腳也乾淨；平常對店員好，比事後查帳有用。店員偶爾會惹上麻煩或遇上急事，出手幫一把，人心就跟著你。保鏢平時守倉庫，出門時護著你。丁稚固定可以收兩名，大番頭只能有一名；其他店員一開始都只能雇一名，要多雇得先向官府申請許可。',
   'wiki.WIKI_GUIDE.15':'🏛️ 官府',
@@ -2567,7 +2574,21 @@ const UI_TXT={
   'smug.meet.log.start':'開業前就打過交道的門路，私下有往來。',
   'smug.meet.log.smug':'第一次走私貨運回時，接貨的人留下聯絡的暗號。',
   'smug.meet.log.nominate':'在吉原隔壁座敷偶然碰上，攀談幾句便熟了。',
-  'smug.meet.log.feast':'吉原夜宴上混進來的客人，席間交換了門路。'
+  'smug.meet.log.feast':'吉原夜宴上混進來的客人，席間交換了門路。',
+  /* —— 浪人頭（07zw_ronin.js） —— */
+  'face.title.ronin':'🗡️ 浪人來訪',
+  'ronin.ask':'要給他 {a} 兩打點門路嗎？',
+  'ronin.askOfficial':'要給他 {a} 兩，再往上打點嗎？',
+  'btn.roninGive':'給他 {c}',
+  'btn.roninNo':'回絕',
+  'ronin.label.nominate':'花街偶遇',
+  'ronin.label.feast':'花街結識',
+  'ronin.label.ambush':'拔刀相助',
+  'ronin.log.nominate':'在吉原隔壁座敷偶然碰上，一見如故。',
+  'ronin.log.feast':'吉原夜宴上同席，聊起了出仕的打算。',
+  'ronin.log.ambush':'你遇襲時，他路過拔刀相助，從此結識。',
+  'ronin.log.paid':'給了 {a} 兩打點門路。',
+  'spend.ronin':'浪人打點：{n}'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -2965,7 +2986,14 @@ const MSG_TXT={
   'bandit.quell.ok.land':'官兵進山搜剿，山賊潰散，商路恢復暢通。知名度 +{f}。',
   /* —— 結識闇商人 —— */
   'meet.smuggler':'這種人不會在門口掛招牌，得先有門路才找得到。',
-  'smug.meet.nominate':'隔壁座敷傳來陌生的笑聲，你順勢結識了闇商人「{n}」。'
+  'smug.meet.nominate':'隔壁座敷傳來陌生的笑聲，你順勢結識了闇商人「{n}」。',
+  /* —— 浪人頭 —— */
+  'ronin.short':'現款不夠。',
+  'ronin.thanks':'「{n}」收下錢，鄭重一揖。',
+  'ronin.no':'對方嘆了口氣，說改天再來。',
+  'ronin.appoint':'「{n}」終於謀得官職：{p}。往後有事，直接找他便是。',
+  'ronin.promote':'「{n}」升任{p}。',
+  'ronin.meet.nominate':'隔壁座敷有位落魄武士，你順勢結識了浪人「{n}」。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -3206,7 +3234,11 @@ const NEWS_TXT={
   "bandit.quelled.sea":"⚔️【討賊】「{n}」出兵掃蕩海賊，航路恢復暢通。",
   "bandit.quelled.land":"⚔️【討賊】「{n}」出兵剿滅山賊，商路恢復暢通。",
   "bandit.smugRobbed":"🏴‍☠️【海賊】走私船回港途中遭海賊打劫，「{name2}」損失 {lost} 單位。",
-  "smug.meet":"🕯️【門路】接貨的人留下聯絡的暗號：從此認識了闇商人「{n}」。"
+  "smug.meet":"🕯️【門路】接貨的人留下聯絡的暗號：從此認識了闇商人「{n}」。",
+  /* —— 浪人頭 —— */
+  "ronin.rescue":"⚔️【遇襲】途中遭人埋伏，浪人「{n}」路過拔刀相助，賊人四散，你毫髮無傷。",
+  "ronin.appoint":"🏯【出仕】浪人「{n}」謀得官職，出任{p}；原任「{o}」調往{c}。",
+  "ronin.promote":"🏯【升官】「{n}」升任{p}；原任「{o}」調往{c}。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -3232,7 +3264,7 @@ const NEWS_CAT={
   firm:["relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -3254,6 +3286,7 @@ const CHANGELOG=[
     '公會例會設定更新：改在每季第一旬召開，例會上同業會發言。',
     '各城物價的高低重新洗牌一次。',
     '本城同業過世後，會有人繼承家業補上。',
+    '新增浪人頭：在花街或遇襲時結識，資助他買官，他會一路升到四階，成為不必打點的自己人。',
     '新增海賊、山賊猖獗：每年一次，輪到本地區時船隊或馬幫三旬出不了門，可找闇商人打點或請官府討伐。',
     '闇商人只在節慶或災情當旬收黑貨，也不能再登門投帖結識，得靠走私接頭或花街碰上。',
     '大火、凶作、颱風、疫病發生的那一旬，三系官員有救濟的差事可以請託。',
@@ -4179,6 +4212,7 @@ function advanceTurn(){
   exileTick(log);
   raidTick(log);
   inspectTick(log);
+  roninTick(log);                                 // 浪人頭上門要錢（07zw_ronin.js）
   xgoodsTick(log);
   skimTick(log,s0);
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0);TURNRP.net=G.silver-s0-ps;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
@@ -4423,7 +4457,7 @@ function rumorsOf(cid){
 /** 每旬人物流動：本城與同一座外地城市各交換一人，不增減各城職缺與宅邸人數。 */
 function peopleMoveTick(log){
   if(roll('officialTransfer')){
-    const local=officialsOf(G.cityId);
+    const local=officialsOf(G.cityId).filter(n=>!n.ronin);   // 自己扶持的浪人官員不調動
     const foreign=Object.values(G.world.npcs).filter(n=>n.role==='official'&&n.cityId!==G.cityId&&n.pos&&n.pos.court!=='region'&&alive(n.cid));
     if(local.length&&foreign.length){
       const out=pick(local),incoming=pick(foreign),foreignId=incoming.cityId;
@@ -5947,6 +5981,7 @@ ACT.meet=el=>{
 };
 /** 拜訪：選禮物→扣行動點數（或派丁稚）→門口動畫（拒見／不在家）→見面進入對話框戰鬥（07u_battle.js）。 */
 ACT.visit=el=>{
+  if(roninOfficial(el.dataset.cid)&&el.dataset.err!=='1'){roninVisit(el.dataset.cid);return}   // 自己扶持的官員：略過拜訪戰鬥（07zw_ronin.js）
   if(awayNow(npc(el.dataset.cid))){toast(MSG('visit.away',{m:tourNext(npc(el.dataset.cid))}));return}
   autoIntro(el.dataset.cid);
   if(isEnemy(el.dataset.cid)){toast(MSG('visit.1'));return}
@@ -6493,6 +6528,7 @@ const guardPower=e=>statsOfEmp(e).audacity_courage;
  */
 function rollAmbush(){
   if(!chance(ambushChance()))return null;
+  {const rc=roninRescue();if(rc){const t=NEWS('ronin.rescue',{n:nameOf(rc)});pushNews(t);toast(t,5200);sfx.gift();UI.render();return {ok:true,repelled:true}}}   // 浪人頭拔刀相助（07zw_ronin.js）
   const gs=G.emps.filter(e=>e.rank==='guard'&&!jailedEmp(e)).sort((a,b)=>guardPower(b)-guardPower(a));
   if(gs.length){
     const g=gs[0],pw=guardPower(g);
@@ -7701,7 +7737,8 @@ ACT.nomOiran=el=>{
   setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
   logRel(cid,UT('flower.nomOiran.2'));sfx.gift();
   const sm=chance(ODDS.smugMeet.nominate)?meetSmuggler('nominate'):null;   // 隔壁座敷偶遇闇商人
-  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note})+(sm?MSG('smug.meet.nominate',{n:nameOf(sm)}):''),sm?5200:3600);
+  const rn=chance(ODDS.ronin.nominate)?meetRonin('nominate'):null;          // 隔壁座敷偶遇浪人頭
+  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note})+(sm?MSG('smug.meet.nominate',{n:nameOf(sm)}):'')+(rn?MSG('ronin.meet.nominate',{n:nameOf(rn)}):''),sm||rn?5200:3600);
   UI.render();refreshSheet();
 };
 ACT.oGift=el=>{
@@ -7746,6 +7783,7 @@ ACT.feast=()=>{
     if(!pool.length){toast(MSG('feast.2',{note}));UI.render();refreshSheet();return}
     const guests=shuffle(pool.slice()).slice(0,rint(1,3));
     if(chance(ODDS.smugMeet.feast)){const sm=meetSmuggler('feast');if(sm)guests.push(npc(sm))}   // 席間混進一位闇商人
+    if(chance(ODDS.ronin.feast)){const rn=meetRonin('feast');if(rn)guests.push(npc(rn))}         // 席間混進一位浪人頭
     let h=UT('flower.h');
     guests.forEach(n=>{
       const r=R(n.cid),gain=rint(3,5);
@@ -8318,6 +8356,8 @@ function faceEventCard(e){
     const O=G.xoffer;if(!O||O.cid!==e.cid||O.turn!==e.turn)return null;
     line=UT('face.faceEventCard.10',{a:fmt(O.loan),b:xName(O.name),c:O.qty});effect=UT('face.faceEventCard.11');
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div>';
+  }else if(e.type==='ronin'){
+    const C=roninCard(e);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 浪人頭要錢（07zw_ronin.js）
   }else if(e.type==='staff'){
     const C=sevCard(e,name);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 店員偶發事件（07zt_staffevents.js）
   }else return null;
@@ -8331,7 +8371,7 @@ function showNextFaceEvent(){
   save();
   if(!h)return;
   INFO_AFTER=q.length?showNextFaceEvent:null;
-  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5'),staff:UT('face.title.staff')}[e.type]||UT('face.faceEventCard');
+  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5'),staff:UT('face.title.staff'),ronin:UT('face.title.ronin')}[e.type]||UT('face.faceEventCard');
   UI.showInfo(title,h);
 }
 /** 在旬報開啟後登記接續動作；玩家關閉旬報才開始逐件會面。 */
@@ -9956,6 +9996,97 @@ function doBanditFavor(cid,n,r,f){
   const t=NEWS('bandit.quelled.'+f.bandit,{n:nameOf(cid)});pushNews(t);
   const msg=MSG('bandit.quell.ok.'+f.bandit,{f:fm});logRel(cid,MSG('log.relief',{f:f.name,m:msg}));
   return {ok:true,status:'done',msg};
+}
+
+'use strict';
+/* ======================= 浪人頭：投資他當官（第一百五十七節） =======================
+ *  - 結識：不能求見（只結識男性；本城沒有就從外地調一位，再沒有才從名冊補）。指名花魁 10%、包場夜宴 15%、出門遇襲時 30%（拔刀相助，這次遇襲直接化解）；最多結識三位（G.ronin.ids）。
+ *  - 要錢：旬報後的人物事件視窗，「給他」或「回絕」（回絕沒有後果）。每旬最多一件。
+ *     還沒有人當官時：三位輪流，每旬機率同查貨（inspectChance），每次 50 兩；最先給滿 10 次的人安插為町奉行所隨機一系的一階官員。
+ *     當官的那一位：一階 100、二階 200、三階 400 兩，機率每升一階再乘 3/4；每給滿 10 次升一階，到四階不再來。其他浪人照樣來要 50 兩，但不會再有人當官。
+ *  - 安插、升官時，原本坐那一階的人調往外地；他留下的舊位子由名冊照常遞補。
+ *  - 當官後：好感固定 100（lockAff），拜訪時略過拜訪戰鬥、直接請託；不參與人物調動。
+ *  數值 ODDS.ronin；文字 ronin.*（01e、01f、01g）。 */
+const RONIN=()=>G.ronin||(G.ronin={ids:[],paid:{},official:null,next:0});
+const roninOfficial=cid=>!!(G&&G.ronin&&G.ronin.official===cid&&npc(cid)&&npc(cid).pos);
+/** 結識一位浪人頭（本城未結識的浪人頭；不夠時從名冊補一位到本城）。回傳 cid 或 null。how：nominate、feast、ambush。 */
+function meetRonin(how){
+  const R_=RONIN();if(R_.ids.length>=ODDS.ronin.maxKnown)return null;
+  let L=cityNpcs(G.cityId,'guard').filter(n=>!R_.ids.includes(n.cid)&&!isFemale(CH(n.cid))&&!(G.rel[n.cid]&&G.rel[n.cid].bond)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid)).map(n=>n.cid);
+  if(!L.length){                                      // 本城沒有：從外地調一位浪人頭過來
+    const far=Object.values(G.world.npcs).filter(n=>n.role==='guard'&&n.cityId!==G.cityId&&alive(n.cid)&&!isFemale(CH(n.cid))&&!(G.rel[n.cid]&&G.rel[n.cid].bond)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
+    if(far.length){const n=pick(far);n.cityId=G.cityId;L=[n.cid]}
+  }
+  if(!L.length){
+    const W=G.world.npcs,pool=CHARS.filter(c=>!W[c.id]&&(c.roles||[]).includes('guard')&&!isFemale(c)&&c.birth_year<=G.year-20&&c.birth_year>=G.year-55&&c.death_year>G.year+5);   // 名冊裡帶浪人頭身分的男性
+    if(!pool.length)return null;
+    const c=pick(pool);W[c.id]={cid:c.id,cityId:G.cityId,role:'guard',pos:null};L=[c.id];
+  }
+  const cid=pick(L),r=R(cid);R_.ids.push(cid);R_.paid[cid]=0;
+  r.bond={mult:0.8,label:UT('ronin.label.'+how),introId:null};r.met=true;r.seen=true;addKnown(cid);
+  setAff(r,clamp(r.aff+ODDS.ronin.aff,0,100));logRel(cid,UT('ronin.log.'+how));
+  return cid;
+}
+/** 每旬：決定這一旬有沒有浪人上門要錢（上一旬沒處理的視為回絕）。 */
+function roninTick(log){
+  const R_=RONIN(),O=ODDS.ronin;R_.ask=null;
+  R_.ids=R_.ids.filter(c=>npc(c)&&alive(c));if(!R_.ids.length)return;
+  let cid=null,amt=0;
+  const off=R_.official&&roninOfficial(R_.official)?R_.official:null,rk=off?npc(off).pos.rank:0;
+  if(off&&rk<4&&chance(inspectChance()*Math.pow(O.decay,rk))){cid=off;amt=O.amt[rk]}
+  else{
+    const L=R_.ids.filter(c=>c!==R_.official&&!roninOfficial(c));
+    if(L.length&&chance(inspectChance())){cid=L[R_.next%L.length];R_.next=(R_.next+1)%L.length;amt=O.amt[0]}
+  }
+  if(!cid)return;
+  R_.ask={cid,amt,turn:G.turn};queueFaceEvent({type:'ronin',cid,turn:G.turn});
+}
+/** 人物事件卡內容（07s_face_events.js 呼叫）。 */
+function roninCard(e){
+  const A=RONIN().ask;if(!A||A.cid!==e.cid||A.turn!==e.turn)return null;
+  const off=roninOfficial(A.cid),k=off?'ronin.askOfficial':'ronin.ask';
+  return {line:TX(off?'ronin.lineOfficial':'ronin.line'),effect:UT(k,{a:fmt(A.amt)}),
+    buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="roninGive" '+(G.silver<A.amt?'disabled':'')+'>'+UT('btn.roninGive',{c:coinHtml('silver',A.amt)})+'</button><button class="pixel-btn btn-sm" data-act="roninNo">'+UT('btn.roninNo')+'</button></div>'};
+}
+/** 把浪人安插到某一階（原本坐那一階的人調往外地）。 */
+function roninSeat(cid,court,rank){
+  const n=npc(cid),p=posPick(court,rank);
+  const old=Object.values(G.world.npcs).find(x=>x.cid!==cid&&x.cityId===G.cityId&&x.pos&&x.pos.court===court&&x.pos.rank===rank&&alive(x.cid));
+  let far='';
+  if(old){const others=CITIES.filter(c=>c.id!==G.cityId);const to=pick(others);old.cityId=to.id;far=to.name;logRel(old.cid,MSG('log.transferOut',{c:to.name}))}
+  n.role='official';n.pos={court,rank,posId:p.id};n.ronin=true;
+  const r=R(cid);r.lockAff=true;setAff(r,100);
+  return {old:old?old.cid:null,far,title:p.title};
+}
+ACT.roninGive=()=>{
+  const R_=RONIN(),A=R_.ask;if(!A){UI.hideInfo();return}
+  if(G.silver<A.amt){toast(MSG('ronin.short'));return}
+  payPublic('spend.ronin|'+A.cid,A.amt);R_.ask=null;
+  const cid=A.cid,O=ODDS.ronin;R_.paid[cid]=(R_.paid[cid]||0)+1;
+  let msg=MSG('ronin.thanks',{n:nameOf(cid)}),news=null;
+  if(R_.paid[cid]>=O.times){
+    if(!R_.official){                                   // 第一位給滿 10 次：安插一階
+      const court=pick(CITY_COURTS),s=roninSeat(cid,court,1);R_.official=cid;R_.paid[cid]=0;
+      news=NEWS('ronin.appoint',{n:nameOf(cid),p:s.title,o:s.old?nameOf(s.old):'',c:s.far});msg=MSG('ronin.appoint',{n:nameOf(cid),p:s.title});
+    }else if(roninOfficial(cid)&&npc(cid).pos.rank<4){  // 當官的那位：升一階
+      const n=npc(cid),s=roninSeat(cid,n.pos.court,n.pos.rank+1);R_.paid[cid]=0;
+      news=NEWS('ronin.promote',{n:nameOf(cid),p:s.title,o:s.old?nameOf(s.old):'',c:s.far});msg=MSG('ronin.promote',{n:nameOf(cid),p:s.title});
+    }
+  }
+  logRel(cid,UT('ronin.log.paid',{a:fmt(A.amt)}));
+  if(news){pushNews(news);addKnown(cid)}
+  sfx.coin();UI.hideInfo();toast(msg,4600);UI.render();
+};
+ACT.roninNo=()=>{const R_=RONIN();R_.ask=null;UI.hideInfo();toast(MSG('ronin.no'),3200)};
+/** 遇襲時：30% 有浪人頭拔刀相助（rollAmbush 呼叫）；回傳 cid 或 null。 */
+function roninRescue(){
+  if(RONIN().ids.length>=ODDS.ronin.maxKnown||!chance(ODDS.ronin.ambush))return null;
+  return meetRonin('ambush');
+}
+/** 拜訪當官的浪人：略過拜訪戰鬥，直接請託（ACT.visit 呼叫）。 */
+function roninVisit(cid){
+  if(!spendVisitAP())return;
+  UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,TX('ronin.visit')));
 }
 
 'use strict';
