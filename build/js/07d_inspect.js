@@ -29,7 +29,7 @@ function inspectResolve(bribe,log){
     spendAmt('inspectBribe',cost);addHeat(0.5);
     const gain=8+rk*2;setAff(r,clamp(r.aff+gain,0,100));
     const first=!r.bond;
-    if(first){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk)}}
+    if(first){r.bond={mult:0.6,label:'查貨結識',introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8*rk,'mid')}}
     addKnown(I.cid);logRel(I.cid,'查貨時奉上現款 '+cost+' 兩，好感 +'+gain+'。');
     return '奉上 '+cost+' 兩，對方收下，態度和緩。好感 +'+gain+(first?'，已結識「'+nameOf(I.cid)+'」':'')+'。';   // 只有第一次結識才提
   }

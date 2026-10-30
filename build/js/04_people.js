@@ -96,7 +96,7 @@ function meetVia(targetCid,introCid,roll){
   let gain=Math.round(base*p.score);
   let backlash=false;
   if(p.cp.matches===0&&chance(ODDS.introBacklash.p)){gain=-3;backlash=true}
-  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
+  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6,n&&n.pos?'mid':undefined)}
   if(!r.bond||p.cp.m>r.bond.mult)r.bond={mult:p.cp.m,label:p.cp.label,introId:introCid};
   logRel(targetCid,'經「'+nameOf(introCid)+'」引薦初見（'+p.cp.label+'）'+(backlash?'，對方嫌介紹人庸俗，反而不悅':'，好感 +'+gain)+'。');
   logRel(introCid,'為你引薦「'+nameOf(targetCid)+'」。');
@@ -112,7 +112,7 @@ function meetCold(targetCid,roll){
   if(roll.outcome==='refuse'){spend('selfIntroRefused');r.lastIntro=G.turn;r.lastOk=false;addKnown(targetCid);logRel(targetCid,'貿然登門，被門房擋了回來。');return {ok:false,msg:MSG('meetCold.refuse',{gate:TX('visit.gateNoIntro'),c:costOf('selfIntroRefused')})}}
   spend('selfIntro');r.lastIntro=G.turn;r.lastOk=true;
   const gain=Math.round((n.pos?10/(1+(n.pos.rank-2)*0.4):8));
-  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6)}
+  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(targetCid);if(!r.fameGot){r.fameGot=true;addFame(n&&n.pos?1.5*n.pos.rank:0.6,n&&n.pos?'mid':undefined)}
   r.bond={mult:0.6,label:'初識（無人引薦）',introId:null};
   logRel(targetCid,'貿然登門投帖，對方勉強見了一面，好感 +'+gain+'。');
   return {ok:true,gain,msg:MSG('meetCold.1',{gain})};
@@ -476,7 +476,7 @@ function marry(kind,targetCid,introCid){
   const fam={rival:'同行',official:'官家',commoner:'町人'}[kind];
   const fn=['阿梅','阿園','小百合','阿花','阿鶴','阿雪','千代','阿初'];
   const spouse={name:pick(fn)+'（'+fam+'之女）',kind,birthYear:G.year-rint(17,24)};
-  addFame(3);G.family.spouse=spouse;G.family.married=true;G.life.spouseKind=kind;
+  addFame(3,'mid');G.family.spouse=spouse;G.family.married=true;G.life.spouseKind=kind;
   let extra='';
   if(kind==='rival'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+25,0,100));G.cartel.comp=Math.min(90,G.cartel.comp+5);extra='同行聯姻化敵為友，株仲間信任上升。'}
   if(kind==='official'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+20,0,100));extra='政商聯姻，對方視你為自家人。'}

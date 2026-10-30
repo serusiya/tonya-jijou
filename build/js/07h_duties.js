@@ -2,7 +2,7 @@
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
  * - 手代：出貨價小幅加成（上限 +4%）、穩定供貨線略降。 番頭：只加大大盤進貨上限。
- * - 大番頭：已參加協議時代出席公會例會、每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
+ * - 大番頭：每旬自動問候 1～3 人（好感 +），並壓低其他店員私吞；皆於旬報回報。 保鏢（合併用心棒）：平時巡守倉庫，出門時護身。
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
@@ -10,7 +10,7 @@ const DUTY_DESC={
   丁稚:'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   手代:'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。手代超過四名時，多出來的人照料庫存，損耗與倉儲保險減少（最多三成）。',
   番頭:'採購：每旬大盤進貨上限加大（商才越高越多）。',
-  大番頭:'總管：也算一名番頭，大盤進貨上限加大；已參加協議時代出席公會例會（退出協議後不代席，重新加入要你自己去）、每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
+  大番頭:'總管：也算一名番頭，大盤進貨上限加大；每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。'
 };
 DUTY_DESC.保鏢=SPECIAL_DESC.保鏢;   // 保鏢說明沿用專職說明（否則私宅說明欄會顯示 undefined）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
@@ -58,7 +58,7 @@ function errandBtn(cid){
   const left=errandLeft(),off=left<=0;
   return '<button class="pixel-btn btn-sm" style="flex:1" '+(off?'disabled ':'')+'data-act="visit" data-err="1" data-cid="'+cid+'">丁稚代送'+(nEmp('丁稚')?'（'+coinHtml('silver',btTiers(cid)[1])+'）':'')+'</button>';
 }
-/* ---------- 大番頭：旬末代出席公會例會；新旬處理自動問候等事務 ---------- */
+/* ---------- 大番頭：新旬處理自動問候等事務（代出席例會已取消，例會要親自去） ---------- */
 /** 新旬由大番頭處理的其他事務：依機率自動問候（可能結識新朋友）、意外之財、或無事。 */
 function chiefTick(log){
   if(!nEmp('大番頭'))return;
@@ -82,29 +82,6 @@ function chiefWindfall(log){
   const b=empsOf('大番頭')[0];if(b)b.wind=(b.wind||0)+amt;
   if(b)queueFaceEvent({type:'windfall',empId:b.id,amt});
   const t=NEWS('chief.windfall',{amt:fmt(amt)});pushNews(t);log.push(t);
-}
-/** 旬末檢查代席：玩家已擁有整個可參加旬；推進下一旬時若仍未出席，才由大番頭代席。 */
-function chiefGuildTick(log){
-  if(!nEmp('大番頭'))return;
-  chiefGuild(log);
-}
-/** 代出席例會：已參加協議（守約或暗約）時，到期的例會自動出席並提案提高配額一次；未參加協議（自己退出或被查獲）不代席，重新加入要東家自己去。 */
-function chiefGuild(log){
-  if(G.turn-(G.guildAt===undefined?-99:G.guildAt)<GUILD_GAP)return;
-  const C=G.cartel,b=empsOf('大番頭')[0];
-  if(!guildMember())return;                       // 未參加協議：不出席、不替你重新加入
-  G.guildAt=G.turn;C.tried=false;C.paid=true;
-  let stance;
-  guildEnsure();
-  stance=C.state==='secret'?'維持暗約立場':'重申遵守配額';
-  let t=NEWS('chief.guild',{stance});pushNews(t);log.push(t);
-  if(cartelPolicy()==='normal')return;             // 正常供應配額依穩定供貨線與市占率分配，沒有固定比例可提案
-  C.tried=true;
-  if(rnd()<quotaRaiseChance()){
-    C.quotaPct=Math.min(0.5,Math.round(C.quotaPct*1.1*10000)/10000);
-    t=NEWS('chief.raise.ok',{pct:(C.quotaPct*100).toFixed(1)});
-  }else t=NEWS('chief.raise.fail');
-  pushNews(t);log.push(t);
 }
 /** 自動問候：挑 1～3 位已結識、好感未滿 60 的人登門閒話，好感 +5～10（不送禮、不花錢，交情較淺者優先）；另有機率結識城中新朋友。 */
 function chiefVisit(log){

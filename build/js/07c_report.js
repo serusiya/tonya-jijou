@@ -10,7 +10,7 @@ function mergeReports(reps){
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
     T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;
-    Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;T.net+=r.net||0;
+    Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;if(r.fameGate)T.fameGate=true;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
     Object.entries(r.publicSpend||{}).forEach(([k,v])=>{T.publicSpend[k]=(T.publicSpend[k]||0)+v});
@@ -64,9 +64,9 @@ function showTurnReport(reps,logs,n,kind){
   if(publicSpend.length)h+='<div class="rp-sec">💴 主動支出（現款）</div>'+publicSpend.map(x=>repRow('💴',esc(x[0]),x[1],max,'out')).join('');
   if(other<0)h+=repRow('📦','其他支出',-other,max,'out');
   if(T.skim>0)h+='<div class="rp-sec">🟨 私房錢</div>'+repRow('🟨','盈餘抽成存入私房錢',T.skim,max,'out');
-  if(T.fame!==0||T.short.length||T.squeeze.length){
+  if(T.fame!==0||T.fameGate||T.short.length||T.squeeze.length){
     const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?'<span class="tag gray">…共 '+L.length+' 項</span>':'');
-    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">協議減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
+    h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?'🌟 穩定供貨　知名度 +'+T.fame:T.fame<0?'📉 供貨不穩　知名度 '+T.fame:T.fameGate?'🌟 穩定供貨　名聲已響徹全城':'知名度持平')+'</div>'+(T.short.length?'<div class="tiny" style="margin-top:4px">出貨不足：'+chipsOf(T.short,'red')+'</div>':'')+(T.squeeze.length?'<div class="tiny" style="margin-top:4px">同業壓貨波及：'+chipsOf(T.squeeze,'gold')+'<div class="muted">協議減供，照配額出貨仍不夠本城所需。</div></div>':'')+'</div>';
   }
   if(T.voy.length)h+='<div class="rp-sec">⛵ 船隻歸航</div>'+T.voy.map(v=>'<div class="card" style="margin:3px 0"><b class="small">船長「'+esc(v.capt)+'」·委託金 '+fmt(v.budget)+' 兩'+(v.wreck?' <span class="tag red">遇海難</span>':'')+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('');
   const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢|^🧾/.test(t)&&!/【查貨】|【借錢】|【官吏硬塞】/.test(t));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列

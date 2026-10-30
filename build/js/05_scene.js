@@ -191,14 +191,17 @@ function drawScene(now){
   const c=SCENE.ctx,dt=Math.min(100,now-(SCENE.last||now));SCENE.last=now;SCENE.t=now;
   sceneSync();stepEnts(dt);
   drawBackdrop(c,now);
+  const fest=festScene();if(fest){festSync(now);festStep(dt);festFireworks(c,now)}   // 節慶當旬（05f_festscene.js）
   drawTree(c,12,58,season(),now);drawTree(c,308,62,season(),now);
   drawHouse(c,8,40,now,season());
   const slots=[[132,56],[180,56],[228,56],[270,86],[150,92],[210,92]];
   for(let i=0;i<Math.min(G.wh.n,slots.length);i++){const [x,y]=slots[i];drawKura(c,x,y,i===0);}
   if(season()==='冬')R_(c,0,108,320,3,'#fff8');
-  const list=SCENE.ents.slice().sort((a,b)=>a.y-b.y);
-  list.forEach(e=>{const L=entLook(e);drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0},L,{small:L.small||e.kind==='kid'&&e.age<12}))});
-  drawFence(c);drawParts(c,now,dt);drawTint(c);
+  if(fest){drawNobori(c,now);drawLanterns(c,now)}
+  const list=SCENE.ents.map(e=>({y:e.y,draw:c=>{const L=entLook(e);drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0},L,{small:L.small||e.kind==='kid'&&e.age<12}))}}));
+  if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
+  list.sort((a,b)=>a.y-b.y).forEach(x=>x.draw(c));
+  drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);
   // 庫存提示牌
   c.fillStyle='#1a1612cc';c.fillRect(2,166,96,12);c.fillStyle='#f4ece1';c.font='8px DotGothic16,monospace';c.textBaseline='top';
   c.fillText('倉 '+G.wh.n+' 棟｜庫 '+invUsed()+'/'+invCap(),5,168);

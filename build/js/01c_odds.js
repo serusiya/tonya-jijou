@@ -25,7 +25,8 @@ const ODDS={
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
   cartelSecret:{name:'暗約偷跑被告發',base:0.12,slope:0.18,max:0.8},
   cartelRaise:{name:'公會提案提高配額成功率',base:0.30,perAff:0.5,max:0.8},
-  guildPolicy:{name:'每九旬協議決議（以量制價／正常供應各半）',normal:0.5},
+  guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定',normal:0.5},
+  meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議擔保金一期的旬數（自動續押，期滿分配違約金）',turns:9},
   cityPopulation:{name:'城市人口每九旬依穩定供貨調整（全穩定 ±2%；多數穩定或不穩定 ±0.6%）',turns:9,all:0.02,majority:0.006,min:1000},
   newProd:{name:'每年一月上旬，隨機城市新增一項本業貨產地',p:0.10},
@@ -67,7 +68,7 @@ const ODDS={
   chatMix:{name:'點人聊天內容比例（其餘為閒聊）',outsider:0.2,staff:0.3},
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
-  fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）',cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
+  fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
   fameLoss:{name:'醜聞扣知名度',inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},

@@ -72,9 +72,10 @@ function renderHome(){
   let a='';if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a='⚠️ 遭公會斷貨 '+G.cartel.sanction+' 旬';else if((G.staple.idx||1)>2.2)a='⚠️ 主食高漲·打毀風險';else if(Object.values(G.mk).some(m=>m.ev>1.5))a='📈 行情異動';
   al.textContent=a;al.classList.toggle('hidden',!a);
   $('#loc-city').textContent='所在：'+city.name;
+  {const fw=$('#fest-walk');if(fw)fw.innerHTML=festWalkHtml()}
+  {const gm=$('#guild-meet');if(gm)gm.innerHTML=meetHomeHtml()}   // 例會旬：問屋公會例會（07yb_meeting.js）   // 節慶當旬：逛祭典（07zf_festwalk.js）
   $('#n-off').textContent='官吏 '+officialsOf(G.cityId).length+' 名';
   $('#n-flower').textContent='名伶 今旬 '+oiranOnStage().length+'／'+oiranAll().length+' 位在席';
-  {const w=GUILD_GAP-(G.turn-(G.guildAt===undefined?-99:G.guildAt));$('#n-guild').textContent='協議配額遵守率 '+Math.round(G.cartel.comp)+'%·'+(w>0?'下次例會 '+w+' 旬後':'可加入協議')}
   $('#n-res').textContent='可造訪 '+resident().length+' 家';
   const fl=Object.keys(G.inv).reduce((a,k)=>a+(COMM_MAP[k].flam?G.inv[k]:0),0);
   $('#wh-line').textContent='倉庫 '+G.wh.n+' 棟，庫存 '+invUsed()+' / '+invCap()+' 單位。易燃品 '+fl+' 單位；保鏢 '+guardCount()+' 名巡守。';
@@ -126,7 +127,7 @@ function renderMarket(){
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
   else h+=tradeCard(name);
   h+=G.lastSpoil?'<div class="notice" style="margin-top:6px">🧺 上旬'+esc(G.lastSpoil)+'</div>':'';
-  h+=planCard()+shareCard();
+  h+=planCard()+shareCard()+guildInfoCard();
   // 行情表
   h+='<div class="small bold" style="margin:6px 0 3px">🏛️ 本業物資行情（近 12 旬）</div>';
   h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">庫存 '+(G.inv[x.name]||0)+'·損耗 '+(x.decay*100).toFixed(1)+'%/旬</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(mm.price)+'</b><div class="'+(chgAmt(x.name,mm.price)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,mm.price))+'</div></div></div></div>'}).join('');
@@ -322,8 +323,10 @@ function autoShip(log){
   if(short.length||squeeze.length){rep.fame=-(1+Math.floor(rnd()*3));rep.short=short;rep.squeeze=squeeze}   // 兩種扣分相同
   else if(allMet&&judged>0)rep.fame=1+Math.floor(rnd()*3);   // 沒有任何一項貨的供貨線 ≥1：這一旬不判定
   rep.supplyStable=judged>0&&allMet;               // 季度人口：全品項達線才記為穩定供貨旬
+  const stableUp=rep.fame>0;
+  if(rep.fame>0){const f0=G.fame||0;rep.fame=Math.round(Math.max(0,Math.min(rep.fame,ODDS.fame.gate-f0))*10)/10;if(!rep.fame)rep.fameGate=true}   // 穩定供貨是小事件：到門檻（125）就不再加
   if(rep.fame)setFame((G.fame||0)+rep.fame);
-  if(rep.fame>0){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
+  if(stableUp){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+'（'+fmt(x.rev)+'）').join('、')});log.push(t);pushNews(t)}
   TURNRP=rep;
   delete G.lastShip;delete G.lastBuy;              // 舊存檔：大番頭延續的數字不再使用

@@ -13,5 +13,7 @@ function migrateSave(){
   if(!G.cityRoutes)G.cityRoutes={};                  // 後天開通的海運（外港開闢）
   if(!G.openedRoads)G.openedRoads=[];                // 開闢的道路（地區 id）
   if(!G.debts)G.debts=[];
+  if(!G.guild)G.guild={};                            // 公會例會（07yb_meeting.js）；舊存檔的一期與季度人口在下一次例會時結算
+  meetEnsure();
   G.ver=GAME_VER;
 }

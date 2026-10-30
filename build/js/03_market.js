@@ -575,16 +575,16 @@ function cityTick(){
   });
 }
 
-/** 每三個月（九旬）依穩定供貨旬數調整本城人口：全穩定 ±2%，其餘依多數 ±0.6%。 */
+/** 每期（例會旬開始時結算上一期）依穩定供貨旬數調整本城人口：全穩定 ±2%，其餘依多數 ±0.6%。 */
 function populationTick(log){
   if(!TURNRP)return;
   const O=ODDS.cityPopulation,Q=G.supplyQuarter||(G.supplyQuarter={stable:0,unstable:0,turns:0});
   if(TURNRP.supplyStable)Q.stable++;else Q.unstable++;
   Q.turns++;
-  if(Q.turns<O.turns)return;
+  if(!isMeetingTurn())return;                     // 與例會同一期：例會旬開始時結算上一期
   const stable=Q.stable,unstable=Q.unstable;
   let rate,result;
-  if(stable===O.turns){rate=O.all;result='供貨始終安定，人口明顯增加'}
+  if(stable===Q.turns){rate=O.all;result='供貨始終安定，人口明顯增加'}
   else if(stable>unstable){rate=O.majority;result='穩定供貨較多，人口小幅增加'}
   else if(stable===0){rate=-O.all;result='供貨持續不穩，人口明顯減少'}
   else{rate=-O.majority;result='供貨不穩較多，人口小幅減少'}
@@ -601,9 +601,9 @@ function populationTick(log){
 function advanceTurn(){
   syncPeaks();
   const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
+  meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
   autoShip(log);
   autoBuy(log);
-  chiefGuildTick(log);                            // 玩家整旬未出席例會，才由大番頭於旬末代席
   snapMarket();                                   // 日期前進前，記下本旬的需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
@@ -613,7 +613,7 @@ function advanceTurn(){
   tourTick(log);
   receiveOrders(log);
   evalCartel(log);
-  guildPolicyTick(log);                           // 先按舊方針結算玩家出貨，再決定新一期方針，讓本旬同業供給立即採新配額
+  meetingTick(log);                               // 例會旬：上一期違約金分配、建立本期例會（方針由投票決定）；例會前一旬提醒
   populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
   msTick(log);
   refreshMarket();

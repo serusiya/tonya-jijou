@@ -112,10 +112,10 @@ ACT.ransom=el=>{
   spendAmt('ransom',price);const note=flowerSpend(price);
   const name=nameOf(cid);
   (G.family.conc=G.family.conc||[]).push({cid,name,since:G.turn});
-  delete G.world.npcs[cid];r.ransomed=true;setFame((G.fame||0)+20);
-  pushNews(NEWS('ransom.1',{name:G.me.name,name2:name}));
+  delete G.world.npcs[cid];r.ransomed=true;const fg=addFame(20,'midRaw');   // 贖身轟動全城：中事件（門檻以下照原值 +20，以上三分之一）
+  pushNews(NEWS('ransom.1',{name:G.me.name,name2:name,f:fg}));
   logRel(cid,'由你贖身，成為側室。');sfx.fanfare();
-  toast(MSG('ransom.3',{name,note}),5200);
+  toast(MSG('ransom.3',{name,note,f:fg}),5200);
   UI.render();refreshSheet();sceneSync&&sceneSync(true);
 };
 

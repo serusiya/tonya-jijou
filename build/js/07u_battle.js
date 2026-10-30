@@ -158,7 +158,7 @@ function battleEnd(){
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
   const hiOff=n&&n.pos&&n.pos.rank>=4;            // 四～六階官員：打勝知名度＝結識時的一半（0.75×官階，隨知名度遞減）
-  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1);
+  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1,win&&hiOff?'mid':undefined);
   logRel(cid,(win?'相談甚歡':'話不投機')+(B.spent?'，奉上 '+B.spent+' 兩':'')+'，好感 +'+gain+'。');
   if(win)sfx.gift();
   const msg=(win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'))+'（好感 +'+gain+'）';

@@ -125,11 +125,8 @@ UI.closeSheet=function(){if(UI.s.sheetLock)return;UI.s.sheet=null;$('#sheet-bd')
 /* 出門過場 */
 /** 前往各處所的轉場文字。 */
 const GO_INFO={yamen:['前往町奉行所……','城中官署'],flower:['夜幕低垂，前往吉原花街……','名樓雅閣'],guild:['前往問屋公會會所……','株仲間'],residences:['投帖前往名門商邸……','豪族寓所'],warehouse:['前往河岸碼頭……','問屋大倉庫'],regional:['前往遠國奉行所……','地區官府']};
-/** 公會例會間隔：三個月＝9 旬。 */
-const GUILD_GAP=9;   // 三個月＝九旬
 /** 前往處所：公會有進場間隔限制；只要求還有行動點數，真正扣點在面板內的實際行動。 */
 ACT.go=el=>{const k=el.dataset.go,i=GO_INFO[k];
-  if(k==='guild'&&G.turn-(G.guildAt===undefined?-99:G.guildAt)<GUILD_GAP){toast(MSG('go.1',{guildAt:(GUILD_GAP-(G.turn-G.guildAt))}));return}
   if(apLeft()<=0){toast(MSG('go.2'));return}
   if(injuredBlock())return;                     // 養傷中不能出門
   const amb=rollAmbush();                         // 出門遇襲判定（0.5～3%）
@@ -139,7 +136,7 @@ ACT.go=el=>{const k=el.dataset.go,i=GO_INFO[k];
   goTo(k)};
 /** 真正出門：公會登記開會時間，播走路動畫後開啟面板。 */
 function goTo(k){const i=GO_INFO[k];
-  if(k==='guild'){G.guildAt=G.turn;G.cartel.tried=false;G.cartel.paid=false}playFx('walk',i[0],i[1],()=>UI.openSheet(k),900)}
+  playFx('walk',i[0],i[1],()=>UI.openSheet(k),900)}
 
 /** 人物卡是否為「見不到」（巡迴在外、嫌你不善言辭、名氣不足）——與 personBlock 的判斷相同。 */
 function cardLocked(cid){const n=npc(cid),r=R(cid);return awayNow(n)||snubbed(cid)||(!r.bond&&meetTierNeed(cid)>fameTier()+((G.introId&&introOf(G.introId))?1:0))}
@@ -156,40 +153,6 @@ SHEETS.yamen=()=>{
     +(offs.map(n=>personBlock(n.cid,'yamen')).join('')||'<div class="notice">此城官署暫無人在值。</div>')};
 };
 ACT.yamenTab=el=>{UI.s.yamenTab=el.dataset.k;refreshSheet()};
-/** 公會面板：配額、提案、表態。 */
-SHEETS.guild=()=>{
-  guildEnsure();
-  const C=G.cartel,own=tradeComms();
-  const st=C.state==='pledged'?'<span class="tag green">已參加協議·遵守配額</span>':C.state==='secret'?'<span class="tag red">已參加協議·暗約偷跑</span>':'<span class="tag gray">未參加協議</span>';
-  const normal=cartelPolicy()==='normal',left=Math.max(0,(C.policyEnd===undefined?G.turn:C.policyEnd)-G.turn);
-  let h='<div class="notice tiny">本城取得「'+SYS_BY_KEY[G.sysKey].name+'」株牌的 '+(rivalsHere().length+1)+' 家問屋（含你）都是公會會員。會員可參加<b>聯合採購與出貨協議</b>：押上擔保金後，向大盤進貨享聯合採購價與協議配額加給，並遵守本期供給決議與個別配額；未參加協議則照市價進貨，進貨上限只按市占率分配，出貨不受配額約束。守約卻超量會被聯合斷貨；暗約偷跑若敗露，則遭官府查抄；兩者的協議擔保金都會沒收。退出協議不等於退出公會。</div>';
-  h+='<div class="card"><div class="row"><b>本期供給決議</b><span class="tag '+(normal?'green':'gold')+'">'+guildPolicyName()+'</span></div><div class="tiny muted" style="margin-top:3px">'+(normal?(guildMember()?'全體總配額等於本城需求；你的配額為穩定供貨線，扣除後的餘額由其他同業依市占率分配。':'全體總配額等於本城需求；你未參加協議、沒有保留配額，供應量全數由協議內同業依市占率分配。'):'依固定減供比例限制各家出貨，以量制價、維持行情。')+'　本期剩 '+left+' 旬。</div></div>';
-  h+='<div class="card"><div class="row"><b>目前協議立場</b>'+st+'</div><div class="row small" style="margin-top:4px"><span>協議配額遵守率</span><b>'+Math.round(C.comp)+'%</b></div>'+bar(C.comp,100,C.comp<50?'red':'gold')+(C.sanction>0?'<div class="tiny" style="color:#b3261e;margin-top:3px">⚠️ 聯合斷貨中，剩 '+C.sanction+' 旬，進貨價大漲</div>':'')+'</div>'+guildBondCard();
-  h+='<div class="card"><b class="small">本旬協議配額（'+(normal?'等於你的穩定供貨線':'每項本城需求的 '+Math.round(C.quotaPct*100)+'%')+'）</b>'+own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+quotaOf(c.name)+' 單位／旬</b></div>').join('')+'</div>';
-  const qp=quotaRaiseChance();
-  if(!normal)h+='<div class="card"><b class="small">📈 提案提高減供配額</b><div class="tiny muted" style="margin:2px 0">「以量制價」期間，每次例會可提案一次，最多增加 10%。成敗看你與同行商人的交情。目前成功率 <b>'+Math.round(qp*100)+'%</b>。</div><button class="pixel-btn btn-sm btn-gold" data-act="quotaUp" '+(C.tried?'disabled':'')+'>'+UT(C.tried?'btn.quotaDone':'btn.quotaUp')+'</button></div>';
-  const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
-  h+='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div><div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="cartel" data-s="none" style="width:100%" '+(C.state==='none'?'disabled':'')+'>'+UT(mem?'btn.cartel3Lose':'btn.cartel3')+'</button></div>';
-  const rv=cityNpcs(G.cityId,'rival');
-  h+='<div class="small bold" style="margin:8px 0 2px">會中同行</div>'+(rv.map(n=>'<div class="tiny">• '+esc(nameOf(n.cid))+(R(n.cid).bond?'　交情：'+affWord(R(n.cid).aff):'')+'</div>').join('')||'<div class="tiny muted">今日無人出席。</div>');
-  return {title:'⚖️ 問屋公會·株仲間會所',html:h};
-};
-/** 配額提案成功率：30%＋前三名同行交情平均×0.5（最高 80%）。 */
-function quotaRaiseChance(){
-  const rv=cityNpcs(G.cityId,'rival').map(n=>R(n.cid)).filter(r=>r.bond).map(r=>r.aff).sort((a,b)=>b-a).slice(0,3);
-  const avg=rv.length?rv.reduce((a,b)=>a+b,0)/rv.length:0;
-  return clamp(ODDS.cartelRaise.base+ODDS.cartelRaise.perAff*avg/100,ODDS.cartelRaise.base,ODDS.cartelRaise.max);
-}
-/** 提案增加配額 10%（每次例會一次；第一次動作才扣行動點數）。 */
-ACT.quotaUp=()=>{
-  const C=G.cartel;if(C.tried){toast(MSG('quotaUp.1'));return}
-  if(cartelPolicy()==='normal'){toast(MSG('quotaUp.normal'));return}
-  if(!C.paid){if(!spendAP())return;C.paid=true}
-  C.tried=true;const p=quotaRaiseChance();
-  if(rnd()<p){C.quotaPct=Math.min(0.5,Math.round(C.quotaPct*1.1*10000)/10000);sfx.fanfare();toast(MSG('quotaUp.2',{quotaPct:(C.quotaPct*100).toFixed(1)}))}
-  else{sfx.bad();toast(TX('guild.rejected'))}
-  UI.render();refreshSheet();
-};
 /** 聯合採購與出貨協議表態（遵守/暗約/退出）。 */
 ACT.cartel=el=>{
   const s=el.dataset.s,C=G.cartel;guildEnsure();
@@ -239,7 +202,7 @@ ACT.charity=()=>{
   if(G.charityT===G.turn){toast('這一旬已經施過粥了。');return}   // 每旬一次，不扣行動點數
   if(!afford('charity')){toast(shortMsg('charity'));return}
   const famine=Object.values(G.mk).some((m,i)=>m.ev>1.3&&Object.keys(G.mk)[i].match(/白米|大麥/));
-  spend('charity');G.charityT=G.turn;G.life.charity++;addFame(1.5);
+  spend('charity');G.charityT=G.turn;G.life.charity++;addFame(1.5,famine?'mid':undefined);   // 饑荒施粥是中事件，平常施粥是小事件
   const t=NEWS('charity.1',{name:G.me.name,homeCity:homeCity().name});pushNews(t);
   sfx.fanfare();toast(MSG('charity.1',{famine:(famine?'（值凶年，萬民景仰）':'')}));UI.render();refreshSheet();
 };

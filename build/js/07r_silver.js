@@ -54,3 +54,11 @@ function debtCard(){
   if(D.length>1)h+='<div class="row tiny" style="margin-top:4px;border-top:1px solid #d8ccb0;padding-top:3px"><span>合計</span><b>'+fmt(D.reduce((a,d)=>a+d.amt,0))+' 兩</b></div>';
   return h+'</div>';
 }
+/** 點頂部「商號知名度」：目前名望與一句說明；到了門檻（ODDS.fame.gate）加一句「尋常小事不再為人稱道」。 */
+ACT.fameInfo=()=>{
+  if(!G)return;
+  const f=Math.round(G.fame||0),gated=fameGated();
+  UI.showInfo('🌟 商號知名度','<div class="row small"><span>知名度</span><b>'+f+'·名望'+TIER_NAME[fameTier()]+'</b></div>'
+    +'<div class="tiny muted" style="margin-top:6px">名聲越響，登門越少吃閉門羹，老主顧也越多；高階官員只見有名望的商號。私房錢存滿 2,000 兩，名望再高一階。</div>'
+    +(gated?'<div class="notice tiny" style="margin-top:6px">名聲已響徹全城，尋常小事不再為人稱道。要結識高官、上貢、饑荒時施粥這類大事，名聲才會再往上。</div>':''));
+};

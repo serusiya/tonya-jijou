@@ -237,3 +237,14 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .tabrow .pill{margin:0;padding:6px 1px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap}
 /* 開局畫面上開啟的說明視窗（更新紀錄）要蓋在開局畫面之上；toast 也提高到最上層，開局畫面的匯入、匯出訊息才看得到 */
 #info-bd.over-start{z-index:97}
+/* 例會步驟列：每格右邊尖角、下一格左邊凹口包住前一格的尖角（外層黑色當框線，內層同形狀縮 2px） */
+.chevs{display:flex;margin:4px 0 6px}
+.chev{position:relative;flex:1 1 0;min-width:0;height:30px;margin-left:-7px;background:#000;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%)}
+.chev.first{margin-left:0;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%)}
+.chev>i{position:absolute;inset:2px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:bold;font-size:12px;white-space:nowrap;padding:0 6px 0 10px;
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%,9px 50%)}
+.chev.first>i{padding-left:4px;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%)}
+.chev.on>i{background:var(--gold);color:#1a1612}
+.chev.done>i{background:#f4ece1;color:#6b6256}
+.chev.todo>i{background:#cfc7b4;color:#8a8170}

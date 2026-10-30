@@ -237,7 +237,17 @@ function setFame(v){if(!G)return;G.fame=clamp(Math.max(Number(v)||0,fameFloor())
 /** 提高永久知名度下限（只升不降），並把知名度拉到下限以上。 */
 function raiseFameFloor(v){if(!G)return;G.fameFloor=Math.max(fameFloor(),v);setFame(G.fame||0)}
 function loseFame(key,mult){if(!G)return 0;const x=ODDS.fameLoss[key]*(mult||1),f=G.fame||0;setFame(f-x);return Math.round((f-G.fame)*10)/10}
-function addFame(x){if(!G)return 0;const f=G.fame||0;setFame(f+x*Math.max(ODDS.fame.floor,1-f/ODDS.fame.damp));return Math.round((G.fame-f)*10)/10}
+/** 知名度門檻（ODDS.fame.gate＝125）：門檻以下照遞減規則加；門檻以上小事件不加、中事件（tier='mid'）加原值的三分之一、大事件（tier='major'）照原值加。
+ *  一次加分跨過門檻時：小事件只加到門檻，中事件跨過的部分改按三分之一。扣分不受影響。 */
+const fameGated=()=>!!G&&(G.fame||0)>=ODDS.fame.gate;
+function fameGain(f,x,tier){
+  const F=ODDS.fame,T=F.gate;if(!(x>0))return x;
+  const mid=tier==='mid'||tier==='midRaw';               // midRaw：門檻以下不遞減（贖身 +20 沿用舊規則）
+  if(f>=T)return tier==='major'?x:mid?x*F.midCut:0;
+  const g=tier==='midRaw'?x:x*Math.max(F.floor,1-f/F.damp);if(f+g<=T||tier==='major')return g;
+  return mid?(T-f)+(f+g-T)*F.midCut:T-f;
+}
+function addFame(x,tier){if(!G)return 0;const f=G.fame||0;setFame(f+fameGain(f,x,tier));return Math.round((G.fame-f)*10)/10}
 /** 【風聲】增加 x；巡見使美言期間（G.flags.calm）一般的風聲不增加，severe＝重罪（暗殺、放火、栽贓、打壓及事敗被查）照樣增加。回傳實際增量。 */
 function addHeat(x,severe){if(!G||!(x>0))return 0;if(!severe&&(G.flags&&G.flags.calm>0))return 0;G.heat=(G.heat||0)+x;return x}
 /** 知名度換算成『登門被拒機率』的減免（最多 30 個百分點）。 */

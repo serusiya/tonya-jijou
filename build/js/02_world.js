@@ -219,6 +219,7 @@ function newGame(sysKey,regionPref){
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
   pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond')),policy:guildPolicyName()}));
+  newMeeting();pushNews(NEWS('meet.today'));     // 開局那一旬（3 月上旬）就是第一次例會；平手時沿用開局隨機決定的方針
   pushNews(G.emps.length?'🏮【人生】你今年 20 歲，帶著起家的班底，開始了這一生。':'🏮【人生】你今年 20 歲，身邊沒有半個夥計。第一步，先找一位肯為你引薦的介紹人。');
   return G;
 }

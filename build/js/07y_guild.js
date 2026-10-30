@@ -8,7 +8,7 @@
  *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pEnd（本期結束旬）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。 */
 /** 本期供給方針；舊存檔在補值前沿用原本的「以量制價」。 */
 const cartelPolicy=()=>G.cartel&&G.cartel.policy==='normal'?'normal':'restrict';
-const guildPolicyName=()=>cartelPolicy()==='normal'?'正常供應':'以量制價';
+const guildPolicyName=()=>cartelPolicy()==='normal'?'維持':'減供';
 /** 是否已參加聯合採購與出貨協議（表態遵守或暗約）。 */
 const guildMember=()=>G.cartel.state==='pledged'||G.cartel.state==='secret';
 /** 舊存檔補欄位：已參加協議而沒有擔保金紀錄的，視為已押。 */
@@ -67,19 +67,12 @@ function guildTick(log){
     if(C.bond>0)C.pot=(C.pot||0)+amt;
     const t=NEWS('guild.rivalCaught',{n:nameOf(n.cid),item:COMM_MAP[m.ovItem].short});pushNews(t);log.push(t);
   });
-  if(C.bond>0&&C.pEnd!==undefined&&G.turn>=C.pEnd){
-    const rv=rivalsHere(),ok=rv.filter(n=>!msOf(n).caught).length+1,pot=C.pot||0;
-    if(pot>0){
-      const sh=Math.round(pot/ok);G.silver+=sh;if(TURNRP)TURNRP.guildDiv=(TURNRP.guildDiv||0)+sh;
-      const t=NEWS('guild.div',{k:Math.round(pot/amt),n:ok,sh:fmt(sh)});pushNews(t);log.push(t);sfx.coin();
-    }
-    C.pot=0;rv.forEach(n=>{msOf(n).caught=false});C.pEnd+=ODDS.guildBond.turns;
-  }
+  // 期滿分配違約金改在例會旬開始時（meetingTick，07yb_meeting.js）
 }
 /** 公會面板上的擔保金卡。 */
 function guildBondCard(){
   guildEnsure();const C=G.cartel;
   if(!guildMember()||!(C.bond>0))return '<div class="card"><b class="small">🔓 未參加協議</b><div class="tiny muted" style="margin-top:2px">你仍是問屋公會會員；向大盤照市價進貨，進貨上限只按市占率分配，出貨不受協議配額約束。參加協議要押擔保金 '+fmt(costOf('guildBond'))+' 兩。</div></div>';
-  const left=Math.max(0,(C.pEnd||G.turn)-G.turn),k=Math.round((C.pot||0)/costOf('guildBond'));
-  return '<div class="card"><b class="small">🔒 協議擔保金 '+fmt(C.bond)+' 兩押在公會</b><div class="tiny muted" style="margin-top:2px">向大盤進貨享聯合採購價，進貨上限另有協議配額加給。本期還有 '+left+' 旬'+(k?'，已有 '+k+' 家同業偷跑被抓，期滿時沒收的擔保金平分給守約的人。':'，至今無人違約。')+'被查獲超量或退出協議，擔保金沒收；公會會員身分不受影響。</div></div>';
+  const left=turnsToMeeting(1,false)||0,k=Math.round((C.pot||0)/costOf('guildBond'));
+  return '<div class="card"><b class="small">🔒 協議擔保金 '+fmt(C.bond)+' 兩押在公會</b><div class="tiny muted" style="margin-top:2px">向大盤進貨享聯合採購價，進貨上限另有協議配額加給。距下次例會還有 '+left+' 旬'+(k?'，已有 '+k+' 家同業偷跑被抓，下次例會時沒收的擔保金平分給守約的人。':'，至今無人違約。')+'被查獲超量或退出協議，擔保金沒收；公會會員身分不受影響。</div></div>';
 }
