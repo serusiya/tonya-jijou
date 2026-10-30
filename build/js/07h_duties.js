@@ -7,8 +7,8 @@
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
 const DUTY_DESC={};RANKS.concat(SPECIAL).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));   // 說明文字在 01e_ui_text.js（duty.*）
-const nEmp=rk=>G.emps.filter(e=>e.rank===rk).length;
-const empsOf=rk=>G.emps.filter(e=>e.rank===rk);
+const nEmp=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e)).length;   // 關押中的店員不算（07zt_staffevents.js）
+const empsOf=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e));
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
 /** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
@@ -92,7 +92,7 @@ function chiefVisit(log){
   }
   if(got.length){const t=NEWS('chief.visit',{list:got.join(UT('duty2.t'))});pushNews(t);log.push(t)}
   if(chance(C.newFriendP)){
-    const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)});
+    const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)&&m.role!=='smuggler'});   // 闇商人不會被大番頭結識
     if(cand.length){
       const m=pick(cand),cid=m.cid,r=R(cid),gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
       setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(cid);
@@ -193,6 +193,7 @@ function applyStartBoost(sysKey){
     G.family.married=true;G.life.spouseKind='commoner';
     const k=newKid();k.birthYear=G.year-2;G.family.kids.push(k);
   }
+  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種：開局認識一名闇商人（07g_smuggle.js）
   if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'captain');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});

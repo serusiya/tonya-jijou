@@ -186,7 +186,7 @@ const empBuyMult=()=>ODDS.rivalShip.buyMult;
 /** 大盤進貨單價＝市價（現貨，不計奢侈品冷熱）×進貨係數（參加協議 0.93、未參加 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
-  let p=marketIndex(name,true)*empBuyMult();
+  let p=(reliefImportOn()&&reliefPrice(name)||marketIndex(name,true))*empBuyMult();   // 緊急御免：漲價的貨照災前價格（07zu_relief.js）
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
   if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未參加協議：照市價（參加者享聯合採購價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
@@ -199,7 +199,7 @@ function quoteSale(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()))};
+const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)))};
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -263,11 +263,11 @@ function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.m
 /** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。 */
 const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);return NEWS('setEv.1')}},
-  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);return NEWS('setEv.2')}},
+  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
+  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
   {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
-  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});return NEWS('setEv.4')}},
-  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);return NEWS('setEv.5')}},
+  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
+  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
   {w:ODDS.eventW.military,seasons:ALL_SEASONS,f(){setEv(c=>commTag(c,'military'),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
   {w:ODDS.eventW.sword,seasons:ALL_SEASONS,f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
   {w:ODDS.eventW.flower,seasons:ALL_SEASONS,f(){return NEWS('setEv.7')}},
@@ -569,9 +569,9 @@ function cityTick(){
       if(mon===G.month&&G.cycle===1){
         G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));
         const fx=h.fx||[];                           // 城史事件的類型（資料檔 fx：fire 火災、plague 疫病、famine 饑荒）
-        if(fx.includes('fire'))setEv(c=>commTag(c,'fire'),1.6);
-        if(fx.includes('plague'))setEv(c=>c.sys==='medicine',1.6);
-        if(fx.includes('famine'))setEv(c=>commTag(c,'rice'),1.4);
+        if(fx.includes('fire')){setEv(c=>commTag(c,'fire'),1.6);markDisaster('fire')}
+        if(fx.includes('plague')){setEv(c=>c.sys==='medicine',1.6);markDisaster('plague')}
+        if(fx.includes('famine')){setEv(c=>commTag(c,'rice'),1.4);markDisaster('famine')}
       }
     }
   });
@@ -613,6 +613,7 @@ function advanceTurn(){
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
   tourTick(log);
+  banditTick(log);                                // 海賊／山賊猖獗（07zv_bandit.js）：先於回程結算
   receiveOrders(log);
   evalCartel(log);
   meetingTick(log);                               // 例會旬：上一期違約金分配、建立本期例會（方針由投票決定）；例會前一旬提醒
@@ -627,6 +628,7 @@ function advanceTurn(){
   dealerTick(log);
   empTick(log);
   chiefTick(log);
+  staffEventTick(log);                            // 店員偶發事件（07zt_staffevents.js）
   upkeep(log);
   randomEvent(log);
   cityTick(log);

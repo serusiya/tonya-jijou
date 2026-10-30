@@ -10,7 +10,7 @@ const MSG_TXT={
   'buyGoods.1':'請輸入進貨數量',
   'buyGoods.2':'倉庫容量不足（已存 {invUsed}，已下單待到貨 {pendingQty}，倉庫共可放 {invCap}）',
   'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含已下單待到貨）。還能進 {itemRoom} 單位。',
-  'buyGoods.4':'本旬向大盤進「{name}」最多 {buyLimit} 單位（依市占率、協議參加狀態與番頭、大番頭人手而定），還能進 {buyLeft} 單位。未參加協議沒有協議配額加給；要大量進貨請到商路委託船長或飛腳採買。',
+  'buyGoods.4':'本旬向相場進「{name}」最多 {buyLimit} 單位（依市占率、協議參加狀態與番頭、大番頭人手而定），還能進 {buyLeft} 單位。未參加協議沒有協議配額加給；要大量進貨請到商路委託船長或飛腳採買。',
   'buyGoods.5':'現款不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
   /* —— sellGoods —— */
@@ -39,7 +39,7 @@ const MSG_TXT={
   'doFavor.3':'此事早已辦妥。',
   'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
   'doFavor.sellAidFull':'倉庫放不下，這批貨沒法接手。',
-  'doFavor.lessenHeld':'你手上已有一張減罪狀，用掉之前不必再求。',
+  'doFavor.lessenHeld':'你手上已有一張御赦免狀，用掉之前不必再求。',
   'fest.item':'人潮散去的攤位角落，躺著一件沒人認領的「{n}」。你等了一會兒，始終沒人回來找，便收下了。',
   'fest.oiran':'人群裡一陣香風，原來是「{n}」也出來逛祭典。她認出你，笑著說了幾句話，又被人潮帶走了。',
   'fest.official':'賣糖人的攤子前，一位便服的中年人正看得出神——竟是{t}「{n}」。他擺擺手，示意別聲張，和你閒聊了幾句。',
@@ -135,11 +135,11 @@ const MSG_TXT={
   'cartel.2':'已私下簽署暗約：表面遵守協議配額，暗中準備偷跑。小心被查獲！',
   'cartel.3':'退出聯合採購與出貨協議。',
   'cartel.same':'你目前就是這個立場。',
-  'cartel.join':'押上擔保金 {c} 兩，參加聯合採購與出貨協議！向大盤進貨改用聯合採購價。',
-  'cartel.lose':'協議擔保金 {c} 兩沒收，退出協議後向大盤照市價進貨。',
+  'cartel.join':'押上擔保金 {c} 兩，參加聯合採購與出貨協議！向相場進貨改用聯合採購價。',
+  'cartel.lose':'協議擔保金 {c} 兩沒收，退出協議後向相場照市價進貨。',
   /* —— whUp —— */
   'whUp.1':'新建倉庫一棟！庫容增至 {invCap}。',
-  'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向行政官員申請「河岸倉地拜領」。',
+  'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向普請方官員申請「河岸倉地拜領」。',
   /* —— charity —— */
   'charity.1':'施粥賑濟！百姓感念，名聲遠播。{famine}',
   /* —— setIntro —— */
@@ -150,7 +150,7 @@ const MSG_TXT={
   'banquet.fx':'私宅張燈設宴，杯盤交錯……',
   'banquet.fxTitle':'宴會',
   /* —— needIntro —— */
-  'needIntro.1':'找人要靠介紹人——先到「名門商邸」結識一位肯為你引薦的人。',
+  'needIntro.1':'找人要靠介紹人——先到「大店屋敷」結識一位肯為你引薦的人。',
   /* —— fire —— */
   'fire.1':'再按一次「辭退」確認。',
   'fire.2':'已辭退。',
@@ -172,7 +172,7 @@ const MSG_TXT={
   'smugGo.4':'密庫放不下這麼多。',
   'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
   'smugGo.ap':'本旬行動次數已用完，下旬再出海吧。',
-  'smugGo.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到碼頭交代。',
+  'smugGo.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
   'smugGo.6':'船長「{name}」趁夜出港，{d} 旬後回航。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
@@ -185,7 +185,7 @@ const MSG_TXT={
   'sendVoyage.5':'委託金至少 100 兩',
   'sendVoyage.6':'現款不足，委託金需 {budget} 兩',
   'sendVoyage.ap':'本旬行動次數已用完，下旬再委託吧。',
-  'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到碼頭交代。',
+  'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
   /* —— xoAccept —— */
   'xoAccept.1':'現款不足，需 {O} 兩',
   'xoAccept.2':'倉庫放不下抵押品，只好婉拒。',
@@ -321,10 +321,10 @@ const MSG_TXT={
   'log.scout':'派人探聽，摸清了此人擅長與偏好的方面。',
   'log.weak':'經花街酒席上的閒談，得知其軟肋：{w}。',
   'favor.smallLoan':'借得 {a} 兩，六旬後須還 {b} 兩。',
-  'favor.sellAid':'官府沒收的「{n}」{q} 單位交給你處理，已入倉；可請座客商人代售。',
+  'favor.sellAid':'官府沒收的「{n}」{q} 單位交給你處理，已入倉；可請旅商人代售。',
   'favor.loan':'獲准官倉貸款 {a} 兩，九旬後須還 {b} 兩。',
   'favor.blind':'十二旬內搜查時多半睜隻眼。',
-  'favor.lessen':'取得減罪狀，下次被定罪時刑罰減輕一等。',
+  'favor.lessen':'取得御赦免狀，下次被定罪時刑罰減輕一等。',
   'log.reconcile':'經{n}出面說和，不再記恨。',
   'log.favor':'請託「{f}」：{m}好感 -{d}。',
   'favor.affTail':'（好感 -{d}）',
@@ -360,7 +360,35 @@ const MSG_TXT={
   'loyal.chiefBook.2':'私房錢不足。',
   'loyal.chiefBook.3':'私房錢',
   'loyal.chiefBook.4':'現款',
-  'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）'
+  'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）',
+  /* —— 店員偶發事件（07zt_staffevents.js） —— */
+  'sev.short':'現款不夠。',
+  'sev.gamble.pay':'你替{n}還清了賭債，他連聲道謝，發誓再也不碰骰子。',
+  'sev.gamble.ign':'{n}低著頭退下，眼神有些怨懟。',
+  'sev.drunk.pay':'你替{n}賠了錢，他酒醒後羞愧不已。',
+  'sev.drunk.ign':'{n}被關進番所，要過幾旬才放出來。',
+  'sev.ill.pay':'名醫看過，{n}的家人轉危為安，他紅了眼眶。',
+  'sev.ill.ign':'{n}沒再多說什麼，只是做事沒了精神。',
+  'sev.wed.pay':'你出席主婚，{n}的婚禮辦得體面，他感激不盡。',
+  'sev.wed.ign':'{n}的婚禮冷冷清清，他有些失望。',
+  'sev.poach.pay':'你塞了個紅包，{n}笑著說哪兒也不去了。',
+  'sev.poach.ign':'{n}收拾行李，轉往「{r}」效力。',
+  'sev.frame.pay':'你付了保釋金，{n}當天就回到店裡，對你感激涕零。',
+  'sev.frame.ign':'{n}在番所關了好些日子，留下了前科。',
+  /* —— 災情救濟請託 —— */
+  'relief.closed':'這件事只能趁災情當下辦，如今已經錯過了。',
+  'relief.soup':'御救小屋搭起來了，災民排成長龍，全城都在談你的善舉。知名度 +{f}。',
+  'relief.import':'緊急進貨的特許下來了：這兩旬向相場進貨，量可以加倍，價錢照災前算。知名度 +{f}。',
+  'relief.build':'官府收走{g}，付了 {a} 兩。知名度 +{f}。',
+  'relief.buildNone':'倉裡沒有本業貨可以交給官府。',
+  'log.relief':'救濟「{f}」：{m}',
+  /* —— 海賊山賊猖獗 —— */
+  'bandit.quell.closed':'賊亂已經平息，用不著出兵了。',
+  'bandit.quell.ok.sea':'官船出海掃蕩，海賊四散，航路恢復暢通。知名度 +{f}。',
+  'bandit.quell.ok.land':'官兵進山搜剿，山賊潰散，商路恢復暢通。知名度 +{f}。',
+  /* —— 結識闇商人 —— */
+  'meet.smuggler':'這種人不會在門口掛招牌，得先有門路才找得到。',
+  'smug.meet.nominate':'隔壁座敷傳來陌生的笑聲，你順勢結識了闇商人「{n}」。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){

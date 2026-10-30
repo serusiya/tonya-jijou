@@ -62,6 +62,7 @@ function visitRoll(cid){
 function meetCheck(cid,viaIntro){
   const n=npc(cid),r=R(cid);
   if(!n)return MSG('meet.gone');
+  if(hiddenSmuggler(cid))return MSG('meet.smuggler');                  // 闇商人不能投帖求見（07g_smuggle.js）
   if(isEnemy(cid))return MSG('meet.1');
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return MSG('meet.recent');
   /* 知名度階級：有介紹人時視同 +1 階；私房錢滿 2000 兩加一階（只加一階）已含在 fameTier */
@@ -174,7 +175,7 @@ const FAVORS={
 const favorText=f=>Object.assign(f,{name:UT('fav.'+f.k),desc:UT('fav.'+f.k+'.d')});
 Object.values(FAVORS).forEach(L=>L.forEach(favorText));
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)).map(f=>resolveFavor(f,n)):[]}
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))&&!(f.bandit&&!banditFavorOpen(f,n))).map(f=>resolveFavor(f,n)):[]}
 /** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 借款種類的顯示名（舊存檔直接存中文名稱，原樣顯示）。 */
@@ -184,6 +185,8 @@ function doFavor(cid,key,arg){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
+  if(f.relief)return doRelief(cid,n,r,f);
+  if(f.bandit)return doBanditFavor(cid,n,r,f);                  // 討伐海賊／山賊（07zv_bandit.js）                      // 災情救濟（07zu_relief.js）
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};

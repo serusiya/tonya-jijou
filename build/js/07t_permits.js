@@ -123,7 +123,7 @@ function regLicCard(){
 /** 某職位能辦的請託：三系官署看系統別與官階（限定官階的只在該階），遠國奉行所看職位。回傳 [{name,desc}]。 */
 function posFavors(id){
   const p=OFF_POS[id];if(!p)return [];
-  return (FAVORS[p.court]||[]).filter(f=>(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
+  return (FAVORS[p.court]||[]).filter(f=>!f.relief&&!f.bandit&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
     let name=f.name;
     if(f.lic)name=licFavorName(f.lic,p.rank);
     else if(f.trade!==undefined)name=G&&G.sysKey?tradeFavorName(f.trade):UT('lic.posFavors.3',{a:f.trade?UT('lic.posFavors'):UT('lic.posFavors.2')});

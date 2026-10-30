@@ -54,14 +54,20 @@ function dealerReqs(cid){
       return {k:'xs_'+k,name:UT('deal.dealerReqs.7',{a:xName(k),b:q}),desc:UT('deal.dealerReqs.8',{a:fmt(Q.rev),b:Math.round(Q.m*100)})}});
   }
   if(n.role==='smuggler'){
-    return Object.keys(contra()).filter(k=>contra()[k]>0).map(k=>{const q=contra()[k],i=SMUG_BY[k];
-      return {k:'cs_'+k,name:UT('deal.dealerReqs.9',{a:i.name,b:q}),desc:UT('deal.dealerReqs.10',{a:smugMood(k),b:fmt(Math.round(smugPrice(k,q)*q)),c:fmt1(smugPrice(k,q)),d:fmt1(0.2*i.danger)})}});
+    const out=[],bb=banditBribeReq();if(bb)out.push(bb);   // 賊亂期間：買通海賊／山賊（07zv_bandit.js）
+    const ks=Object.keys(contra()).filter(k=>contra()[k]>0);
+    if(ks.length&&!blackMarketOpen())return out.concat([{k:'cs_wait',info:true,name:UT('deal.csWait'),desc:UT('deal.csWait.d')}]);   // 黑貨只在節慶或災情當旬收
+    return out.concat(ks.map(k=>{const q=contra()[k],i=SMUG_BY[k];
+      return {k:'cs_'+k,name:UT('deal.dealerReqs.9',{a:i.name,b:q}),desc:UT('deal.dealerReqs.10',{a:smugMood(k),b:fmt(Math.round(smugPrice(k,q)*q)),c:fmt1(smugPrice(k,q)),d:fmt1(0.2*i.danger)})}}));
   }
   return [];
 }
 /** 辦理商人請託，回傳結果訊息；不是商人請託回傳 null。 */
 function dealerDo(cid,k){
   const r=R(cid),nm=nameOf(cid);
+  if(k==='bribeBandit')return banditBribeDo(cid);
+  if(k==='cs_wait')return UT('deal.csWait.d');
+  if(k.startsWith('cs_')&&!blackMarketOpen())return UT('deal.csWait.d');
   if(k.startsWith('rv_')){
     const L=rivalLot(cid);if(!L||L.n!==k.slice(3))return UT('deal.dealerDo');
     G.silver-=L.cost;addStock(L.n,L.q,L.unit);G.inv[L.n]=(G.inv[L.n]||0)+L.q;

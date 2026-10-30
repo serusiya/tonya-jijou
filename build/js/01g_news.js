@@ -17,7 +17,7 @@ const NEWS_TXT={
   "meet.autoVote":"⚖️【公會例會】你沒有出席。同業投票，維持 {n} 票、減供 {r} 票{tie}；本期方針為「{p}」。",
   "meet.lotMe":"🍡【菓子折】你以 {p} 兩標下「{n}」{q} 單位，貨已入倉。",
   "meet.lotRival":"🍡【菓子折】「{who}」以 {p} 兩標下「{n}」{q} 單位。",
-  "meet.lotNone":"🍡【菓子折】本期的「{n}」沒有人出價，退回大盤。",
+  "meet.lotNone":"🍡【菓子折】本期的「{n}」沒有人出價，退回相場。",
   "guild.policy.restrict":"⚖️【協議決議】本期「減供」：各家依減供配額出貨，壓低供給以維持行情。",
   "guild.policy.normal":"⚖️【協議決議】本期「維持」：全體總配額以本城需求為準，你的配額等於穩定供貨線，其餘由同行依市占率分配。",
   "guild.policy.normalNone":"⚖️【協議決議】本期「維持」：全體總配額以本城需求為準；你未參加協議、沒有保留配額，供應量全數由協議內同行依市占率分配。",
@@ -44,7 +44,7 @@ const NEWS_TXT={
   "setEv.4":"🌊【颱風】海面風浪滔天，鹽船與漁船暫緩出港，在途海運船隊延誤一旬。",
   "setEv.5":"🤒【疫病】市井傳出時疫，生藥與香辛身價暴漲。",
   "setEv.6":"⚔️【名匠】備前長船名匠開爐鑄造太刀，高官豪商出價千兩競逐，奢侈品行情看俏。",
-  "setEv.7":"🏮【花街秘聞】吉原名伶道中獻藝，傳聞官員與私梟暗中接頭。",
+  "setEv.7":"🏮【花街秘聞】吉原花魁道中獻藝，傳聞官員與闇商人暗中接頭。",
   "setEv.8":"📉【同業傾銷】同行大舉拋貨，本業行情走軟。",
   "setEv.10":"⚒️【軍需】沿海諸藩整備海防，銅鐵與硫磺搶手，行情大漲。",
   "setEv.9":"📈【買氣回升】近日城中買氣旺盛，本業行情回暖。",
@@ -83,7 +83,7 @@ const NEWS_TXT={
   /* —— peopleTick —— */
   "peopleTick.1":"⏰【失信】對「{cid}」的承諾已逾期，對方頗為不快。",
   "peopleTick.due":"🏦【還款】有一筆 {d} 兩的借款，兩旬後到期。",
-  "peopleTick.2":"🏦【還款】官倉平準貸款到期，償還 {d} 兩。",
+  "peopleTick.2":"🏦【還款】御用金拜借到期，償還 {d} 兩。",
   /* —— empTick —— */
   "empTick.1":"💸【捲款潛逃】{rank}「{name}」捲走現款 {take} 兩，不告而別！",
   /* —— marry —— */
@@ -136,28 +136,28 @@ const NEWS_TXT={
   "doRaid.1":"👀【睜一隻眼】同心前來搜查，卻對你的密庫視而不見——袖之下沒有白給。",
   /* —— seize —— */
   "seize.1":"🚨【{replace}】{g}",
-  "seize.lessen":"減罪狀派上用場，刑罰減輕一等。",
+  "seize.lessen":"御赦免狀派上用場，刑罰減輕一等。",
   /* —— 遠島期間（主人不在）照配額進貨 —— */
   "away.buy":"🧾【主人不在】照協議配額進貨：{got} 已下單。",
   /* —— kind —— */
   "kind.1":"前往【{dest}】採買。{note}",
-  "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約大盤基準價的 {pf}），共 {cost} 兩。",
+  "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約相場基準價的 {pf}），共 {cost} 兩。",
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
   "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩。",
   "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
-  "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找私梟，也要小心搜查。",
+  "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找闇商人，也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
   /* —— xsell —— */
-  "xsell.1":"💱【代售】座客商人「{introId}」把「{short}」{q} 單位整批收下，得 {rev} 兩（約基準價的 {m}%），好感 −{d}。",
-  "smugglerArrest.talk":"⛓️【落網】私梟「{n}」在黑市交易時落網，熬不住拷問，把你供了出來。",
-  "smugglerArrest.silent":"⛓️【落網】私梟「{n}」在黑市交易時落網，咬緊牙關，始終沒提你的名字。",
+  "xsell.1":"💱【代售】旅商人「{introId}」把「{short}」{q} 單位整批收下，得 {rev} 兩（約基準價的 {m}%），好感 −{d}。",
+  "smugglerArrest.talk":"⛓️【落網】闇商人「{n}」在黑市交易時落網，熬不住拷問，把你供了出來。",
+  "smugglerArrest.silent":"⛓️【落網】闇商人「{n}」在黑市交易時落網，咬緊牙關，始終沒提你的名字。",
   /* —— xgoodsTick —— */
   "xgoodsTick.1":"🤝【借錢】商人「{n}」上門，想拿貨物抵押借錢。",
-  "xgoodsTick.2":"🎁【官吏硬塞】「{n}」把一批沒收來的「{short}」{q} 單位塞進你的倉庫，要你「幫忙處理」。得自己找座客商人代售。",
+  "xgoodsTick.2":"🎁【役人硬塞】「{n}」把一批沒收來的「{short}」{q} 單位塞進你的倉庫，要你「幫忙處理」。得自己找旅商人代售。",
   /* —— regionHeld —— */
   "regionHeld.1":"取得【{REG_NAME}】的關所通行手形，馬幫可在此地區通行。",
-  "regionHeld.2":"取得【{REG_NAME}】的進港泊位許可，船隊可靠泊此地區各港。",
+  "regionHeld.2":"取得【{REG_NAME}】的入津御免，船隊可靠泊此地區各港。",
   "regionHeld.3":"遠國奉行簽發通商特許：【{REG_NAME}】海陸許可齊備，採買雜費永久再少一成。",
   /* —— regionTick —— */
   "regionTick.1":"🕵️【巡見使巡視】中央巡見使風聞你的帳目不清，吊銷了你的「{sea}許可（{k}）」，罰銀 {fine} 兩，知名度 −3。",
@@ -166,7 +166,7 @@ const NEWS_TXT={
   /* —— appsTick —— */
   "appsTick.1":"📬【申請】先前擱置的「{name}」終於送入審理（約 {left} 旬）。",
   /* —— ransom —— */
-  "ransom.1":"💍【贖身】{name}為吉原名伶「{name2}」贖身，納為側室，轟動全城，知名度 +{f}。",
+  "ransom.1":"💍【贖身】{name}為吉原花魁「{name2}」贖身，納為側室，轟動全城，知名度 +{f}。",
   /* —— assassinate —— */
   "assassinate.1":"🗡️【命案】{cid}於夜間遇害，奉行所正在調查。",
   /* —— arson —— */
@@ -189,7 +189,7 @@ const NEWS_TXT={
   "ev.notice":"📜【公文】町奉行所發出告示，重申商人須守株牌專營之規。",
   "cartel.bondLost":"擔保金 {a} 兩沒收，",
   "cartel.fine":"官府查抄罰銀 {a} 兩，",
-  "cartel.noFine":"靠司法人脈壓下了查抄，",
+  "cartel.noFine":"靠吟味方人脈壓下了查抄，",
   "rival.good":"🏪【同業】「{n}」新貨滿載入港，聲勢大振，搶下不少客源。",
   "rival.bad":"🏪【同業】「{n}」商號遭遇糾紛（失火或延誤），客源流失。",
   "pop.allStable":"供貨始終安定，人口明顯增加",
@@ -198,11 +198,11 @@ const NEWS_TXT={
   "pop.moreUnstable":"供貨不穩較多，人口小幅減少",
   /* —— 07i_voyage.js —— */
   "voy.resolveVoyage.5":"🌊 歸途{a}，損失 {b} 單位，只有 {c} 單位入倉。",
-  "voy.resolveVoyage.6":"✅ {a} 單位已入倉，可到大盤分旬出貨。",
+  "voy.resolveVoyage.6":"✅ {a} 單位已入倉，可到相場分旬出貨。",
   "voy.resolveVoyage.7":"🌊 歸途{a}，損失 {b} 單位，",
-  "voy.resolveVoyage.8":"{a} 單位已入倉。這不是你的本業，得請座客商人代售。",
+  "voy.resolveVoyage.8":"{a} 單位已入倉。這不是你的本業，得請旅商人代售。",
   /* —— 07u_battle.js —— */
-  "bt.specialList":"他與你交情至深，願對隨機一家同業{a}。{b}；成敗看他的膽識與商才，事後可能被查辦。",
+  "bt.specialList":"他與你交情至深，願對隨機一家同業{a}。{b}；成敗看他的膽力與商才，事後可能被查辦。",
   "bt.specialList.2":"上貢",
   "bt.specialList.3":"他想請你備一批本業貨，{a} 旬內備齊，他會用高價收下。",
   /* —— 07zf_festwalk.js —— */
@@ -211,7 +211,27 @@ const NEWS_TXT={
   "fwalk.famWho.3":"側室",
   "enemy.introQuit":"🤝【請辭】「{a}」與你反目，辭去介紹人。",
   "rival.heir":"🏪【繼承】已故「{old}」的私生子「{name}」繼承家業，接掌商號。",
-  "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。"
+  "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。",
+  /* —— 店員偶發事件 —— */
+  "sev.auto":"👥【店員】{m}",
+  "sev.creditor":"💢【店員】債主找上店門討{n}的賭債，街坊議論紛紛。",
+  "sev.quit":"🚪【店員】{k}{n}寄來辭呈，說要回鄉照顧家人。",
+  "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。",
+  /* —— 災情救濟請託 —— */
+  "relief.soup":"🍚【義舉】你與「{n}」在災區合辦御救小屋，施粥救濟災民。",
+  "relief.import":"📦【緊急御免】官府特許你緊急進貨，接濟災區。",
+  "relief.build":"🏗️【普請】官府為重建災區向你收購本業貨，付款 {a} 兩。",
+  /* —— 海賊山賊猖獗 —— */
+  "bandit.far.sea":"🏴‍☠️【海賊】{r}近海海賊猖獗，船隻不敢出港。",
+  "bandit.far.land":"⛰️【山賊】{r}山賊橫行，商旅不敢上路。",
+  "bandit.home.sea":"🏴‍☠️【海賊】本地區近海海賊猖獗：三旬內船長不敢出海，回港的船也難逃劫掠。",
+  "bandit.home.land":"⛰️【山賊】本地區山賊橫行：三旬內飛腳不敢上路，回程的馬幫也難逃劫掠。",
+  "bandit.calm.sea":"🌊【海賊】近海的海賊散去，船長們又肯出海了。",
+  "bandit.calm.land":"🌄【山賊】山路上的賊夥散去，飛腳們又肯上路了。",
+  "bandit.quelled.sea":"⚔️【討賊】「{n}」出兵掃蕩海賊，航路恢復暢通。",
+  "bandit.quelled.land":"⚔️【討賊】「{n}」出兵剿滅山賊，商路恢復暢通。",
+  "bandit.smugRobbed":"🏴‍☠️【海賊】走私船回港途中遭海賊打劫，「{name2}」損失 {lost} 單位。",
+  "smug.meet":"🕯️【門路】接貨的人留下聯絡的暗號：從此認識了闇商人「{n}」。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -234,11 +254,11 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
-  disaster:["holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
+  official:["bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2"];

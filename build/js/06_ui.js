@@ -70,7 +70,7 @@ function renderHome(){
   const city=homeCity();
   $('#badge-season').textContent=UT('home.season',{i:SEASON_ICON[season()],s:seasonName(season()),c:CYCLE_NAMES[G.cycle-1]});
   const al=$('#badge-alert');
-  let a='';if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
+  let a='';if(disasterNow())a=UT('home.dis.'+G.disaster.type);else if(banditHome())a=UT('home.bandit.'+G.bandit.type);else if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
   al.textContent=a;al.classList.toggle('hidden',!a);
   $('#loc-city').textContent=UT('home.city',{c:city.name});
   {const fw=$('#fest-walk');if(fw)fw.innerHTML=festWalkHtml()}   // 節慶當旬：逛祭典（07zf_festwalk.js）
@@ -90,7 +90,7 @@ function renderHome(){
   sceneSync();
 }
 /** 商邸可拜訪的人（同行、座客、掮客…，不含已聘者）。 */
-const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!jailed(n)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
+const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!hiddenSmuggler(n.cid)&&!jailed(n)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
 
 /* ---------- 大盤 ---------- */
 /** 迷你折線圖（行情走勢）。 */

@@ -85,7 +85,8 @@ ACT.nomOiran=el=>{
   if(!r.bond){r.bond={mult:1,label:UT('flower.nomOiran'),introId:null};r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(0.6)}}
   setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
   logRel(cid,UT('flower.nomOiran.2'));sfx.gift();
-  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note}),3600);
+  const sm=chance(ODDS.smugMeet.nominate)?meetSmuggler('nominate'):null;   // 隔壁座敷偶遇闇商人
+  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note})+(sm?MSG('smug.meet.nominate',{n:nameOf(sm)}):''),sm?5200:3600);
   UI.render();refreshSheet();
 };
 ACT.oGift=el=>{
@@ -129,6 +130,7 @@ ACT.feast=()=>{
   playFx('walk',MSG('feast.fx'),MSG('feast.fxTitle'),()=>{
     if(!pool.length){toast(MSG('feast.2',{note}));UI.render();refreshSheet();return}
     const guests=shuffle(pool.slice()).slice(0,rint(1,3));
+    if(chance(ODDS.smugMeet.feast)){const sm=meetSmuggler('feast');if(sm)guests.push(npc(sm))}   // 席間混進一位闇商人
     let h=UT('flower.h');
     guests.forEach(n=>{
       const r=R(n.cid),gain=rint(3,5);

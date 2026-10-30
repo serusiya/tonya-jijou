@@ -25,6 +25,9 @@ const COSTS={
   recruitIntro:{name:'請介紹人物色人才禮金',cur:'silver',amt:40},
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
   allowance:{name:'雇員零用錢',cur:'silver',amt:5},
+  reliefSoup:{name:'御救小屋合辦',cur:'silver',amt:800},
+  banditBribe:{name:'買通賊黨',cur:'gold',amt:300},
+  banditQuell:{name:'討賊軍費',cur:'silver',amt:3000},
   encounter:{name:'路遇應酬',cur:'silver',amt:50},
   /* —— 產業·設施 —— */
   shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
@@ -42,20 +45,20 @@ const COSTS={
   pathCourt:{name:'子女歷練：侍童（每旬）',cur:'silver',amt:40},
   /* —— 吉原 —— */
   feast:{name:'包場花金夜宴',cur:'gold',amt:80},
-  nominate:{name:'指名名伶',cur:'gold',amt:20},
-  oiranGiftMul:{name:'名伶禮物價格倍率（指名後）',cur:'gold',amt:2},
-  ransom:{name:'名伶贖身（基本價，±100）',cur:'gold',amt:1000},
+  nominate:{name:'指名花魁',cur:'gold',amt:20},
+  oiranGiftMul:{name:'花魁禮物價格倍率（指名後）',cur:'gold',amt:2},
+  ransom:{name:'花魁贖身（基本價，±100）',cur:'gold',amt:1000},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺',cur:'gold',amt:500},
   /* —— 放火 —— */
   arson:{name:'放火（燒同業倉庫）',cur:'gold',amt:500},
   /* —— 官員運作（好感 100）—— */
-  frame:{name:'栽贓同業（司法官員）',cur:'gold',amt:500},
-  suppress:{name:'打壓同業（行政官員）',cur:'gold',amt:500}
+  frame:{name:'栽贓同業（吟味方官員）',cur:'gold',amt:500},
+  suppress:{name:'打壓同業（普請方官員）',cur:'gold',amt:500}
 };
-/** 名伶專屬禮物（首飾與化妝品），價格也在總表。 */
+/** 花魁專屬禮物（首飾與化妝品），價格也在總表。 */
 [['o1','銀簪',100],['o2','京白粉',110],['o3','紅花口脂',120],['o4','鬢付髮油',130],['o5','眉黛',150],['o6','蒔繪梳',180],['o7','螺鈿手鏡',220],['o8','琥珀頸飾',250],['o9','翡翠玉鐲',280],['o10','珊瑚簪',300]]
-  .forEach(([k,name,amt])=>{COSTS['oiranGift_'+k]={name:'名伶禮物：'+name,cur:'gold',amt}});
+  .forEach(([k,name,amt])=>{COSTS['oiranGift_'+k]={name:'花魁禮物：'+name,cur:'gold',amt}});
 
 const costOf=(k,mul)=>Math.round(COSTS[k].amt*(mul===undefined?1:mul));
 const costTxt=(k,mul)=>UT('cost.txt',{cur:CUR_NAME[COSTS[k].cur],a:costOf(k,mul)});
@@ -67,7 +70,7 @@ const walletOf=k=>COSTS[k].cur;
 const afford=(k,mul)=>G[COSTS[k].cur]>=costOf(k,mul);
 const affordAmt=(k,amt)=>G[COSTS[k].cur]>=amt;
 /** 主動支出帳：鍵＝「文字鍵|對象代號」（如 spend.buy|prod_0101、cost:visit），畫面以 spendLabel 轉成文字。 */
-const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a};
+const SPEND_ARG={'spend.buy':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.lot':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.xloan':a=>COMM_MAP[a]?COMM_MAP[a].short:a,'spend.tribute':a=>nameOf(a),'spend.bribe':a=>nameOf(a),'spend.voyage':a=>CITY(a)?CITY(a).name:a,'spend.staffEv':a=>UT('sev.label.'+a)};
 function spendLabel(k){
   if(k.startsWith('cost:')){const c=COSTS[k.slice(5)];return c?c.name:k}
   const i=k.indexOf('|'),t=i<0?k:k.slice(0,i),a=i<0?'':k.slice(i+1);

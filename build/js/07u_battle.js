@@ -201,7 +201,7 @@ function reqList(cid){
 }
 function requestHtml(cid,msg){
   const L=reqList(cid);
-  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
+  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>f.info?'<div class="irow" style="margin-top:4px"><b class="small">'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc||'')+'</div></div>':'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
 }
 ACT.reqDone=()=>{BT=null;UI.hideInfo()};
 /** 解仇：先挑一位仇人（在世的仇人都列出，不分城市）。 */

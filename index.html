@@ -701,6 +701,8 @@ const COSTS={
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
   allowance:{name:'雇員零用錢',cur:'silver',amt:5},
   reliefSoup:{name:'御救小屋合辦',cur:'silver',amt:800},
+  banditBribe:{name:'買通賊黨',cur:'gold',amt:300},
+  banditQuell:{name:'討賊軍費',cur:'silver',amt:3000},
   encounter:{name:'路遇應酬',cur:'silver',amt:50},
   /* —— 產業·設施 —— */
   shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
@@ -861,6 +863,8 @@ const ODDS={
     poach:{payAff:5},
     frame:{payAff:10,ignAff:-15,jail:6}}
   /* 災情救濟請託（07zu_relief.js）：soup 施粥（知名度、風聲減量、主食行情倍率、官員好感），import 緊急御免（旬數、進貨上限倍數、知名度），build 普請御用（每項收購約幾旬配額、收購價倍率、知名度） */
+  ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
+  ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,bribeHeat:0.5,quellFame:3}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
@@ -1307,10 +1311,13 @@ const UI_TXT={
   'opt.modeSea':'⛵ 海運（船長）',
   'opt.nf_all':'全部',
   'opt.nf_emp':'員工',
-  'opt.nf_manager':'經營',
+  'opt.nf_manager':'差配',
   'opt.nf_official':'役人',
-  'opt.nf_oiran':'花街',
+  'opt.nf_oiran':'花魁',
   'opt.nf_other':'其他',
+  'opt.nf_guest':'旅商',
+  'opt.nf_broker':'仲買',
+  'opt.nf_smuggler':'闇商',
   'opt.nf_rival':'同業',
   'opt.noFavor':'💬 不請託',
   'opt.noIntro':'（尚無介紹人）',
@@ -2100,7 +2107,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.17':'🏮 節慶',
   'wiki.WIKI_GUIDE.18':'每座城一年有一次節慶，持續一旬。那一旬全城買氣大旺，主畫面也張燈結綵。節慶當旬可以出門「逛祭典」一次：可能撿到別人遺落的好東西、巧遇花魁或微服出遊的官員、和家人同樂，也可能遇上扒手——家裡有保鏢跟著就不怕。',
   'wiki.WIKI_GUIDE.19':'⚠️ 風險與事件',
-  'wiki.WIKI_GUIDE.20':'倉庫會失火、遭竊、受潮；主食價格漲得太高會引發「打毀」（市民暴動）；走私被查獲會罰銀、遠島，甚至處刑（御赦免狀能讓刑罰輕一等）；醜聞會損傷知名度。同行也會鬥——有人造謠、栽贓、縱火，你也可以反擊。貨越值錢，持有的成本與風險越高。',
+  'wiki.WIKI_GUIDE.20':'倉庫會失火、遭竊、受潮；主食價格漲得太高會引發「打毀」（市民暴動）；走私被查獲會罰銀、遠島，甚至處刑（御赦免狀能讓刑罰輕一等）；醜聞會損傷知名度。同行也會鬥——有人造謠、栽贓、縱火，你也可以反擊。貨越值錢，持有的成本與風險越高。每年也會有某個地區鬧海賊或山賊，輪到本地區時，三旬內船隊或馬幫出不了門、回程也會被劫，可以找闇商人打點，或請地區官員出兵討伐。',
   'wiki.WIKI_GUIDE.21':'💎 奢侈品',
   'wiki.WIKI_GUIDE.22':'每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。',
   'wiki.WIKI_GUIDE.23':'🌸 花街與名流',
@@ -2530,7 +2537,37 @@ const UI_TXT={
   'voy.log.lost':'損 {n}',
   'voy.log.thUnit':'單價',
   'voy.log.sum':'採買花 {a} 兩，雜費 {b} 兩，退回 {c} 兩。',
-  'voy.log.empty':'空手而回。雜費 {b} 兩，退回 {c} 兩。'
+  'voy.log.empty':'空手而回。雜費 {b} 兩，退回 {c} 兩。',
+  /* —— 海賊山賊猖獗（07zv_bandit.js）、私梟限時收貨 —— */
+  'home.bandit.sea':'🏴‍☠️ 海賊猖獗',
+  'home.bandit.land':'⛰️ 山賊橫行',
+  'bandit.notice.sea':'🏴‍☠️ 本地區海賊猖獗，船長們不敢出海（還要 {n} 旬）。可找闇商人買通海賊，或請船奉行出兵討伐。',
+  'bandit.notice.land':'⛰️ 本地區山賊橫行，飛腳不敢上路（還要 {n} 旬）。可找闇商人買通山賊，或請道中奉行出兵討伐。',
+  'bandit.bribe.sea':'買通海賊',
+  'bandit.bribe.land':'買通山賊',
+  'bandit.bribe.d':'私房錢 {a} 兩：打點賊黨，本旬可以出發，本旬回程的隊伍也不受劫。',
+  'bandit.bribe.none':'賊亂已經平息，用不著打點了。',
+  'bandit.bribe.log':'替你打點海賊山賊。好感 -{a}。',
+  'bandit.bribe.ok.sea':'「{a}」收下私房錢，派人捎了話過去：這一旬，海上沒人會動你的船。（好感 -{b}）',
+  'bandit.bribe.ok.land':'「{a}」收下私房錢，派人捎了話過去：這一旬，山路上沒人會動你的馬幫。（好感 -{b}）',
+  'fav.rquellSea':'討伐海賊',
+  'fav.rquellSea.d':'海賊猖獗期間：出軍費 3000 兩，請官府派船出兵討伐，航路立刻恢復暢通。知名度上升。',
+  'fav.rquellLand':'討伐山賊',
+  'fav.rquellLand.d':'山賊橫行期間：出軍費 3000 兩，請官府派兵掃蕩山寨，商路立刻恢復暢通。知名度上升。',
+  'deal.csWait':'收黑貨',
+  'deal.csWait.d':'最近風頭緊，等城裡熱鬧或亂起來再說。',
+  'voy.wnPirate':'遭海賊打劫',
+  'voy.tPirate':'遭海賊打劫',
+  'voy.log.pirate':'海賊',
+  /* —— 結識闇商人 —— */
+  'smug.meet.label.start':'舊日門路',
+  'smug.meet.label.smug':'走私接頭',
+  'smug.meet.label.nominate':'花街偶遇',
+  'smug.meet.label.feast':'花街結識',
+  'smug.meet.log.start':'開業前就打過交道的門路，私下有往來。',
+  'smug.meet.log.smug':'第一次走私貨運回時，接貨的人留下聯絡的暗號。',
+  'smug.meet.log.nominate':'在吉原隔壁座敷偶然碰上，攀談幾句便熟了。',
+  'smug.meet.log.feast':'吉原夜宴上混進來的客人，席間交換了門路。'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -2921,7 +2958,14 @@ const MSG_TXT={
   'relief.import':'緊急進貨的特許下來了：這兩旬向相場進貨，量可以加倍，價錢照災前算。知名度 +{f}。',
   'relief.build':'官府收走{g}，付了 {a} 兩。知名度 +{f}。',
   'relief.buildNone':'倉裡沒有本業貨可以交給官府。',
-  'log.relief':'救濟「{f}」：{m}'
+  'log.relief':'救濟「{f}」：{m}',
+  /* —— 海賊山賊猖獗 —— */
+  'bandit.quell.closed':'賊亂已經平息，用不著出兵了。',
+  'bandit.quell.ok.sea':'官船出海掃蕩，海賊四散，航路恢復暢通。知名度 +{f}。',
+  'bandit.quell.ok.land':'官兵進山搜剿，山賊潰散，商路恢復暢通。知名度 +{f}。',
+  /* —— 結識闇商人 —— */
+  'meet.smuggler':'這種人不會在門口掛招牌，得先有門路才找得到。',
+  'smug.meet.nominate':'隔壁座敷傳來陌生的笑聲，你順勢結識了闇商人「{n}」。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -3151,7 +3195,18 @@ const NEWS_TXT={
   /* —— 災情救濟請託 —— */
   "relief.soup":"🍚【義舉】你與「{n}」在災區合辦御救小屋，施粥救濟災民。",
   "relief.import":"📦【緊急御免】官府特許你緊急進貨，接濟災區。",
-  "relief.build":"🏗️【普請】官府為重建災區向你收購本業貨，付款 {a} 兩。"
+  "relief.build":"🏗️【普請】官府為重建災區向你收購本業貨，付款 {a} 兩。",
+  /* —— 海賊山賊猖獗 —— */
+  "bandit.far.sea":"🏴‍☠️【海賊】{r}近海海賊猖獗，船隻不敢出港。",
+  "bandit.far.land":"⛰️【山賊】{r}山賊橫行，商旅不敢上路。",
+  "bandit.home.sea":"🏴‍☠️【海賊】本地區近海海賊猖獗：三旬內船長不敢出海，回港的船也難逃劫掠。",
+  "bandit.home.land":"⛰️【山賊】本地區山賊橫行：三旬內飛腳不敢上路，回程的馬幫也難逃劫掠。",
+  "bandit.calm.sea":"🌊【海賊】近海的海賊散去，船長們又肯出海了。",
+  "bandit.calm.land":"🌄【山賊】山路上的賊夥散去，飛腳們又肯上路了。",
+  "bandit.quelled.sea":"⚔️【討賊】「{n}」出兵掃蕩海賊，航路恢復暢通。",
+  "bandit.quelled.land":"⚔️【討賊】「{n}」出兵剿滅山賊，商路恢復暢通。",
+  "bandit.smugRobbed":"🏴‍☠️【海賊】走私船回港途中遭海賊打劫，「{name2}」損失 {lost} 單位。",
+  "smug.meet":"🕯️【門路】接貨的人留下聯絡的暗號：從此認識了闇商人「{n}」。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -3176,8 +3231,8 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
 const NEWS_CAT={
   firm:["relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
-  disaster:["holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
+  official:["bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -3199,6 +3254,8 @@ const CHANGELOG=[
     '公會例會設定更新：改在每季第一旬召開，例會上同業會發言。',
     '各城物價的高低重新洗牌一次。',
     '本城同業過世後，會有人繼承家業補上。',
+    '新增海賊、山賊猖獗：每年一次，輪到本地區時船隊或馬幫三旬出不了門，可找闇商人打點或請官府討伐。',
+    '闇商人只在節慶或災情當旬收黑貨，也不能再登門投帖結識，得靠走私接頭或花街碰上。',
     '大火、凶作、颱風、疫病發生的那一旬，三系官員有救濟的差事可以請託。',
     '新增店員急事：賭債、酒後鬧事、家人急病、成親、挖角、遭人誣陷，出手相助能收攏人心。',
     '存檔格式更新：舊存檔讀取時自動轉換；新存檔不能再拿回舊版讀。',
@@ -4092,6 +4149,7 @@ function advanceTurn(){
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
   tourTick(log);
+  banditTick(log);                                // 海賊／山賊猖獗（07zv_bandit.js）：先於回程結算
   receiveOrders(log);
   evalCartel(log);
   meetingTick(log);                               // 例會旬：上一期違約金分配、建立本期例會（方針由投票決定）；例會前一旬提醒
@@ -4196,6 +4254,7 @@ function visitRoll(cid){
 function meetCheck(cid,viaIntro){
   const n=npc(cid),r=R(cid);
   if(!n)return MSG('meet.gone');
+  if(hiddenSmuggler(cid))return MSG('meet.smuggler');                  // 闇商人不能投帖求見（07g_smuggle.js）
   if(isEnemy(cid))return MSG('meet.1');
   if(r.lastIntro!=null&&G.turn-r.lastIntro<3&&r.lastOk)return MSG('meet.recent');
   /* 知名度階級：有介紹人時視同 +1 階；私房錢滿 2000 兩加一階（只加一階）已含在 fameTier */
@@ -4308,7 +4367,7 @@ const FAVORS={
 const favorText=f=>Object.assign(f,{name:UT('fav.'+f.k),desc:UT('fav.'+f.k+'.d')});
 Object.values(FAVORS).forEach(L=>L.forEach(favorText));
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))).map(f=>resolveFavor(f,n)):[]}
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))&&!(f.bandit&&!banditFavorOpen(f,n))).map(f=>resolveFavor(f,n)):[]}
 /** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 借款種類的顯示名（舊存檔直接存中文名稱，原樣顯示）。 */
@@ -4318,7 +4377,8 @@ function doFavor(cid,key,arg){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
   if(!f)return {ok:false,msg:MSG('doFavor.1')};
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
-  if(f.relief)return doRelief(cid,n,r,f);                      // 災情救濟（07zu_relief.js）
+  if(f.relief)return doRelief(cid,n,r,f);
+  if(f.bandit)return doBanditFavor(cid,n,r,f);                  // 討伐海賊／山賊（07zv_bandit.js）                      // 災情救濟（07zu_relief.js）
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
@@ -5522,7 +5582,7 @@ function renderHome(){
   const city=homeCity();
   $('#badge-season').textContent=UT('home.season',{i:SEASON_ICON[season()],s:seasonName(season()),c:CYCLE_NAMES[G.cycle-1]});
   const al=$('#badge-alert');
-  let a='';if(disasterNow())a=UT('home.dis.'+G.disaster.type);else if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
+  let a='';if(disasterNow())a=UT('home.dis.'+G.disaster.type);else if(banditHome())a=UT('home.bandit.'+G.bandit.type);else if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
   al.textContent=a;al.classList.toggle('hidden',!a);
   $('#loc-city').textContent=UT('home.city',{c:city.name});
   {const fw=$('#fest-walk');if(fw)fw.innerHTML=festWalkHtml()}   // 節慶當旬：逛祭典（07zf_festwalk.js）
@@ -5542,7 +5602,7 @@ function renderHome(){
   sceneSync();
 }
 /** 商邸可拜訪的人（同行、座客、掮客…，不含已聘者）。 */
-const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!jailed(n)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
+const resident=()=>cityNpcs(G.cityId).filter(n=>['rival','guest','broker','smuggler','manager'].includes(n.role)&&!hiddenSmuggler(n.cid)&&!jailed(n)&&!n.hired&&!G.emps.some(e=>e.cid===n.cid));
 
 /* ---------- 大盤 ---------- */
 /** 迷你折線圖（行情走勢）。 */
@@ -6049,7 +6109,7 @@ ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=f
 
 /* ======================= 筆記（千人手帳） ======================= */
 /** 筆記分類標籤。 */
-const NOTE_FILTERS=['all','emp','official','rival','manager','oiran','other'].map(k=>[k,UT('opt.nf_'+k)]);
+const NOTE_FILTERS=['all','emp','official','rival','manager','guest','broker','smuggler','oiran','other'].map(k=>[k,UT('opt.nf_'+k)]);
 /** 筆記是否收錄：已結識（met/bond）或員工。 */
 const noteSeen=id=>{const r=R(id);return !!(r.met||r.bond||G.emps.some(e=>e.cid===id))};
 /** 依好感決定對此人的了解層級 1～4。 */
@@ -6064,7 +6124,7 @@ function renderNotes(){
     if(f==='emp')return !q||x.c.name.includes(q)||(empRole(x.id)?rankName(empRole(x.id)):'').includes(q);
     if(q&&!(x.c.name.includes(q)||(x.n&&(ROLE_LABEL[x.n.role]||'').includes(q))))return false;
     const role=x.n?x.n.role:roleOf(x.c);
-    if(f==='all')return true;if(f==='other')return !['official','rival','manager','oiran'].includes(role);return role===f;
+    if(f==='all')return true;if(f==='other')return !['official','rival','manager','guest','broker','smuggler','oiran'].includes(role);return role===f;
   }).sort((a,b)=>b.r.aff-a.r.aff);
   const overdue=G.known.filter(noteSeen).some(id=>R(id).promises.some(p=>!p.done&&G.turn>p.due));
   let h='<div class="pixel-box" style="padding:8px">'+UT('ppl.h.13',{a:notesTabsHtml(),b:G.known.filter(id=>CH(id)&&noteSeen(id)).length,c:G.world.sampleSize})+'</span></div>';
@@ -6727,6 +6787,18 @@ const SMUG_DEST={
 };
 /** 單趟載量、密庫容量。 */
 const SMUG_CAP=60,CONTRA_CAP=300;
+/* ---------- 闇商人：只能碰上，不能求見（第一百五十六節） ----------
+ *  還沒結識的闇商人不列在大店屋敷、不能引薦或登門、大番頭也不會替你結識。
+ *  結識途徑：第一次走私貨運回密庫（必定）、指名花魁 10%、包場花金夜宴 15%（ODDS.smugMeet）；唐物藥種開局認識一名。 */
+const hiddenSmuggler=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='smuggler'&&!(r&&r.bond))};
+/** 結識一位還不認識的本城闇商人；回傳 cid（沒有人可結識時回傳 null）。how：start、smug、nominate、feast。 */
+function meetSmuggler(how){
+  const L=cityNpcs(G.cityId,'smuggler').filter(n=>hiddenSmuggler(n.cid)&&!isEnemy(n.cid));if(!L.length)return null;
+  const cid=pick(L).cid,r=R(cid);
+  r.bond={mult:0.8,label:UT('smug.meet.label.'+how),introId:null};r.met=true;r.seen=true;addKnown(cid);
+  setAff(r,clamp(r.aff+ODDS.smugMeet.aff,0,100));logRel(cid,UT('smug.meet.log.'+how));
+  return cid;
+}
 
 const smugList=()=>G.smug||(G.smug=[]);
 const contra=()=>G.contra||(G.contra={});
@@ -6745,9 +6817,10 @@ function smugTick(log){
   smugList().forEach(v=>{
     v.eta--;if(v.eta>0)return;done.push(v);
     const it=SMUG_BY[v.k],cap=G.emps.find(e=>e.id===v.capt);
-    if(chance(v.risk)){
+    const robbed=banditRobs('sea');                  // 本地區海賊猖獗：回港一律被劫（07zv_bandit.js）
+    if(robbed||chance(v.risk)){
       const lost=Math.round(v.qty*0.7);v.qty-=lost;
-      const t=NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
+      const t=robbed?NEWS('bandit.smugRobbed',{name2:it.name,lost}):NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
     }
     const SZ_=ODDS.smugSeize,pSeize=clamp(SZ_.perDanger*it.danger+SZ_.perHeat*(G.heat||0)-((G.flags.blind>0)?SZ_.blind:0),SZ_.min,SZ_.max);
     if(v.qty>0&&chance(pSeize)){
@@ -6766,6 +6839,7 @@ function smugTick(log){
       const room=Math.max(0,CONTRA_CAP-contraQty()),q=Math.min(room,v.qty);
       contra()[v.k]=(contra()[v.k]||0)+q;
       const t=NEWS('smugTick.5',{name:it.name,q,q2:(q<v.qty?UT('smug.t',{a:v.qty-q}):'')});pushNews(t);log.push(t);sfx.coin();
+      if(q>0&&!G.smugMet){const m=meetSmuggler('smug');if(m){G.smugMet=true;const t2=NEWS('smug.meet',{n:nameOf(m)});pushNews(t2);log.push(t2)}}   // 第一次走私運回：接貨的人留下暗號
     }
   });
   G.smug=smugList().filter(v=>!done.includes(v));
@@ -6865,7 +6939,7 @@ SHEETS.smuggle=()=>{
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
   const p=raidChance(),lv=p<=0?UT('smug.lv'):p<0.05?UT('smug.lv.2'):p<0.12?UT('smug.lv.3'):UT('smug.lv.4');
   const free=idleCaptains('sea').length,cap=smugCaptain();
-  let h=UT('smug.h',{a:Math.round(G.gold),b:Math.max(0,free),c:p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34'})+'">'+lv+'</b></div></div>';
+  let h=banditNotice('sea')+UT('smug.h',{a:Math.round(G.gold),b:Math.max(0,free),c:p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34'})+'">'+lv+'</b></div></div>';
   h+=UT('smug.smuggle');
   // 下單
   h+=UT('smug.smuggle.2');
@@ -6896,6 +6970,7 @@ CHG.smugQty=el=>{smugSel().qty=+el.value;refreshSheet()};
 ACT.smugGo=()=>{
   if((G.exile||0)>0){toast(MSG('smugGo.1'));return}
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
+  if(banditBlocks('sea')){toast(UT('bandit.notice.sea',{n:banditLeft()}),4200);return}
   const cap=smugCaptain();if(!cap){toast(MSG('smugGo.3'));return}
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
@@ -7004,7 +7079,7 @@ function chiefVisit(log){
   }
   if(got.length){const t=NEWS('chief.visit',{list:got.join(UT('duty2.t'))});pushNews(t);log.push(t)}
   if(chance(C.newFriendP)){
-    const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)});
+    const cand=cityNpcs(G.cityId).filter(m=>{const r=G.rel[m.cid];return !(r&&r.bond)&&!isEnemy(m.cid)&&m.role!=='smuggler'});   // 闇商人不會被大番頭結識
     if(cand.length){
       const m=pick(cand),cid=m.cid,r=R(cid),gain=C.gainMin+Math.floor(rnd()*(C.gainMax-C.gainMin+1));
       setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(cid);
@@ -7105,6 +7180,7 @@ function applyStartBoost(sysKey){
     G.family.married=true;G.life.spouseKind='commoner';
     const k=newKid();k.birthYear=G.year-2;G.family.kids.push(k);
   }
+  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種：開局認識一名闇商人（07g_smuggle.js）
   if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'captain');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
@@ -7157,6 +7233,7 @@ function destList(mode){
 /** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）；batch＝出運清單一起出發（行動點數由 vGoAll 統一扣一次）。 */
 function sendVoyage(captId,budget,destId,mode,free,batch){
   mode=mode||'sea';
+  if(!free&&banditBlocks(mode))return {ok:false,msg:UT('bandit.notice.'+mode,{n:banditLeft()})};   // 本地區賊亂（07zv_bandit.js）
   const cap=idleCaptains(mode,true).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:NM('crew',mode)})};
   const dest=CITY(destId),dl=destList(mode).find(x=>x.ct.id===destId);if(!dest||!dl)return {ok:false,msg:MSG('sendVoyage.3')};
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))})};
@@ -7173,7 +7250,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
 }
 /** 歸來結算。 */
 function resolveVoyage(s,log){
-  const mode=s.mode,cs=s.cs||50,budget=s.budget||0,wreck=chance(s.risk),keep=wreck?0.3:1;
+  const mode=s.mode,cs=s.cs||50,budget=s.budget||0,robbed=banditRobs(mode),wreck=robbed||chance(s.risk),keep=wreck?0.3:1;   // 本地區賊亂期間回程一律被劫（07zv_bandit.js）
   const dest=CITY(s.origId),own=tradeNameSet(),all=ownNameSet();
   const prod=(dest?cityProds(dest):[]).filter(n=>COMM_MAP[n]);
   const ownP=prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
@@ -7191,9 +7268,9 @@ function resolveVoyage(s,log){
     kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
     note=UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
   }
-  const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
+  const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,robbed,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
   let refund=budget-fee,income=0;
-  const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(mode==='sea'?UT('voy.wn'):UT('voy.wn.2')):'';
+  const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(robbed&&mode==='sea'?UT('voy.wnPirate'):mode==='sea'?UT('voy.wn'):UT('voy.wn.2')):'';
   L.push(NEWS('kind.1',{dest:E.dest,note}));
   if(kind==='own'&&ownP.length){
     /* 同一地產好幾樣本業貨時平均分配：委託金與單趟運量平分給每一樣；某樣碰到庫存上限或倉位而買不滿，
@@ -7235,7 +7312,7 @@ function resolveVoyage(s,log){
   E.back=refund+income;
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
-  const t=NEWS('kind.8',{mode:NM('crew',mode),captName:s.captName,dest:E.dest,cross:(kind==='own'?UT('voy.t'):kind==='cross'?UT('voy.t.2'):UT('voy.t.3')),sea:(wreck&&kind!=='empty'?UT('voy.t.6',{a:mode==='sea'?UT('voy.t.4'):UT('voy.t.5')}):'')});
+  const t=NEWS('kind.8',{mode:NM('crew',mode),captName:s.captName,dest:E.dest,cross:(kind==='own'?UT('voy.t'):kind==='cross'?UT('voy.t.2'):UT('voy.t.3')),sea:(wreck&&kind!=='empty'?UT('voy.t.6',{a:robbed&&mode==='sea'?UT('voy.tPirate'):mode==='sea'?UT('voy.t.4'):UT('voy.t.5')}):'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
 /* ---------- 商路畫面 ---------- */
@@ -7244,6 +7321,7 @@ function voyagePanel(){
   const mode=R_.mode;
   if(mode==='land'&&!landPermit())return UT('voy.voyagePanel',{a:REG_NAME(homeCity().region_id)});
   if(mode==='sea'&&!anySea())return UT('voy.voyagePanel.2');
+  if(banditBlocks(mode))return banditNotice(mode);
   voyQPrune();
   const caps=idleCaptains(mode);
   if(!caps.length)return '<div class="notice">'+(idleCaptains(mode,true).length?UT('voy.voyagePanel.3',{a:NM('crew',mode)}):UT('voy.voyagePanel.4',{a:NM('crew',mode),b:NM('crew',mode)}))+'</div>';
@@ -7270,7 +7348,7 @@ function voyLogEntry(v){
   const mode=v.mode||'sea';
   if(!v.items)return '<div class="card"><div class="tiny muted">'+UT('voy.voyLogCard',{a:esc(v.date),b:NM('crew',mode),c:esc(v.capt),d:fmt(v.budget),e:v.lines.map(l=>'<div class="tiny" style="margin-top:2px">'+esc(l)+'</div>').join('')})+'</div>';
   const spent=v.items.reduce((a,x)=>a+x.cost,0);
-  let h='<div class="card"><div class="small"><b>'+esc(v.date)+'</b>'+(v.wreck&&v.items.length?' <b style="color:#b3261e">'+UT(mode==='sea'?'voy.log.wreckSea':'voy.log.wreckLand')+'</b>':'')+'</div>'
+  let h='<div class="card"><div class="small"><b>'+esc(v.date)+'</b>'+(v.wreck&&v.items.length?' <b style="color:#b3261e">'+UT(v.robbed&&mode==='sea'?'voy.log.pirate':mode==='sea'?'voy.log.wreckSea':'voy.log.wreckLand')+'</b>':'')+'</div>'
     +'<div class="tiny muted">'+UT('voy.log.who',{c:NM('crew',mode),n:esc(v.capt),p:esc(v.dest)})+'</div>';
   if(v.items.length){
     const td='padding:2px 6px;border-bottom:1px dashed #d8ccb0';
@@ -7622,7 +7700,8 @@ ACT.nomOiran=el=>{
   if(!r.bond){r.bond={mult:1,label:UT('flower.nomOiran'),introId:null};r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(0.6)}}
   setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
   logRel(cid,UT('flower.nomOiran.2'));sfx.gift();
-  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note}),3600);
+  const sm=chance(ODDS.smugMeet.nominate)?meetSmuggler('nominate'):null;   // 隔壁座敷偶遇闇商人
+  toast(MSG('nomOiran.5',{cid:nameOf(cid),aff:Math.round(r.aff),note})+(sm?MSG('smug.meet.nominate',{n:nameOf(sm)}):''),sm?5200:3600);
   UI.render();refreshSheet();
 };
 ACT.oGift=el=>{
@@ -7666,6 +7745,7 @@ ACT.feast=()=>{
   playFx('walk',MSG('feast.fx'),MSG('feast.fxTitle'),()=>{
     if(!pool.length){toast(MSG('feast.2',{note}));UI.render();refreshSheet();return}
     const guests=shuffle(pool.slice()).slice(0,rint(1,3));
+    if(chance(ODDS.smugMeet.feast)){const sm=meetSmuggler('feast');if(sm)guests.push(npc(sm))}   // 席間混進一位闇商人
     let h=UT('flower.h');
     guests.forEach(n=>{
       const r=R(n.cid),gain=rint(3,5);
@@ -8383,7 +8463,7 @@ function regLicCard(){
 /** 某職位能辦的請託：三系官署看系統別與官階（限定官階的只在該階），遠國奉行所看職位。回傳 [{name,desc}]。 */
 function posFavors(id){
   const p=OFF_POS[id];if(!p)return [];
-  return (FAVORS[p.court]||[]).filter(f=>!f.relief&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
+  return (FAVORS[p.court]||[]).filter(f=>!f.relief&&!f.bandit&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
     let name=f.name;
     if(f.lic)name=licFavorName(f.lic,p.rank);
     else if(f.trade!==undefined)name=G&&G.sysKey?tradeFavorName(f.trade):UT('lic.posFavors.3',{a:f.trade?UT('lic.posFavors'):UT('lic.posFavors.2')});
@@ -8599,7 +8679,7 @@ function reqList(cid){
 }
 function requestHtml(cid,msg){
   const L=reqList(cid);
-  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
+  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>f.info?'<div class="irow" style="margin-top:4px"><b class="small">'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc||'')+'</div></div>':'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
 }
 ACT.reqDone=()=>{BT=null;UI.hideInfo()};
 /** 解仇：先挑一位仇人（在世的仇人都列出，不分城市）。 */
@@ -8986,14 +9066,20 @@ function dealerReqs(cid){
       return {k:'xs_'+k,name:UT('deal.dealerReqs.7',{a:xName(k),b:q}),desc:UT('deal.dealerReqs.8',{a:fmt(Q.rev),b:Math.round(Q.m*100)})}});
   }
   if(n.role==='smuggler'){
-    return Object.keys(contra()).filter(k=>contra()[k]>0).map(k=>{const q=contra()[k],i=SMUG_BY[k];
-      return {k:'cs_'+k,name:UT('deal.dealerReqs.9',{a:i.name,b:q}),desc:UT('deal.dealerReqs.10',{a:smugMood(k),b:fmt(Math.round(smugPrice(k,q)*q)),c:fmt1(smugPrice(k,q)),d:fmt1(0.2*i.danger)})}});
+    const out=[],bb=banditBribeReq();if(bb)out.push(bb);   // 賊亂期間：買通海賊／山賊（07zv_bandit.js）
+    const ks=Object.keys(contra()).filter(k=>contra()[k]>0);
+    if(ks.length&&!blackMarketOpen())return out.concat([{k:'cs_wait',info:true,name:UT('deal.csWait'),desc:UT('deal.csWait.d')}]);   // 黑貨只在節慶或災情當旬收
+    return out.concat(ks.map(k=>{const q=contra()[k],i=SMUG_BY[k];
+      return {k:'cs_'+k,name:UT('deal.dealerReqs.9',{a:i.name,b:q}),desc:UT('deal.dealerReqs.10',{a:smugMood(k),b:fmt(Math.round(smugPrice(k,q)*q)),c:fmt1(smugPrice(k,q)),d:fmt1(0.2*i.danger)})}}));
   }
   return [];
 }
 /** 辦理商人請託，回傳結果訊息；不是商人請託回傳 null。 */
 function dealerDo(cid,k){
   const r=R(cid),nm=nameOf(cid);
+  if(k==='bribeBandit')return banditBribeDo(cid);
+  if(k==='cs_wait')return UT('deal.csWait.d');
+  if(k.startsWith('cs_')&&!blackMarketOpen())return UT('deal.csWait.d');
   if(k.startsWith('rv_')){
     const L=rivalLot(cid);if(!L||L.n!==k.slice(3))return UT('deal.dealerDo');
     G.silver-=L.cost;addStock(L.n,L.q,L.unit);G.inv[L.n]=(G.inv[L.n]||0)+L.q;
@@ -9779,6 +9865,8 @@ function markDisaster(type){if(!G)return;if(G.disaster&&G.disaster.turn===G.turn
 const disasterNow=()=>!!(G&&G.disaster&&G.disaster.turn===G.turn);
 /** 這一系的救濟本旬還能不能辦。 */
 const reliefOpen=court=>disasterNow()&&!G.disaster.done[court];
+/** 私梟收黑貨的時機：本城節慶當旬或災情當旬（第一百五十二節）。 */
+const blackMarketOpen=()=>!!(G&&(festActive()||disasterNow()));
 /** 緊急御免期間（本旬與下一旬）。 */
 const reliefImportOn=()=>!!(G&&G.reliefBuy>G.turn);
 /** 緊急御免：漲價的貨照災前價格（不計事件倍率）。 */
@@ -9811,6 +9899,62 @@ function doRelief(cid,n,r,f){
   }
   G.disaster.done[court]=true;
   logRel(cid,MSG('log.relief',{f:f.name,m:msg}));
+  return {ok:true,status:'done',msg};
+}
+
+'use strict';
+/* ======================= 海賊／山賊猖獗（第一百五十四節） =======================
+ *  全國每年一次：隨機一旬、隨機一個地區，海賊或山賊二選一，持續三旬（含當旬）。G.bandit＝{type:'sea'|'land',region,start,until,cleared}。
+ *  - 發生在外地：只有旬報一則新聞。
+ *  - 發生在本地區：海賊＝船長不能出海（委託採買、走私），山賊＝飛腳不能出發；這三旬內回程的船（海賊）或馬幫（山賊）一律被劫，損失比照遇險（七成）。
+ *  - 私梟「買通」（私房錢 300 兩、風聲 +0.5）：當旬出發與當旬推進時回程的隊伍都放行（G.banditPass＝買通那一旬）。
+ *  - 船奉行（海賊）／道中奉行（山賊）「討伐」（現款 3000 兩、不扣好感、知名度 +3）：立刻解除。
+ *  - 不算官吏混亂（第一節）。數值 ODDS.bandit；花費 COSTS.banditBribe、banditQuell。 */
+const homeRegion=()=>homeCity().region_id;
+/** 本地區某類賊亂是否正在進行（未討平）。 */
+const banditHome=type=>{const B=G&&G.bandit;return !!(B&&!B.cleared&&B.region===homeRegion()&&(!type||B.type===type)&&G.turn>=B.start&&G.turn<B.until)};
+const banditLeft=()=>G.bandit?G.bandit.until-G.turn:0;
+/** 出發是否被擋（當旬買通則放行）。 */
+const banditBlocks=mode=>banditHome(mode)&&G.banditPass!==G.turn;
+/** 推進一旬時，回程的隊伍是否被劫（上一旬買通則放行）。 */
+const banditRobs=mode=>banditHome(mode)&&G.banditPass!==G.turn-1;
+/** 每旬：排定今年的賊亂、到期發生、本地區平息時寫旬報。 */
+function banditTick(log){
+  const idx=(G.month-1)*3+G.cycle-1;
+  if(!G.banditPlan||G.banditPlan.y!==G.year)G.banditPlan={y:G.year,t:rint(idx,35)};
+  const B=G.bandit;
+  if(B&&!B.cleared&&B.region===homeRegion()&&G.turn===B.until){const t=NEWS('bandit.calm.'+B.type);pushNews(t);log.push(t)}
+  if(G.banditPlan.t!==idx||G.banditPlan.done)return;
+  G.banditPlan.done=true;
+  const type=chance(0.5)?'sea':'land',region=pick(REG_LIST).id;
+  G.bandit={type,region,start:G.turn,until:G.turn+ODDS.bandit.turns,cleared:false};
+  const t=region===homeRegion()?NEWS('bandit.home.'+type):NEWS('bandit.far.'+type,{r:REG_NAME(region)});pushNews(t);log.push(t);
+}
+/** 商路、走私面板上的封鎖提示。 */
+const banditNotice=mode=>banditBlocks(mode)?'<div class="notice" style="border-color:#b3261e">'+UT('bandit.notice.'+mode,{n:banditLeft()})+'</div>':'';
+/* ---------- 私梟：買通 ---------- */
+function banditBribeReq(){
+  const B=G.bandit;if(!banditHome()||G.banditPass===G.turn)return null;
+  return {k:'bribeBandit',name:UT('bandit.bribe.'+B.type),desc:UT('bandit.bribe.d',{a:fmt(costOf('banditBribe'))})};
+}
+function banditBribeDo(cid){
+  const r=R(cid);if(!banditHome())return UT('bandit.bribe.none');
+  if(!afford('banditBribe'))return shortMsg('banditBribe');
+  spend('banditBribe');addHeat(ODDS.bandit.bribeHeat);G.banditPass=G.turn;
+  setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,UT('bandit.bribe.log',{a:REQ_AFF.normal}));
+  return UT('bandit.bribe.ok.'+G.bandit.type,{a:nameOf(cid),b:REQ_AFF.normal});
+}
+/* ---------- 船奉行／道中奉行：討伐 ---------- */
+REG_FAVORS.push({k:'rquellSea',bandit:'sea',name:UT('fav.rquellSea'),rank:5,pos:['reg_08'],desc:UT('fav.rquellSea.d')});
+REG_FAVORS.push({k:'rquellLand',bandit:'land',name:UT('fav.rquellLand'),rank:5,pos:['reg_07'],desc:UT('fav.rquellLand.d')});
+/** 討伐請託只在本地區賊亂期間、向本地區的官員開口時出現。 */
+const banditFavorOpen=(f,n)=>banditHome(f.bandit)&&CITY(n.cityId).region_id===homeRegion();
+function doBanditFavor(cid,n,r,f){
+  if(!banditFavorOpen(f,n))return {ok:true,status:'held',msg:MSG('bandit.quell.closed')};
+  if(!afford('banditQuell'))return {ok:true,status:'held',msg:shortMsg('banditQuell')};
+  spend('banditQuell');G.bandit.cleared=true;const fm=addFame(ODDS.bandit.quellFame,'major');
+  const t=NEWS('bandit.quelled.'+f.bandit,{n:nameOf(cid)});pushNews(t);
+  const msg=MSG('bandit.quell.ok.'+f.bandit,{f:fm});logRel(cid,MSG('log.relief',{f:f.name,m:msg}));
   return {ok:true,status:'done',msg};
 }
 

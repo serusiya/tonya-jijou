@@ -62,7 +62,7 @@ const hasRumor=e=>e.rumorUntil>G.turn;
 /** 員工卡上的標籤（任職年資、自家栽培、前科、被冤枉、有風聲、待處置）。 */
 function staffTags(e){
   const y=Math.floor((G.turn-e.since)/STAFF.year);
-  return (e.homegrown?UT('staff.staffTags'):'')+(e.record?UT('staff.staffTags.2'):'')+(e.wronged?UT('staff.staffTags.3'):'')
+  return (jailedEmp(e)?UT('staff.jailed',{a:e.jailUntil-G.turn}):'')+(e.homegrown?UT('staff.staffTags'):'')+(e.record?UT('staff.staffTags.2'):'')+(e.wronged?UT('staff.staffTags.3'):'')
     +(e.caught?UT('staff.staffTags.4',{a:fmt(e.caught)}):hasRumor(e)?UT('staff.staffTags.5'):'');
 }
 const staffTenure=e=>{const n=G.turn-e.since,y=Math.floor(n/STAFF.year);return y>=1?UT('staff.staffTenure',{a:y}):UT('staff.staffTenure.2',{a:n})};

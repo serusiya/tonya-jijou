@@ -30,6 +30,8 @@ function faceEventCard(e){
     const O=G.xoffer;if(!O||O.cid!==e.cid||O.turn!==e.turn)return null;
     line=UT('face.faceEventCard.10',{a:fmt(O.loan),b:xName(O.name),c:O.qty});effect=UT('face.faceEventCard.11');
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="xoAccept">'+UT('btn.xoAccept')+'</button><button class="pixel-btn btn-sm" data-act="xoDecline">'+UT('btn.xoDecline')+'</button></div>';
+  }else if(e.type==='staff'){
+    const C=sevCard(e,name);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 店員偶發事件（07zt_staffevents.js）
   }else return null;
   return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:17px">'+esc(name)+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(tag),b:esc(line),c:esc(effect)})+'</div>'+buttons+'</div>';
 }
@@ -41,7 +43,7 @@ function showNextFaceEvent(){
   save();
   if(!h)return;
   INFO_AFTER=q.length?showNextFaceEvent:null;
-  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5')}[e.type]||UT('face.faceEventCard');
+  const title={windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5'),staff:UT('face.title.staff')}[e.type]||UT('face.faceEventCard');
   UI.showInfo(title,h);
 }
 /** 在旬報開啟後登記接續動作；玩家關閉旬報才開始逐件會面。 */

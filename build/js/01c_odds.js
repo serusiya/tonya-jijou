@@ -16,9 +16,9 @@ const ODDS={
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
-  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／大盤進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
+  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
-  buyLimit:{name:'大盤進貨上限（需求×市佔率；參加協議者再加協議配額；番頭與大番頭每人加成；無條件捨去，至少 1）',mult:0.8,perBantou:0.3},
+  buyLimit:{name:'相場進貨上限（需求×市佔率；參加協議者再加協議配額；番頭與大番頭每人加成；無條件捨去，至少 1）',mult:0.8,perBantou:0.3},
   chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
@@ -47,7 +47,7 @@ const ODDS={
   enemyThief:{name:'每位仇人增加的盜賊機率',p:0.02},
   /* —— 官府 —— */
   imperial:{name:'欽差突查：風聲高於此值才會被罰款',heat:4},
-  calm:{name:'請巡見使美言：一般風聲不增加的旬數（重罪照加）',turns:9},
+  calm:{name:'巡見使口添：一般風聲不增加的旬數（重罪照加）',turns:9},
   inspect:{name:'町奉行查貨（每旬）',base:0.30,perFame:0.25,min:0.05,max:0.30},
   regionRevoke:{name:'風聲≥5 時，巡見使吊銷許可（每旬）',p:0.03,heat:5},
   /* —— 走私 —— */
@@ -55,33 +55,47 @@ const ODDS={
   raidBlind:{name:'同心收袖之下後睜一隻眼',p:0.6},
   smugSeize:{name:'走私船入港被扣',perDanger:0.06,perHeat:0.01,blind:0.05,min:0.02,max:0.6},
   confess:{name:'被捕者供出主使',base:0.75,loyalDiv:130,min:0.1,max:0.7},
-  /* —— 海陸運（遇險率隨旬數累積，受船長膽識影響）—— */
+  /* —— 海陸運（遇險率隨旬數累積，受船長膽力影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
   voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
-  xForce:{name:'官吏硬塞貨物（每旬）',p:0.04},
-  smugglerArrest:{name:'私梟落網（每旬，近期替你脫手者）',from:3,perHeat:0.02,max:0.12,window:36,jail:36},
+  xForce:{name:'役人硬塞貨物（每旬）',p:0.04},
+  smugglerArrest:{name:'闇商人落網（每旬，近期替你脫手者）',from:3,perHeat:0.02,max:0.12,window:36,jail:36},
   /* —— 其他 —— */
   chatMix:{name:'點人聊天內容比例（其餘為閒聊）',outsider:0.2,staff:0.3},
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
   fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
-  fameLoss:{name:'醜聞扣知名度',inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
+  fameLoss:{name:'醜聞扣知名度',staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
   assInvestigate:{name:'命案後官府追查',base:0.12,perHeat:0.03,perRank:0.04,min:0.15,max:0.6},
   /* —— 放火（同暗殺機制；對象為隨機同業，視同官階 3）—— */
   arson:{name:'放火成功率',base:0.45,courageDiv:250,commerceDiv:400,rank:3,perRank:0.06,min:0.12,max:0.85,minCourage:70},
-  /* —— 官員栽贓（司法）／打壓（行政）：機制同放火，成功率以官員自身膽識與商才計 —— */
+  /* —— 官員栽贓（吟味方）／打壓（普請方）：機制同放火，成功率以官員自身膽力與商才計 —— */
   frame:{name:'栽贓成功率',base:0.45,courageDiv:250,commerceDiv:400,rank:3,perRank:0.06,min:0.12,max:0.85},
   suppress:{name:'打壓成功率',base:0.45,courageDiv:250,commerceDiv:400,rank:3,perRank:0.06,min:0.12,max:0.85,turns:6,evMul:0.6},
   schemeInvestigate:{name:'官員運作後被查辦',base:0.12,perHeat:0.03,rank:3,perRank:0.04,min:0.15,max:0.6},
-  /* —— 上貢（財務官員好感 100）：限期內備妥本業貨，到期按市價倍數自動上貢 —— */
+  /* —— 上貢（勘定方官員好感 100）：限期內備妥本業貨，到期按市價倍數自動上貢 —— */
   tribute:{name:'上貢',quotaMult:3,min:5,turns:4,priceMul:3,fame:3,shareUp:0.05,failAff:30},
   arsonInvestigate:{name:'縱火後官府追查',base:0.12,perHeat:0.03,rank:3,perRank:0.04,min:0.15,max:0.6}
+  /* 店員偶發事件（07zt_staffevents.js）：每旬每位店員約 0.9% 起事、全店每旬最多一件；權重 w*；金額 90～110 兩；
+     payAff／ignAff 出錢／不管的好感增減，payLoyal 忠誠成長，jail 關押旬數，relapse 賭癮再犯機率，creditor 債主上門機率，quit 番頭以上請辭機率 */
+  ,staffEvent:{name:'店員偶發事件',perEmp:0.009,cap:0.12,cooldown:36,wedTenure:36,costMin:90,costMax:110,
+    wWeak:6,wStat:2,wIll:1.5,wIllWeak:4,wWed:1.5,wPoach:1.5,wFrame:0.5,
+    gamble:{payAff:12,ignAff:-10,relapse:0.3,relapseMin:9,relapseMax:30,skimTurns:36,creditor:0.2},
+    drunk:{payAff:8,ignAff:-8,jail:3},
+    ill:{payAff:15,payLoyal:2,ignAff:-12,quit:0.1},
+    wed:{payAff:10,payLoyal:1,ignAff:-3},
+    poach:{payAff:5},
+    frame:{payAff:10,ignAff:-15,jail:6}}
+  /* 災情救濟請託（07zu_relief.js）：soup 施粥（知名度、風聲減量、主食行情倍率、官員好感），import 緊急御免（旬數、進貨上限倍數、知名度），build 普請御用（每項收購約幾旬配額、收購價倍率、知名度） */
+  ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
+  ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,bribeHeat:0.5,quellFame:3}
+  ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
 const roll=(k,p)=>chance(p===undefined?ODDS[k].p:p);

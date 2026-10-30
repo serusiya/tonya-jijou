@@ -23,6 +23,18 @@ const SMUG_DEST={
 };
 /** 單趟載量、密庫容量。 */
 const SMUG_CAP=60,CONTRA_CAP=300;
+/* ---------- 闇商人：只能碰上，不能求見（第一百五十六節） ----------
+ *  還沒結識的闇商人不列在大店屋敷、不能引薦或登門、大番頭也不會替你結識。
+ *  結識途徑：第一次走私貨運回密庫（必定）、指名花魁 10%、包場花金夜宴 15%（ODDS.smugMeet）；唐物藥種開局認識一名。 */
+const hiddenSmuggler=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='smuggler'&&!(r&&r.bond))};
+/** 結識一位還不認識的本城闇商人；回傳 cid（沒有人可結識時回傳 null）。how：start、smug、nominate、feast。 */
+function meetSmuggler(how){
+  const L=cityNpcs(G.cityId,'smuggler').filter(n=>hiddenSmuggler(n.cid)&&!isEnemy(n.cid));if(!L.length)return null;
+  const cid=pick(L).cid,r=R(cid);
+  r.bond={mult:0.8,label:UT('smug.meet.label.'+how),introId:null};r.met=true;r.seen=true;addKnown(cid);
+  setAff(r,clamp(r.aff+ODDS.smugMeet.aff,0,100));logRel(cid,UT('smug.meet.log.'+how));
+  return cid;
+}
 
 const smugList=()=>G.smug||(G.smug=[]);
 const contra=()=>G.contra||(G.contra={});
@@ -41,9 +53,10 @@ function smugTick(log){
   smugList().forEach(v=>{
     v.eta--;if(v.eta>0)return;done.push(v);
     const it=SMUG_BY[v.k],cap=G.emps.find(e=>e.id===v.capt);
-    if(chance(v.risk)){
+    const robbed=banditRobs('sea');                  // 本地區海賊猖獗：回港一律被劫（07zv_bandit.js）
+    if(robbed||chance(v.risk)){
       const lost=Math.round(v.qty*0.7);v.qty-=lost;
-      const t=NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
+      const t=robbed?NEWS('bandit.smugRobbed',{name2:it.name,lost}):NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
     }
     const SZ_=ODDS.smugSeize,pSeize=clamp(SZ_.perDanger*it.danger+SZ_.perHeat*(G.heat||0)-((G.flags.blind>0)?SZ_.blind:0),SZ_.min,SZ_.max);
     if(v.qty>0&&chance(pSeize)){
@@ -62,6 +75,7 @@ function smugTick(log){
       const room=Math.max(0,CONTRA_CAP-contraQty()),q=Math.min(room,v.qty);
       contra()[v.k]=(contra()[v.k]||0)+q;
       const t=NEWS('smugTick.5',{name:it.name,q,q2:(q<v.qty?UT('smug.t',{a:v.qty-q}):'')});pushNews(t);log.push(t);sfx.coin();
+      if(q>0&&!G.smugMet){const m=meetSmuggler('smug');if(m){G.smugMet=true;const t2=NEWS('smug.meet',{n:nameOf(m)});pushNews(t2);log.push(t2)}}   // 第一次走私運回：接貨的人留下暗號
     }
   });
   G.smug=smugList().filter(v=>!done.includes(v));
@@ -161,7 +175,7 @@ SHEETS.smuggle=()=>{
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
   const p=raidChance(),lv=p<=0?UT('smug.lv'):p<0.05?UT('smug.lv.2'):p<0.12?UT('smug.lv.3'):UT('smug.lv.4');
   const free=idleCaptains('sea').length,cap=smugCaptain();
-  let h=UT('smug.h',{a:Math.round(G.gold),b:Math.max(0,free),c:p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34'})+'">'+lv+'</b></div></div>';
+  let h=banditNotice('sea')+UT('smug.h',{a:Math.round(G.gold),b:Math.max(0,free),c:p>=0.12?'#b3261e':p>=0.05?'#c18a00':'#1e7e34'})+'">'+lv+'</b></div></div>';
   h+=UT('smug.smuggle');
   // 下單
   h+=UT('smug.smuggle.2');
@@ -192,6 +206,7 @@ CHG.smugQty=el=>{smugSel().qty=+el.value;refreshSheet()};
 ACT.smugGo=()=>{
   if((G.exile||0)>0){toast(MSG('smugGo.1'));return}
   const S=smugSel(),d=SMUG_DEST[S.dest],it=SMUG_BY[S.k];
+  if(banditBlocks('sea')){toast(UT('bandit.notice.sea',{n:banditLeft()}),4200);return}
   const cap=smugCaptain();if(!cap){toast(MSG('smugGo.3'));return}
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);

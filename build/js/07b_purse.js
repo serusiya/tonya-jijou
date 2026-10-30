@@ -81,7 +81,7 @@ const guardPower=e=>statsOfEmp(e).audacity_courage;
  */
 function rollAmbush(){
   if(!chance(ambushChance()))return null;
-  const gs=G.emps.filter(e=>e.rank==='guard').sort((a,b)=>guardPower(b)-guardPower(a));
+  const gs=G.emps.filter(e=>e.rank==='guard'&&!jailedEmp(e)).sort((a,b)=>guardPower(b)-guardPower(a));
   if(gs.length){
     const g=gs[0],pw=guardPower(g);
     // 膽識 ≥70 必定無傷退敵；否則機率 (pw/70)^2，失敗則保鏢替你擋刀而亡
