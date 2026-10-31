@@ -868,6 +868,9 @@ const ODDS={
   ,ronin:{name:'浪人頭（07zw_ronin.js）：最多結識人數、結識機率（指名、夜宴、遇襲）、結識好感、要錢次數門檻、各階金額（浪人、一～三階）、每升一階機率倍率',maxKnown:3,nominate:0.1,feast:0.15,ambush:0.3,aff:10,times:10,amt:[50,100,200,400],decay:0.75}
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
   ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,bribeHeat:0.5,quellFame:3}
+  ,regConsign:{name:'官船捎帶／官荷捎帶（07zz_regfavor.js）：第二貴貨的機率、到貨旬數、風聲；sea／land 約值與付款',second:0.2,turns:3,heat:0.2,sea:{value:3000,pay:2000},land:{value:1500,pay:1000}}
+  ,honjin:{name:'本陣御用達（07zz_regfavor.js）：每旬約值、旬數、市價加成、失約扣好感',value:500,turns:3,markup:1.2,failAff:30}
+  ,letter:{name:'外地遠國奉行所寄信（07zz_letters.js）：送信費、好感增量、最多加到',fee:100,gainMin:4,gainMax:8,cap:60,heat:0.2}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
@@ -1203,6 +1206,10 @@ const LINES={
     line:['東家，在下又來叨擾了。打點門路的錢，還差一些……','聽說番所那邊快有缺了，再打點一次，事情就成了。','武士窮途，不敢多求，只要這一回就好。','在下的刀還在，志氣也還在，只是缺些打點的錢。'],
     lineOfficial:['公事繁忙，抽空來一趟。上頭那位大人，還得再打點打點。','東家的恩情在下記著。再往上走一步，對你我都好。','衙門裡的規矩，你也明白——不打點，誰也升不上去。'],
     visit:['東家來了？有什麼事，直說便是。','自己人不必客套，要辦什麼，在下替你張羅。']
+  },
+  /* 外地遠國奉行所的書狀請託（07zz_letters.js） */
+  letter:{
+    reqLine:['來信收悉。你我相隔兩地，有什麼事，信裡直說無妨。','書狀已讀。若有需要本官照應之處，回信說明便是。','承蒙來函。路遠不便相見，所託之事，本官酌情辦理。']
   }
 };
 const _lineAt=path=>path.split('.').reduce((o,k)=>o&&o[k],LINES);
@@ -2610,7 +2617,41 @@ const UI_TXT={
   'btn.branchGive':'給他',
   'btn.branchRefuse':'回絕',
   'branch.pay.d':'分號送來 {a} 兩。',
-  'rep.branch':'分號送錢'
+  'rep.branch':'分號送錢',
+  /* —— 遠國奉行所三階新請託、外地寄信 —— */
+  'fav.rconsignSea':'官船捎帶',
+  'fav.rconsignSea.d':'官船採購時順便替你帶一批最貴的本業貨：付三分之二的價錢，三旬後到港。只有本地區的官員能辦，本店要在港口城。',
+  'fav.rconsignSea.n':'官船捎帶：{g} × {q}',
+  'fav.rconsignSea.dd':'付 {a} 兩，三旬後到港。',
+  'fav.rconsignLand':'官荷捎帶',
+  'fav.rconsignLand.d':'御用荷物運進來時順便替你帶一批最貴的本業貨：付三分之二的價錢，三旬後運到。只有本地區的官員能辦，本店不在港口城（水陸要衝也可以）。',
+  'fav.rconsignLand.n':'官荷捎帶：{g} × {q}',
+  'fav.rconsignLand.dd':'付 {a} 兩，三旬後運到。',
+  'fav.rhonjin':'本陣御用達',
+  'fav.rhonjin.d':'連續三旬替本陣供貨，照市價加兩成付錢；送不足就算失約。只有本地區的官員能辦。',
+  'fav.rhonjin.n':'本陣御用達：{g} × {q}',
+  'fav.rhonjin.dd':'連續三旬，每旬從庫存送去，照市價加兩成付錢；送不足就算失約。',
+  'rfav.lost':'（放不下，損 {n}）',
+  'rfav.log.fail':'本陣御用達送貨不足，失約。好感 −{d}',
+  'rep.honjin':'本陣御用達',
+  'spend.consignSea':'官船捎帶：{n}',
+  'spend.consignLand':'官荷捎帶：{n}',
+  'spend.letter':'寄信：{n}',
+  'bond.letter':'書信往來',
+  'letter.note':'<div class="notice tiny" style="margin:4px 0">外地奉行所遠在他鄉，只能託人捎信往來。不必出門，但所有外地官員合計一旬只能寄一封。</div>',
+  'letter.usedNote':'<div class="tiny muted" style="margin:-2px 0 4px">本旬已寄過信。</div>',
+  'letter.meetNote':'<div class="tiny muted">尚未結識。只能寄問候信，可能被原封退回。</div>',
+  'letter.row':'<div class="tiny muted" style="margin-top:3px">遠在外地，只能書信往來。</div>',
+  'letter.noReq':'<div class="tiny muted" style="margin-top:2px">眼下沒有能託他辦的事。</div>',
+  'btn.letterMeet':'✉️ 寄問候信（{c}）',
+  'btn.letter':'✉️ 寄信（{c}）',
+  'btn.letterReq':'📜 書狀請託（{c}）',
+  'btn.letterUsed':'本旬已寄過信',
+  'letter.reqTitle':'📜 {a} 的回信',
+  'letter.log.returned':'問候信被原封退回',
+  'letter.log.met':'寄問候信結識，好感 +{g}',
+  'letter.log.sent':'寄信附禮 {a} 兩，好感 +{g}',
+  'letter.log.req':'寄書狀請託，附禮 {a} 兩'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -3023,7 +3064,25 @@ const MSG_TXT={
   'branch.given':'貨送去了，「{n}」說分號一定會記著本家的情。',
   'branch.repay':'「{n}」送回 {a} 兩：「這些年調的貨，連本帶利奉還。」',
   'branch.refused':'「{n}」默默回去了。',
-  'branch.closed':'「{n}」的分號撐不下去，就此收了暖簾。'
+  'branch.closed':'「{n}」的分號撐不下去，就此收了暖簾。',
+  /* —— 遠國奉行所三階新請託、外地寄信 —— */
+  'rfav.notLocal':'這件事只有本地區的官員能辦。',
+  'rfav.noGoods':'眼下沒有能買賣的本業貨，這件事辦不成。',
+  'rfav.short':'現款不足，要先付 {a} 兩。',
+  'rfav.honjinBusy':'本陣御用達的合約還沒走完。',
+  'rfav.consign.sea':'已付 {a} 兩，{g} × {q} 隨官船捎回，{t} 旬後到港。',
+  'rfav.consign.land':'已付 {a} 兩，{g} × {q} 隨御用荷物運來，{t} 旬後運到。',
+  'rfav.honjin':'接下本陣御用達：連續 {t} 旬，每旬送 {g} × {q}，照市價加兩成付錢。',
+  'letter.only':'外地奉行所遠在他鄉，只能託人捎信往來。',
+  'letter.notForeign':'本地區的官員可以親自登門拜訪。',
+  'letter.used':'這一旬已經寄過信了。',
+  'letter.short':'現款不足，寄不出這封信（要 {a} 兩）。',
+  'letter.returned':'問候信被原封退回，只花了送信費 {a} 兩。',
+  'letter.met':'{n} 回了信，從此書信往來。好感 +{g}。',
+  'letter.sent':'信和 {a} 兩禮金送到了 {n} 手上。好感 +{g}。',
+  'letter.friend':'交情已深，可以直接寄書狀請託。',
+  'letter.notFriend':'交情還不夠，寄書狀請託恐怕石沉大海。',
+  'letter.noReq':'眼下沒有能託他辦的事。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -3273,7 +3332,13 @@ const NEWS_TXT={
   "branch.open":"🏮【暖簾分】大番頭「{n}」離店自立，開設「{b}」。",
   "branch.repay":"🏮【分號】「{b}」送回 {a} 兩，連本帶利奉還本家。",
   "branch.pay":"🏮【分號】「{b}」送來盈餘 {a} 兩。",
-  "branch.closed":"🏮【分號】「{b}」經營不下去，收了暖簾。"
+  "branch.closed":"🏮【分號】「{b}」經營不下去，收了暖簾。",
+  /* —— 遠國奉行所三階新請託 —— */
+  "rfav.arrive.sea":"⛵【官船捎帶】{g} × {q} 隨官船到港入倉{l}。",
+  "rfav.arrive.land":"🐎【官荷捎帶】{g} × {q} 隨御用荷物運到入倉{l}。",
+  "rfav.honjin.give":"🏯【本陣御用達】送去 {g} × {q}，入帳 {a} 兩（還有 {l} 旬）。",
+  "rfav.honjin.done":"🏯【本陣御用達】送去 {g} × {q}，入帳 {a} 兩，三旬合約順利完成。",
+  "rfav.honjin.fail":"🏯【本陣御用達】庫存不足，只送去 {g} × {q}（入帳 {a} 兩），失約，合約作廢。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -3317,6 +3382,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年10月31日',items:[
+    '遠國奉行所新增三件請託：官船捎帶、官荷捎帶、本陣御用達。',
+    '外地的遠國奉行所官員改為只能寄信往來，交情夠了可以寫信請託。',
+    '修改背景資料。'
+  ]},
   {date:'2026年10月30日',items:[
     '公會例會設定更新：改在每季第一旬召開，例會上同業會發言。',
     '各城物價的高低重新洗牌一次。',
@@ -4211,7 +4281,9 @@ function advanceTurn(){
   homeEventsVoid();                               // 上一旬「回府時」沒輪到的事件作廢（07zx_homeevt.js）
   const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
+  const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
   autoShip(log);
+  if(TURNRP)TURNRP.honjin=hj;
   autoBuy(log);
   snapMarket();                                   // 日期前進前，記下本旬的需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
@@ -4222,6 +4294,7 @@ function advanceTurn(){
   tourTick(log);
   banditTick(log);                                // 海賊／山賊猖獗（07zv_bandit.js）：先於回程結算
   receiveOrders(log);
+  consignTick(log);                               // 官船／官荷捎帶到貨（07zz_regfavor.js）
   evalCartel(log);
   meetingTick(log);                               // 例會旬：上一期違約金分配、建立本期例會（方針由投票決定）；例會前一旬提醒
   populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
@@ -4440,7 +4513,7 @@ const FAVORS={
 const favorText=f=>Object.assign(f,{name:UT('fav.'+f.k),desc:UT('fav.'+f.k+'.d')});
 Object.values(FAVORS).forEach(L=>L.forEach(favorText));
 /** 某官員可受理的請託清單（已取得、已跨級或正在審理的資格不再列出；交易許可帶上貨名）。 */
-function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))&&!(f.bandit&&!banditFavorOpen(f,n))).map(f=>resolveFavor(f,n)):[]}
+function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[]).filter(f=>(!f.pos||f.pos.includes(n.pos.posId))&&(!f.exactRank||n.pos.rank===f.rank)&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.k==='reconcile'&&!enemies().length)&&!(f.relief&&!reliefOpen(n.pos.court))&&!(f.bandit&&!banditFavorOpen(f,n))&&!(f.local&&!localReg(n))&&!(f.avail&&!f.avail(n))).map(f=>resolveFavor(f,n)).filter(f=>!f.off):[]}
 /** 流言杜絕的風聲減量：四階 3、五階 4、六階 5。 */
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 借款種類的顯示名（舊存檔直接存中文名稱，原樣顯示）。 */
@@ -4455,6 +4528,7 @@ function doFavor(cid,key,arg){
   if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
+  {const ck=regFavorCheck(f,n);if(ck)return {ok:true,status:'held',msg:ck}}   // 遠國奉行所三階新請託（07zz_regfavor.js）
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
   if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
   const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
@@ -5979,7 +6053,9 @@ function personBlock(cid,ctx){
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
   h+='<div class="text-brief muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
-  if(!r.bond){
+  if(!r.bond&&foreignReg(n)){
+    h+=letterMeetHtml(cid);                          // 外地遠國奉行所官員：只能寄問候信（07zz_letters.js）
+  }else if(!r.bond){
     h+=UT('ppl.personBlock');
     const pv=G.introId?introPreview(G.introId,cid):null;
     const pt=!pv?UT('ppl.pt'):pv.known?UT('ppl.pt.4',{a:pv.cp.label,b:pv.cp.shared.map(statName).join(UT('ppl.pt.2'))||UT('ppl.pt.3')}):UT('ppl.pt.5');
@@ -5994,7 +6070,7 @@ function personBlock(cid,ctx){
     else h+=UT('ppl.personBlock.8',{a:cid})+'">'+UT('btn.scout',{c:coinHtml('silver',scoutCost(cid))})+'</button></div>';
     if(r.verified)h+=UT('ppl.personBlock.9',{a:esc(weakName(c.weakness))})+'</b></div>';
     else h+=UT('ppl.personBlock.10');
-    h+=visitRowHtml(cid);
+    h+=foreignReg(n)?letterRowHtml(cid):visitRowHtml(cid);   // 外地遠國奉行所官員：書信往來（07zz_letters.js）
     h+=promiseLines(cid)+tributeStatus(cid);
     const ithr=G.intros.length?55:40,canIntro=canBeIntro(cid);if(ctx==='res'&&canIntro&&r.aff>=ithr&&!introOf(cid)&&G.intros.length<4)h+='<div style="margin-top:5px"><button class="pixel-btn btn-sm btn-green" data-act="makeIntro" data-cid="'+cid+'">'+UT('btn.makeIntro')+'</button></div>';else if(ctx==='res'&&canIntro&&!introOf(cid)&&G.intros.length<4)h+=UT('ppl.personBlock.11',{a:ithr});
   }
@@ -6593,11 +6669,11 @@ function rollAmbush(){
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={guildDiv:0,windfall:0,branch:0,buy:{},voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
+  const T={guildDiv:0,windfall:0,branch:0,honjin:0,buy:{},voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
-    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;
+    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;
     Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;if(r.fameGate)T.fameGate=true;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
@@ -6635,10 +6711,10 @@ function showTurnReport(reps,logs,n,kind){
   const exp=costs.reduce((a,x)=>a+x[2],0);
   const voyBack=T.voy.reduce((a,v)=>a+(v.back||0),0);         // 委託採買歸來退回的委託金餘額
   const buyTotal=Object.values(T.buy).reduce((a,x)=>a+x.cost,0);                 // 大盤進貨（推進時下單）
-  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch;      // 其餘雜項：員工私吞、罰款、事件等
-  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
+  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin;      // 其餘雜項：員工私吞、罰款、事件等
+  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
-  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
+  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
   h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>=0?'▲ ':'▼ ',b:sgn(T.net),c:fmt(G.silver)});
   h+=raidCard();
@@ -6648,6 +6724,7 @@ function showTurnReport(reps,logs,n,kind){
   if(T.guildDiv>0)h+=repRow('⚖️',UT('rep.showTurnReport.8'),T.guildDiv,max,'in');
   if(T.windfall>0)h+=repRow('💰',UT('rep.showTurnReport.9'),T.windfall,max,'in');
   if(T.branch>0)h+=repRow('🏮',UT('rep.branch'),T.branch,max,'in');
+  if(T.honjin>0)h+=repRow('🏯',UT('rep.honjin'),T.honjin,max,'in');
   if(other>0)h+=repRow('✨',UT('rep.showTurnReport.10'),other,max,'in');
   h+=UT('rep.showTurnReport.12',{a:costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||UT('rep.showTurnReport.11')});
   if(publicSpend.length)h+=UT('rep.showTurnReport.13',{a:publicSpend.map(x=>repRow('💴',esc(spendLabel(x[0])),x[1],max,'out')).join('')});
@@ -7140,7 +7217,7 @@ function chiefWindfall(log){
 }
 /** 自動問候：挑 1～3 位已結識、好感未滿 60 的人登門閒話，好感 +5～10（不送禮、不花錢，交情較淺者優先）；另有機率結識城中新朋友。 */
 function chiefVisit(log){
-  const C=ODDS.chief,pool=Object.entries(G.rel).filter(([cid,r])=>r.bond&&r.aff>=1&&r.aff<FRIEND_AFF&&npc(cid)&&!isEnemy(cid));   // 只補到 60
+  const C=ODDS.chief,pool=Object.entries(G.rel).filter(([cid,r])=>r.bond&&r.aff>=1&&r.aff<FRIEND_AFF&&npc(cid)&&!isEnemy(cid)&&!foreignReg(npc(cid)));   // 外地遠國奉行所官員只能寄信   // 只補到 60
   const got=[];
   const n=pool.length?Math.min(pool.length,C.visitMin+Math.floor(rnd()*(C.visitMax-C.visitMin+1))):0;
   for(let i=0;i<n;i++){
@@ -7635,6 +7712,7 @@ SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   let h=UT('reg.h',{a:(introSel()+appsCard())});
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?UT('reg.regional'):'')+'</span>').join('')+'</div>';
+  if(rid!==home.region_id)h+=UT('letter.note')+(letterUsed()?UT('letter.usedNote'):'');   // 外地只能寄信（07zz_letters.js）
   h+=regLicCard();
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
   h+='<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList2')+'</button></div>';
@@ -7651,7 +7729,7 @@ function officialKind(n){
   const s=CH(n.cid).derived_stats;
   return s.greed_index>=85?'greedy':(s.greed_index<=72&&s.integrity_loyalty>=50)?'clean':'plain';
 }
-function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;return officialKind(n)==='greedy'?3:6}   // 一階官員核發的申請一旬完成
+function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;const d=officialKind(n)==='greedy'?3:6;return foreignReg(n)?d*2:d}   // 外地遠國奉行所：審理旬數加倍   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return UT('reg.appName',{a:f.name,b:nameOf(n.cid)})}
 function applyFavor(cid,n,r,f){
@@ -8485,6 +8563,7 @@ function tradeLockMsg(name){const i=lockedTrade().indexOf(name);return UT('lic.t
 /** 把請託項目的名稱換成實際內容（交易許可帶貨名）。 */
 function resolveFavor(f,n){
   if(!f)return f;
+  {const x=regFavorResolve(f,n);if(x)return x}                  // 捎帶、本陣御用達：名稱帶貨名數量（07zz_regfavor.js）
   if(f.trade!==undefined)return Object.assign({},f,{name:tradeFavorName(f.trade)});
   if(f.lic&&n&&n.pos)return Object.assign({},f,{name:licFavorName(f.lic,n.pos.rank)});
   return f;
@@ -8756,7 +8835,7 @@ function specialList(cid){
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
 function reqList(cid){
   const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 商人請託：調貨、銷貨、臨時打工、代售與脫手（07x_dealers.js）
-  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(specialList(cid));
+  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).concat(foreignReg(n)?[]:specialList(cid));   // 外地官員沒有特殊請託
 }
 function requestHtml(cid,msg){
   const L=reqList(cid);
@@ -10274,6 +10353,185 @@ ACT.branchRefuse=()=>{
   if(B.refused>=ODDS.branch.refuse){B.closed=true;pushNews(NEWS('branch.closed',{b:branchName()}));msg=MSG('branch.closed',{n:B.name})}
   UI.hideInfo();toast(msg,4600);UI.render();
 };
+
+'use strict';
+/* ======================= 外地遠國奉行所官員：只能書信往來（第一百四十四節） =======================
+ *  - 本店所在地區的遠國奉行所官員照舊親自拜訪；外地的不能見面、不能派丁稚，只能託人寄信。
+ *  - 所有外地官員合計一旬一封（G.letterT＝寄出的那一旬）；送信費 100 兩加中檔禮金；不扣行動點數；風聲 +0.2；寄出當下就知道結果。
+ *     初次問候信：比照毛遂自薦，可能被退信（只收送信費）；知名度門檻照舊（有介紹人視同多一階）。
+ *     一般書信：好感 +4～8，最多加到 60。
+ *     書狀請託：交情 ≥60 時改寄請託信，信裡直接開口，不打拜訪戰鬥；照常扣好感、照常審理（外地審理旬數加倍，見 07k appDuration）。
+ *  - 外地官員沒有好感 100 的特殊請託；只限本地區官員的請託（捎帶、本陣御用達、討伐賊亂）也求不到。
+ *  - 大番頭的自動問候不會找外地官員。
+ *  數值 ODDS.letter；文字 letter.*（01e、01f）。 */
+const letterUsed=()=>G.letterT===G.turn;
+const letterCost=cid=>ODDS.letter.fee+btTiers(cid)[1];
+SPEND_ARG['spend.letter']=a=>nameOf(a);
+/** 寄信前檢查；回傳錯誤訊息或 null。 */
+function letterCheck(cid,amt){
+  const n=npc(cid);if(!foreignReg(n))return MSG('letter.notForeign');
+  if(letterUsed())return MSG('letter.used');
+  if(G.silver<amt)return MSG('letter.short',{a:fmt(amt)});
+  return null;
+}
+/** 尚未結識：問候信按鈕。 */
+function letterMeetHtml(cid){
+  const amt=letterCost(cid),used=letterUsed();
+  return UT('letter.meetNote')+'<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="letterMeet" data-cid="'+cid+'" '+(used?'disabled':'')+'>'+(used?UT('btn.letterUsed'):UT('btn.letterMeet',{c:coinHtml('silver',amt)}))+'</button></div>';
+}
+/** 已結識：寄信或書狀請託。 */
+function letterRowHtml(cid){
+  const r=R(cid),amt=letterCost(cid),used=letterUsed(),friend=r.aff>=FRIEND_AFF;
+  let h=UT('letter.row');
+  if(used)return h+'<div style="margin-top:4px"><button class="pixel-btn btn-sm" disabled>'+UT('btn.letterUsed')+'</button></div>';
+  if(!friend)return h+'<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="letterSend" data-cid="'+cid+'">'+UT('btn.letter',{c:coinHtml('silver',amt)})+'</button></div>';
+  const can=reqList(cid).length>0;
+  return h+'<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="letterReq" data-cid="'+cid+'" '+(can?'':'disabled')+'>'+UT('btn.letterReq',{c:coinHtml('silver',amt)})+'</button></div>'+(can?'':UT('letter.noReq'));
+}
+const letterPay=(cid,amt)=>{payPublic('spend.letter|'+cid,amt);addHeat(ODDS.letter.heat);G.letterT=G.turn};
+const letterDone=(m,ok)=>{toast(m,Math.max(3200,m.length*120));if(ok)sfx.gift();else sfx.bad();UI.render();refreshSheet()};
+/** 初次問候信：比照毛遂自薦，可能被退信。 */
+ACT.letterMeet=el=>{
+  const cid=el.dataset.cid,n=npc(cid),r=R(cid),amt=letterCost(cid);
+  const via=!!(G.introId&&introOf(G.introId));
+  if(meetTierNeed(cid)>fameTier()+(via?1:0)){toast(MSG('meet.fame'));return}
+  const err=letterCheck(cid,amt);if(err){toast(err);return}
+  let pRef=clamp(0.35+0.08*(n.pos.rank-1),0,0.8);pRef=Math.max(0.02,pRef-fameCut());
+  if(chance(pRef)){
+    payPublic('spend.letter|'+cid,ODDS.letter.fee);G.letterT=G.turn;r.lastIntro=G.turn;r.lastOk=false;addKnown(cid);
+    logRel(cid,UT('letter.log.returned'));return letterDone(MSG('letter.returned',{a:fmt(ODDS.letter.fee)}),false);
+  }
+  letterPay(cid,amt);r.lastIntro=G.turn;r.lastOk=true;
+  const gain=Math.round(10/(1+(n.pos.rank-2)*0.4));
+  setAff(r,clamp(r.aff+gain,0,100));r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(1.5*n.pos.rank,'mid')}
+  r.bond={mult:0.6,label:UT('bond.letter'),introId:null};
+  logRel(cid,UT('letter.log.met',{g:gain}));
+  letterDone(MSG('letter.met',{n:nameOf(cid),g:gain}),true);
+};
+/** 一般書信：好感 +4～8，最多到 60。 */
+ACT.letterSend=el=>{
+  const cid=el.dataset.cid,r=R(cid),amt=letterCost(cid),O=ODDS.letter;
+  if(r.aff>=O.cap){toast(MSG('letter.friend'));return}
+  const err=letterCheck(cid,amt);if(err){toast(err);return}
+  letterPay(cid,amt);
+  const gain=Math.max(0,Math.min(rint(O.gainMin,O.gainMax),O.cap-r.aff));
+  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(0.1);
+  logRel(cid,UT('letter.log.sent',{a:fmt(amt),g:gain}));
+  letterDone(MSG('letter.sent',{n:nameOf(cid),a:fmt(amt),g:gain}),true);
+};
+/** 書狀請託：交情 ≥60，信裡直接開口（不打拜訪戰鬥）。 */
+ACT.letterReq=el=>{
+  const cid=el.dataset.cid,r=R(cid),amt=letterCost(cid);
+  if(r.aff<FRIEND_AFF){toast(MSG('letter.notFriend'));return}
+  if(!reqList(cid).length){toast(MSG('letter.noReq'));return}
+  const err=letterCheck(cid,amt);if(err){toast(err);return}
+  letterPay(cid,amt);logRel(cid,UT('letter.log.req',{a:fmt(amt)}));
+  UI.render();refreshSheet();
+  INFO_AFTER=null;UI.showInfo(UT('letter.reqTitle',{a:nameOf(cid)}),requestHtml(cid,TX('letter.reqLine')));
+};
+/* 外地官員不能登門：拜訪、投帖都擋下（筆記頁等其他入口也一樣） */
+{const v=ACT.visit;ACT.visit=el=>{if(foreignReg(npc(el.dataset.cid))){toast(MSG('letter.only'));return}v(el)}}
+{const m=ACT.meet;ACT.meet=el=>{if(foreignReg(npc(el.dataset.cid))){toast(MSG('letter.only'));return}m(el)}}
+
+'use strict';
+/* ======================= 遠國奉行所三階新請託：官船捎帶、官荷捎帶、本陣御用達（第一百六十二節） =======================
+ *  - 都只能向本店所在地區的官員開口（外地官員寫信也求不到）；一般請託：好感 −10，同一位官員冷卻 12 旬。
+ *  - 官船捎帶（湊番所役，本店是港口城）／官荷捎帶（關所番頭，本店不是港口城；水陸要衝兩位都有）：
+ *     能買賣的本業貨裡，八成是最貴的那項、兩成是第二貴的；同一位官員同一旬開出的貨與數量固定。
+ *     官船約值 3,000 兩付 2,000 兩；官荷減半。三旬後入倉，不會遇難；放不下的直接損失。風聲 +0.2。
+ *  - 本陣御用達（宿場問屋場役）：隨機一項能買賣的本業貨，每旬約值 500 兩的數量；接下後連續三旬，
+ *     推進時（自動出貨之前）從庫存送出，照當旬市價加兩成入帳；不算本城出貨。送不足＝失約：有多少送多少，好感 −30、知名度 −1，合約結束。
+ *  數值 ODDS.regConsign、ODDS.honjin；文字 rfav.*（01e、01f、01g）。狀態 G.consign（在途）、G.honjin（合約）、G.regOffer（本旬開價）。 */
+/** 這位遠國奉行所官員是不是外地的（不在本店所在地區）。 */
+const foreignReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion());
+const localReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)===homeRegion());
+/** 本店能辦哪一種捎帶：港口城→官船；非港口城或水陸要衝→官荷。 */
+const consignSeaOk=()=>canSea(homeCity());
+const consignLandOk=()=>!canSea(homeCity())||homeCity().type==='waterland';
+/** 開價（同一位官員同一旬固定）。kind：sea／land／honjin。 */
+function regOffer(n,kind){
+  G.regOffer=G.regOffer||{};const key=n.cid+'|'+kind,o=G.regOffer[key];
+  if(o&&o.turn===G.turn&&COMM_MAP[o.name])return o;
+  const L=tradeComms();if(!L.length)return null;
+  const rd=seeded(n.cid+'|'+kind+'|'+G.turn),price=c=>marketIndex(c.name,true);
+  let c;
+  if(kind==='honjin')c=L[Math.floor(rd()*L.length)];
+  else{const S=L.slice().sort((a,b)=>price(b)-price(a));c=S.length>1&&rd()<ODDS.regConsign.second?S[1]:S[0]}
+  const O=kind==='honjin'?ODDS.honjin:ODDS.regConsign[kind];
+  const qty=Math.max(1,Math.round(O.value/Math.max(0.01,price(c))));
+  const r={turn:G.turn,name:c.name,qty,pay:O.pay||0};
+  G.regOffer[key]=r;
+  Object.keys(G.regOffer).forEach(k=>{if(G.regOffer[k].turn!==G.turn)delete G.regOffer[k]});
+  return r;
+}
+const consignKind=k=>k==='rconsignSea'?'sea':'land';
+REG_FAVORS.push(
+  {k:'rconsignSea',rank:3,cd:12,pos:['reg_02'],local:true,consign:'sea',avail:()=>consignSeaOk()},
+  {k:'rconsignLand',rank:3,cd:12,pos:['reg_01'],local:true,consign:'land',avail:()=>consignLandOk()},
+  {k:'rhonjin',rank:3,cd:12,pos:['reg_03'],local:true,honjin:true,avail:()=>!G.honjin}
+);
+REG_FAVORS.filter(f=>f.consign||f.honjin).forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
+/** 請託選單：名稱帶貨名與數量（resolveFavor 呼叫）。 */
+function regFavorResolve(f,n){
+  if(!f.consign&&!f.honjin)return null;
+  const o=regOffer(n,f.consign||'honjin');if(!o)return Object.assign({},f,{off:true});
+  const v={g:COMM_MAP[o.name].short,q:o.qty,a:fmt(o.pay)};
+  return Object.assign({},f,{name:UT('fav.'+f.k+'.n',v),desc:UT('fav.'+f.k+'.dd',v)});
+}
+/** 開口前的檢查（doFavor 呼叫）：回傳錯誤訊息或 null。 */
+function regFavorCheck(f,n){
+  if(f.local&&!localReg(n))return MSG('rfav.notLocal');
+  if(f.consign){const o=regOffer(n,f.consign);if(!o)return MSG('rfav.noGoods');if(G.silver<o.pay)return MSG('rfav.short',{a:fmt(o.pay)})}
+  if(f.honjin){if(G.honjin)return MSG('rfav.honjinBusy');if(!regOffer(n,'honjin'))return MSG('rfav.noGoods')}
+  return null;
+}
+const consignFavor=kind=>n=>{
+  const o=regOffer(n,kind),c=COMM_MAP[o.name];
+  payPublic('spend.consign'+(kind==='sea'?'Sea':'Land')+'|'+o.name,o.pay);addHeat(ODDS.regConsign.heat);
+  (G.consign=G.consign||[]).push({kind,name:o.name,qty:o.qty,cost:o.pay,due:G.turn+ODDS.regConsign.turns,cid:n.cid});
+  delete G.regOffer[n.cid+'|'+kind];
+  return MSG('rfav.consign.'+kind,{g:c.short,q:o.qty,a:fmt(o.pay),t:ODDS.regConsign.turns});
+};
+REG_FAVOR.rconsignSea=consignFavor('sea');
+REG_FAVOR.rconsignLand=consignFavor('land');
+REG_FAVOR.rhonjin=n=>{
+  const o=regOffer(n,'honjin'),c=COMM_MAP[o.name];
+  G.honjin={cid:n.cid,name:o.name,qty:o.qty,left:ODDS.honjin.turns,start:G.turn};
+  delete G.regOffer[n.cid+'|honjin'];
+  return MSG('rfav.honjin',{g:c.short,q:o.qty,t:ODDS.honjin.turns});
+};
+/** 每旬（訂單到貨之後）：捎帶的貨到了就入倉。 */
+function consignTick(log){
+  const L=G.consign||[];if(!L.length)return;
+  G.consign=L.filter(x=>{
+    if(G.turn<x.due)return true;
+    const c=COMM_MAP[x.name];if(!c)return false;
+    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.qty,room);
+    if(q>0){addStock(x.name,q,x.cost/x.qty);G.inv[x.name]=(G.inv[x.name]||0)+q}
+    const t=NEWS('rfav.arrive.'+x.kind,{g:c.short,q,l:x.qty-q>0?UT('rfav.lost',{n:x.qty-q}):''});pushNews(t);log.push(t);
+    return false;
+  });
+}
+/** 每旬推進一開始（自動出貨之前）：本陣御用達送貨。回傳入帳金額（記進旬報）。 */
+function honjinTick(log){
+  const H=G.honjin;if(!H||G.turn<H.start)return 0;
+  const c=COMM_MAP[H.name];if(!c){G.honjin=null;return 0}
+  const have=G.inv[H.name]||0,q=Math.min(have,H.qty),amt=Math.round(q*marketIndex(H.name)*ODDS.honjin.markup);
+  G.inv[H.name]=have-q;G.silver+=amt;
+  let t;
+  if(q<H.qty){
+    const r=G.rel[H.cid];if(r&&alive(H.cid)){setAff(r,Math.max(0,r.aff-ODDS.honjin.failAff));logRel(H.cid,UT('rfav.log.fail',{d:ODDS.honjin.failAff}))}
+    loseFame('tributeFail');G.honjin=null;sfx.bad();
+    t=NEWS('rfav.honjin.fail',{g:c.short,q,a:fmt(amt)});
+  }else{
+    H.left--;
+    t=NEWS(H.left>0?'rfav.honjin.give':'rfav.honjin.done',{g:c.short,q,a:fmt(amt),l:H.left});
+    if(H.left<=0)G.honjin=null;
+  }
+  pushNews(t);log.push(t);
+  return amt;
+}
+SPEND_ARG['spend.consignSea']=SPEND_ARG['spend.consignLand']=a=>COMM_MAP[a]?COMM_MAP[a].short:a;
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
