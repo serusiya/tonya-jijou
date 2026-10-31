@@ -1853,9 +1853,9 @@ const UI_TXT={
   'rep.showTurnReport.20':'知名度持平',
   'rep.showTurnReport.21':'<div class="tiny" style="margin-top:4px">出貨不足：{a}',
   'rep.showTurnReport.22':'<div class="tiny" style="margin-top:4px">同業壓貨波及：{a}<div class="muted">協議減供，照配額出貨仍不夠本城所需。</div></div>',
-  'rep.showTurnReport.23':' <span class="tag red">遇海難</span>',
-  'rep.showTurnReport.24':'<div class="card" style="margin:3px 0"><b class="small">船長「{a}」·委託金 {b} 兩{c}',
-  'rep.showTurnReport.25':'<div class="rp-sec">⛵ 船隻歸航</div>{a}',
+  'rep.showTurnReport.23':' <span class="tag red">遇{a}</span>',
+  'rep.showTurnReport.24':'<div class="card" style="margin:3px 0"><b class="small">{k}「{a}」·委託金 {b} 兩{c}',
+  'rep.showTurnReport.25':'<div class="rp-sec">⛵ 採買歸來</div>{a}',
   'rep.showTurnReport.26':'<div class="rp-sec">📰 本旬大事</div>{a}',
   'rep.showTurnReport.27':'📜 開業旬報',
   'rep.showTurnReport.28':'📅 近況',
@@ -3289,9 +3289,9 @@ const NEWS_TXT={
   "pop.allUnstable":"供貨持續不穩，人口明顯減少",
   "pop.moreUnstable":"供貨不穩較多，人口小幅減少",
   /* —— 07i_voyage.js —— */
-  "voy.resolveVoyage.5":"🌊 歸途{a}，損失 {b} 單位，只有 {c} 單位入倉。",
+  "voy.resolveVoyage.5":"{i} 歸途{a}，損失 {b} 單位，只有 {c} 單位入倉。",
   "voy.resolveVoyage.6":"✅ {a} 單位已入倉，可到相場分旬出貨。",
-  "voy.resolveVoyage.7":"🌊 歸途{a}，損失 {b} 單位，",
+  "voy.resolveVoyage.7":"{i} 歸途{a}，損失 {b} 單位，",
   "voy.resolveVoyage.8":"{a} 單位已入倉。這不是你的本業，得請旅商人代售。",
   /* —— 07u_battle.js —— */
   "bt.specialList":"他與你交情至深，願對隨機一家同業{a}。{b}；成敗看他的膽力與商才，事後可能被查辦。",
@@ -3385,6 +3385,7 @@ const CHANGELOG=[
   {date:'2026年10月31日',items:[
     '遠國奉行所新增三件請託：官船捎帶、官荷捎帶、本陣御用達。',
     '外地的遠國奉行所官員改為只能寄信往來，交情夠了可以寫信請託。',
+    '各地區開局時至少會有一座港口城。',
     '修改背景資料。'
   ]},
   {date:'2026年10月30日',items:[
@@ -3583,7 +3584,7 @@ function logRel(cid,text){const r=R(cid);r.log.push({y:G.year,m:G.month,c:G.cycl
 /* ---------- 新局 ---------- */
 /** 主角、子女的名字候選（00_names.js 的 NAMES.given／childM／childF）。 */
 const GIVEN=NAMES.given,CHILD_M=NAMES.childM,CHILD_F=NAMES.childF;
-/** 每局抽 30～40 座城市：五大地區各取約六到八城，必含本店所在城市與各地區人口最多的主城；本業每項貨品至少要有 2 處產地（該貨全國不足 2 處則全收）。 */
+/** 每局抽 30～40 座城市：五大地區各取約六到八城，必含本店所在城市與各地區人口最多的主城；本業每項貨品至少要有 2 處產地（該貨全國不足 2 處則全收）；每個地區至少一座港口城（含水陸要衝）。 */
 function pickActiveCities(homeId,own){
   const N=rint(30,40),regs=[...new Set(ALL_CITIES.map(c=>c.region_id))],base=Math.floor(N/regs.length);
   const quota={};regs.forEach(r=>quota[r]=base);shuffle(regs.slice()).slice(0,N-base*regs.length).forEach(r=>quota[r]++);
@@ -3600,6 +3601,15 @@ function pickActiveCities(homeId,own){
     const victim=out.length?pick(out):pick(ALL_CITIES.filter(c=>chosen.has(c.id)&&!keep.has(c.id)));
     if(!victim)break;chosen.delete(victim.id);chosen.add(add.id);
   }
+  /* 每個地區至少要有一座港口城（含水陸要衝）：沒抽到就從該地區的港口城補一座，換掉一座不是必要產地的城 */
+  regs.forEach(r=>{
+    if(ALL_CITIES.some(c=>c.region_id===r&&chosen.has(c.id)&&canSea(c)))return;
+    const add=pick(ALL_CITIES.filter(c=>c.region_id===r&&!chosen.has(c.id)&&canSea(c)));if(!add)return;
+    const keep=new Set([homeId,...caps]);own.forEach(n=>{const ps=prod(n).filter(c=>chosen.has(c.id));if(ps.length<=need(n))ps.forEach(c=>keep.add(c.id))});
+    const out=ALL_CITIES.filter(c=>chosen.has(c.id)&&!keep.has(c.id)&&c.region_id===r);
+    if(out.length)chosen.delete(pick(out).id);
+    chosen.add(add.id);
+  });
   return [...chosen];
 }
 /** 建立新局：初始化 G（資金、倉庫、公會、關係…）、抽樣世界、初始化市場。開局沒有員工與介紹人，需先找介紹人。 */
@@ -6734,7 +6744,7 @@ function showTurnReport(reps,logs,n,kind){
     const chipsOf=(L,cls)=>L.slice(0,6).map(x=>'<span class="tag '+cls+'">'+esc(x.slice(0,5))+'</span>').join('')+(L.length>6?UT('rep.chipsOf',{a:L.length}):'');
     h+='<div class="rp-fame '+(T.fame>=0?'up':'down')+'"><div class="rp-fame-n">'+(T.fame>0?UT('rep.showTurnReport.17',{a:T.fame}):T.fame<0?UT('rep.showTurnReport.18',{a:T.fame}):T.fameGate?UT('rep.showTurnReport.19'):UT('rep.showTurnReport.20'))+'</div>'+(T.short.length?UT('rep.showTurnReport.21',{a:chipsOf(T.short,'red')})+'</div>':'')+(T.squeeze.length?UT('rep.showTurnReport.22',{a:chipsOf(T.squeeze,'gold')}):'')+'</div>';
   }
-  if(T.voy.length)h+=UT('rep.showTurnReport.25',{a:T.voy.map(v=>UT('rep.showTurnReport.24',{a:esc(v.capt),b:fmt(v.budget),c:v.wreck?UT('rep.showTurnReport.23'):''})+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(l)+'</div>').join('')+'</div>').join('')});
+  if(T.voy.length)h+=UT('rep.showTurnReport.25',{a:T.voy.map(v=>{const md=v.mode==='land'?'land':'sea';return UT('rep.showTurnReport.24',{k:NM('crew',md),a:esc(v.capt),b:fmt(v.budget),c:v.wreck?UT('rep.showTurnReport.23',{a:UT(voyMishap(md,v.robbed))}):''})+'</b>'+v.lines.map(l=>'<div class="tiny" style="margin-top:3px">'+esc(String(l).replace(/^🌊/,voyIcon(md,v.robbed)))+'</div>').join('')+'</div>'}).join('')});
   const allEv=(logs||[]).filter(t=>!/^📥|^📤|^🟨|^🚢|^🧾/.test(t)&&!NEWS_HIDE_SET.has(newsKey(t)));   // 查貨、借錢有旬報卡片，官吏硬塞有來訪視窗，不再重列
   const isMove=t=>NEWS_MOVE_SET.has(newsKey(t)),moveEv=allEv.filter(isMove);
   const ev=moveEv.concat(allEv.filter(t=>!isMove(t)).slice(0,Math.max(0,15-moveEv.length))).slice(0,15);
@@ -7346,6 +7356,9 @@ function applyStartBoost(sysKey){
 }
 
 'use strict';
+/** 遇難的圖示與標籤：海難／海賊／山賊。 */
+const voyIcon=(mode,robbed)=>mode==='land'?'⛰️':robbed?'🏴‍☠️':'🌊';
+const voyMishap=(mode,robbed)=>mode==='land'?'voy.log.wreckLand':robbed?'voy.log.pirate':'voy.log.wreckSea';
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
@@ -7442,7 +7455,7 @@ function resolveVoyage(s,log){
       if(got>0)addStock(x.n,got,cost/got);G.inv[x.n]=(G.inv[x.n]||0)+got;
       L.push(NEWS('kind.2',{short:x.c.short,q,unit:fmt1(x.unit),pf:pc(x.pf),cost:fmt(cost)}));E.items.push({n:x.c.short,q,unit:x.unit,cost,lost:q-got});
     });
-    if(bought+lost>0)L.push(wreck?NEWS('voy.resolveVoyage.5',{a:wn,b:lost,c:bought}):NEWS('voy.resolveVoyage.6',{a:bought}));
+    if(bought+lost>0)L.push(wreck?NEWS('voy.resolveVoyage.5',{i:voyIcon(mode,robbed),a:wn,b:lost,c:bought}):NEWS('voy.resolveVoyage.6',{a:bought}));
     else L.push(NEWS('kind.3',{short:first.short}));
   }else if(kind==='cross'){
     const c=COMM_MAP[pick(othP)],pf=clamp(0.40-0.15*cs/100+(rnd()-0.5)*0.12,0.18,0.5)*(s.cheap?0.9:1),unit=c.base*pf;
@@ -7450,7 +7463,7 @@ function resolveVoyage(s,log){
     const q=Math.max(0,Math.min(Math.floor(spend/unit),capOf(c.name,mode),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
       L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost)}));E.items.push({n:c.short,q,unit,cost,lost:q-got});
-      L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{a:wn,b:q-got}):'')+got)}))}
+      L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{i:voyIcon(mode,robbed),a:wn,b:q-got}):'')+got)}))}
     else L.push(NEWS('kind.5',{short:c.short}));
   }
   if(carry){                                            // 唐物藥種：夾帶唐船私貨
