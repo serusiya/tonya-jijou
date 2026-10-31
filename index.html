@@ -10003,7 +10003,8 @@ function doBanditFavor(cid,n,r,f){
  *  - 結識：不能求見（只結識男性；本城沒有就從外地調一位，再沒有才從名冊補）。指名花魁 10%、包場夜宴 15%、出門遇襲時 30%（拔刀相助，這次遇襲直接化解）；最多結識三位（G.ronin.ids）。
  *  - 要錢：旬報後的人物事件視窗，「給他」或「回絕」（回絕沒有後果）。每旬最多一件。
  *     還沒有人當官時：三位輪流，每旬機率同查貨（inspectChance），每次 50 兩；最先給滿 10 次的人安插為町奉行所隨機一系的一階官員。
- *     當官的那一位：一階 100、二階 200、三階 400 兩，機率每升一階再乘 3/4；每給滿 10 次升一階，到四階不再來。其他浪人照樣來要 50 兩，但不會再有人當官。
+ *     當官的那一位：一階 100、二階 200、三階 400 兩；每給滿 10 次升一階，到四階不再來。其他浪人照樣來要 50 兩，但不會再有人當官。
+ *     機率：全部浪人共用一個機率＝查貨機率 ×（3/4 的當官者官階次方），擲中時輪流上門。
  *  - 安插、升官時，原本坐那一階的人調往外地；他留下的舊位子由名冊照常遞補。
  *  - 當官後：好感固定 100（lockAff），拜訪時略過拜訪戰鬥、直接請託；不參與人物調動。
  *  數值 ODDS.ronin；文字 ronin.*（01e、01f、01g）。 */
@@ -10033,11 +10034,9 @@ function roninTick(log){
   R_.ids=R_.ids.filter(c=>npc(c)&&alive(c));if(!R_.ids.length)return;
   let cid=null,amt=0;
   const off=R_.official&&roninOfficial(R_.official)?R_.official:null,rk=off?npc(off).pos.rank:0;
-  if(off&&rk<4&&chance(inspectChance()*Math.pow(O.decay,rk))){cid=off;amt=O.amt[rk]}
-  else{
-    const L=R_.ids.filter(c=>c!==R_.official&&!roninOfficial(c));
-    if(L.length&&chance(inspectChance())){cid=L[R_.next%L.length];R_.next=(R_.next+1)%L.length;amt=O.amt[0]}
-  }
+  /* 全部浪人共用一個機率：查貨機率乘 3/4 的（當官者官階）次方；擲中時輪流上門，當官者到四階退出名單 */
+  const L=R_.ids.filter(c=>!(c===off&&rk>=4));
+  if(L.length&&chance(inspectChance()*Math.pow(O.decay,rk))){cid=L[R_.next%L.length];R_.next=(R_.next+1)%L.length;amt=cid===off?O.amt[rk]:O.amt[0]}
   if(!cid)return;
   R_.ask={cid,amt,turn:G.turn};queueFaceEvent({type:'ronin',cid,turn:G.turn});
 }
