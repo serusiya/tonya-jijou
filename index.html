@@ -2599,6 +2599,7 @@ const UI_TXT={
   'spend.ronin':'浪人打點：{n}',
   /* —— 回府時事件、暖簾分 —— */
   'home.evt.lead':'<div class="tiny muted" style="margin-bottom:6px">你回到店裡，帳房說有人在等你……</div>',
+  'home.evt.leadShop':'<div class="tiny muted" style="margin-bottom:6px">正忙著，帳房進來說有人求見……</div>',
   'face.title.branch':'🏮 分號來訪',
   'face.title.branchAsk':'🏮 暖簾分',
   'branch.name':'{f}·{c}分號',
@@ -3321,7 +3322,7 @@ const CHANGELOG=[
     '各城物價的高低重新洗牌一次。',
     '本城同業過世後，會有人繼承家業補上。',
     '新增暖簾分：大番頭功成之後可以到隔壁城開分號，日後會回饋本家。',
-    '部分上門的事件（商人借錢、大番頭回報、浪人、分號、店員急事）改在出門辦事回來時發生。',
+    '部分上門的事件（商人借錢、大番頭回報、浪人、分號、店員急事）改在辦完事（用掉行動點數）回到主畫面時發生。',
     '新增浪人頭：在花街或遇襲時結識，資助他買官，他會一路升到四階，成為不必打點的自己人。',
     '新增海賊、山賊猖獗：每年一次，輪到本地區時船隊或馬幫三旬出不了門，可找闇商人打點或請官府討伐。',
     '闇商人只在節慶或災情當旬收黑貨，也不能再登門投帖結識，得靠走私接頭或花街碰上。',
@@ -10130,7 +10131,8 @@ function roninVisit(cid){
 
 'use strict';
 /* ======================= 回府時的事件（第一百六十一節） =======================
- *  第三個事件切入點：出門前往某處（goTo）、在那裡用了行動點數，關掉面板回到主畫面時，若有排隊的事件就跳出一件（每次最多一件）。
+ *  第三個事件切入點：這一旬只要用掉行動點數（出門前往、商路出發、私房錢、宴客……），做完回到主畫面時，若有排隊的事件就跳出一件（每次最多一件）。
+ *  開頭一句：出門回來＝「你回到店裡……」；在店裡做的事＝「正忙著，帳房進來說有人求見……」。
  *  - 排在這裡的：商人借錢、大番頭回報意外之財、浪人要錢、分號來訪、店員急事。
  *  - 這一旬沒輪到的，推進一旬時全部作廢：借錢＝婉拒；意外之財與分號送錢＝沒有這筆錢；浪人、分號調貨＝不算回絕；店員急事＝不算「不管」。
  *  - 輪到時才入帳的錢（意外之財、分號送錢）記在 G.carryIn，算進下一期旬報。
@@ -10156,8 +10158,8 @@ function homeEventApply(e){
     pushNews(NEWS('branch.pay',{b:branchName(),a:fmt(e.amt)}));
   }else if(e.type==='staff'&&G.staffEv)G.staffEv.shown=true;
 }
-/** 回到主畫面時：有排隊的就跳出一件。 */
-function showHomeEvent(){
+/** 跳出一件（lead：開頭那句的文字鍵）。 */
+function showHomeEvent(lead){
   if(!G||G.ended)return;
   const q=homeQ().filter(e=>e.turn===G.turn);G.homeEvents=q;
   let e,h;
@@ -10165,15 +10167,29 @@ function showHomeEvent(){
   if(!h){save();return}
   homeEventApply(e);save();
   INFO_AFTER=null;
-  UI.showInfo(faceTitle(e),UT('home.evt.lead')+h);UI.render();
+  UI.showInfo(faceTitle(e),UT(lead||'home.evt.lead')+h);UI.render();
 }
-/* 出門與回府：goTo 時記下行動點數，關掉面板時若有用掉點數就觸發 */
+/* 觸發：這一旬用掉行動點數後，回到主畫面（主頁分頁、沒有面板／視窗／動畫）時跳一件。
+ *  UI.s.apMark 記這一旬上次檢查時的行動點數；UI.s.outGo 記出門（goTo）時的點數，用來選開頭那句。 */
+const homeIdle=()=>UI.s.tab==='home'&&!UI.s.sheet&&$('#info-bd').classList.contains('hidden')&&$('#start').classList.contains('hidden')
+  &&!(typeof FX!=='undefined'&&FX.busy)&&!(typeof VIS!=='undefined'&&VIS.busy)&&!(typeof BT!=='undefined'&&BT)&&!(typeof ENC!=='undefined'&&ENC);
+let HOME_T=null;
+function homeCheck(){
+  HOME_T=null;
+  if(!G||G.ended)return;
+  const m=UI.s.apMark;
+  if(!m||m.turn!==G.turn){UI.s.apMark={turn:G.turn,ap:G.ap};return}
+  if(G.ap>=m.ap){m.ap=G.ap;return}
+  if(!homeIdle())return;
+  m.ap=G.ap;
+  const o=UI.s.outGo,out=!!(o&&o.turn===G.turn&&G.ap<o.ap);UI.s.outGo=null;
+  if(homeQ().some(e=>e.turn===G.turn))showHomeEvent(out?'home.evt.lead':'home.evt.leadShop');
+}
+const homeSoon=()=>{if(!HOME_T)HOME_T=setTimeout(homeCheck,60)};
 {const _go=goTo;goTo=function(k){UI.s.outGo={ap:G.ap,turn:G.turn};_go(k)}}
-{const _cl=UI.closeSheet;UI.closeSheet=function(){
-  const was=!!UI.s.sheet&&!UI.s.sheetLock;_cl();
-  const o=UI.s.outGo;if(!was||!o)return;UI.s.outGo=null;
-  if(o.turn===G.turn&&G.ap<o.ap)setTimeout(showHomeEvent,0);
-}}
+{const _r=UI.render;UI.render=function(){_r.apply(this,arguments);homeSoon()}}
+{const _h=UI.hideInfo;UI.hideInfo=function(){_h.apply(this,arguments);homeSoon()}}
+{const _c=UI.closeSheet;UI.closeSheet=function(){_c.apply(this,arguments);homeSoon()}}
 
 'use strict';
 /* ======================= 暖簾分：大番頭到隔壁城開分號（第一百六十節） =======================
