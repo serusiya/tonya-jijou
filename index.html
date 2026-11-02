@@ -832,7 +832,8 @@ const ODDS={
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
   voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
-  originSupply:{name:'每城、每項貨、每月固定的產地供貨指數（三角分布）；影響委託採買可供量與產地成交價；每趟成交價另有小幅雜訊',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06},
+  originSupply:{name:'每城、每項貨、每月固定的產地供貨指數；分類產量與同月同城後續商隊會折減可供量',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06,production:{staple:1.15,normal:0.85,luxury:0.35},repeat:{staple:0.8,normal:0.6,luxury:0.4}},
+  voyageMix:{name:'多項本業貨的委託採買分配：少數均衡，多數偏重或集中於一項',balanced:0.10,biased:0.60,biasedMin:0.60,biasedMax:0.75,focusMin:0.75,focusMax:0.90,supplyPow:1.5,pricePow:2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},
@@ -1991,6 +1992,10 @@ const UI_TXT={
   'voy.supply.high':'供貨充足',
   'voy.supply.bumper':'豐產',
   'voy.supplyLog':'產地：{s}',
+  'voy.repeatWarn':'本月已有或已排定 {n} 支商隊前往此地；下一支成功出發後，當地可供量會依後續順位折減。',
+  'voy.mix.balanced':'各項貨色相差不大，這趟採取均衡買付。',
+  'voy.mix.biased':'見「{name}」貨源與價錢合宜，這趟以此貨為主。',
+  'voy.mix.focus':'受託人認定「{name}」最值得收購，大半委託金用在此貨。',
   'voy.voyagePanel.9':'、',
   'voy.voyagePanel.10':'<b style="color:#1e7e34">可買本業貨：{a}{b}',
   'voy.voyagePanel.11':'<span class="muted">無本業貨</span>',
@@ -2000,7 +2005,7 @@ const UI_TXT={
   'voy.voyagePanel.15':'<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">{a} 兩</b></div>',
   'voy.voyagePanel.16':'{a}<div class="row tiny muted"><span>100</span><span>雜費約 {b}',
   'voy.voyagePanel.17':'；唐物藥種的船隊常<b>夾帶唐船私貨</b>',
-  'voy.voyagePanel.18':'{a}會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才。每座城市、每項物產在每個月都有固定的<b>產地供貨狀況</b>；欠收時可買量較少、價格稍高，豐產時價格稍低，同月派多人前往不會重抽，判定以出發月為準。當地產好幾樣時，委託金與運量平均分給每一樣，缺貨項目剩下的錢與運量會轉買其他貨；偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找旅商人代售</b>；目的地<b>沒有本業貨</b>時，多半<b>空手而回</b>，只扣雜費{b}。各地每季有一個月可能發生<b>大口買付</b>，本業貨會被別家問屋先買走；排程不會預告，除非仲買人透露風聲，否則要等派去的人回來才知道。其他進貨管道不受上述產地狀況影響。歸來那一旬的旬報會詳列帶回了什麼。先把要派的人排進出運清單，再一次全部出發：只要親自到河岸交代一趟，扣 1 行動點數；分批出發，每批各扣 1 點。</div>',
+  'voy.voyagePanel.18':'{a}會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才。每座城市、每項物產在每個月都有固定的<b>產地供貨狀況</b>；必需品平年產量較多，一般品居中，奢侈品產量較少。欠收時可買量較少、價格稍高，豐產時價格稍低，判定以出發月為準。當地產好幾樣本業貨時，受託人多半依貨源與價錢<b>偏重其中一兩樣</b>，偶爾才會均衡採買；缺貨或無處存放時會轉買其他貨。同月再派商隊前往同一城市，後來者能搜羅的貨量會逐次減少，必需品減得較慢、奢侈品最快。偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找旅商人代售</b>；目的地<b>沒有本業貨</b>時，多半<b>空手而回</b>，只扣雜費{b}。各地每季有一個月可能發生<b>大口買付</b>，本業貨會被別家問屋先買走；排程不會預告，除非仲買人透露風聲，否則要等派去的人回來才知道。其他進貨管道不受上述產地狀況影響。歸來那一旬的旬報會詳列帶回了什麼。先把要派的人排進出運清單，再一次全部出發：只要親自到河岸交代一趟，扣 1 行動點數；分批出發，每批各扣 1 點。</div>',
   'voy.voyagePanel.19':'<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vAdd">{a}',
   'voy.voyLogCard':'{a}·{b}「{c}」·委託金 {d} 兩</div>{e}',
   'voy.voyLogCard.2':'<hr class="sep"><div class="small bold">📒 採買日誌</div>{a}',
@@ -2142,7 +2147,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'開業時你已是問屋公會成員；公會會員身分不會因你的選擇而消失。會員可以參加「聯合採購與出貨協議」，擔保金由家中長輩代墊。參加協議者向相場進貨享聯合採購價，進貨上限也有協議配額加給；未參加者照本旬牌價，進貨上限只按市占率分配。公會每年在三、六、九、十二月的上旬（每季第一旬）召開例會，開業那一旬就有一次，例會那一旬主畫面會出現按鈕，要親自出席（大番頭不能代你去）。例會上先表態：遵守協議、私下簽暗約偷跑，或退出協議——加入與退出都只能在例會上辦。接著投票決定本期供給：「維持」以本城需求為全體總配額，你的配額等於穩定供貨線；「減供」各家依固定比例減量出貨，撐住行情。交情越深的同業越可能跟你投一樣的；票數相同就維持上一期。最後是「菓子折」拍賣：名義上是相場答謝公會的點心禮，人人都知道，盒底那層是給誰的。這批高價的本業貨封閉出價、價高者得，得標的貨直接入倉、不佔相場進貨上限；只有參加協議、親自出席的人能出價。沒出席的例會照樣開，只是你沒有票、也標不到貨。新店沒有老主顧，相場不肯多批給新面孔，菓子折又只經公會的手；開局要靠跑產地、經營人脈，等名聲起來，才能在公會和相場站穩。守約卻超量出貨，或偷跑被告發，都會被聯合斷貨，協議擔保金也會被沒收；同業偷跑被抓也一樣。沒收的擔保金在下次例會時平分給守約的人。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
-  'wiki.WIKI_GUIDE.10':'船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的入津御免與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比相場便宜，商才越高買得越多越省。每座城市的每項物產，每個月都有固定的產地供貨狀況；欠收時可買量較少、價格稍高，豐產時價格稍低，同一個月派多人前往不會重抽。判定以出發月為準，返航日誌會記載「欠收、供貨偏少、供貨平常、供貨充足、豐產」。當地產好幾樣本業貨時，委託金與運量平均分給每一樣，缺貨項目剩下的錢與運量會轉買其他貨；偶爾帶回別行的便宜貨，要請旅商人代售；派去沒有本業貨的地方，多半空手而回，只花掉雜費；唐物藥種的船隊還常夾帶唐船私貨。五個地區各自每季會有一個月發生「大口買付」（第一年從夏季開始），期間出發的委託採買買不到本業貨；五月出發、六月抵達不受六月買付影響，六月出發才受影響。排程不會主動公布，派去的人返航後才確認；當月一經確認，就不能再派人前往該地區。也可請交情夠深的仲買人辦「買付風聲」，探聽玩家所在地區本年度下一次買付月；已知的下一次尚未過去前，不能連問後面的月份。產地供貨與大口買付都只影響委託採買，其他進貨管道照常。可以先把要派的人排進出運清單，再一次全部出發，只要到河岸交代一趟、扣一次行動；分批出發就每批各扣一次。清單只在本旬有效。路上有海難與山賊，往返要等上幾旬。',
+  'wiki.WIKI_GUIDE.10':'船長或飛腳可以帶著委託金到外地採買：走海路需要該地區的入津御免與一名船長（一名船長帶一艘船，聘船長時另付造船費），走陸路需要本地區的關所通行手形與一名飛腳（一名飛腳帶一支馬幫）。你指定去哪裡、帶多少錢，買什麼由他決定：多半是本業的貨，價錢比相場便宜，商才越高買得越多越省。每座城市的每項物產，每個月都有固定的產地供貨狀況；必需品平年產量較多、一般品居中、奢侈品較少，欠收時可買量較少、價格稍高，豐產時價格稍低。判定以出發月為準，返航日誌會記載「欠收、供貨偏少、供貨平常、供貨充足、豐產」。當地產好幾樣本業貨時，受託人多半依貨源與價錢偏重其中一兩樣，偶爾才會均衡採買；買不滿時，剩餘委託金與運量會轉買其他貨。同一年月再派商隊前往同一城市，海陸商隊合併計算順位，後來者的可供量逐次折減：必需品每次剩八成、一般品六成、奢侈品四成，換月重置。偶爾帶回別行的便宜貨，要請旅商人代售；派去沒有本業貨的地方，多半空手而回，只花掉雜費；唐物藥種的船隊還常夾帶唐船私貨。五個地區各自每季會有一個月發生「大口買付」（第一年從夏季開始），期間出發的委託採買買不到本業貨；五月出發、六月抵達不受六月買付影響，六月出發才受影響。排程不會主動公布，派去的人返航後才確認；當月一經確認，就不能再派人前往該地區。也可請交情夠深的仲買人辦「買付風聲」，探聽玩家所在地區本年度下一次買付月；已知的下一次尚未過去前，不能連問後面的月份。產地供貨與大口買付都只影響委託採買，其他進貨管道照常。可以先把要派的人排進出運清單，再一次全部出發，只要到河岸交代一趟、扣一次行動；分批出發就每批各扣一次。清單只在本旬有效。路上有海難與山賊，往返要等上幾旬。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'役人、同業、名士、花魁，都靠一次次拜訪結識。沒有介紹人就貿然登門，常吃閉門羹。每次拜訪都是一場攻心之戰：先挑一份投其所好的禮物（猜中對方的軟肋，心意才算數），見了面再表示心意，身份越高，要花的錢越多。對方高興了，交情就深一層；交情到了 60，就是自己人，禮物不再計較，役人也才肯聽你開口請託。請託要花人情，辦成後交情會淡一些。承諾過的事一定要兌現，逾期會傷交情。做事、結識官員、穩定供貨都會讓商號知名度上升；名聲響徹全城之後，尋常小事不再為人稱道，要靠結識高官、上貢、饑荒時施粥這類大事才能更上一層。闇商人和落魄的浪人不會掛招牌，只能在花街或路上碰上；有些浪人還想謀個一官半職，肯資助他，也許哪天他就成了自己人。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
@@ -3414,6 +3419,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月2日',items:[
+    '委託採買調整：必需品、一般品與奢侈品有不同產量；多項物產多半偏重採買，同月重複前往同城則逐次減少貨源。'
+  ]},
+  {date:'2026年11月2日',items:[
     '相場改為上一旬收市後公布本旬牌價：出貨實收與新牌價在旬末揭曉，旬報會列出完整變化。',
     '委託採買新增月度產地供貨：每城每項貨同月固定，欠收時量少價高，豐產時價格較低。',
     '委託採買新增「大口買付」：五區各自每季有一個買付月，返航後才會確認，也可向仲買人請託「買付風聲」。',
@@ -3660,7 +3668,7 @@ function newGame(sysKey,regionPref){
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
     cartel:{state:'pledged',comp:65,sanction:0,quotaPct:0.06,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
-    staple:{streak:0,peak:1},ships:[],
+    staple:{streak:0,peak:1},ships:[],originTrips:{y:0,m:3,byCity:{}},
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
@@ -7476,7 +7484,7 @@ const voyMishap=(mode,robbed)=>mode==='land'?'voy.log.wreckLand':robbed?'voy.log
 /* ★檔案總覽：委託採買（海運／陸運）
  * - 玩家指派：運輸方式（船長／飛腳）、目的地（產地城市）、委託金；船長不會跑錯地方。
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
- *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，委託金與運量平均分給每一樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
+ *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，多半偏重其中一兩樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
  *   目的地沒有本業貨時：80% 空手而回（只扣雜費），20% 改買跨行貨。
  *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫，風聲 +0.2 × 危險度）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
@@ -7500,6 +7508,26 @@ const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
 /** 風險：每旬約 3%（海）／2.2%（陸），乘船長膽識與商才的倍數；陸路有保鏢可再降。 */
 const voyRisk=(cap,d,mode)=>{const V_=ODDS.voyageRisk;return clamp((mode==='sea'?V_.sea:V_.land)*d*crewRiskMult(cap)-(mode==='land'?V_.guardLand*guardCount():0),V_.min,V_.max)};
 const voyFee=d=>clamp(0.04+0.01*d,0.06,0.14);
+/** 本月前往各產地的商隊順位；海陸合併，換月即重置。 */
+function originTripState(){
+  if(!G.originTrips||G.originTrips.y!==G.year||G.originTrips.m!==G.month)G.originTrips={y:G.year,m:G.month,byCity:{}};
+  G.originTrips.byCity=G.originTrips.byCity||{};return G.originTrips;
+}
+const originTripUsed=cityId=>originTripState().byCity[cityId]||0;
+function originTripTake(cityId){const S=originTripState(),n=(S.byCity[cityId]||0)+1;S.byCity[cityId]=n;return n}
+/** 多項本業貨的採買權重：一成均衡，其他多半偏重或集中在當地較充足、相對較便宜的一項。 */
+function makeVoyageMix(its){
+  if(its.length<=1){if(its[0])its[0].w=1;return {kind:'single',main:its[0]||null}}
+  const M=ODDS.voyageMix,r=rnd();
+  if(r<M.balanced){its.forEach(x=>x.w=1/its.length);return {kind:'balanced',main:null}}
+  its.forEach(x=>x.mixScore=Math.pow(x.si,M.supplyPow)*Math.pow(1/Math.max(0.01,x.pf),M.pricePow)*(0.7+0.6*rnd()));
+  let z=rnd()*its.reduce((a,x)=>a+x.mixScore,0),main=its[its.length-1];
+  for(const x of its){z-=x.mixScore;if(z<=0){main=x;break}}
+  const biased=r<M.balanced+M.biased,lo=biased?M.biasedMin:M.focusMin,hi=biased?M.biasedMax:M.focusMax,p=lo+(hi-lo)*rnd();
+  main.w=p;const rest=its.filter(x=>x!==main);rest.forEach(x=>x.restW=0.25+1.5*rnd());
+  const sum=rest.reduce((a,x)=>a+x.restW,0);rest.forEach(x=>x.w=(1-p)*x.restW/sum);
+  return {kind:biased?'biased':'focus',main};
+}
 /** 可前往的目的地：海運＝雙方皆為港灣；陸運＝同地區且 2 旬內。 */
 function destList(mode){
   const a=homeCity(),own=tradeNameSet(),all=ownNameSet();
@@ -7525,7 +7553,8 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
   if(mode==='land'){if(G.flags.horse>0)d--;if(G.flags.road)d--;d=Math.max(1,d)}
   if(!free)payPublic('spend.voyage|'+dest.id,budget);
   const bo=buyoutSnapshot(dest);
-  G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:destId,mode,eta:d,eta0:d,risk:voyRisk(cap,d,mode)*(mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1),feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:budget,budget,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,buyout:bo.hit,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month});
+  const supplyRank=originTripTake(destId);
+  G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:destId,mode,eta:d,eta0:d,risk:voyRisk(cap,d,mode)*(mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1),feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:budget,budget,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,buyout:bo.hit,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank});
   return {ok:true,msg:MSG('sendVoyage.ok',{crew:NM('crew',mode),name:cap.name,budget:fmt(budget),dest:dest.name,d})};
 }
 /** 歸來結算。 */
@@ -7553,17 +7582,22 @@ function resolveVoyage(s,log){
   const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(robbed&&mode==='sea'?UT('voy.wnPirate'):mode==='sea'?UT('voy.wn'):UT('voy.wn.2')):'';
   L.push(NEWS('kind.1',{dest:E.dest,note}));
   if(kind==='own'&&ownP.length){
-    /* 同一地產好幾樣本業貨時平均分配：委託金與單趟運量平分給每一樣；某樣碰到庫存上限或倉位而買不滿，
-       剩下的錢與運量再平分給其他還能買的貨（最多分幾輪，直到錢、運量或倉位用完）。
+    /* 同一地產好幾樣本業貨時多半偏重或集中採買，只有少數均衡；某樣碰到產地貨源、庫存上限或倉位而買不滿，
+       剩下的錢與運量再依權重分給其他還能買的貨（直到錢、運量或倉位用完）。
        單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
     const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],si=originSupplyForShip(s,dest,n),pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.5,0.95)*(s.cheap?0.9:1)*originSupplyPrice(si);
-      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si),room:Math.max(0,itemCap(n)-(G.inv[n]||0)),q:0}});
+      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Math.max(0,itemCap(n)-(G.inv[n]||0)),q:0}});
     let money=spend,load=1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);
-    for(let round=0;round<6&&act.length&&wh>0&&load>1e-6;round++){
-      const k=act.length,m=money/k,l=load/k;let added=0;
-      act.forEach(x=>{const q=Math.max(0,Math.min(Math.floor(m/x.unit),Math.floor(l*x.cp+1e-9),x.src-x.q,x.room-x.q,wh));if(q<=0)return;
+    const mix=makeVoyageMix(act);
+    if(mix.kind!=='single')L.push(UT('voy.mix.'+mix.kind,{name:mix.main?mix.main.c.short:''}));
+    for(let round=0;round<12&&act.length&&wh>0&&load>1e-6;round++){
+      const ws=act.reduce((a,x)=>a+x.w,0),money0=money,load0=load;let added=0;
+      act.forEach(x=>{const m=money0*x.w/ws,l=load0*x.w/ws,q=Math.max(0,Math.min(Math.floor(m/x.unit),Math.floor(l*x.cp+1e-9),x.src-x.q,x.room-x.q,wh));if(q<=0)return;
         x.q+=q;money-=q*x.unit;load-=q/x.cp;wh-=q;added+=q});
-      act=act.filter(x=>x.q<Math.min(x.room,x.src));if(!added)break;
+      act=act.filter(x=>x.q<Math.min(x.room,x.src));
+      if(!added){const can=act.filter(x=>money>=x.unit&&load+1e-9>=1/x.cp&&wh>0).sort((a,b)=>b.w-a.w)[0];if(!can)break;
+        const q=Math.max(0,Math.min(Math.floor(money/can.unit),Math.floor(load*can.cp+1e-9),can.src-can.q,can.room-can.q,wh));if(!q)break;
+        can.q+=q;money-=q*can.unit;load-=q/can.cp;wh-=q;act=act.filter(x=>x.q<Math.min(x.room,x.src));}
     }
     let bought=0,lost=0;const first=its[0].c;
     its.filter(x=>x.q>0).forEach(x=>{
@@ -7576,7 +7610,7 @@ function resolveVoyage(s,log){
   }else if(kind==='cross'){
     const c=COMM_MAP[pick(othP)],si=originSupplyForShip(s,dest,c.name),pf=clamp(0.40-0.15*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.18,0.5)*(s.cheap?0.9:1)*originSupplyPrice(si),unit=c.base*pf;
     const room=Math.max(0,invCap()-invUsed());
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),originSupplyCap(c.name,mode,si),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
+    const q=Math.max(0,Math.min(Math.floor(spend/unit),originSupplyCap(c.name,mode,si,s.supplyRank||1),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
       const supply=originSupplyBand(si);L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost),supply}));E.items.push({n:c.short,q,unit,cost,lost:q-got,supply});
       L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{i:voyIcon(mode,robbed),a:wn,b:q-got}):'')+got)}))}
@@ -7620,6 +7654,7 @@ function voyagePanel(){
   h+=UT('voy.voyagePanel.14',{a:dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="'+(x.blocked?'none':'vDest')+'" data-id="'+x.ct.id+'"'+(x.blocked?' style="opacity:.55"':'')+'><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(permitOf(mode,x.ct)?'':UT('voy.voyagePanel.8'))+(x.blocked?UT('voy.buyoutTag'):'')+'<div class="tiny muted">'+UT('voy.voyagePanel.12',{a:x.d,b:Math.round(voyRisk(cap,x.d,mode)*100)})+'%</div></div><div style="text-align:right" class="tiny">'+UT('voy.voyagePanel.13',{a:x.blocked?UT('voy.buyoutUnavailable'):x.own.length?UT('voy.voyagePanel.10',{a:esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join(UT('voy.voyagePanel.9'))),b:x.own.length>2?'…':''})+'</b>':UT('voy.voyagePanel.11'),b:x.oth.length})).join('')});
   h+=UT('voy.voyagePanel.15',{a:fmt(R_.budget)});
   h+=UT('voy.voyagePanel.16',{a:stepRow('<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'">','slider-voy',R_.budget<=100,R_.budget>=maxB),b:Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)})+'%</span><span>'+fmt(maxB)+'</span></div></div>';
+  {const n=originTripUsed(R_.dest)+voyQ().filter(q=>q.dest===R_.dest).length;if(n)h+='<div class="notice tiny">'+UT('voy.repeatWarn',{n})+'</div>'}
   h+='<div class="notice tiny">'+UT('voy.voyagePanel.18',{a:NM('crew',mode),b:G.sysKey==='medicine'?UT('voy.voyagePanel.17'):''});
   h+=UT('voy.voyagePanel.19',{a:UT('btn.vAdd')})+'</button></div>';
   return h;
@@ -7749,8 +7784,16 @@ function originSupplyIndex(cityId,name,y,m){
 }
 /** 供貨豐歉只小幅改變產地成交價，避免蓋過商才與既有價格系統。 */
 const originSupplyPrice=i=>clamp(1-ODDS.originSupply.priceSlope*(i-1),ODDS.originSupply.priceMin,ODDS.originSupply.priceMax);
-/** 歉收限制一趟可買到的量；豐產仍不能突破船艙或馬幫運量。 */
-const originSupplyCap=(name,mode,i)=>Math.max(1,Math.floor(capOf(name,mode)*Math.min(1,i)));
+/** 商品分類：沿用市場既有的必需品／一般品／奢侈品判定。 */
+const originSupplyKind=name=>COMM_MAP[name].staple?'staple':COMM_MAP[name].luxury?'luxury':'normal';
+/**
+ * 一趟可買到的量：運量 × 分類平年產量 × 當月豐歉 × 同月同城商隊順位折減。
+ * 第一趟仍不能突破運量；後續趟不保證至少一單位，貨源可被搜羅至零。
+ */
+function originSupplyCap(name,mode,i,rank){
+  const O=ODDS.originSupply,k=originSupplyKind(name),cap=capOf(name,mode),n=Math.max(1,rank||1);
+  return Math.max(0,Math.min(cap,Math.floor(cap*O.production[k]*i*Math.pow(O.repeat[k],n-1))));
+}
 function originSupplyBand(i){
   return UT(i<0.75?'voy.supply.famine':i<0.9?'voy.supply.low':i<=1.1?'voy.supply.normal':i<=1.25?'voy.supply.high':'voy.supply.bumper');
 }
@@ -10031,6 +10074,12 @@ function migrateSave(){
   meetEnsure();
   buyoutEnsure();                                    // 舊存檔補上本年度五區大口買付排程
   originSupplyEnsure();                              // 舊存檔補上本局固定的產地供貨種子
+  if(!G.originTrips||typeof G.originTrips!=='object')G.originTrips={y:G.year,m:G.month,byCity:{}};
+  if(G.originTrips.y!==G.year||G.originTrips.m!==G.month||!G.originTrips.byCity)G.originTrips={y:G.year,m:G.month,byCity:{}};
+  (G.ships||[]).filter(s=>s.entrust&&s.supplyY===G.year&&s.supplyM===G.month).sort((a,b)=>(a.start||0)-(b.start||0)).forEach(s=>{
+    const k=s.origId;if(s.supplyRank>0)G.originTrips.byCity[k]=Math.max(G.originTrips.byCity[k]||0,s.supplyRank);
+    else{s.supplyRank=(G.originTrips.byCity[k]||0)+1;G.originTrips.byCity[k]=s.supplyRank}
+  });
   G.ver=GAME_VER;
 }
 
