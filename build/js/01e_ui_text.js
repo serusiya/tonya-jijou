@@ -7,6 +7,8 @@
  *  費用數字不寫死在這裡：由呼叫處依 01b_costs.js 算出再代入。
  * ===================================================================== */
 const UI_TXT={
+  'mk.floorNote':'（已到底價）',
+  'rep.goodsPrice.floor':'牌價 {q} → 收市價/新牌價 {n}（已到底價）',
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
   'nav.menu':'⚙️',
   'nav.next':'推進一旬 ▶',
@@ -297,13 +299,12 @@ const UI_TXT={
   'mk.dep.wait':'統計中 {n}/{w}旬',
   'mk.dep.source':'來源統計中',
   'mk.dep.none':'—',
-  'mk.dep.item':'本品大盤來源占比：{p}',
   'mk.trade.title':'📦 本旬買賣·{n}',
   'mk.trade.cap':'容量 {u}/{c}',
-  'mk.trade.flow':'現有 <b>{a}</b> → 賣出後 {b} → 下旬開頭約 {c}',
   'mk.trade.ship':'📤 出貨',
   'mk.units':'{n} 單位',
   'mk.trade.quota':'協議配額 {q}（{s}）·穩定供貨線 {l}',
+  'mk.trade.quotaClose':'全員按配額出貨（不計超賣）：預估收市價 {p}',
   'mk.trade.stance.pledged':'已表態守協議配額',
   'mk.trade.stance.secret':'已簽暗約偷跑',
   'mk.trade.stance.none':'未參加協議',
@@ -590,7 +591,7 @@ const UI_TXT={
   'ppl.h.18':'<h1>🏮 問屋事情</h1><div class="sub">關於我成了日之國中盤商這件事<br><span style="font-size:13px">像素風商人人生模擬 · v{a}',
   'ppl.showStart':'<div style="text-align:center;font-size:14px;color:#cfc6b6;margin-bottom:10px">20 歲開局。沒有固定的目標，只有一生。</div>',
   'ppl.showStart.2':'<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v{a} 起已不相容，已清除。請重新開局。</div>',
-  'ppl.showStart.3':'<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div><div class="tiny" style="text-align:center;color:#cfc6b6;margin-bottom:6px">越往下，起手資源越多。</div>',
+  'ppl.showStart.3':'<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div>',
   'ppl.showStart.4':'{a}：{b}',
   'ppl.changelog':'📜 更新紀錄',
   /* —— 07b_purse.js —— */
@@ -942,7 +943,8 @@ const UI_TXT={
   'wiki.h':'<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>',
   'wiki.wikiGuide':'🏪 七種問屋流派',
   'wiki.wikiGuide.2':'{a}</div><div class="text-meta muted">起手：{b}',
-  'wiki.wikiGuide.3':'<div class="text-meta muted">開局時選擇的流派決定本業貨品、起手資源與玩法側重。越往下，起手資源越多。</div>{a}',
+  'wiki.wikiGuide.3':'<div class="text-meta muted">流派決定本業貨品與玩法側重；七個資源等級的內容固定，行業會在每次重新開一世時隨機分配。開局畫面越往下，起手資源越多。</div>{a}',
+  'wiki.wikiGuide.4':'每一世隨機分配',
   'wiki.wikiOffice':'🎖️ 六階官階',
   'wiki.wikiOffice.2':'<div class="text-meta muted">官階越高，權力越大，也越難結交。</div>{a}',
   'wiki.wikiOffice.3':'📜 請託規則',

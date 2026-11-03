@@ -53,8 +53,8 @@ function tradeOK(name){
 }
 /** 本業中目前可交易的貨。 */
 const tradeComms=()=>ownComms().filter(c=>tradeOK(c.name));
-/** 開局交易許可：第六、七個流派（唐物藥種、陶磁雅玩）送第二貴貨物的許可。 */
-function startTrade(sysKey){return SYS.findIndex(s=>s.key===sysKey)>=5?[lockedTrade(sysKey)[1]]:[]}
+/** 開局交易許可：第六、七資源等級送所選行業第二貴貨物的許可。 */
+function startTrade(sysKey,startTier){return Number(startTier)>=5?[lockedTrade(sysKey)[1]]:[]}
 /** 交易許可的請託名稱（帶上貨名）。 */
 const tradeFavorName=idx=>UT('lic.tradeFavorName',{a:COMM_MAP[lockedTrade()[idx]].short});
 /** 尚未許可時的提示（大盤用）。 */

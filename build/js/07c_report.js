@@ -40,7 +40,8 @@ function goodsRows(T){
     const w=big>0?Math.max(3,Math.round(big/mx*100)):0,ws=big>0?Math.round(Math.min(rev,cost)/mx*100):0;
     const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
     const qty=UT('rep.goodsQty',{s:x.sq||0,b:x.bq||0});
-    const price=Number.isFinite(x.quote)&&Number.isFinite(x.close)?UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(x.close),v:'<span class="'+(x.close>=x.quote?'up':'down')+'">'+amtShort(Math.round(x.close-x.quote))+'</span>'}):'';
+    const next=Number.isFinite(x.next)?x.next:x.close;
+    const price=Number.isFinite(x.quote)&&Number.isFinite(next)?(x.floored?UT('rep.goodsPrice.floor',{q:fmt1(x.quote),n:fmt1(next)}):UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(next),v:'<span class="'+(next>=x.quote?'up':'down')+'">'+amtShort(Math.round(next-x.quote))+'</span>'})):'';
     return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),q:qty,p:price});
   }).join('')});
 }

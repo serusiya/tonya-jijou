@@ -46,7 +46,7 @@ function wikiRegions(){
 function wikiGuide(){
   let h=UT('wiki.h');
   h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]))).join('');
-  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(s.res||s.perk)})+'</div></div>').join('')}));
+  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(UT('wiki.wikiGuide.4'))})+'</div></div>').join('')}));
   return h;
 }
 function wikiOffice(){

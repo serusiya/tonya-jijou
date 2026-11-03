@@ -89,7 +89,7 @@ function compat(cidA,cidB){return compatOfTops(top3(cidA),top3(cidB))}
 const trustFactor=aff=>clamp(aff/60,0.4,1.5);
 
 /* ---------- 七大問屋流派 ---------- */
-/** 七大問屋流派：開局資金。越往下起手資源越多（applyStartBoost 依順序累加）。名稱、屋號、風格與說明在 NAMES.sys。新增流派在此加一筆。 */
+/** 七大問屋流派與七個固定資源等級的原始順序；開局畫面會將行業洗牌，資源仍依此順序累加。名稱、屋號、風格與說明在 NAMES.sys。 */
 const SYS=[
   {key:'timber',silver:8000,gold:8},
   {key:'grain',silver:8500,gold:10},
@@ -100,6 +100,8 @@ const SYS=[
   {key:'luxury',silver:15500,gold:1000}
 ].map(s=>Object.assign(s,NAMES.sys[s.key]));
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
+/** 七個開局資源等級。資源與等級固定，行業則在每次新人生開始前重新洗牌分配。 */
+const START_TIERS=SYS.map((s,i)=>({i,silver:s.silver,gold:s.gold,perk:s.perk,res:s.res}));
 
 /* ---------- 物產資料加工 ---------- */
 /** 把原始 COMMS 資料加工成遊戲用的物品。

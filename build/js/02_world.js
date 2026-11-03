@@ -185,13 +185,13 @@ function pickActiveCities(homeId,own){
   });
   return [...chosen];
 }
-/** 建立新局：初始化 G（資金、倉庫、公會、關係…）、抽樣世界、初始化市場。開局沒有員工與介紹人，需先找介紹人。 */
-function newGame(sysKey,regionPref){
-  const S=SYS_BY_KEY[sysKey];
+/** 建立新局：行業決定本業，資源等級決定現款、員工等起步加成，再初始化世界與市場。 */
+function newGame(sysKey,regionPref,startTier=0){
+  const S=SYS_BY_KEY[sysKey],tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
+    sysKey,startTier:tier,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
     me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
-    silver:S.silver,gold:S.gold,
+    silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
     cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
@@ -214,13 +214,13 @@ function newGame(sysKey,regionPref){
   G.supplyQuarter={stable:0,unstable:0,turns:0};
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
-  G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
+  G.trade=startTrade(sysKey,tier);                // 第六、七等級開局送第二貴貨物的交易許可
   initMarket();
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
   officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
-  applyStartBoost(sysKey);
+  applyStartBoost(tier,sysKey);
   recordSilver();
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));

@@ -120,9 +120,9 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
-  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)});
+  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)})+(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.dep.item',{p:depDisplay(itemDapanDependency(name))})+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.trade.quotaClose',{p:'<b>'+UT('mk.liang',{a:fmt1(quotaCloseEstimate(name))})+'</b>'})+'</div>';
   h+='</div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
@@ -160,14 +160,14 @@ function nextStock(name,ship,buy){
 }
 /** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
 function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
-/** 【本旬買賣】單項貨的出貨與進貨：頂端看「現有→賣出後→下旬開頭」，下面是兩個滑桿。 */
+/** 【本旬買賣】單項貨的出貨與進貨：頂端顯示協議配額，下面是兩個滑桿。 */
 function tradeCard(name){
   const c=COMM_MAP[name],m=G.mk[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
-  h+='<div class="small" style="margin:4px 0;text-align:center">'+UT('mk.trade.flow',{a:have,b:'<b id="f-after">'+Math.max(0,have-ship)+'</b>',c:'<b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b>'})+'</div>';
+  h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
   h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
-  h+='<div class="tiny muted">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div><div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
+  h+='<div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
@@ -188,12 +188,11 @@ function planCard(){
 /** 滑桿拖動或按快速鈕後，即時更新本旬買賣面板與總表。 */
 function refreshTrade(){
   const name=UI.s.focus;if(!name||!$('#trade-card'))return;
-  const have=G.inv[name]||0,ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
+  const ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
   if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
   const bq=buyPlanOf(name);if(sb)sb.value=bq;
   $('#q-q').textContent=UT('mk.units',{n:ship});$('#q-price').textContent=UT('mk.liang',{a:fmt1(q.price)});$('#q-rev').textContent=UT('mk.liang',{a:fmt(q.revenue)});
   $('#b-q').textContent=UT('mk.units',{n:bq});$('#b-cost').textContent=UT('mk.liang',{a:fmt(Math.round(unitBuyCost(name)*bq))});
-  $('#f-after').textContent=Math.max(0,have-ship);$('#f-next').textContent=nextStock(name,ship,bq);
   const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
 }
 const updateQuote=refreshTrade;

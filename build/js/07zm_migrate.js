@@ -47,9 +47,9 @@ function migrateSave(){
   Object.entries(G.mk||{}).forEach(([name,m])=>{      // 舊存檔的即時市價轉成本旬固定牌價；既有曲線視為收市紀錄
     m.hist=Array.isArray(m.hist)?m.hist:[];
     m.depPast=Array.isArray(m.depPast)?m.depPast.slice(-ODDS.dapanDependency.win):[];m.depTotal=Number.isFinite(m.depTotal)?m.depTotal:0;m.depKnown=Number.isFinite(m.depKnown)?m.depKnown:0;m.depDapan=Number.isFinite(m.depDapan)?m.depDapan:0;
-    const q=m.quote>0?m.quote:(m.price>0?m.price:(m.hist.length?m.hist[m.hist.length-1]:marketIndex(name)));
-    m.quote=q;m.price=q;m.quoteBase=m.quoteBase>0?m.quoteBase:marketIndex(name,true);m.quoteRelief=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0);
-    m.lastClose=m.lastClose>0?m.lastClose:q;m.prevQuote=m.prevQuote>0?m.prevQuote:(m.hist.length>1?m.hist[m.hist.length-2]:q);
+    const q=m.quote>0?m.quote:(m.price>0?m.price:(m.hist.length?m.hist[m.hist.length-1]:marketIndex(name))),f=marketFloor(name);
+    m.quoteFloor=q<=f;m.quote=Math.max(q,f);m.price=m.quote;m.quoteBase=Math.max(m.quoteBase>0?m.quoteBase:marketIndex(name,true),f);m.quoteRelief=Math.max(m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0),f);
+    m.lastClose=m.lastClose>0?m.lastClose:q;m.prevQuote=m.prevQuote>0?m.prevQuote:(m.hist.length>1?m.hist[m.hist.length-2]:m.quote);
     m.close=null;m.closeBase=null;m.closeRelief=null;
   });
   meetEnsure();

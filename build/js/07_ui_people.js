@@ -231,7 +231,7 @@ SHEETS.menu=()=>{
 };
 /** 開關音效。 */
 /** 放棄並重開。 */
-ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=false;UI.s.sheet=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
+ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=false;UI.s.sheet=null;UI.s.startDeck=null;UI.s.startTier=0;UI.s.startSys=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
 
 /* ======================= 筆記（千人手帳） ======================= */
 /** 筆記分類標籤。 */
@@ -504,16 +504,24 @@ SHEETS.legacy=()=>{
 };
 
 /* ======================= 開局畫面 ======================= */
+/** 每一世重新將七個行業洗牌到固定的七個資源等級；開局畫面重繪時沿用同一副牌。 */
+function makeStartDeck(){
+  const a=SYS.map(s=>s.key);
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){
-  if(!UI.s.startSys)UI.s.startSys='timber';
+  if(!Array.isArray(UI.s.startDeck)||UI.s.startDeck.length!==START_TIERS.length)UI.s.startDeck=makeStartDeck();
+  if(!Number.isInteger(UI.s.startTier)||UI.s.startTier<0||UI.s.startTier>=START_TIERS.length)UI.s.startTier=0;
+  UI.s.startSys=UI.s.startDeck[UI.s.startTier];
   let sv=loadSave();if(sv&&sv.ended){clearSave();sv=null}   // 舊版留下的已落幕存檔：清除
   let h=UT('ppl.h.18',{a:GAME_VER})+'</span></div>';
   h+=UT('ppl.showStart');
   if(!sv&&OLD_SAVE_FOUND)h+=UT('ppl.showStart.2',{a:GAME_VER});
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
   h+=UT('ppl.showStart.3');
-  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:s.perk,b:s.res})+'</div></div>').join('');
+  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
   h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
@@ -522,11 +530,11 @@ UI.showStart=function(){
 /** 更新紀錄視窗：新的在上，日期加條列說明。 */
 ACT.changelog=()=>{$('#info-bd').classList.add('over-start');UI.showInfo(UT('ppl.changelog'),CHANGELOG.map(c=>'<div style="margin-bottom:8px"><b>'+esc(c.date)+'</b>'+c.items.map(t=>'<div class="small" style="margin-top:3px;padding-left:1em;text-indent:-1em">• '+esc(t)+'</div>').join('')+'</div>').join(''))};
 /** 選擇流派。 */
-ACT.pickSys=el=>{UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
+ACT.pickSys=el=>{UI.s.startTier=Number(el.dataset.t)||0;UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
 /** 開始新局。 */
 ACT.begin=()=>{
   musicWant('market');                                // 點擊開局＝使用者手勢，可以開始播放音樂
-  newGame(UI.s.startSys,'rand');$('#start').classList.add('hidden');
+  newGame(UI.s.startSys,'rand',UI.s.startTier);$('#start').classList.add('hidden');
   SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.open',{firm:G.firm}),4200);
   save();
   LASTREP=null;showTurnReport([{}],G.news.map(x=>x.t).reverse(),0,'open');   // 開業旬報：進出貨皆空，列開局消息

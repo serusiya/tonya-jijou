@@ -173,10 +173,12 @@ function openChat(ent){
   UI.showInfo(who,h);
 }
 
-/* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。現款與私房錢見 SYS。 */
-function applyStartBoost(sysKey){
-  const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
+/* ======================= 開局加成（依七個固定資源等級） ======================= */
+/** 資源等級 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。 */
+function applyStartBoost(idx,sysKey){
+  idx=clamp(Math.floor(Number(idx)||0),0,START_TIERS.length-1);
+  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種固有特性，不隨隨機分配的資源等級移動
+  if(idx<=0)return;
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
     const ns=cityNpcs(G.cityId),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
     if(cand){
@@ -191,13 +193,12 @@ function applyStartBoost(sysKey){
     G.family.married=true;G.life.spouseKind='commoner';
     const k=newKid();k.birthYear=G.year-2;G.family.kids.push(k);
   }
-  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種：開局認識一名闇商人（07g_smuggle.js）
   if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'captain');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
     {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
+  if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 第六等級名望三階，第七等級四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
     const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('chief')&&!introOf(n.cid));
     const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];

@@ -6,6 +6,7 @@
  *  修正來源（風聲 heat、知名度 fame、保鏢、仇人…）仍由各系統代入。
  * ===================================================================== */
 const ODDS={
+  marketFloor:{name:'大盤牌價地板（固定基準價倍數）；收市價低於地板時，下一旬牌價與收市價脫鉤',staple:1.50,normal:1.20,luxury:1.05},
   /* —— 每旬隨機事件（旬報）—— */
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
   eventW:{name:'當季事件抽選權重（相對值）',fire:3,famine:2,harvest:2,typhoon:2,plague:2,military:2,sword:2,flower:2,dump:2,boom:2,inspect:2,fall:1.5,greed:1.5,thief:1.2,renqing:1.2},

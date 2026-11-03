@@ -127,14 +127,23 @@ function pastOf(m){
   if(m.past&&m.past.length)return m.past;
   return Array.from({length:ODDS.rivalShip.win-1},()=>({d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0}));
 }
-/** 【核心定價】市價＝基準×城市係數×季節×(近九旬需求÷近九旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
-function priceNow(name,ship,noLux){
+/** 以指定的「本旬市場總出貨」試算收市價；前八旬仍沿用真實紀錄。 */
+function priceAtSupply(name,currentSupply,noLux){
   const c=COMM_MAP[name],m=G.mk[name],P=pastOf(m);
   const Dw=demandEff(c,m,noLux)+P.reduce((a,x)=>a+(noLux&&x.d0!==undefined?x.d0:x.d),0);
-  const Sw=supplyEff(c,m)+P.reduce((a,x)=>a+x.so+x.my,0)+ship;
+  const Sw=Math.max(0,currentSupply)+P.reduce((a,x)=>a+x.so+x.my,0);
   const ratio=Dw/Math.max(1,Sw);
   const p=c.base*cityMod(homeCity(),c)*seasonCoef(c)*Math.pow(ratio,c.alpha)*m.ev;
   return clamp(p,c.base*0.25,c.base*5);
+}
+/** 【核心定價】市價＝基準×城市係數×季節×(近九旬需求÷近九旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
+function priceNow(name,ship,noLux){return priceAtSupply(name,supplyEff(COMM_MAP[name],G.mk[name])+ship,noLux)}
+/** 全員都按本旬配額出貨時的預估收市價。同業不計庫存波動與超賣；玩家使用畫面所列的有效配額。 */
+function quotaCloseEstimate(name){
+  shareFactor();
+  const m=G.mk[name],sh=(G.share&&G.share.me)||0;
+  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio();
+  return priceAtSupply(name,rivalQuota+quotaOf(name),false);
 }
 /** 參考出貨量（需求的 30%），用於打毀指數與行情指數。 */
 const refShip=name=>G.mk[name].D*0.3;
@@ -145,6 +154,9 @@ function marketQuote(name,noLux){
   const m=G.mk[name],v=noLux?m.quoteBase:m.quote;
   return Number.isFinite(v)&&v>0?v:(Number.isFinite(m.price)&&m.price>0?m.price:marketIndex(name,noLux));
 }
+/** 大盤牌價地板：必需品／一般品／奢侈品分別按固定基準價計算。 */
+function marketFloor(name){const c=COMM_MAP[name],f=ODDS.marketFloor;return c.base*(f[c.kind]||1)}
+const floorQuote=(name,p)=>Math.max(marketFloor(name),p);
 /** 剔除災情事件倍率的收市試算，供「緊急御免」沿用災前進貨基準。 */
 function reliefIndex(name,ship){const m=G.mk[name],ev=m.ev;m.ev=1;try{return priceNow(name,ship,true)}finally{m.ev=ev}}
 /** 本旬緊急御免基準：同樣在上一旬收市時鎖定，但不含災情事件倍率。 */
@@ -200,7 +212,7 @@ function rivalSupply(c,m,first){
 }
 /** 公開牌價整旬固定；事件與同業變動只影響旬末收市。price 保留為舊程式與舊存檔的相容別名。 */
 function syncPrices(){
-  Object.entries(G.mk).forEach(([name,m])=>{if(!(m.quote>0))m.quote=m.price>0?m.price:marketIndex(name);if(!(m.quoteBase>0))m.quoteBase=marketIndex(name,true);m.price=m.quote});
+  Object.entries(G.mk).forEach(([name,m])=>{const q=m.quote>0?m.quote:(m.price>0?m.price:marketIndex(name)),qb=m.quoteBase>0?m.quoteBase:marketIndex(name,true),qr=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0),f=marketFloor(name);m.quoteFloor=q<=f;m.quote=Math.max(q,f);m.quoteBase=Math.max(qb,f);m.quoteRelief=Math.max(qr,f);m.price=m.quote});
 }
 /** 推進一旬、日期前進之前：算出本旬收市價，並記下有效需求、同業供給與我方出貨，供 refreshMarket 寫入九旬紀錄。
  *  （若等日期前進後才算，節慶倍率會用到下一旬的日期：節慶前一旬被記成節慶、節慶當旬反而記成平常，節慶當旬的價格因此算了兩次。） */
@@ -209,7 +221,7 @@ function snapMarket(){
     const c=COMM_MAP[name],close=priceNow(name,m.shipped),closeBase=priceNow(name,m.shipped,true),closeRelief=reliefIndex(name,m.shipped);
     m.close=close;m.closeBase=closeBase;m.closeRelief=closeRelief;m.snap={d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};
     m.depPast=(Array.isArray(m.depPast)?m.depPast:[]).concat([{total:m.depTotal||0,known:m.depKnown||0,dapan:m.depDapan||0}]).slice(-ODDS.dapanDependency.win);
-    if(TURNRP&&c.sys===G.sysKey){TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next:close})}
+    if(TURNRP&&c.sys===G.sysKey){const floor=marketFloor(name),next=Math.max(close,floor);TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next,floored:close<=floor})}
   });
 }
 /** 每旬換季刷新：上旬收市成為本旬牌價，再刷新需求、事件倍率、他家供給與進貨壓力；曲線只記收市價。 */
@@ -220,8 +232,8 @@ function refreshMarket(first){
     if(!first){
       close=Number.isFinite(m.close)?m.close:priceNow(name,m.shipped);closeBase=Number.isFinite(m.closeBase)?m.closeBase:priceNow(name,m.shipped,true);closeRelief=Number.isFinite(m.closeRelief)?m.closeRelief:reliefIndex(name,m.shipped);
       const rec=m.snap||{d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};m.past=(m.past||pastOf(m)).concat([rec]).slice(-(ODDS.rivalShip.win-1));
-      m.prevQuote=marketQuote(name);m.lastClose=close;m.quote=close;m.quoteBase=closeBase;m.quoteRelief=closeRelief;m.price=close;
-      m.hist.push(Math.round(close*10)/10);if(m.hist.length>12)m.hist.shift();
+      const floor=marketFloor(name);m.prevQuote=marketQuote(name);m.lastClose=close;m.quoteFloor=close<=floor;m.quote=Math.max(close,floor);m.quoteBase=Math.max(closeBase,floor);m.quoteRelief=Math.max(closeRelief,floor);m.price=m.quote;
+      m.hist.push(Math.round(m.quote*10)/10);if(m.hist.length>12)m.hist.shift();
     }   // 用日期前進前記下的本旬需求（snapMarket），節慶、買氣才不會錯記到前一旬
     else m.past=[];
     delete m.snap;m.close=null;m.closeBase=null;m.closeRelief=null;
@@ -232,7 +244,7 @@ function refreshMarket(first){
     m.shipped=0;m.depTotal=0;m.depKnown=0;m.depDapan=0;
     m.press=1+((m.press||1)-1)*0.7;if(m.press<1.003)m.press=1;
     m.wcap=itemCap(name);                                         // 進貨壓力以庫存上限為基準
-    if(first){m.quote=marketIndex(name);m.quoteBase=marketIndex(name,true);m.quoteRelief=reliefIndex(name,0);m.price=m.quote;m.lastClose=m.quote;m.prevQuote=m.quote;m.hist.push(Math.round(m.quote*10)/10)}
+    if(first){const floor=marketFloor(name),q=marketIndex(name),qb=marketIndex(name,true),qr=reliefIndex(name,0);m.quoteFloor=q<=floor;m.quote=Math.max(q,floor);m.quoteBase=Math.max(qb,floor);m.quoteRelief=Math.max(qr,floor);m.price=m.quote;m.lastClose=q;m.prevQuote=m.quote;m.hist.push(Math.round(m.quote*10)/10)}
   });
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
@@ -244,7 +256,7 @@ function unitBuyCost(name){
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
   if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未參加協議：照市價（參加者享聯合採購價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
-  return p;
+  return Math.max(p,marketFloor(name));
 }
 /** 畫面試算：只按本旬固定牌價估算；真正收市價與入帳在旬末出貨完畢後才揭曉。 */
 function quoteSale(name,qty){
