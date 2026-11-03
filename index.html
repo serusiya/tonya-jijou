@@ -1841,9 +1841,9 @@ const UI_TXT={
   'rep.goodsRows':'<div class="rp-empty">本旬沒有買賣</div>',
   'rep.qty':'出{a}',
   'rep.qty.2':'進{a}',
-  'rep.goodsRows.2':'<div class="tiny muted" style="margin:-2px 0 3px">長條：紅＝出貨收入，綠＝相場進貨；淨額：紅＝盈利或 +0，綠＝虧損</div>{a}',
+  'rep.goodsRows.2':'{a}',
   'rep.goodsPrice':'牌價 {q} → {c}（{v}）',
-  'rep.goodsLine':'<div class="rp-good"><div class="row small" style="gap:6px"><b class="rp-good-name">{d}{n}</b>{bar}<b class="rp-amt {cls}">{net} 兩</b></div><div class="row tiny muted" style="justify-content:flex-end"><span style="text-align:right">{p}</span></div></div>',
+  'rep.goodsLine':'<div class="rp-good"><div class="row small" style="gap:6px"><b class="rp-good-name">{n}</b>{bar}<b class="rp-amt {cls}">{net} 兩</b></div><div class="row tiny muted" style="justify-content:flex-end"><span style="text-align:right">{p}</span></div></div>',
   'rep.costs':'夥計月例',
   'rep.costs.2':'倉庫維護',
   'rep.costs.3':'倉儲保險',
@@ -1855,7 +1855,6 @@ const UI_TXT={
   'rep.showTurnReport.4':'{a}{b} <small>兩</small></div><div class="rp-sub">現款餘額 {c} 兩</div></div>',
   'rep.showTurnReport.5':'{a}%"></i></div><div class="rp-legend"><span class="in">收入 {b}</span><span class="out">支出 {c}',
   'rep.showTurnReport.6':'<div class="rp-sec">📦 貨物收支</div>{a}',
-  'rep.marketDate':'{d}·',
   'rep.showTurnReport.7':'委託金退回',
   'rep.showTurnReport.8':'協議分紅',
   'rep.showTurnReport.9':'大番頭意外之財',
@@ -7011,7 +7010,7 @@ function goodsRows(T){
     const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
     const next=Number.isFinite(x.next)?x.next:x.close;
     const price=Number.isFinite(x.quote)&&Number.isFinite(next)?(x.floored?UT('rep.goodsPrice.floor',{q:fmt1(x.quote),n:fmt1(next)}):UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(next),v:'<span class="'+(next>=x.quote?'up':'down')+'">'+amtShort(Math.round(next-x.quote))+'</span>'})):'';
-    return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),p:price});
+    return UT('rep.goodsLine',{n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),p:price});
   }).join('')});
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */
