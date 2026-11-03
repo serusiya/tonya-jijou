@@ -7,13 +7,6 @@
 /* ======================= 07 介面：人物卡、筆記、私宅、各處所面板、傳承、開局 ======================= */
 /** 底部/置中面板的內容產生器表：SHEETS[type]() 回傳 {title,html}。新增面板＝在此加一個函式並用 UI.openSheet(type) 開啟。 */
 const SHEETS={};
-/** 介紹人下拉選單。 */
-function introSel(){return ''}
-function introSelOld(){
-  const opts=G.intros.map(i=>'<option value="'+i.cid+'" '+(i.cid===G.introId?'selected':'')+'>'+UT('ppl.opts',{a:esc(nameOf(i.cid)),b:Math.round(R(i.cid).aff)})).join('');
-  return '<div class="row small" style="margin-bottom:6px"><b>'+UT('opt.introLabel')+'</b><select data-chg="setIntro">'+(opts||'<option>'+UT('opt.noIntro')+'</option>')+'</select></div>';
-}
-
 /** 人物未兌現承諾的顯示與兌現按鈕。 */
 function promiseLines(cid){
   const r=R(cid);
@@ -96,8 +89,6 @@ ACT.visit=el=>{
 };
 /** 探聽性向。 */
 ACT.scout=el=>rr(scout(el.dataset.cid));
-/** 打聽軟肋。 */
-ACT.weak=el=>rr(revealWeakness(el.dataset.cid));
 /** 兌現承諾。 */
 ACT.pay=el=>{const cid=el.dataset.cid,i=+el.dataset.i;autoIntro(cid);if(isEnemy(cid)){toast(MSG('meet.1'));return}if(!spendVisitAP())return;visitFx({cid,outcome:'ok',kind:'favor',prop:'gold'},()=>{const a0=R(cid).aff;const r=payPromise(cid,i);errandTrim(cid,a0,r);rr(r)})};
 /** 請對方當介紹人（需好感門檻）。 */
@@ -150,7 +141,7 @@ const groupHead=t=>'<div class="tiny muted bold" style="margin:8px 0 2px;text-al
 /** 町奉行所面板：三系官署官員（人物卡）。 */
 SHEETS.yamen=()=>{
   const all=officialsOf(G.cityId),tab=UI.s.yamenTab||'all',offs=tab==='all'?all.slice().sort((a,b)=>R(b.cid).aff-R(a.cid).aff):all.filter(n=>n.pos.court===tab);
-  let h=UT('ppl.h.10',{a:(introSel()+appsCard()+licCard()),b:G.heat>6?UT('ppl.h.7'):G.heat>3?UT('ppl.h.8'):UT('ppl.h.9')})+'</div>';
+  let h=UT('ppl.h.10',{a:(appsCard()+licCard()),b:G.heat>6?UT('ppl.h.7'):G.heat>3?UT('ppl.h.8'):UT('ppl.h.9')})+'</div>';
   return {title:UT('ppl.yamen',{a:homeCity().name}),html:h+'<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList')+'</button></div>'
     +tabPills([['all',UT('ppl.yamen.2'),all.length]].concat(CITY_COURTS.map(k=>[k,COURTS[k].name,all.filter(n=>n.pos.court===k).length])),tab,'yamenTab')
     +(offs.map(n=>personBlock(n.cid,'yamen')).join('')||UT('ppl.yamen.3'))};
@@ -181,7 +172,7 @@ SHEETS.residences=()=>{
   const all=resident().sort((a,b)=>RES_ORDER.indexOf(a.role)-RES_ORDER.indexOf(b.role)||back(a)-back(b)||R(b.cid).aff-R(a.cid).aff);
   const tab=UI.s.resTab||'all',list=tab==='all'?all.slice().sort((a,b)=>R(b.cid).aff-R(a.cid).aff):all.filter(n=>n.role===tab);
   const tabs=[['all',UT('ppl.yamen.2'),all.length]].concat(RES_ORDER.map(k=>[k,RES_TAB[k],all.filter(n=>n.role===k).length]));
-  return {title:UT('ppl.residences'),html:UT('ppl.residences.3',{a:introSel(),b:tabPills(tabs,tab,'resTab'),c:list.map(n=>personBlock(n.cid,'res')).join('')||UT('ppl.residences.2')})};
+  return {title:UT('ppl.residences'),html:UT('ppl.residences.3',{a:'',b:tabPills(tabs,tab,'resTab'),c:list.map(n=>personBlock(n.cid,'res')).join('')||UT('ppl.residences.2')})};
 };
 /** 名門商邸的類型順序與標籤名稱。 */
 const RES_ORDER=['rival','guest','manager','broker','smuggler'],RES_TAB={rival:UT('ppl.RES_TAB'),guest:UT('ppl.RES_TAB.2'),manager:UT('ppl.RES_TAB.3'),broker:UT('ppl.RES_TAB.4'),smuggler:UT('ppl.RES_TAB.5')};
@@ -449,7 +440,7 @@ ACT.marryOpen=()=>UI.openSheet('marry');
 SHEETS.marry=()=>{
   const ms=UI.s.marry||(UI.s.marry={kind:'commoner',target:null});
   const kinds=['commoner','rival','official'].map(k=>[k,NM('marryKind',k),UT('marry.kindDesc.'+k)]);
-  let h=introSel()+kinds.map(([k,n,d])=>'<div class="mkt-row '+(ms.kind===k?'on':'')+'" data-act="marryKind" data-k="'+k+'"><div><b>'+n+'</b><div class="tiny muted">'+d+'</div></div></div>').join('');
+  let h=kinds.map(([k,n,d])=>'<div class="mkt-row '+(ms.kind===k?'on':'')+'" data-act="marryKind" data-k="'+k+'"><div><b>'+n+'</b><div class="tiny muted">'+d+'</div></div></div>').join('');
   let cand=[];
   if(ms.kind==='rival')cand=cityNpcs(G.cityId,'rival').filter(n=>R(n.cid).bond);
   if(ms.kind==='official')cand=officialsOf(G.cityId).filter(n=>R(n.cid).bond);

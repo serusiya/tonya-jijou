@@ -196,7 +196,7 @@ function applyStartBoost(idx,sysKey){
   if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'captain');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
-    {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
+    {const dl=destList('sea',true)[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
   if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 第六等級名望三階，第七等級四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位

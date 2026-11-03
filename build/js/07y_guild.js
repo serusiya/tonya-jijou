@@ -2,11 +2,12 @@
 /* ======================= 聯合採購與出貨協議的擔保金與違約金分配 =======================
  *  - 參加協議（表態遵守或簽暗約）要押擔保金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，擔保金由開局贈送。
  *  - 參加協議者向大盤進貨享聯合採購價（市價九三折）；未參加者照市價（03_market.js 的 unitBuyCost）。
- *  - 自動續押：擔保金一直押在公會；每 9 旬一期（ODDS.guildBond.turns），期滿把本期沒收的違約金平分給守約者（你＋本期沒被抓的同業）。
+ *  - 自動續押：擔保金一直押在公會；一期＝兩次例會之間（3、6、9、12 月上旬），例會旬開始時把上一期沒收的違約金平分給守約者（你＋本期沒被抓的同業；meetingTick，07yb_meeting.js）。
  *  - 你被查獲超量（evalCartel）或退出協議：擔保金沒收，立場回到未參加；要重新加入協議須在例會時再押一次。
  *  - 同業：每家每旬 5% 超賣一項本業貨（ODDS.rivalShip.overRival，rivalSupply 擲骰），查獲規則與你守約時相同；被抓者擔保金沒收、三旬內市佔下降。
- *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pEnd（本期結束旬）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。 */
-/** 本期供給方針；舊存檔在補值前沿用原本的「以量制價」。 */
+ *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。
+ *  - 供給方針（維持／減供）由例會投票決定（07yb_meeting.js）；只有開局第一期各半抽選（newGame）。 */
+/** 本期供給方針；缺值時視為「減供」。 */
 const cartelPolicy=()=>G.cartel&&G.cartel.policy==='normal'?'normal':'restrict';
 const guildPolicyName=()=>cartelPolicy()==='normal'?UT('guild.guildPolicyName'):UT('guild.guildPolicyName.2');
 /** 是否已參加聯合採購與出貨協議（表態遵守或暗約）。 */
@@ -15,33 +16,17 @@ const guildMember=()=>G.cartel.state==='pledged'||G.cartel.state==='secret';
 function guildEnsure(){
   const C=G.cartel;
   if(C.policy!=='normal'&&C.policy!=='restrict')C.policy='restrict';
-  if(C.policyEnd===undefined)C.policyEnd=G.turn+ODDS.guildBond.turns;
-  if(C.bond===undefined){C.bond=guildMember()?costOf('guildBond'):0;C.pot=0;if(C.bond)C.pEnd=G.turn+ODDS.guildBond.turns}
-  if(guildMember()&&C.bond>0&&C.pEnd===undefined)C.pEnd=G.turn+ODDS.guildBond.turns;
+  if(C.bond===undefined){C.bond=guildMember()?costOf('guildBond'):0;C.pot=0}
 }
-/** 每九旬以各半機率決定下一期供給方針；改變方針時不沿用大番頭的舊出貨量。 */
-function guildPolicyRoll(log){
-  const C=G.cartel,prev=cartelPolicy();
-  C.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
-  if(C.policy!==prev)G.plan={}
-  const key=C.policy==='normal'&&!guildMember()?'guild.policy.normalNone':'guild.policy.'+C.policy;
-  const t=NEWS(key);pushNews(t);if(log)log.push(t);
-}
-/** 進入新旬後、刷新市場前決定新一期方針；上一旬玩家出貨已先按舊方針完成違約判定。 */
-function guildPolicyTick(log){
-  guildEnsure();const C=G.cartel;
-  if(C.policyEnd!==undefined&&G.turn>=C.policyEnd){C.policyEnd+=ODDS.guildBond.turns;guildPolicyRoll(log)}
-}
-/** 押擔保金加入協議（新的一期從此刻算起）。inTurn＝推進一旬途中付（大番頭代席），記在本旬報告。 */
-function guildJoin(inTurn){
+/** 押擔保金加入協議（只在例會上辦）。 */
+function guildJoin(){
   const C=G.cartel,amt=costOf('guildBond');
-  if(inTurn){G.silver-=amt;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['spend.bond']=(TURNRP.inTurn['spend.bond']||0)+amt}}
-  else spend('guildBond');
-  C.bond=amt;C.pEnd=G.turn+ODDS.guildBond.turns;C.pot=0;
+  spend('guildBond');
+  C.bond=amt;C.pot=0;
   rivalsHere().forEach(n=>{msOf(n).caught=false});
 }
 /** 擔保金沒收（被查獲或退出協議）。 */
-function guildForfeit(){const C=G.cartel,a=C.bond||0;C.bond=0;C.pot=0;C.pEnd=undefined;return a}
+function guildForfeit(){const C=G.cartel,a=C.bond||0;C.bond=0;C.pot=0;return a}
 /** 同業每旬的超賣決定（rivalSupply 在本業第一項貨時呼叫）：5% 機率挑一項本業貨超賣。回傳該貨的超賣倍數（沒超賣回傳 0）。 */
 function rivalOverMul(r,c,first){
   if(first||r.raided)return 0;

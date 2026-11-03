@@ -69,7 +69,7 @@ function injuredBlock(){
 }
 /** 每旬遞減養傷期。 */
 function injuryTick(log){
-  if((G.injured||0)>0){G.injured--;if(G.injured===0)log.push(NEWS('injuryTick.1'))}
+  if((G.injured||0)>0){G.injured--;if(G.injured===0){log.push(NEWS('injuryTick.1'));consoleNote('heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
 }
 /** 遇襲機率：基本 0.5%～3%（風聲、知名度越高越危險），另加每位仇人 +3%。 */
 function ambushChance(){const A_=ODDS.ambush;return clamp(A_.base+A_.perHeat*Math.min(G.heat||0,A_.heatCap)+A_.perFame*(G.fame||0),A_.min,A_.max)+ENEMY_AMBUSH*enemyCount()}   // 每位仇人 +3%

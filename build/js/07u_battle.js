@@ -161,7 +161,7 @@ function battleEnd(){
   setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;addFame(win?(hiOff?0.75*n.pos.rank:0.3):0.1,win&&hiOff?'mid':undefined);
   logRel(cid,UT('bt.battleEnd.6',{a:((win?UT('bt.battleEnd.3'):UT('bt.battleEnd.4'))+(B.spent?UT('bt.battleEnd.5',{a:B.spent}):'')),b:gain}));
   if(win)sfx.gift();
-  const msg=UT('bt.msg',{a:win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'),b:gain});
+  const msg=UT('bt.msg',{a:win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'),b:gain})+friendTip(cid);   // 好感 100 的商人朋友講出官員軟肋（07zz_friends.js）
   UI.render();refreshSheet();
   if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg));return}
   UI.hideInfo();toast(msg,4200);BT=null;

@@ -11,8 +11,6 @@
 const STAPLE_KEYS=COMM.filter(c=>commTag(c,'riot')).map(c=>c.name);
 /** 節慶期間需求 ×4 的物品（資料檔標籤 fest：菜籽油、芝麻油、鯨油、棉布、錦緞）。 */
 const festHot=c=>commTag(c,'fest');
-/** （舊）地區相鄰表；目前距離改由 REGION_XY 座標計算。 */
-const REGION_ADJ={reg_central:['reg_east','reg_west','reg_north'],reg_east:['reg_central','reg_north'],reg_west:['reg_central','reg_south'],reg_south:['reg_west'],reg_north:['reg_central','reg_east']};
 
 /** 主角駐節城市。 */
 const homeCity=()=>CITY(G.cityId);
@@ -24,7 +22,9 @@ function cityD(city,c){
   return Math.max(mn,Math.round(cityPop(city)/1000*w));
 }
 /** 城市物產：資料表原有物產＋本局新增的產地（G.devProd，存檔）。城市資料表不可直接改，以免同頁新局被上一局污染。所有讀物產的地方都用它（開局選城除外）。 */
-function cityProds(ct){const b=(ct&&ct.connected_commodities)||[];const d=(G&&G.devProd||[]).filter(x=>x.cityId===ct.id&&!b.includes(x.name)).map(x=>x.name);return d.length?b.concat(d):b}
+function cityProdsBase(ct){const b=(ct&&ct.connected_commodities)||[];const d=(G&&G.devProd||[]).filter(x=>x.cityId===ct.id&&!b.includes(x.name)).map(x=>x.name);return d.length?b.concat(d):b}
+/** 加上國中物卸留期間臨時出產的貨（07zz_regfavor4.js）。 */
+function cityProds(ct){const b=cityProdsBase(ct),u=(G&&G.unloads)?unloadProds(ct.id).filter(n=>!b.includes(n)):[];return u.length?b.concat(u):b}
 /** 某城是否為某貨的新增產地。 */
 const isDevProd=(ct,name)=>!!(G&&G.devProd||[]).some(x=>x.cityId===ct.id&&x.name===name);
 /** 本局新增的城史（新產地等）。 */
@@ -74,7 +74,7 @@ function initMarket(){
 const ownComms=()=>commsOfSys(G.sysKey);
 /** 目前庫存總量。 */
 const xinvQty=()=>Object.values(G.xinv||{}).reduce((a,b)=>a+b,0);
-const invUsed=()=>Object.values(G.inv).reduce((a,b)=>a+b,0)+xinvQty();
+const invUsed=()=>Object.values(G.inv).reduce((a,b)=>a+b,0)+xinvQty()+lodgeQty();   // 朋友寄放的貨也佔倉位（07zz_friends.js）
 /** 庫存來源帳：known 是來源已知的庫存，dapan 是其中由大盤進貨的庫存；舊存檔既有庫存保持來源不明。 */
 function stockSource(name){
   G.stockSource=G.stockSource||{};const have=Math.max(0,G.inv[name]||0),s=G.stockSource[name]||(G.stockSource[name]={known:0,dapan:0});
@@ -308,6 +308,7 @@ function receiveOrders(log){
     const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(o.name)-(G.inv[o.name]||0))),q=Math.min(o.qty,room);
     if(q>0)addStock(o.name,q,o.cost/Math.max(1,o.qty));
     stockAdd(o.name,q,true);G.arrived.push({name:o.name,qty:q,cost:o.cost,lost:o.qty-q});
+    overflowAdd(o.name,o.qty-q,o.cost/Math.max(1,o.qty),true);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
   });
   if(G.orders&&G.orders.length){const t=NEWS('receiveOrders.1',{items:G.arrived.map(a=>COMM_MAP[a.name].short+' ×'+a.qty+(a.lost?UT('arrive.lost',{n:a.lost}):'')).join(NAMES_SEP)});log.push(t);pushNews(t)}
   G.orders=[];
@@ -401,7 +402,7 @@ function thieves(){
   if(guardCount()>=2&&roll('thiefRepel'))return NEWS('thieves.1');
   const loss=Math.min(invUsed(),Math.max(1,Math.round(invUsed()*0.05)));
   const keys=Object.keys(G.inv).filter(k=>G.inv[k]>0);if(!keys.length)return null;
-  const k=pick(keys);const l=Math.min(G.inv[k],loss);stockTake(k,l,false);
+  const k=pick(keys);const l=Math.min(G.inv[k],loss);stockTake(k,l,false);if(l>0)consoleNote('theft');
   return NEWS('thieves.2',{k:COMM_MAP[k].short,l});
 }
 
@@ -449,7 +450,7 @@ function invUpkeep(log){
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l});
-      G.life.fires++;sfx.bad();
+      G.life.fires++;sfx.bad();consoleNote('fire');
       const t=NEWS('invUpkeep.1',{tot});pushNews(t);log.push(t);
       setEv(c=>commTag(c,'fire'),1.5);
     }
@@ -469,7 +470,8 @@ function holdTick(log){
     if(p>0&&chance(p)){
       const l=Math.max(1,Math.floor(q*(H.lossMin+rnd()*(H.lossMax-H.lossMin))));
       stockTake(n,l,false);sfx.bad();
-      const t=NEWS('holdTheft.'+(1+Math.floor(rnd()*3)),{name:COMM_MAP[n].short,l});pushNews(t);log.push(t);
+      const hk=1+Math.floor(rnd()*3);if(hk===1)consoleNote('theft');
+      const t=NEWS('holdTheft.'+hk,{name:COMM_MAP[n].short,l});pushNews(t);log.push(t);
     }
   });
 }
@@ -549,8 +551,9 @@ function msTick(log){
     m.fame=clamp(m.fame+(rnd()-0.48)*2.4,10,ODDS.fame.cap*0.95);
     if(m.evT>0){m.evT--;if(m.evT<=0)m.ev=1}
     else if(!n.raided&&roll('rivalEvent')){
-      const good=chance(ODDS.rivalEvent.good);m.ev=good?1.25:0.7;m.evT=3;
-      if(chance(ODDS.rivalEvent.news)){const t=NEWS(good?'rival.good':'rival.bad',{n:nameOf(n.cid)});pushNews(t);log.push(t)}
+      const good=chance(ODDS.rivalEvent.good),bad=good?'':pick(['fire','theft','wreck']);m.ev=good?1.25:0.7;m.evT=3;   // 壞事分失火、遭竊、船貨遇難
+      const fr=rivalEventHook(n,good,bad,log);                     // 好感 80 以上的同業：慰問、慶功宴（07zz_friends.js）
+      if(fr||chance(ODDS.rivalEvent.news)){const t=NEWS(good?'rival.good':'rival.bad.'+bad,{n:nameOf(n.cid)});pushNews(t);log.push(t)}
     }
   });
   G.mytmp=0.5*(G.mytmp||1)+0.5*(0.88+rnd()*0.24);
@@ -670,7 +673,7 @@ function populationTick(log){
 }
 
 /* ---------- 旬推進 ---------- */
-/** 【每旬推進的唯一入口】順序：自動出貨→自動進貨→大番頭旬末代席→記下本旬需求與出貨→日期前進→訂單到貨→公會結算→季度人口→同業市佔率→市場刷新→公會查同業與分紅→庫存損耗→商路→員工→大番頭其他事務→開銷→隨機事件→城市→打毀→人際→年度結算→破產判定→存檔。調整順序前請確認相依關係。 */
+/** 【每旬推進的唯一入口】順序：例會自動決議→本陣御用達送貨→自動出貨→自動進貨→記下本旬收市與需求→日期前進→巡察與賊亂→訂單與捎帶到貨→協議違約判定→例會旬結算→季度人口→同業市佔率→市場刷新→公會查同業→庫存損耗與持有成本→委託採買與走私歸來（含卸留請負結算）→員工、大番頭、分號、店員事件→開銷→隨機事件→城市、國中物卸留、國商助成→打毀→人際→年度結算→破產判定→仇人、官署補缺、同業繼承→遠島、搜查、查貨、浪人、他行貨、私房錢抽成→朋友事件→傷勢→存檔。調整順序前請確認相依關係。 */
 function advanceTurn(){
   syncPeaks();
   homeEventsVoid();                               // 上一旬「回府時」沒輪到的事件作廢（07zx_homeevt.js）
@@ -680,7 +683,7 @@ function advanceTurn(){
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
   autoBuy(log);
-  snapMarket();                                   // 日期前進前，記下本旬的需求與出貨（節慶看本旬日期）
+  snapMarket();                                   // 日期前進前，記下本旬的收市價、需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
   if(newYear)buyoutEnsure();                       // 新年重抽五區各自的四個大口買付月
@@ -700,6 +703,7 @@ function advanceTurn(){
   invUpkeep(log);
   holdTick(log);
   shipsTick(log);
+  ujobTick(log);                                  // 卸留請負：交齊或期滿（07zz_regfavor4.js）
   smugTick(log);
   dealerTick(log);
   empTick(log);
@@ -709,6 +713,8 @@ function advanceTurn(){
   upkeep(log);
   randomEvent(log);
   cityTick(log);
+  unloadTick(log);                                // 國中物卸留：卸留月開始與結束（07zz_regfavor4.js）
+  kokushoTick(log);                               // 國商助成：回扣進私房錢（07zz_regfavor4.js）
   syncPrices();                                   // 事件只影響本旬收市；公開牌價維持上旬收市，不在旬中重算
   riotTick(log);
   peopleTick(log);
@@ -723,6 +729,7 @@ function advanceTurn(){
   roninTick(log);                                 // 浪人頭上門要錢（07zw_ronin.js）
   xgoodsTick(log);
   skimTick(log,s0);
+  friendsTick(log);                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
   injuryTick(log);

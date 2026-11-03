@@ -4,6 +4,8 @@
  * 佇列存進 G，避免事件結算後重新整理頁面便完全遺失。 */
 function faceEventQueue(){return G.faceEvents||(G.faceEvents=[])}
 function queueFaceEvent(e){if(G&&e)faceEventQueue().push(e)}
+/** 其他模組登記的人物事件（07zz_friends.js 等）：FACE_EXT[type](e,name)→{line,effect,buttons}；FACE_TITLE[type]＝標題文字鍵。 */
+const FACE_EXT={},FACE_TITLE={};
 
 /** 人物事件卡；官吏查貨（賄賂／公事公辦）、商人借錢（接受／婉拒）附選項，其餘事件用「知道了」接續。查貨、借錢、硬塞都只在這裡呈現，旬報不另列卡片。 */
 function faceEventCard(e){
@@ -38,6 +40,8 @@ function faceEventCard(e){
     const C=roninCard(e);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 浪人頭要錢（07zw_ronin.js）
   }else if(e.type==='staff'){
     const C=sevCard(e,name);if(!C)return null;line=C.line;effect=C.effect;buttons=C.buttons;   // 店員偶發事件（07zt_staffevents.js）
+  }else if(FACE_EXT[e.type]){
+    const C=FACE_EXT[e.type](e,name);if(!C)return null;line=C.line;effect=C.effect;if(C.buttons)buttons=C.buttons;
   }else return null;
   return '<div class="card warn" style="display:flow-root">'+pt+'<div><b style="font-size:17px">'+esc(name)+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(tag),b:esc(line),c:esc(effect)})+'</div>'+buttons+'</div>';
 }

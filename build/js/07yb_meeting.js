@@ -84,7 +84,7 @@ function meetAuction(myBid){
   bids.sort((a,b)=>b.b-a.b||b.sh-a.sh);
   const top=bids[0];let res;
   if(myBid>0&&(!top||myBid>top.b)){
-    G.silver-=myBid;stockAdd(lot.name,lot.qty,false);notePublicSpend('spend.lot|'+lot.name,myBid);
+    G.silver-=myBid;addStock(lot.name,lot.qty,myBid/lot.qty);stockAdd(lot.name,lot.qty,false);   // 得標價計入均價notePublicSpend('spend.lot|'+lot.name,myBid);
     res={who:'me',price:myBid};sfx.fanfare();
   }else if(top)res={who:top.cid,price:top.b};
   else res={who:null,price:0};

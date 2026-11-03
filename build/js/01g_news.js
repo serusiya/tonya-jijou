@@ -18,9 +18,6 @@ const NEWS_TXT={
   "meet.lotMe":"🍡【菓子折】你以 {p} 兩標下「{n}」{q} 單位，貨已入倉。",
   "meet.lotRival":"🍡【菓子折】「{who}」以 {p} 兩標下「{n}」{q} 單位。",
   "meet.lotNone":"🍡【菓子折】本期的「{n}」沒有人出價，退回相場。",
-  "guild.policy.restrict":"⚖️【協議決議】本期「減供」：各家以自己的穩定供應量七成為配額，以量控價。",
-  "guild.policy.normal":"⚖️【協議決議】本期「維持」：各家以自己的穩定供應量九成為配額；同行各自供貨，不會替你補足差額。",
-  "guild.policy.normalNone":"⚖️【協議決議】本期「維持」：你未參加協議，出貨不受配額限制，預設照穩定供貨線；同行仍各自按九成目標供貨。",
   /* —— receiveOrders —— */
   "rivalDump":"🏪【同業】「{who}」大舉拋售「{name}」，存貨傾巢而出，近日行情恐怕被壓低。",
   "luxDry":"🏮【行情】近來「{name}」門庭冷落，達官貴人不再問津，不知何時才有買家。",
@@ -248,7 +245,39 @@ const NEWS_TXT={
   "rfav.arrive.land":"🐎【官荷捎帶】{g} × {q} 隨御用荷物運到入倉{l}。",
   "rfav.honjin.give":"🏯【本陣御用達】送去 {g} × {q}，入帳 {a} 兩（還有 {l} 旬）。",
   "rfav.honjin.done":"🏯【本陣御用達】送去 {g} × {q}，入帳 {a} 兩，三旬合約順利完成。",
-  "rfav.honjin.fail":"🏯【本陣御用達】庫存不足，只送去 {g} × {q}（入帳 {a} 兩），失約，合約作廢。"
+  "rfav.honjin.fail":"🏯【本陣御用達】庫存不足，只送去 {g} × {q}（入帳 {a} 兩），失約，合約作廢。",
+  /* —— 遠國奉行所四階新請託（07zz_regfavor4.js） —— */
+  "r4.unload.open":"⚓【國中物卸留】官府的儲備放出來了，這個月【{c}】臨時有{g}可買。",
+  "r4.unload.close":"⚓【國中物卸留】【{c}】的{g}已經放完。",
+  "r4.out.head":"前往【{dest}】交貨{b}。",
+  "r4.out.line":"交貨{g} × {q}：送到 {got}{lost}，領 {a} 兩。",
+  "r4.ujob.done":"🏯【卸留請負】{g} × {q} 全數送到，差事辦妥。",
+  "r4.ujob.fail":"🏯【卸留請負】期限內只送到{g} {q}，不足 {n}，失約。",
+  "r4.kokusho.gift":"🎁【節禮】勘定吟味役「{n}」差人送來一份賀禮。",
+  "r4.kokusho.gift2":"🎁【節禮】勘定所的「{n}」大人託人捎來一份節禮。",
+  "r4.kokusho.cut":"🎁【節禮】勘定所的「{n}」大人不在其位，那份節禮也斷了。",
+  "r4.tally.back":"📜【唐船割符】船長「{c}」持割符出差回港，{name} × {q} 運進密庫。",
+  "rival.bad.fire":"🏪【同業】「{n}」的倉庫失火，客源流失。",
+  "rival.bad.theft":"🏪【同業】「{n}」的倉庫遭竊，客源流失。",
+  "rival.bad.wreck":"🏪【同業】「{n}」的船貨在海上遇難，客源流失。",
+  /* —— 人情往來與朋友事件（07zz_friends.js） —— */
+  "fr.visit.fire":"🤝【慰問】{n} 聽說倉庫失火，特地上門慰問。",
+  "fr.visit.theft":"🤝【慰問】{n} 聽說倉庫遭竊，特地上門慰問。",
+  "fr.visit.heal":"🤝【探望】{n} 聽說你傷好了，特地上門探望。",
+  "fr.lend.news":"🤝【借用】「{n}」上門想借東西。",
+  "fr.lodge.done":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩。",
+  "fr.lodge.doneThanks":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩，另外塞了 {b} 兩謝禮。",
+  "fr.lent.done":"🤝【借人】{m}「{e}」替「{n}」跑完一趟回來，「{n}」付了 {a} 兩酬勞。",
+  "fr.lent.hurt":"🤝【借人】{m}「{e}」替「{n}」跑完一趟回來，路上受了傷，要歇 {t} 旬；「{n}」付了 {a} 兩酬勞。",
+  "fr.stash.back":"📦【代放】從「{n}」那裡搬回 {q} 單位。",
+  "fr.stash.sold":"📦【代放】寄在「{n}」那裡的 {q} 單位沒能搬回，他照市價七成替你賣了，得 {a} 兩。",
+  "fr.stash.hit.fire":"📦【代放】「{n}」家失火，寄在他那裡的貨燒掉 {q} 單位。",
+  "fr.stash.hit.theft":"📦【代放】「{n}」家遭竊，寄在他那裡的貨丟了 {q} 單位。",
+  "fr.swap.news":"🤝【換貨】旅商人「{n}」上門想換貨。",
+  "fr.bust.lodge":"🚨【出事】官差在倉裡翻出「{n}」寄放的{g} × {q}。",
+  "fr.bust.lend":"🚨【出事】借給「{n}」的船在港口被扣，搜出{g} × {q}。",
+  "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
+  "fr.bust.auto":"🚨【出事】{m}"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -272,13 +301,13 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
   firm:["branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
-  market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad"],
+  market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
-const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2"];
+const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
 const NEWS_MOVE=["peopleMove.official","peopleMove.residence"];
 const NEWS_SEA=["setEv.4","smugTick.2","regionHeld.2"];
 const NEWS_LAND=["regionHeld.1"];

@@ -194,13 +194,13 @@ function newGame(sysKey,regionPref,startTier=0){
     silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
-    cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
+    cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:null},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
     staple:{streak:0,peak:1},ships:[],originTrips:{y:0,m:3,byCity:{}},
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
-    fame:0,share:null,plan:{},sold:{},guildAt:-99,ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},cityRoutes:{},openedRoads:[]};
+    fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
   G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地

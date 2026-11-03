@@ -26,7 +26,6 @@ const ODDS={
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
   cartelSecret:{name:'暗約偷跑被告發',base:0.12,slope:0.18,max:0.8},
-  cartelRaise:{name:'公會提案提高配額成功率',base:0.30,perAff:0.5,max:0.8},
   guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持為各自穩定供應量九成、減供為七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7},
   meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議擔保金一期的旬數（自動續押，期滿分配違約金）',turns:9},
@@ -41,7 +40,7 @@ const ODDS={
   marry:{name:'說親成功率',base:0.45,perScore:0.2,min:0.15,max:0.95},
   prodigal:{name:'子女淪為敗家子（每年）',p:0.3},
   birth:{name:'添丁（每年）',p:0.24,male:0.5},
-  death:{name:'主角死亡（每年）',startAge:45,perYear:0.022,base:0.003},
+  death:{name:'主角死亡（每年新年擲一次；rollAge 歲起才擲，startAge 歲起每年遞增）',rollAge:40,startAge:45,perYear:0.022,base:0.003},
   /* —— 出門·路遇·仇人 —— */
   ambushDefend:{name:'遇襲時保鏢戰力≥此值必定退敵，否則以 (戰力/此值)² 為退敵率',power:70},
   ambush:{name:'出門遇襲',base:0.005,perHeat:0.002,heatCap:8,perFame:0.0001,min:0.005,max:0.03,perEnemy:0.03},
@@ -105,6 +104,15 @@ const ODDS={
   ,regConsign:{name:'官船捎帶／官荷捎帶（07zz_regfavor.js）：第二貴貨的機率、到貨旬數、風聲；sea／land 約值與付款',second:0.2,turns:3,heat:0.2,sea:{value:3000,pay:2000},land:{value:1500,pay:1000}}
   ,honjin:{name:'本陣御用達（07zz_regfavor.js）：每旬約值、旬數、市價加成、失約扣好感',value:500,turns:3,markup:1.2,failAff:30}
   ,letter:{name:'外地遠國奉行所寄信（07zz_letters.js）：送信費、好感增量、最多加到',fee:100,gainMin:4,gainMax:8,cap:60,heat:0.2}
+  ,favor80:{name:'人情往來與朋友事件（07zz_friends.js）：朋友門檻、慰問與慶功宴好感、朋友來慰問人數與好感',aff:80,gainMin:4,gainMax:8,visitMax:3,visitGainMin:1,visitGainMax:3}
+  ,lend:{name:'朋友來借東西（07zz_friends.js）：閒置連續旬數、冷卻、婉拒扣好感、違禁品機率（一般／闇商人）、借倉旬數與佔倉比例、寄放費率、借人旬數與酬勞、答應加好感',idleTurns:3,cd:12,refuseAff:10,contra:0.05,contraSmug:0.3,lodgeMin:3,lodgeMax:5,lodgeShareMin:0.3,lodgeShareMax:0.5,lodgeFeeRate:0.08,lodgeFeeMin:50,crewMin:2,crewMax:4,feeSea:[150,300],feeLand:[100,200],okAff:5,crewAff:5,hurtMin:2,hurtMax:4,bustInspect:0.6,betrayAff:40}
+  ,stash:{name:'向朋友借倉庫（07zz_friends.js）：放不下時發生的機率、冷卻、保管費率、寄放旬數、過期代賣價、朋友家出事的損失比例',p:0.5,cd:12,feeRate:0.1,turns:3,sellRate:0.7,fireLoss:0.5,theftLoss:0.3}
+  ,friendTip:{name:'好感 100 的商人朋友在閒聊中講出官員軟肋',p:0.2}
+  ,swap:{name:'旅商換貨（07zz_friends.js）：每旬機率、換來本業貨的機率、比價浮動、次貨機率與折損、夾帶違禁品機率、寄夾旬數',p:0.03,own:0.5,ratioMin:0.7,ratioMax:1.3,poor:0.15,poorMin:0.2,poorMax:0.4,contra:0.05,contraTurns:6}
+  ,tally:{name:'唐船割符（07zz_regfavor4.js）'}
+  ,unload:{name:'國中物卸留（07zz_regfavor4.js）：公款、審理旬數',pay:3000,review:3}
+  ,unloadJob:{name:'卸留請負（07zz_regfavor4.js）：需求倍數（旬數）、期限、報酬倍率、遇險損失、失約扣好感',turns:9,limit:6,payRate:1.5,lossRate:0.7,failAff:30,minQty:5}
+  ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */

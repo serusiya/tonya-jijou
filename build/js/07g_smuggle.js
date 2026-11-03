@@ -58,6 +58,13 @@ function smugTick(log){
       const lost=Math.round(v.qty*0.7);v.qty-=lost;
       const t=robbed?NEWS('bandit.smugRobbed',{name2:it.name,lost}):NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
     }
+    if(v.tally){                                     // 唐船割符：只擲海難，不擲入港被扣（07zz_regfavor4.js）
+      G.tally=null;
+      const room=Math.max(0,CONTRA_CAP-contraQty()),q=Math.min(room,v.qty);
+      if(q>0)contra()[v.k]=(contra()[v.k]||0)+q;
+      const t=NEWS('r4.tally.back',{name:it.name,q,c:v.captName});pushNews(t);log.push(t);sfx.coin();
+      return;
+    }
     const SZ_=ODDS.smugSeize,pSeize=clamp(SZ_.perDanger*it.danger+SZ_.perHeat*(G.heat||0)-((G.flags.blind>0)?SZ_.blind:0),SZ_.min,SZ_.max);
     if(v.qty>0&&chance(pSeize)){
       const t=NEWS('smugTick.2',{name:it.name,qty:v.qty});pushNews(t);log.push(t);sfx.bad();
@@ -83,9 +90,9 @@ function smugTick(log){
 
 /** 本旬被搜查的機率：風聲、密庫現值、仇人舉報提高；打點同心、免檢旗降低。 */
 function raidChance(){
-  const held=contraQty()>0;
+  const held=contraQty()>0||hiddenContraQty()>0;            // 朋友寄放、換貨夾帶的違禁品也算（07zz_friends.js）
   if(!held&&(G.heat||0)<ODDS.raid.minHeat)return 0;
-  const Q_=ODDS.raid;let p=Q_.base+Q_.perHeat*Math.min(G.heat||0,Q_.heatCap)+Math.min(Q_.contraCap,contraValue()/3000*Q_.perContraValue)+Q_.perEnemy*enemyCount();
+  const Q_=ODDS.raid;let p=Q_.base+Q_.perHeat*Math.min(G.heat||0,Q_.heatCap)+Math.min(Q_.contraCap,(contraValue()+hiddenContraValue())/3000*Q_.perContraValue)+Q_.perEnemy*enemyCount();
   if(G.flags.blind>0)p*=Q_.blindMul;
   if(G.flags.exempt>0)p*=Q_.exemptMul;
   return clamp(p,0,Q_.max);
@@ -163,7 +170,7 @@ function raidCard(){
 /* ---------------- 走私面板（從商路頁進入） ---------------- */
 /** 商路頁上的入口按鈕。 */
 function smuggleButton(){
-  if(!smugCaptain()&&!smugList().length&&!contraQty())return '';        // 要有好感滿格的船長，走私入口才會出現
+  if(!smugCaptain()&&!smugList().length&&!contraQty()&&!G.tally)return '';        // 要有好感滿格的船長，走私入口才會出現
   const n=smugList().length,q=contraQty();
   return UT('smug.smuggleButton.2',{a:n,b:q,c:(G.exile||0)>0?UT('smug.smuggleButton'):''})+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="smugOpen">'+UT('btn.smugOpen')+'</button></div></div>';
 }
@@ -186,6 +193,7 @@ SHEETS.smuggle=()=>{
   h+=UT('smug.smuggle.7',{a:cost,b:Math.round(smugPrice(S.k,S.qty)*S.qty),c:apLeft()<=0?'disabled':''})+'>'+UT('btn.smugGo')+'</button></div>';
   if(!cap)h+=UT('smug.smuggle.8');
   h+='</div>';
+  h+=tallyCard();                                   // 唐船割符（07zz_regfavor4.js）
   // 在途
   if(smugList().length)h+=UT('smug.smuggle.10',{a:smugList().map(v=>'<div class="card"><div class="row"><b class="small">'+UT('smug.smuggle.9',{a:SMUG_BY[v.k].icon,b:SMUG_BY[v.k].name,c:v.qty,d:v.eta,e:SMUG_DEST[v.dest].name,f:esc(v.captName)})+'</div></div>').join('')});
   // 密庫

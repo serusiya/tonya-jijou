@@ -14,7 +14,7 @@ function homeEventsVoid(){G.homeEvents=[]}
 /** 事件視窗標題。 */
 function faceTitle(e){
   return ({windfall:UT('face.title'),extort:UT('face.title.2'),xforce:UT('face.title.3'),xloan:UT('face.title.4'),inspect:UT('face.title.5'),staff:UT('face.title.staff'),ronin:UT('face.title.ronin'),
-    branch:UT('face.title.branch'),branchPay:UT('face.title.branch'),branchAsk:UT('face.title.branchAsk')})[e.type]||UT('face.faceEventCard');
+    branch:UT('face.title.branch'),branchPay:UT('face.title.branch'),branchAsk:UT('face.title.branchAsk')})[e.type]||(FACE_TITLE[e.type]&&UT(FACE_TITLE[e.type]))||UT('face.faceEventCard');
 }
 /** 輪到時才發生的效果（入帳）。 */
 function homeEventApply(e){

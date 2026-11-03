@@ -90,7 +90,7 @@ function regionTick(log){
 /* ---------- 遠國奉行所面板 ---------- */
 SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
-  let h=UT('reg.h',{a:(introSel()+appsCard())});
+  let h=UT('reg.h',{a:appsCard()});
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?UT('reg.regional'):'')+'</span>').join('')+'</div>';
   if(rid!==home.region_id)h+=UT('letter.note')+(letterUsed()?UT('letter.usedNote'):'');   // 外地只能寄信（07zz_letters.js）
   h+=regLicCard();

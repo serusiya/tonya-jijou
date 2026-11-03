@@ -151,7 +151,6 @@ SHEETS.flower=()=>{
   const F=FL(),stage=oiranOnStage(),total=oiranAll().length,done=F.feast===G.turn;
   let h=UT('flower.h.2',{a:Math.round(F.spent),b:FL_UNIT});
   h+=UT('flower.flower',{a:costTxt('feast'),b:done?'disabled':''})+'>'+UT(done?'btn.feastDone':'btn.feast')+'</button></div></div>';
-  h+=introSel();
   h+=UT('flower.flower.3',{a:stage.length,b:total,c:stage.map(n=>oiranBlock(n.cid)).join('')||UT('flower.flower.2')});
   return {title:UT('flower.flower.4'),html:h};
 };

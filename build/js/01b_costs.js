@@ -14,13 +14,11 @@ const COSTS={
   visitRefused:{name:'拜訪被拒車馬費（上限）',cur:'silver',amt:5},
   introFee:{name:'請引薦禮金',cur:'silver',amt:20,per:'目標官階'},
   scout:{name:'探聽性向',cur:'silver',amt:25,per:'目標官階'},
-  weakness:{name:'打聽軟肋（已停用）',cur:'gold',amt:60,per:'目標官階（另加每階 20）'},
   befriend:{name:'宴會',cur:'silver',amt:60},
   /* —— 贈禮：六種禮物不花錢，拜訪時的賄賂由三檔出價決定（07u_battle.js） —— */
   /* —— 官員請託不另收錢（賄賂已在拜訪戰鬥中付過，見 04_people.js 的 doFavor） —— */
   inspectBribe:{name:'查貨賄賂',cur:'silver',amt:30,per:'官階'},
   /* —— 商號·人事 —— */
-  audit:{name:'查帳',cur:'silver',amt:10},
   apprentice:{name:'招丁稚身價銀',cur:'silver',amt:20},
   recruitIntro:{name:'請介紹人物色人才禮金',cur:'silver',amt:40},
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
@@ -41,9 +39,9 @@ const COSTS={
   marryOfficial:{name:'聘禮：官家之女',cur:'silver',amt:800},
   marryCommoner:{name:'聘禮：町人之女',cur:'silver',amt:200},
   kidDebt:{name:'替敗家子還債',cur:'silver',amt:500},
-  pathShop:{name:'子女歷練：學商（每旬）',cur:'silver',amt:30},
-  pathSea:{name:'子女歷練：海運（每旬）',cur:'silver',amt:50},
-  pathCourt:{name:'子女歷練：侍童（每旬）',cur:'silver',amt:40},
+  pathShop:{name:'子女歷練：學商（每年）',cur:'silver',amt:30},
+  pathSea:{name:'子女歷練：海運（每年）',cur:'silver',amt:50},
+  pathCourt:{name:'子女歷練：侍童（每年）',cur:'silver',amt:40},
   /* —— 吉原 —— */
   feast:{name:'包場花金夜宴',cur:'gold',amt:80},
   nominate:{name:'指名花魁',cur:'gold',amt:20},

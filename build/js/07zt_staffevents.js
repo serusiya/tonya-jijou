@@ -11,7 +11,7 @@ const SEV_TYPES=['gamble','drunk','ill','wed','poach','frame'];
 const SEV_WEAK={gamble:['gambling'],drunk:['wine'],ill:['children','henpecked']};
 /** 關押中的店員不做事（職能、出門、護衛都不算他）。 */
 const jailedEmp=e=>!!e&&e.jailUntil>G.turn;
-const sevAway=e=>G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
+const sevAway=e=>G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id)||(e.lentUntil||0)>G.turn;
 /** 加權抽選。 */
 function sevPick(L,w){const tot=L.reduce((a,x)=>a+w(x),0);if(tot<=0)return null;let r=rnd()*tot;for(const x of L){r-=w(x);if(r<0)return x}return L[L.length-1]}
 /** 某店員各事件的權重（看軟肋與能力）。 */

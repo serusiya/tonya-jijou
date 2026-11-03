@@ -29,7 +29,7 @@ function repRow(icon,label,amt,max,cls){
   const w=max>0?Math.max(3,Math.round(amt/max*100)):0;
   return '<div class="rp-row"><span class="rp-ic">'+icon+'</span><span class="rp-lb">'+label+'</span><span class="rp-bar"><i class="'+cls+'" style="width:'+w+'%"></i></span><b class="rp-amt '+cls+'">'+(cls==='in'?'+':'−')+fmt(amt)+'</b></div>';
 }
-/** 貨物收支：每項貨第一行列本旬淨收支；第二行左列進出貨量，右列牌價與「收市價／新牌價」。盈利與零值紅色，虧損綠色。 */
+/** 貨物收支：每項貨第一行列本旬淨收支；第二行靠右列「牌價 → 新牌價（漲跌）」，碰到底價時註明。盈利與零值紅色，虧損綠色。 */
 function goodsRows(T){
   const tradable=tradeComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
   const L=(T.goods||[]).filter(x=>allowed.has(x.n)).sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d||((order.get(a.n)??999)-(order.get(b.n)??999))});
@@ -39,10 +39,9 @@ function goodsRows(T){
     const rev=x.rev||0,cost=x.cost||0,net=rev-cost,big=Math.max(rev,cost),incomeBase=rev>=cost;
     const w=big>0?Math.max(3,Math.round(big/mx*100)):0,ws=big>0?Math.round(Math.min(rev,cost)/mx*100):0;
     const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
-    const qty=UT('rep.goodsQty',{s:x.sq||0,b:x.bq||0});
     const next=Number.isFinite(x.next)?x.next:x.close;
     const price=Number.isFinite(x.quote)&&Number.isFinite(next)?(x.floored?UT('rep.goodsPrice.floor',{q:fmt1(x.quote),n:fmt1(next)}):UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(next),v:'<span class="'+(next>=x.quote?'up':'down')+'">'+amtShort(Math.round(next-x.quote))+'</span>'})):'';
-    return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),q:qty,p:price});
+    return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),p:price});
   }).join('')});
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */

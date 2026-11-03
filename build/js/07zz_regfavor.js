@@ -73,6 +73,7 @@ function consignTick(log){
     const c=COMM_MAP[x.name];if(!c)return false;
     const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.qty,room);
     if(q>0){addStock(x.name,q,x.cost/x.qty);stockAdd(x.name,q,false)}
+    overflowAdd(x.name,x.qty-q,x.cost/x.qty,false);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
     const t=NEWS('rfav.arrive.'+x.kind,{g:c.short,q,l:x.qty-q>0?UT('rfav.lost',{n:x.qty-q}):''});pushNews(t);log.push(t);
     return false;
   });

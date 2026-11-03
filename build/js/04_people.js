@@ -130,18 +130,6 @@ function scout(cid){
   logRel(cid,MSG('log.scout'));
   return {ok:true,msg:MSG('scout.2',{top3:top3Txt(cid)})};
 }
-/** 向花街引手打聽軟肋的費用。 */
-function weaknessRevealCost(cid){return costOf('weakness')+20*targetTier(cid)}
-/** 揭露並證實某人的軟肋（送禮命中軟肋效果×3）。 */
-function revealWeakness(cid){
-  const r=R(cid),c=weaknessRevealCost(cid);
-  if(r.verified)return {ok:false,msg:MSG('revealWeakness.1')};
-  if(!affordAmt('weakness',c))return {ok:false,msg:MSG('revealWeakness.2',{c})};
-  spendAmt('weakness',c);r.verified=true;addKnown(cid);
-  logRel(cid,MSG('log.weak',{w:weakName(CH(cid).weakness)}));
-  return {ok:true,msg:TX('flower.scoutTip',{n:nameOf(cid),w:weakName(CH(cid).weakness)})};
-}
-
 /* ---------- 贈禮：六種禮物與拜訪戰鬥在 07u_battle.js ---------- */
 /** 賄賂換算：舊制『1 兩金』＝ 15 兩現款（索賄進獻等仍沿用）。 */
 const BRIBE_RATE=15;
@@ -196,7 +184,7 @@ function doFavor(cid,key,arg){
   const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
   setAff(r,Math.max(0,r.aff-drop));if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
-  if(REG_FAVOR[key]){msg=REG_FAVOR[key](n)}
+  if(REG_FAVOR[key]){msg=REG_FAVOR[key](n,arg)}
   else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back,cid:n.cid,kind:'smallLoan'});msg=MSG('favor.smallLoan',{a:fmt(amt),b:fmt(back)})}
   else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;addHeat(0.5);msg=MSG('favor.sellAid',{n:L.c.short,q:L.q})}
   else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back,cid:n.cid,kind:'loan'});msg=MSG('favor.loan',{a:fmt(amt),b:fmt(back)})}
@@ -308,7 +296,7 @@ const empRole=cid=>{const e=G.emps.find(x=>x.cid===cid);return e?e.rank:null};
 /** 船長/飛腳總人數。 */
 const crewCount=mode=>G.emps.filter(e=>e.rank===CREW_RANK[mode]).length;
 /** 目前在途貨運佔用的船長/飛腳數。 */
-const crewBusy=mode=>G.ships.filter(s=>s.mode===mode).length;
+const crewBusy=mode=>G.ships.filter(s=>s.mode===mode).length+G.emps.filter(e=>e.rank===CREW_RANK[mode]&&empLent(e)).length;
 /** 少年員工名字候選（00_names.js）。 */
 const KID_NAMES=NAMES.kidEmp;
 /** 為無名冊的少年員工生成隱藏數值。 */
@@ -522,10 +510,9 @@ function yearTick(log){
   }
   staffYearTick(log);                              // 員工久任成長
   newProdTick(log);                                // 一月上旬：一定機率新增本業貨產地
-  // 壽數：四十五歲後逐年遞增，另有小機率橫禍
+  // 壽數：40 歲起每年擲一次（基本小機率），45 歲後逐年遞增
   const age=myAge();
-  const p=Math.max(0,age-ODDS.death.startAge)*ODDS.death.perYear+ODDS.death.base;
-  if(chance(p))endLife('death');
+  if(age>=ODDS.death.rollAge&&chance(deathChance(age)))endLife('death');   // 40 歲起才擲
 }
 
 /* ---------- 蓋棺評語 ---------- */
@@ -551,10 +538,12 @@ function obituary(ageAt){
   const facts=[UT('ob.f1',{a:age,y:G.year-0}),UT('ob.f2',{n:fmt(nw)}),UT('ob.f3',{g:L.gold}),UT('ob.f4',{c:L.charity,x:L.cheats}),UT('ob.f5',{f:L.fires,r:L.riots}),UT('ob.f6',{k:G.family.kids.length})];
   return {wealth,moral,pol,sum,quotes,facts,nw,age};
 }
-/** 退隱：從現在的年齡起逐年擲死亡機率（同 yearTick），算出享壽。 */
+/** 某年齡這一年的死亡機率：基本 0.3%，45 歲起每年再加 2.2%（只在 ODDS.death.rollAge 歲起才擲）。 */
+const deathChance=a=>Math.max(0,a-ODDS.death.startAge)*ODDS.death.perYear+ODDS.death.base;
+/** 退隱：從現在的年齡起逐年擲死亡機率（同 yearTick，40 歲起才擲），算出享壽。 */
 function retireDeathAge(){
   let a=myAge();
-  while(a<100){a++;if(chance(Math.max(0,a-ODDS.death.startAge)*ODDS.death.perYear+ODDS.death.base))break}
+  while(a<100){a++;if(a>=ODDS.death.rollAge&&chance(deathChance(a)))break}
   return a;
 }
 /** 結束這一世（壽終、破產、處刑、退隱）。只有一代：結束即清除存檔，人生終章後重新開局。 */

@@ -1,4 +1,4 @@
-/* 地區地圖（日式古地圖「繪圖」風格）：用遊戲內真實的城市座標（cityXY）畫 SVG，標示城市位置與連接道路。
+/* 地區地圖（日式古地圖風格）：用遊戲內真實的城市座標（cityXY）畫 SVG，標示城市位置與連接道路。
  * - 陸地：以城市為中心的圓團疊成，再用濾鏡畫出手繪般的海岸線與水紋；南海群島每城各成一島，連線為海路（紅色虛線加帆船）。
  * - 道路：先連成最短樹，再補上相近城市之間的支線；陸地上為朱紅色街道，沿線有里程點。
  * - 圖示：行政都市＝天守閣、礦產＝礦山、水路／水陸要衝＝帆船、陸路要衝＝關門、農林＝茅屋田畦；城名為直書兩字名牌；本店駐節城以朱紅標出。
@@ -95,9 +95,9 @@ function regionMapSvg(rid,opts){
   s+='<rect x="3" y="3" width="'+(W-6)+'" height="'+(H-6)+'" fill="none" stroke="'+INK+'" stroke-width="2.2"/><rect x="7" y="7" width="'+(W-14)+'" height="'+(H-14)+'" fill="none" stroke="'+INK+'" stroke-width=".6"/>';
   // 題簽（直書）
   const reg=(list[0]||{}).region_name||'',sfx_=UT('map.regionSuffix'),title=UT('map.title',{r:reg.endsWith(sfx_)?reg.slice(0,-sfx_.length):reg}),tl=[...title];
-  const tw=15,th=tl.length*11+8;
+  const tw=15,th=(tl.length+2)*11+8,pitch=(th-8)/tl.length;   // 框高照舊（原題名多「繪圖」兩字），字距加大、平均填滿框
   s+='<g><rect x="13" y="13" width="'+tw+'" height="'+th+'" fill="#f7efd2" stroke="'+INK+'" stroke-width="1"/><rect x="15" y="15" width="'+(tw-4)+'" height="'+(th-4)+'" fill="none" stroke="'+RED+'" stroke-width=".6"/>'
-   +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(25+i*13)+'" text-anchor="middle" font-size="11.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
+   +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(17+pitch*(i+0.5)).toFixed(1)+'" dominant-baseline="central" text-anchor="middle" font-size="11.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
   // 方位（北）：在幾個候選位置中挑離城市與名牌最遠者
   const cc=[[W-26,34],[W-26,H-70],[W/2,24]].map(c=>[c,Math.min(...px.map(p=>Math.hypot(p.sx-c[0],p.sy-c[1])))]).sort((a,b)=>b[1]-a[1])[0][0],cx=cc[0],cy=cc[1];
   s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="'+UT('map2.regionMapSvg',{a:INK});

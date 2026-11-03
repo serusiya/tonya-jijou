@@ -60,7 +60,7 @@ ACT.fireDock=el=>{ACT.fire(el);if(!G.emps.some(x=>x.id===el.dataset.id))refreshS
 /** 空閒且好感滿格的船長。 */
 function smugCaptain(){
   const used=new Set(G.ships.filter(s=>s.mode==='sea').map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));(G.voyQueue||[]).forEach(q=>used.add(q.capt));   // 已排進出運清單的船長不派去走私
-  return G.emps.find(e=>e.rank==='captain'&&empAff(e)>=100&&!used.has(e.id))||null;
+  return G.emps.find(e=>e.rank==='captain'&&empAff(e)>=100&&!used.has(e.id)&&!empLent(e)&&!jailedEmp(e))||null;
 }
 
 /* ---------- 保鏢暗殺 ---------- */

@@ -20,9 +20,9 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 
 let G=null;                       // 遊戲狀態（可序列化）
 /** 遊戲版本。存檔版本與此不同就不相容（0.7 起改為許可制，舊存檔不相容）。 */
-const GAME_VER='0.7.1';
+const GAME_VER='0.7.2';
 /** 讀檔與匯入時接受的存檔版本（讀進來後由 migrateSave 補欄位、改標為 GAME_VER）。'0.7'＝中文鍵的舊存檔，由 migrateKeys 轉成代號。 */
-const SAVE_VERS=[GAME_VER,'0.7'];
+const SAVE_VERS=[GAME_VER,'0.7.1','0.7'];
 const saveVerOK=v=>SAVE_VERS.includes(String(v));
 const SAVE_KEY='tonya_jijou_save2';
 /** 0.7 中文鍵存檔用的存檔鍵：0.7.1 起改存到 SAVE_KEY，舊版網頁（快取）就讀不到新格式，不會讀壞或清掉它；
