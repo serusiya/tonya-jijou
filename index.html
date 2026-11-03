@@ -516,7 +516,7 @@ function compat(cidA,cidB){return compatOfTops(top3(cidA),top3(cidB))}
 const trustFactor=aff=>clamp(aff/60,0.4,1.5);
 
 /* ---------- 七大問屋流派 ---------- */
-/** 七大問屋流派：開局資金。越往下起手資源越多（applyStartBoost 依順序累加）。名稱、屋號、風格與說明在 NAMES.sys。新增流派在此加一筆。 */
+/** 七大問屋流派與七個固定資源等級的原始順序；開局畫面會將行業洗牌，資源仍依此順序累加。名稱、屋號、風格與說明在 NAMES.sys。 */
 const SYS=[
   {key:'timber',silver:8000,gold:8},
   {key:'grain',silver:8500,gold:10},
@@ -527,6 +527,8 @@ const SYS=[
   {key:'luxury',silver:15500,gold:1000}
 ].map(s=>Object.assign(s,NAMES.sys[s.key]));
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
+/** 七個開局資源等級。資源與等級固定，行業則在每次新人生開始前重新洗牌分配。 */
+const START_TIERS=SYS.map((s,i)=>({i,silver:s.silver,gold:s.gold,perk:s.perk,res:s.res}));
 
 /* ---------- 物產資料加工 ---------- */
 /** 把原始 COMMS 資料加工成遊戲用的物品。
@@ -780,6 +782,7 @@ function shortMsg(k,mul){
  *  修正來源（風聲 heat、知名度 fame、保鏢、仇人…）仍由各系統代入。
  * ===================================================================== */
 const ODDS={
+  marketFloor:{name:'大盤牌價地板（固定基準價倍數）；收市價低於地板時，下一旬牌價與收市價脫鉤',staple:1.50,normal:1.20,luxury:1.05},
   /* —— 每旬隨機事件（旬報）—— */
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
   eventW:{name:'當季事件抽選權重（相對值）',fire:3,famine:2,harvest:2,typhoon:2,plague:2,military:2,sword:2,flower:2,dump:2,boom:2,inspect:2,fall:1.5,greed:1.5,thief:1.2,renqing:1.2},
@@ -1238,6 +1241,8 @@ const Ls=path=>{const v=_lineAt(path);return Array.isArray(v)?v:[v]};
  *  費用數字不寫死在這裡：由呼叫處依 01b_costs.js 算出再代入。
  * ===================================================================== */
 const UI_TXT={
+  'mk.floorNote':'（已到底價）',
+  'rep.goodsPrice.floor':'牌價 {q} → 收市價/新牌價 {n}（已到底價）',
   /* —— 導覽列、頁籤、頂部按鈕（body.html 以 data-t 套用） —— */
   'nav.menu':'⚙️',
   'nav.next':'推進一旬 ▶',
@@ -1821,7 +1826,7 @@ const UI_TXT={
   'ppl.h.18':'<h1>🏮 問屋事情</h1><div class="sub">關於我成了日之國中盤商這件事<br><span style="font-size:13px">像素風商人人生模擬 · v{a}',
   'ppl.showStart':'<div style="text-align:center;font-size:14px;color:#cfc6b6;margin-bottom:10px">20 歲開局。沒有固定的目標，只有一生。</div>',
   'ppl.showStart.2':'<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v{a} 起已不相容，已清除。請重新開局。</div>',
-  'ppl.showStart.3':'<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div><div class="tiny" style="text-align:center;color:#cfc6b6;margin-bottom:6px">越往下，起手資源越多。</div>',
+  'ppl.showStart.3':'<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div>',
   'ppl.showStart.4':'{a}：{b}',
   'ppl.changelog':'📜 更新紀錄',
   /* —— 07b_purse.js —— */
@@ -2173,7 +2178,8 @@ const UI_TXT={
   'wiki.h':'<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>',
   'wiki.wikiGuide':'🏪 七種問屋流派',
   'wiki.wikiGuide.2':'{a}</div><div class="text-meta muted">起手：{b}',
-  'wiki.wikiGuide.3':'<div class="text-meta muted">開局時選擇的流派決定本業貨品、起手資源與玩法側重。越往下，起手資源越多。</div>{a}',
+  'wiki.wikiGuide.3':'<div class="text-meta muted">流派決定本業貨品與玩法側重；七個資源等級的內容固定，行業會在每次重新開一世時隨機分配。開局畫面越往下，起手資源越多。</div>{a}',
+  'wiki.wikiGuide.4':'每一世隨機分配',
   'wiki.wikiOffice':'🎖️ 六階官階',
   'wiki.wikiOffice.2':'<div class="text-meta muted">官階越高，權力越大，也越難結交。</div>{a}',
   'wiki.wikiOffice.3':'📜 請託規則',
@@ -3423,6 +3429,8 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月3日',items:[
+    '大盤新增牌價地板：必需品為基準價一點五倍、一般品一點二倍、奢侈品一點零五倍；觸底時新牌價與收市價脫鉤，旬報會註明已到底價。',
+    '七種開局資源等級改為固定內容，七個行業則在每次重新開一世時隨機分配到各等級。',
     '公會供給改版：「維持」配額為各自穩定供應量九成，「減供」為七成；同業依自己的市占供貨，不再替玩家補足少出的貨。',
     '未參加協議時不受出貨配額限制，預設照穩定供貨線出貨。',
     '盈虧配色統一為賺錢紅、虧錢綠，持平顯示紅色「+0」。旬報保留每項貨物的收支長條，並把牌價與收市價併入貨物收支，不再另列相場收市。',
@@ -3669,13 +3677,13 @@ function pickActiveCities(homeId,own){
   });
   return [...chosen];
 }
-/** 建立新局：初始化 G（資金、倉庫、公會、關係…）、抽樣世界、初始化市場。開局沒有員工與介紹人，需先找介紹人。 */
-function newGame(sysKey,regionPref){
-  const S=SYS_BY_KEY[sysKey];
+/** 建立新局：行業決定本業，資源等級決定現款、員工等起步加成，再初始化世界與市場。 */
+function newGame(sysKey,regionPref,startTier=0){
+  const S=SYS_BY_KEY[sysKey],tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
+    sysKey,startTier:tier,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
     me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
-    silver:S.silver,gold:S.gold,
+    silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
     cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
@@ -3698,13 +3706,13 @@ function newGame(sysKey,regionPref){
   G.supplyQuarter={stable:0,unstable:0,turns:0};
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
-  G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
+  G.trade=startTrade(sysKey,tier);                // 第六、七等級開局送第二貴貨物的交易許可
   initMarket();
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
   officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
-  applyStartBoost(sysKey);
+  applyStartBoost(tier,sysKey);
   recordSilver();
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
@@ -3890,6 +3898,9 @@ function marketQuote(name,noLux){
   const m=G.mk[name],v=noLux?m.quoteBase:m.quote;
   return Number.isFinite(v)&&v>0?v:(Number.isFinite(m.price)&&m.price>0?m.price:marketIndex(name,noLux));
 }
+/** 大盤牌價地板：必需品／一般品／奢侈品分別按固定基準價計算。 */
+function marketFloor(name){const c=COMM_MAP[name],f=ODDS.marketFloor;return c.base*(f[c.kind]||1)}
+const floorQuote=(name,p)=>Math.max(marketFloor(name),p);
 /** 剔除災情事件倍率的收市試算，供「緊急御免」沿用災前進貨基準。 */
 function reliefIndex(name,ship){const m=G.mk[name],ev=m.ev;m.ev=1;try{return priceNow(name,ship,true)}finally{m.ev=ev}}
 /** 本旬緊急御免基準：同樣在上一旬收市時鎖定，但不含災情事件倍率。 */
@@ -3945,7 +3956,7 @@ function rivalSupply(c,m,first){
 }
 /** 公開牌價整旬固定；事件與同業變動只影響旬末收市。price 保留為舊程式與舊存檔的相容別名。 */
 function syncPrices(){
-  Object.entries(G.mk).forEach(([name,m])=>{if(!(m.quote>0))m.quote=m.price>0?m.price:marketIndex(name);if(!(m.quoteBase>0))m.quoteBase=marketIndex(name,true);m.price=m.quote});
+  Object.entries(G.mk).forEach(([name,m])=>{const q=m.quote>0?m.quote:(m.price>0?m.price:marketIndex(name)),qb=m.quoteBase>0?m.quoteBase:marketIndex(name,true),qr=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0),f=marketFloor(name);m.quoteFloor=q<=f;m.quote=Math.max(q,f);m.quoteBase=Math.max(qb,f);m.quoteRelief=Math.max(qr,f);m.price=m.quote});
 }
 /** 推進一旬、日期前進之前：算出本旬收市價，並記下有效需求、同業供給與我方出貨，供 refreshMarket 寫入九旬紀錄。
  *  （若等日期前進後才算，節慶倍率會用到下一旬的日期：節慶前一旬被記成節慶、節慶當旬反而記成平常，節慶當旬的價格因此算了兩次。） */
@@ -3954,7 +3965,7 @@ function snapMarket(){
     const c=COMM_MAP[name],close=priceNow(name,m.shipped),closeBase=priceNow(name,m.shipped,true),closeRelief=reliefIndex(name,m.shipped);
     m.close=close;m.closeBase=closeBase;m.closeRelief=closeRelief;m.snap={d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};
     m.depPast=(Array.isArray(m.depPast)?m.depPast:[]).concat([{total:m.depTotal||0,known:m.depKnown||0,dapan:m.depDapan||0}]).slice(-ODDS.dapanDependency.win);
-    if(TURNRP&&c.sys===G.sysKey){TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next:close})}
+    if(TURNRP&&c.sys===G.sysKey){const floor=marketFloor(name),next=Math.max(close,floor);TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next,floored:close<=floor})}
   });
 }
 /** 每旬換季刷新：上旬收市成為本旬牌價，再刷新需求、事件倍率、他家供給與進貨壓力；曲線只記收市價。 */
@@ -3965,8 +3976,8 @@ function refreshMarket(first){
     if(!first){
       close=Number.isFinite(m.close)?m.close:priceNow(name,m.shipped);closeBase=Number.isFinite(m.closeBase)?m.closeBase:priceNow(name,m.shipped,true);closeRelief=Number.isFinite(m.closeRelief)?m.closeRelief:reliefIndex(name,m.shipped);
       const rec=m.snap||{d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};m.past=(m.past||pastOf(m)).concat([rec]).slice(-(ODDS.rivalShip.win-1));
-      m.prevQuote=marketQuote(name);m.lastClose=close;m.quote=close;m.quoteBase=closeBase;m.quoteRelief=closeRelief;m.price=close;
-      m.hist.push(Math.round(close*10)/10);if(m.hist.length>12)m.hist.shift();
+      const floor=marketFloor(name);m.prevQuote=marketQuote(name);m.lastClose=close;m.quoteFloor=close<=floor;m.quote=Math.max(close,floor);m.quoteBase=Math.max(closeBase,floor);m.quoteRelief=Math.max(closeRelief,floor);m.price=m.quote;
+      m.hist.push(Math.round(m.quote*10)/10);if(m.hist.length>12)m.hist.shift();
     }   // 用日期前進前記下的本旬需求（snapMarket），節慶、買氣才不會錯記到前一旬
     else m.past=[];
     delete m.snap;m.close=null;m.closeBase=null;m.closeRelief=null;
@@ -3977,7 +3988,7 @@ function refreshMarket(first){
     m.shipped=0;m.depTotal=0;m.depKnown=0;m.depDapan=0;
     m.press=1+((m.press||1)-1)*0.7;if(m.press<1.003)m.press=1;
     m.wcap=itemCap(name);                                         // 進貨壓力以庫存上限為基準
-    if(first){m.quote=marketIndex(name);m.quoteBase=marketIndex(name,true);m.quoteRelief=reliefIndex(name,0);m.price=m.quote;m.lastClose=m.quote;m.prevQuote=m.quote;m.hist.push(Math.round(m.quote*10)/10)}
+    if(first){const floor=marketFloor(name),q=marketIndex(name),qb=marketIndex(name,true),qr=reliefIndex(name,0);m.quoteFloor=q<=floor;m.quote=Math.max(q,floor);m.quoteBase=Math.max(qb,floor);m.quoteRelief=Math.max(qr,floor);m.price=m.quote;m.lastClose=q;m.prevQuote=m.quote;m.hist.push(Math.round(m.quote*10)/10)}
   });
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
@@ -3989,7 +4000,7 @@ function unitBuyCost(name){
   if(G.cartel.sanction>0)p*=1.4;                                       // 聯合斷貨
   if(!guildMember())p/=ODDS.rivalShip.buyMult;                          // 未參加協議：照市價（參加者享聯合採購價）
   p*=(m.press||1);                                                     // 進貨推高大盤價
-  return p;
+  return Math.max(p,marketFloor(name));
 }
 /** 畫面試算：只按本旬固定牌價估算；真正收市價與入帳在旬末出貨完畢後才揭曉。 */
 function quoteSale(name,qty){
@@ -5908,7 +5919,7 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
-  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)});
+  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)})+(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
   h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.dep.item',{p:depDisplay(itemDapanDependency(name))})+'</div>';
   h+='</div>';
@@ -6394,7 +6405,7 @@ SHEETS.menu=()=>{
 };
 /** 開關音效。 */
 /** 放棄並重開。 */
-ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=false;UI.s.sheet=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
+ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=false;UI.s.sheet=null;UI.s.startDeck=null;UI.s.startTier=0;UI.s.startSys=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
 
 /* ======================= 筆記（千人手帳） ======================= */
 /** 筆記分類標籤。 */
@@ -6667,16 +6678,24 @@ SHEETS.legacy=()=>{
 };
 
 /* ======================= 開局畫面 ======================= */
+/** 每一世重新將七個行業洗牌到固定的七個資源等級；開局畫面重繪時沿用同一副牌。 */
+function makeStartDeck(){
+  const a=SYS.map(s=>s.key);
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){
-  if(!UI.s.startSys)UI.s.startSys='timber';
+  if(!Array.isArray(UI.s.startDeck)||UI.s.startDeck.length!==START_TIERS.length)UI.s.startDeck=makeStartDeck();
+  if(!Number.isInteger(UI.s.startTier)||UI.s.startTier<0||UI.s.startTier>=START_TIERS.length)UI.s.startTier=0;
+  UI.s.startSys=UI.s.startDeck[UI.s.startTier];
   let sv=loadSave();if(sv&&sv.ended){clearSave();sv=null}   // 舊版留下的已落幕存檔：清除
   let h=UT('ppl.h.18',{a:GAME_VER})+'</span></div>';
   h+=UT('ppl.showStart');
   if(!sv&&OLD_SAVE_FOUND)h+=UT('ppl.showStart.2',{a:GAME_VER});
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
   h+=UT('ppl.showStart.3');
-  h+=SYS.map(s=>'<div class="sys-card '+(UI.s.startSys===s.key?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:s.perk,b:s.res})+'</div></div>').join('');
+  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
   h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
@@ -6685,11 +6704,11 @@ UI.showStart=function(){
 /** 更新紀錄視窗：新的在上，日期加條列說明。 */
 ACT.changelog=()=>{$('#info-bd').classList.add('over-start');UI.showInfo(UT('ppl.changelog'),CHANGELOG.map(c=>'<div style="margin-bottom:8px"><b>'+esc(c.date)+'</b>'+c.items.map(t=>'<div class="small" style="margin-top:3px;padding-left:1em;text-indent:-1em">• '+esc(t)+'</div>').join('')+'</div>').join(''))};
 /** 選擇流派。 */
-ACT.pickSys=el=>{UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
+ACT.pickSys=el=>{UI.s.startTier=Number(el.dataset.t)||0;UI.s.startSys=el.dataset.k;UI.showStart();sfx.tap()};
 /** 開始新局。 */
 ACT.begin=()=>{
   musicWant('market');                                // 點擊開局＝使用者手勢，可以開始播放音樂
-  newGame(UI.s.startSys,'rand');$('#start').classList.add('hidden');
+  newGame(UI.s.startSys,'rand',UI.s.startTier);$('#start').classList.add('hidden');
   SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.open',{firm:G.firm}),4200);
   save();
   LASTREP=null;showTurnReport([{}],G.news.map(x=>x.t).reverse(),0,'open');   // 開業旬報：進出貨皆空，列開局消息
@@ -6843,7 +6862,8 @@ function goodsRows(T){
     const w=big>0?Math.max(3,Math.round(big/mx*100)):0,ws=big>0?Math.round(Math.min(rev,cost)/mx*100):0;
     const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
     const qty=UT('rep.goodsQty',{s:x.sq||0,b:x.bq||0});
-    const price=Number.isFinite(x.quote)&&Number.isFinite(x.close)?UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(x.close),v:'<span class="'+(x.close>=x.quote?'up':'down')+'">'+amtShort(Math.round(x.close-x.quote))+'</span>'}):'';
+    const next=Number.isFinite(x.next)?x.next:x.close;
+    const price=Number.isFinite(x.quote)&&Number.isFinite(next)?(x.floored?UT('rep.goodsPrice.floor',{q:fmt1(x.quote),n:fmt1(next)}):UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(next),v:'<span class="'+(next>=x.quote?'up':'down')+'">'+amtShort(Math.round(next-x.quote))+'</span>'})):'';
     return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),q:qty,p:price});
   }).join('')});
 }
@@ -7460,10 +7480,12 @@ function openChat(ent){
   UI.showInfo(who,h);
 }
 
-/* ======================= 開局加成（依七個流派的順序） ======================= */
-/** 流派順序 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。現款與私房錢見 SYS。 */
-function applyStartBoost(sysKey){
-  const idx=SYS.findIndex(s=>s.key===sysKey);if(idx<=0)return;
+/* ======================= 開局加成（依七個固定資源等級） ======================= */
+/** 資源等級 0～6，越往下越多（累加）：1 介紹人；2 手代、丁稚；3 妻小；4 船長、本地區海運許可、一趟在途採買；5 名望三階（另送交易許可）；6 大番頭、名望四階。 */
+function applyStartBoost(idx,sysKey){
+  idx=clamp(Math.floor(Number(idx)||0),0,START_TIERS.length-1);
+  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種固有特性，不隨隨機分配的資源等級移動
+  if(idx<=0)return;
   if(idx>=1){                                      // 介紹人：優先找掮客，沒有就從介紹人身分白名單挑選
     const ns=cityNpcs(G.cityId),cand=ns.find(n=>n.role==='broker'&&canBeIntro(n.cid))||ns.find(n=>canBeIntro(n.cid));
     if(cand){
@@ -7478,13 +7500,12 @@ function applyStartBoost(sysKey){
     G.family.married=true;G.life.spouseKind='commoner';
     const k=newKid();k.birthYear=G.year-2;G.family.kids.push(k);
   }
-  if(sysKey==='medicine')meetSmuggler('start');   // 唐物藥種：開局認識一名闇商人（07g_smuggle.js）
   if(idx>=4){
     grantSea(homeCity().region_id);
     const cap=hireEmp(null,'captain');cap.stats=Object.assign(cap.stats,{audacity_courage:Math.max(cap.stats.audacity_courage,60)});
     {const dl=destList('sea')[0];if(dl)sendVoyage(cap.id,800,dl.ct.id,'sea',true)}   // 一趟已在途的委託採買（委託金由開局贈與）
   }
-  if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 名望三階；陶磁雅玩四階（交易許可見 startTrade）
+  if(idx>=5)setFame(Math.max(G.fame||0,ODDS.fame.tiers[idx>=6?2:1]));   // 第六等級名望三階，第七等級四階（交易許可見 startTrade）
   if(idx>=6){                                      // 大番頭：從城中適任的經營好手裡聘一位
     const pool=talentPool().filter(n=>suitableEmpRanks(n.cid).includes('chief')&&!introOf(n.cid));
     const m=pool.sort((a,b)=>CH(b.cid).derived_stats.integrity_loyalty-CH(a.cid).derived_stats.integrity_loyalty)[0];
@@ -8467,7 +8488,7 @@ function wikiRegions(){
 function wikiGuide(){
   let h=UT('wiki.h');
   h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]))).join('');
-  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(s.res||s.perk)})+'</div></div>').join('')}));
+  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(UT('wiki.wikiGuide.4'))})+'</div></div>').join('')}));
   return h;
 }
 function wikiOffice(){
@@ -8810,8 +8831,8 @@ function tradeOK(name){
 }
 /** 本業中目前可交易的貨。 */
 const tradeComms=()=>ownComms().filter(c=>tradeOK(c.name));
-/** 開局交易許可：第六、七個流派（唐物藥種、陶磁雅玩）送第二貴貨物的許可。 */
-function startTrade(sysKey){return SYS.findIndex(s=>s.key===sysKey)>=5?[lockedTrade(sysKey)[1]]:[]}
+/** 開局交易許可：第六、七資源等級送所選行業第二貴貨物的許可。 */
+function startTrade(sysKey,startTier){return Number(startTier)>=5?[lockedTrade(sysKey)[1]]:[]}
 /** 交易許可的請託名稱（帶上貨名）。 */
 const tradeFavorName=idx=>UT('lic.tradeFavorName',{a:COMM_MAP[lockedTrade()[idx]].short});
 /** 尚未許可時的提示（大盤用）。 */
@@ -10081,9 +10102,9 @@ function migrateSave(){
   Object.entries(G.mk||{}).forEach(([name,m])=>{      // 舊存檔的即時市價轉成本旬固定牌價；既有曲線視為收市紀錄
     m.hist=Array.isArray(m.hist)?m.hist:[];
     m.depPast=Array.isArray(m.depPast)?m.depPast.slice(-ODDS.dapanDependency.win):[];m.depTotal=Number.isFinite(m.depTotal)?m.depTotal:0;m.depKnown=Number.isFinite(m.depKnown)?m.depKnown:0;m.depDapan=Number.isFinite(m.depDapan)?m.depDapan:0;
-    const q=m.quote>0?m.quote:(m.price>0?m.price:(m.hist.length?m.hist[m.hist.length-1]:marketIndex(name)));
-    m.quote=q;m.price=q;m.quoteBase=m.quoteBase>0?m.quoteBase:marketIndex(name,true);m.quoteRelief=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0);
-    m.lastClose=m.lastClose>0?m.lastClose:q;m.prevQuote=m.prevQuote>0?m.prevQuote:(m.hist.length>1?m.hist[m.hist.length-2]:q);
+    const q=m.quote>0?m.quote:(m.price>0?m.price:(m.hist.length?m.hist[m.hist.length-1]:marketIndex(name))),f=marketFloor(name);
+    m.quoteFloor=q<=f;m.quote=Math.max(q,f);m.price=m.quote;m.quoteBase=Math.max(m.quoteBase>0?m.quoteBase:marketIndex(name,true),f);m.quoteRelief=Math.max(m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0),f);
+    m.lastClose=m.lastClose>0?m.lastClose:q;m.prevQuote=m.prevQuote>0?m.prevQuote:(m.hist.length>1?m.hist[m.hist.length-2]:m.quote);
     m.close=null;m.closeBase=null;m.closeRelief=null;
   });
   meetEnsure();
