@@ -19,7 +19,7 @@ function silverChartSvg(pts){
   let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block;background:#fffaf0;border:2px solid #b5a98f" font-family="inherit">';
   for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#e2d7bd" stroke-width="1"/><text x="'+(L-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="11" fill="#6b6256">'+short(Math.round(v))+'</text>'}
   const d=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join('');
-  const up=pts[n-1].v>=pts[0].v,col=up?'#1e7e34':'#b3392b';
+  const up=pts[n-1].v>=pts[0].v,col=up?'#b3261e':'#1e7e34';
   s+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>';
   pts.forEach((p,i)=>{
     const x=X(i),y=Y(p.v);

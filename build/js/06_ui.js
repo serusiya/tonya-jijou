@@ -2,7 +2,7 @@
 /* ★檔案總覽：主介面（首頁、大盤、商路）
  * - UI.s：介面暫存狀態（分頁、選取物品、面板…，不存檔）。ACT[name]：data-act 按鈕處理；CHG：data-chg 變更處理。
  * - renderHome/renderMarket/renderRoutes：三個主畫面；說明視窗 UI.showInfo。畫面文字在 01e_ui_text.js（home.*、mk.*、rt.*、pos.*、ci.*）。
- * - planOf/autoShip：出貨預設＝本期有效協議配額（以量制價採固定比例；正常供應採穩定供貨線），未按「出貨」則推進一旬時自動出貨。 */
+ * - planOf/autoShip：參加協議時出貨預設＝穩定供貨線×本期比例（維持九成／減供七成）；未參加時預設＝穩定供貨線。未按「出貨」則推進一旬時自動出貨。 */
 /* ======================= 06 介面核心：頂欄、分頁、跑馬燈、大盤、商路 ======================= */
 /** 介面暫存狀態（不存檔）：分頁、選取物品、面板、筆記篩選、商路設定… */
 const UI={s:{tab:'home',focus:null,ship:0,buy:10,sheet:null,sheetLock:false,notesQ:'',notesF:'all',route:{mode:'sea',dest:null},intro:null,openNote:null}};
@@ -100,12 +100,12 @@ function spark(h,up){
   const pts=h.map((v,i)=>(i*(66/(h.length-1)))+','+(18-((v-mn)/rg)*16)).join(' ');
   return '<svg class="sparkline" viewBox="0 0 66 20"><polyline fill="none" stroke="'+(up?'#b3261e':'#1e7e34')+'" stroke-width="2" points="'+pts+'"/></svg>';
 }
-/** 本旬價格比上旬高或低多少兩（約略整數）。 */
+/** 本旬牌價比前次收市高或低多少兩（約略整數）。 */
 function chgAmt(name,cur){const h=G.mk[name].hist;if(h.length<2)return 0;return Math.round(cur-h[h.length-2])}
-/** 價差文字：「約 +3 兩」「約 -2 兩」「持平」。 */
-const amtTxt=d=>d===0?UT('mk.flat'):UT('mk.amt',{d:(d>0?'+':'-')+Math.abs(d)});
-/** 價格欄（市價）下方的短版價差：「+3」「-2」「持平」。 */
-const amtShort=d=>d===0?UT('mk.flat'):(d>0?'+':'-')+Math.abs(d);
+/** 價差文字：「約 +3 兩」「約 -2 兩」「約 +0 兩」；零值也視為非負並用紅色。 */
+const amtTxt=d=>UT('mk.amt',{d:(d>=0?'+':'-')+Math.abs(d)});
+/** 價格欄（市價）下方的短版價差：「+3」「-2」「+0」。 */
+const amtShort=d=>(d>=0?'+':'-')+Math.abs(d);
 function chg(name){const h=G.mk[name].hist;if(h.length<2)return 0;return (h[h.length-1]-h[h.length-2])/Math.max(0.01,h[h.length-2])*100}
 /** 協議立場的短說明。 */
 const cartelStanceTxt=()=>UT('mk.stance.'+G.cartel.state);
@@ -115,12 +115,14 @@ function renderMarket(){
   if(!UI.s.focus||!G.mk[UI.s.focus]||!own.some(c=>c.name===UI.s.focus))UI.s.focus=(own.find(c=>tradeOK(c.name))||own[0]).name;
   const name=UI.s.focus,c=COMM_MAP[name],m=G.mk[name],have=G.inv[name]||0;
   UI.s.ship=planOf(name);
-  const buy=unitBuyCost(name),mkt=m.price;
+  const buy=unitBuyCost(name),mkt=marketQuote(name);
   let h='<div class="pixel-box" style="padding:8px">';
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
+  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)});
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
+  h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.dep.item',{p:depDisplay(itemDapanDependency(name))})+'</div>';
   h+='</div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
@@ -129,19 +131,26 @@ function renderMarket(){
   h+=planCard()+shareCard()+guildInfoCard();
   // 行情表
   h+='<div class="small bold" style="margin:6px 0 3px">'+UT('mk.tableTitle')+'</div>';
-  h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">'+UT('mk.rowSub',{q:G.inv[x.name]||0,d:(x.decay*100).toFixed(1)})+'</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(mm.price)+'</b><div class="'+(chgAmt(x.name,mm.price)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,mm.price))+'</div></div></div></div>'}).join('');
+  h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name),p=marketQuote(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">'+UT('mk.rowSub',{q:G.inv[x.name]||0,d:(x.decay*100).toFixed(1)})+'</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(p)+'</b><div class="'+(chgAmt(x.name,p)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,p))+'</div></div></div></div>'}).join('');
   h+='<div class="small bold" style="margin:6px 0 3px">'+UT('mk.stapleTitle')+'</div>';
   h+=STAPLE_KEYS.filter(k=>G.mk[k]).map(k=>{const si=stapleIndex(k);return '<div class="mkt-row lock"><div><b class="small">'+esc(COMM_MAP[k].short)+'</b>'+infoBtn(k)+'<div class="tiny muted">'+UT('mk.stapleBase',{p:fmt1(COMM_MAP[k].base)})+'</div></div><div class="row" style="gap:8px">'+spark(G.mk[k].hist,chg(k)>=0)+'<div style="text-align:right;width:70px"><b class="'+(si>2?'up':'')+'">'+Math.round(si*100)+'%</b><div class="tiny muted">'+UT('mk.vsBase')+'</div></div></div></div>'}).join('');
   h+='</div>';
   $('#view-market').innerHTML=h;updateQuote();
 }
 /** 市佔率卡片：我與本城同行的佔比與趨勢。 */
+function depDisplay(x){
+  const R=ODDS.dapanDependency;if(x.turns<R.win)return UT('mk.dep.wait',{n:x.turns,w:R.win});
+  if(x.total>0&&x.coverage<R.knownMin)return UT('mk.dep.source');
+  return x.value===null?UT('mk.dep.none'):(x.value*100).toFixed(2)+'%';
+}
 function shareCard(){
-  shareFactor();const sh=G.share;if(!sh)return '';
+  shareFactor();const sh=G.share,dep=dapanDependency();if(!sh)return '';
   const rows=sh.rows.map(r=>({n:r.name,v:r.share,pv:r.prev,tag:r.raided?UT('mk.share.raided'):r.ev>1.1?UT('mk.share.hot'):r.ev<0.9?UT('mk.share.hurt'):''})).concat([{n:UT('mk.share.me'),v:sh.me,pv:null,me:true,tag:''}]).sort((a,b)=>b.v-a.v);
   const line=r=>{const pct=(r.v*100).toFixed(1);const tr=r.pv!==null&&r.pv!==undefined?(r.v>r.pv+0.002?'<span class="up">▲</span>':r.v<r.pv-0.002?'<span class="down">▼</span>':''):'';return '<div style="margin-top:3px"><div class="row tiny"><span'+(r.me?' style="font-weight:bold;color:#9b2c3a"':'')+'>'+esc(r.n)+r.tag+' '+tr+'</span><b>'+pct+'%</b></div>'+bar(r.v,0.5,r.me?'gold':'gray')+'</div>'};
   return '<div class="card"><div class="row"><b class="small">'+UT('mk.share.title')+'</b><span class="tag '+(sh.factor>=1?'green':'red')+'">'+UT(sh.factor>=1.25?'mk.share.f1':sh.factor>=1.05?'mk.share.f2':sh.factor>=0.95?'mk.share.f3':'mk.share.f4')+'</span></div>'+rows.map(line).join('')
    +'<div class="tiny muted" style="margin-top:4px">'+UT('mk.share.others',{p:(sh.others*100).toFixed(1)})+'</div>'
+   +'<div class="row tiny" style="border-top:1px solid #d8ccb3;margin-top:5px;padding-top:5px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(dep)+'</b></div>'
+   +'<div class="tiny muted">'+UT('mk.dep.note')+'</div>'
    +'</div>';
 }
 /** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
@@ -158,11 +167,11 @@ function tradeCard(name){
   h+='<div class="small" style="margin:4px 0;text-align:center">'+UT('mk.trade.flow',{a:have,b:'<b id="f-after">'+Math.max(0,have-ship)+'</b>',c:'<b id="f-next" style="color:#9b2c3a">'+nextStock(name,ship,bq)+'</b>'})+'</div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
   h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
-  h+='<div class="tiny muted">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div><div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#1e7e34">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
+  h+='<div class="tiny muted">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div><div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D,s:m.so,w:Math.round(m.so+pastOf(m).reduce((a,x)=>a+x.so,0))})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='</div>';
   return h;
@@ -214,16 +223,17 @@ const awayMode=()=>(G.exile||0)>0;
 function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return awayMode()?quotaOf(name):0}
 function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(buyRaw(name),0,maxBuy(name,true))}
 function autoBuy(log){
-  const plan={},got=[],kept=[],touched=new Set(Object.keys(G.buyPlan||{}));
+  const plan={},got=[],kept=[],cut=[],touched=new Set(Object.keys(G.buyPlan||{}));
   tradeComms().forEach(c=>{const v=buyRaw(c.name);if(v>0)plan[c.name]=v});
   G.buyPlan=Object.assign({},plan);                     // 只留還沒下單的計畫：maxBuy 會替它們保留倉位與現款
   tradeComms().forEach(c=>{
     const want=plan[c.name]||0;if(want<=0)return;
     delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進待到貨訂單量、也已扣現款，不能再保留一次
-    const q=Math.min(want,maxBuy(c.name));if(q>0){const r=buyGoods(c.name,q);if(r.ok){(touched.has(c.name)?got:kept).push(c.short+'×'+q);if(TURNRP){TURNRP.buy=TURNRP.buy||{};const o=TURNRP.buy[c.short]||(TURNRP.buy[c.short]={q:0,cost:0});o.q+=q;o.cost+=r.cost}}}   // 旬報：大盤進貨逐項記錄
+    const q=Math.min(want,maxBuy(c.name));if(q<want)cut.push(c.short+'×'+(want-q));if(q>0){const r=buyGoods(c.name,q);if(r.ok){(touched.has(c.name)?got:kept).push(c.short+'×'+q);if(TURNRP){TURNRP.buy=TURNRP.buy||{};const o=TURNRP.buy[c.short]||(TURNRP.buy[c.short]={q:0,cost:0});o.q+=q;o.cost+=r.cost}}}   // 旬報：大盤進貨逐項記錄
   });
   if(got.length)log.push(NEWS('autoBuy.1',{got:got.join(NAMES_SEP)}));
   if(kept.length)log.push(NEWS('away.buy',{got:kept.join(NAMES_SEP)}));   // 遠島期間照配額進貨
+  if(cut.length)log.push(NEWS('autoBuy.short',{cut:cut.join(NAMES_SEP)}));
   G.buyPlan={};
 }
 /** 按下『出貨』：以目前預設/滑桿量出貨並標記本旬已出貨。 */
@@ -296,7 +306,7 @@ ACT.commInfo=el=>{
 const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">'+UT('ci.btn')+'</span>';
 
 /* ---------- 出貨預設＝本期有效協議配額；未按「出貨」，推進一旬時自動出貨 ---------- */
-/** 某物品本旬的預定出貨量：預設＝本期有效協議配額（正常供應時即穩定供貨線），不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
+/** 某物品本旬的預定出貨量：參加協議時預設為穩定供貨線的九成／七成；未參加時為穩定供貨線。不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
 function planOf(name){
   const have=G.inv[name]||0;G.plan=G.plan||{};
   if(G.plan[name]===undefined)G.plan[name]=Math.min(quotaOf(name),have);   // 預設照本旬配額
@@ -307,7 +317,7 @@ function supplyLine(name){const sh=(G.share&&G.share.me)||0.05;return Math.max(0
 /** 推進一旬前，對本旬沒按『出貨』的物品自動按預定量出貨，並清空本旬計畫。 */
 function autoShip(log){
   G.sold=G.sold||{};G.plan=G.plan||{};
-  const rep={rev:0,ship:[],fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
+  const rep={rev:0,ship:[],market:[],marketDate:dateStr(),fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
   G.publicSpend={};
   const own=tradeComms();let short=[],squeeze=[],judged=0,allMet=true;          // 未取得交易許可的貨不算進穩定供貨線
   own.forEach(c=>{

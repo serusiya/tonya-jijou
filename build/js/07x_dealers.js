@@ -31,7 +31,7 @@ const BROKER_MAXQ=10;
 function brokerLot(cid){
   const L=tradeComms().filter(c=>(G.inv[c.name]||0)>0);if(!L.length)return null;
   const c=L.slice().sort((a,b)=>(G.inv[b.name]-G.inv[a.name])||(b.base-a.base))[0],n=c.name,target=400+100*seeded(cid+'_b'+G.turn)();
-  const unit=priceNow(n,G.mk[n].shipped)*0.7,q=Math.max(1,Math.min(G.inv[n],BROKER_MAXQ,Math.floor(target/unit)));
+  const unit=marketQuote(n)*0.7,q=Math.max(1,Math.min(G.inv[n],BROKER_MAXQ,Math.floor(target/unit)));
   return {c,n,q,unit,rev:Math.round(unit*q)};
 }
 /** 座客商人／私梟／同業／掮客／經營好手的請託項目。 */
@@ -42,8 +42,10 @@ function dealerReqs(cid){
     return [{k:'rv_'+L.n,name:UT('deal.dealerReqs',{a:L.c.short,b:L.q}),desc:UT('deal.dealerReqs.2',{a:fmt(L.cost)})}];
   }
   if(n.role==='broker'){
-    const L=brokerLot(cid);if(!L)return [];
-    return [{k:'bk_'+L.n,name:UT('deal.dealerReqs.3',{a:L.c.short,b:L.q}),desc:UT('deal.dealerReqs.4',{a:fmt(L.rev)})}];
+    const out=[],L=brokerLot(cid),I=buyoutIntelNext();
+    if(L)out.push({k:'bk_'+L.n,name:UT('deal.dealerReqs.3',{a:L.c.short,b:L.q}),desc:UT('deal.dealerReqs.4',{a:fmt(L.rev)})});
+    if(I)out.push({k:'buyoutIntel',name:UT('deal.buyoutIntel'),desc:UT('deal.buyoutIntel.d',{region:REG_NAME(I.rid)})});
+    return out;
   }
   if(n.role==='manager'){
     if(tempHelp()!==null)return [];
@@ -66,17 +68,23 @@ function dealerReqs(cid){
 function dealerDo(cid,k){
   const r=R(cid),nm=nameOf(cid);
   if(k==='bribeBandit')return banditBribeDo(cid);
+  if(k==='buyoutIntel'){
+    const I=buyoutIntelNext();if(!I)return UT('deal.buyoutIntel.none');
+    buyoutDiscover(I.y,I.rid,I.m);setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;
+    logRel(cid,UT('deal.buyoutIntel.log',{region:REG_NAME(I.rid),month:buyoutMonth(I.m),aff:REQ_AFF.normal}));
+    return UT('deal.buyoutIntel.ok',{name:nm,region:REG_NAME(I.rid),month:buyoutMonth(I.m),aff:REQ_AFF.normal});
+  }
   if(k==='cs_wait')return UT('deal.csWait.d');
   if(k.startsWith('cs_')&&!blackMarketOpen())return UT('deal.csWait.d');
   if(k.startsWith('rv_')){
     const L=rivalLot(cid);if(!L||L.n!==k.slice(3))return UT('deal.dealerDo');
-    G.silver-=L.cost;addStock(L.n,L.q,L.unit);G.inv[L.n]=(G.inv[L.n]||0)+L.q;
+    G.silver-=L.cost;addStock(L.n,L.q,L.unit);stockAdd(L.n,L.q,false);
     setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,UT('deal.dealerDo.2',{a:L.c.short,b:L.q,c:REQ_AFF.normal}));
     coinFx();return UT('deal.dealerDo.3',{a:nm,b:L.c.short,c:L.q,d:fmt(L.cost),e:REQ_AFF.normal});
   }
   if(k.startsWith('bk_')){
     const L=brokerLot(cid);if(!L||L.n!==k.slice(3))return UT('deal.dealerDo.4');
-    G.inv[L.n]-=L.q;G.silver+=L.rev;
+    stockTake(L.n,L.q,false);G.silver+=L.rev;
     setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,UT('deal.dealerDo.5',{a:L.c.short,b:L.q,c:REQ_AFF.normal}));
     coinFx();return UT('deal.dealerDo.6',{a:nm,b:L.c.short,c:L.q,d:fmt(L.rev),e:REQ_AFF.normal});
   }

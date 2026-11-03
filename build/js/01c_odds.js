@@ -16,7 +16,8 @@ const ODDS={
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
   riotScapegoat:{name:'打毀後被當替罪羊',staple:0.8,other:0.2,affDiv:120,min:0.05,max:0.8},
-  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
+  rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,normalPow:4,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93,win:9},
+  dapanDependency:{name:'大盤依賴度（實際出貨來源的固定基準價額加權）',win:9,knownMin:0.95},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
   buyLimit:{name:'相場進貨上限（需求×市佔率；參加協議者再加協議配額；番頭與大番頭每人加成；無條件捨去，至少 1）',mult:0.8,perBantou:0.3},
   chief:{name:'大番頭每旬自理事務（70%自動問候／10%意外之財／20%無事；大番頭累計賺得的意外之財超過當前現款，下一旬必捲款潛逃）',visitP:0.7,windfallP:0.1,visitMin:1,visitMax:3,gainMin:5,gainMax:10,newFriendP:0.25,windfallMin:0.01,windfallMax:0.10},
@@ -25,11 +26,12 @@ const ODDS={
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
   cartelSecret:{name:'暗約偷跑被告發',base:0.12,slope:0.18,max:0.8},
   cartelRaise:{name:'公會提案提高配額成功率',base:0.30,perAff:0.5,max:0.8},
-  guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定',normal:0.5},
+  guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持為各自穩定供應量九成、減供為七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7},
   meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議擔保金一期的旬數（自動續押，期滿分配違約金）',turns:9},
   cityPopulation:{name:'城市人口每九旬依穩定供貨調整（全穩定 ±2%；多數穩定或不穩定 ±0.6%）',turns:9,all:0.02,majority:0.006,min:1000},
   newProd:{name:'每年一月上旬，隨機城市新增一項本業貨產地',p:0.10},
+  buyout:{name:'大口買付：五區各自每季隨機一個月；首年略過第一季',quarters:[[1,3],[4,6],[7,9],[10,12]],firstYearSkip:1},
   /* —— 人際·員工·家族 —— */
   introBacklash:{name:'引薦性向全不合時反遭嫌棄',p:0.35},
   skim:{name:'員工私吞（每旬；其餘倍率見 07zs_staffcare.js 的 STAFF）',greed:0.6,betray:0.5,loyal:0.7,cap:0.6},
@@ -59,6 +61,8 @@ const ODDS={
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
   voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
+  originSupply:{name:'每城、每項貨、每月固定的產地供貨指數；分類產量與同月同城後續商隊會折減可供量',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06,production:{staple:1.15,normal:0.85,luxury:0.35},repeat:{staple:0.8,normal:0.6,luxury:0.4}},
+  voyageMix:{name:'多項本業貨的委託採買分配：少數均衡，多數偏重或集中於一項',balanced:0.10,biased:0.60,biasedMin:0.60,biasedMax:0.75,focusMin:0.75,focusMax:0.90,supplyPow:1.5,pricePow:2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
   /* —— 跨行貨物 —— */
   xLoan:{name:'商人拿貨抵押借錢上門（每旬）',p:0.05},

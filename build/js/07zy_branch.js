@@ -67,7 +67,7 @@ let BRANCH_EV=null;
 ACT.branchGive=()=>{
   const e=BRANCH_EV,B=G.branch;if(!e||!branchOpen()||B.phase!==1){UI.hideInfo();return}
   if((G.inv[e.name]||0)<e.qty){toast(MSG('branch.short'));return}
-  G.inv[e.name]-=e.qty;B.given++;BRANCH_EV=null;
+  stockTake(e.name,e.qty,false);B.given++;BRANCH_EV=null;
   let msg=MSG('branch.given',{n:B.name});
   if(B.given>=ODDS.branch.times){
     const amt=rint(ODDS.branch.repayMin,ODDS.branch.repayMax);G.silver+=amt;G.carryIn=G.carryIn||{};G.carryIn.branch=(G.carryIn.branch||0)+amt;B.phase=2;

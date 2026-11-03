@@ -17,7 +17,7 @@ const meetPending=()=>{const M=meetNow();return !!(M&&!M.done)};
 function meetLot(){
   const all=ownComms().slice().sort((a,b)=>b.base-a.base),L=all.slice(0,Math.ceil(all.length/2));const tot=L.reduce((a,c)=>a+c.base,0);let r=rnd()*tot,c=L[0];   // 只從本業較貴的一半貨品裡抽（數量多的便宜貨不入選）
   for(const x of L){r-=x.base;if(r<=0){c=x;break}}
-  const p=Math.max(0.1,G.mk[c.name].price||c.base),val=rint(MEET.lotMin,MEET.lotMax),qty=Math.max(1,Math.round(val/p));
+  const p=Math.max(0.1,marketQuote(c.name)||c.base),val=rint(MEET.lotMin,MEET.lotMax),qty=Math.max(1,Math.round(val/p));
   return {name:c.name,qty,val:Math.round(qty*p)};
 }
 /** 建立本旬的例會。 */
@@ -84,7 +84,7 @@ function meetAuction(myBid){
   bids.sort((a,b)=>b.b-a.b||b.sh-a.sh);
   const top=bids[0];let res;
   if(myBid>0&&(!top||myBid>top.b)){
-    G.silver-=myBid;G.inv[lot.name]=(G.inv[lot.name]||0)+lot.qty;notePublicSpend('spend.lot|'+lot.name,myBid);
+    G.silver-=myBid;stockAdd(lot.name,lot.qty,false);notePublicSpend('spend.lot|'+lot.name,myBid);
     res={who:'me',price:myBid};sfx.fanfare();
   }else if(top)res={who:top.cid,price:top.b};
   else res={who:null,price:0};
@@ -166,7 +166,7 @@ SHEETS.guild=()=>{
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
     act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+UT('btn.cartel3')+'</button>'+UT('gmeet.guild.4');
   }else if(cur===2){
-    info=guildMember()?UT('gmeet.guild.5',{a:Math.round(C.quotaPct*100),b:policyName(M.prev)})
+    info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
       :UT('gmeet.guild.6');
     if(!M.voted)act=guildMember()?UT('gmeet.guild.7')
       :UT('gmeet.guild.8');

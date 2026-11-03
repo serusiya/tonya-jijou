@@ -5,10 +5,14 @@
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={guildDiv:0,windfall:0,branch:0,honjin:0,buy:{},voy:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
+  const T={guildDiv:0,windfall:0,branch:0,honjin:0,buy:{},voy:[],market:[],goods:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
+    const date=r.marketDate||r.date||'',rs={};
+    (r.ship||[]).forEach(x=>{const o=rs[x.n]||(rs[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
+    (r.market||[]).forEach(x=>{const m=Object.assign({date},x),s=rs[x.n]||{q:0,rev:0},b=(r.buy&&r.buy[x.n])||{q:0,cost:0};T.market.push(m);T.goods.push(Object.assign({sq:s.q,rev:s.rev,bq:b.q,cost:b.cost},m))});
+    Object.keys(rs).concat(Object.keys(r.buy||{})).filter((n,i,a)=>a.indexOf(n)===i&&!(r.market||[]).some(x=>x.n===n)).forEach(n=>{const s=rs[n]||{q:0,rev:0},b=(r.buy&&r.buy[n])||{q:0,cost:0};T.goods.push({date,n,sq:s.q,rev:s.rev,bq:b.q,cost:b.cost})});
     T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;
     Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;if(r.fameGate)T.fameGate=true;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
@@ -25,15 +29,19 @@ function repRow(icon,label,amt,max,cls){
   const w=max>0?Math.max(3,Math.round(amt/max*100)):0;
   return '<div class="rp-row"><span class="rp-ic">'+icon+'</span><span class="rp-lb">'+label+'</span><span class="rp-bar"><i class="'+cls+'" style="width:'+w+'%"></i></span><b class="rp-amt '+cls+'">'+(cls==='in'?'+':'−')+fmt(amt)+'</b></div>';
 }
-/** 貨物收支：一種貨一條（照大盤的本業貨順序，沒買賣的不列）。長條長度看收入與支出較大者（各貨同一比例尺）；較大者為底色（綠＝出貨收入、紅＝大盤進貨），較小者按比例疊在上面；右邊淨額，賺綠賠紅。 */
+/** 貨物收支：每項貨第一行列本旬淨收支；第二行左列進出貨量，右列牌價與「收市價／新牌價」。盈利與零值紅色，虧損綠色。 */
 function goodsRows(T){
-  const L=ownComms().map(c=>{const s=T.ship[c.short]||{q:0,rev:0},b=T.buy[c.short]||{q:0,cost:0};return {n:c.short,sq:s.q,rev:s.rev,bq:b.q,cost:b.cost}}).filter(x=>x.sq||x.bq);
+  const tradable=tradeComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
+  const L=(T.goods||[]).filter(x=>allowed.has(x.n)).sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d||((order.get(a.n)??999)-(order.get(b.n)??999))});
   if(!L.length)return UT('rep.goodsRows');
-  const mx=Math.max(1,...L.map(x=>Math.max(x.rev,x.cost)));
+  const mx=Math.max(1,...L.map(x=>Math.max(x.rev||0,x.cost||0)));
   return UT('rep.goodsRows.2',{a:L.map(x=>{
-    const big=Math.max(x.rev,x.cost),inBase=x.rev>=x.cost,w=Math.max(3,Math.round(big/mx*100)),ws=big>0?Math.round(Math.min(x.rev,x.cost)/mx*100):0,net=x.rev-x.cost;
-    const qty=(x.sq?UT('rep.qty',{a:x.sq}):'')+(x.sq&&x.bq?'·':'')+(x.bq?UT('rep.qty.2',{a:x.bq}):'');
-    return '<div class="rp-row"><span class="rp-ic">📦</span><span class="rp-lb" style="white-space:normal;line-height:1.15">'+esc(x.n)+'<div class="tiny muted">'+qty+'</div></span><span class="rp-bar" style="position:relative"><i class="'+(inBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(inBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span><b class="rp-amt '+(net>=0?'in':'out')+'">'+(net>=0?'+':'−')+fmt(Math.abs(net))+'</b></div>';
+    const rev=x.rev||0,cost=x.cost||0,net=rev-cost,big=Math.max(rev,cost),incomeBase=rev>=cost;
+    const w=big>0?Math.max(3,Math.round(big/mx*100)):0,ws=big>0?Math.round(Math.min(rev,cost)/mx*100):0;
+    const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
+    const qty=UT('rep.goodsQty',{s:x.sq||0,b:x.bq||0});
+    const price=Number.isFinite(x.quote)&&Number.isFinite(x.close)?UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(x.close),v:'<span class="'+(x.close>=x.quote?'up':'down')+'">'+amtShort(Math.round(x.close-x.quote))+'</span>'}):'';
+    return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),q:qty,p:price});
   }).join('')});
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */
@@ -52,7 +60,7 @@ function showTurnReport(reps,logs,n,kind){
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
   const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
-  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>=0?'▲ ':'▼ ',b:sgn(T.net),c:fmt(G.silver)});
+  h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>0?'▲ ':T.net<0?'▼ ':'',b:sgn(T.net),c:fmt(G.silver)});
   h+=raidCard();
   h+='<div class="rp-split"><i class="in" style="width:'+pi+'%"></i><i class="out" style="width:'+UT('rep.showTurnReport.5',{a:100-pi,b:fmt(inc),c:fmt(outl)})+'</span></div>';
   h+=UT('rep.showTurnReport.6',{a:goodsRows(T)});

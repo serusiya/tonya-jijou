@@ -19,7 +19,7 @@ const blackMarketOpen=()=>!!(G&&(festActive()||disasterNow()));
 /** 緊急御免期間（本旬與下一旬）。 */
 const reliefImportOn=()=>!!(G&&G.reliefBuy>G.turn);
 /** 緊急御免：漲價的貨照災前價格（不計事件倍率）。 */
-function reliefPrice(name){const m=G.mk[name],ev=m.ev;if(!(ev>1))return null;m.ev=1;const p=marketIndex(name,true);m.ev=ev;return p}
+function reliefPrice(name){const m=G.mk[name];return m.ev>1?reliefQuote(name):null}
 /** 普請御用：官府收購的貨（每項本業貨最多約兩旬配額）。 */
 function reliefBuildLots(){
   return tradeComms().map(c=>{const n=c.name,have=G.inv[n]||0,want=Math.max(1,Math.round(ODDS.relief.buildTurns*Math.max(quotaOf(n),supplyLine(n))));return {c,q:Math.min(have,want)}}).filter(x=>x.q>0);
@@ -42,7 +42,7 @@ function doRelief(cid,n,r,f){
     msg=MSG('relief.import',{f:fm});pushNews(NEWS('relief.import'));
   }else{
     const L=reliefBuildLots();if(!L.length)return {ok:true,status:'held',msg:MSG('relief.buildNone')};
-    let rev=0;L.forEach(({c,q})=>{const p=Math.round(G.mk[c.name].price*R_.buildMul*q);G.inv[c.name]-=q;rev+=p});
+    let rev=0;L.forEach(({c,q})=>{const p=Math.round(marketQuote(c.name)*R_.buildMul*q);stockTake(c.name,q,false);rev+=p});
     G.silver+=rev;const fm=addFame(R_.buildFame,'major');
     msg=MSG('relief.build',{g:L.map(x=>x.c.short+' × '+x.q).join(NAMES_SEP),a:fmt(rev),f:fm});pushNews(NEWS('relief.build',{a:fmt(rev)}));
   }

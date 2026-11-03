@@ -18,9 +18,9 @@ const NEWS_TXT={
   "meet.lotMe":"🍡【菓子折】你以 {p} 兩標下「{n}」{q} 單位，貨已入倉。",
   "meet.lotRival":"🍡【菓子折】「{who}」以 {p} 兩標下「{n}」{q} 單位。",
   "meet.lotNone":"🍡【菓子折】本期的「{n}」沒有人出價，退回相場。",
-  "guild.policy.restrict":"⚖️【協議決議】本期「減供」：各家依減供配額出貨，壓低供給以維持行情。",
-  "guild.policy.normal":"⚖️【協議決議】本期「維持」：全體總配額以本城需求為準，你的配額等於穩定供貨線，其餘由同行依市占率分配。",
-  "guild.policy.normalNone":"⚖️【協議決議】本期「維持」：全體總配額以本城需求為準；你未參加協議、沒有保留配額，供應量全數由協議內同行依市占率分配。",
+  "guild.policy.restrict":"⚖️【協議決議】本期「減供」：各家以自己的穩定供應量七成為配額，以量控價。",
+  "guild.policy.normal":"⚖️【協議決議】本期「維持」：各家以自己的穩定供應量九成為配額；同行各自供貨，不會替你補足差額。",
+  "guild.policy.normalNone":"⚖️【協議決議】本期「維持」：你未參加協議，出貨不受配額限制，預設照穩定供貨線；同行仍各自按九成目標供貨。",
   /* —— receiveOrders —— */
   "rivalDump":"🏪【同業】「{who}」大舉拋售「{name}」，存貨傾巢而出，近日行情恐怕被壓低。",
   "luxDry":"🏮【行情】近來「{name}」門庭冷落，達官貴人不再問津，不知何時才有買家。",
@@ -101,6 +101,7 @@ const NEWS_TXT={
   "party.skip":"🏮【忘年會】主人遠在島上，今年的忘年會停辦。",
   /* —— autoBuy —— */
   "autoBuy.1":"📥【自動進貨】{got} 已下單。",
+  "autoBuy.short":"📥【進貨縮減】收市結算後的現款或倉位不足，少進了 {cut}。",
   /* —— autoShip —— */
   "autoShip.1":"📤【自動出貨】{rev}。",
   /* —— charity —— */
@@ -141,9 +142,9 @@ const NEWS_TXT={
   "away.buy":"🧾【主人不在】照協議配額進貨：{got} 已下單。",
   /* —— kind —— */
   "kind.1":"前往【{dest}】採買。{note}",
-  "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約相場基準價的 {pf}），共 {cost} 兩。",
+  "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約相場基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
-  "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩。",
+  "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
   "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
   "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找闇商人，也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
@@ -201,6 +202,7 @@ const NEWS_TXT={
   "voy.resolveVoyage.6":"✅ {a} 單位已入倉，可到相場分旬出貨。",
   "voy.resolveVoyage.7":"{i} 歸途{a}，損失 {b} 單位，",
   "voy.resolveVoyage.8":"{a} 單位已入倉。這不是你的本業，得請旅商人代售。",
+  "buyout.arrive":"📣【大口買付】{crew}「{name}」回報：【{region}】{month}的本業貨已被別家問屋先買走；{month}已確認為買付期間。",
   /* —— 07u_battle.js —— */
   "bt.specialList":"他與你交情至深，願對隨機一家同業{a}。{b}；成敗看他的膽力與商才，事後可能被查辦。",
   "bt.specialList.2":"上貢",

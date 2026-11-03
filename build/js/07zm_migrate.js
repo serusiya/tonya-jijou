@@ -44,6 +44,22 @@ function migrateSave(){
   if(!G.openedRoads)G.openedRoads=[];                // 開闢的道路（地區 id）
   if(!G.debts)G.debts=[];
   if(!G.guild)G.guild={};                            // 公會例會（07yb_meeting.js）；舊存檔的一期與季度人口在下一次例會時結算
+  Object.entries(G.mk||{}).forEach(([name,m])=>{      // 舊存檔的即時市價轉成本旬固定牌價；既有曲線視為收市紀錄
+    m.hist=Array.isArray(m.hist)?m.hist:[];
+    m.depPast=Array.isArray(m.depPast)?m.depPast.slice(-ODDS.dapanDependency.win):[];m.depTotal=Number.isFinite(m.depTotal)?m.depTotal:0;m.depKnown=Number.isFinite(m.depKnown)?m.depKnown:0;m.depDapan=Number.isFinite(m.depDapan)?m.depDapan:0;
+    const q=m.quote>0?m.quote:(m.price>0?m.price:(m.hist.length?m.hist[m.hist.length-1]:marketIndex(name)));
+    m.quote=q;m.price=q;m.quoteBase=m.quoteBase>0?m.quoteBase:marketIndex(name,true);m.quoteRelief=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0);
+    m.lastClose=m.lastClose>0?m.lastClose:q;m.prevQuote=m.prevQuote>0?m.prevQuote:(m.hist.length>1?m.hist[m.hist.length-2]:q);
+    m.close=null;m.closeBase=null;m.closeRelief=null;
+  });
   meetEnsure();
+  buyoutEnsure();                                    // 舊存檔補上本年度五區大口買付排程
+  originSupplyEnsure();                              // 舊存檔補上本局固定的產地供貨種子
+  if(!G.originTrips||typeof G.originTrips!=='object')G.originTrips={y:G.year,m:G.month,byCity:{}};
+  if(G.originTrips.y!==G.year||G.originTrips.m!==G.month||!G.originTrips.byCity)G.originTrips={y:G.year,m:G.month,byCity:{}};
+  (G.ships||[]).filter(s=>s.entrust&&s.supplyY===G.year&&s.supplyM===G.month).sort((a,b)=>(a.start||0)-(b.start||0)).forEach(s=>{
+    const k=s.origId;if(s.supplyRank>0)G.originTrips.byCity[k]=Math.max(G.originTrips.byCity[k]||0,s.supplyRank);
+    else{s.supplyRank=(G.originTrips.byCity[k]||0)+1;G.originTrips.byCity[k]=s.supplyRank}
+  });
   G.ver=GAME_VER;
 }

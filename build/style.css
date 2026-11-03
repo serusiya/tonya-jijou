@@ -179,17 +179,17 @@ select{background:#fff;border:2px solid #a79b87;padding:2px}
 /* ---- 旬報彈窗 ---- */
 .rp{font-size:15px}
 .rp-hero{text-align:center;padding:10px 6px;border:2px solid #a79b87;background:linear-gradient(#fffdf9,#f3ead7);margin-bottom:6px}
-.rp-hero.up{border-color:#5aa56e}.rp-hero.down{border-color:#c0584f}
+.rp-hero.up{border-color:#c0584f}.rp-hero.down{border-color:#5aa56e}
 .rp-date{font-size:13px;line-height:1.4;color:#7a6f5c}
 .rp-net{font-size:32px;font-weight:bold;line-height:1.25}
 .rp-net small{font-size:15px}
-.rp-hero.up .rp-net{color:#1e7e34}.rp-hero.down .rp-net{color:#b3261e}
+.rp-hero.up .rp-net{color:#b3261e}.rp-hero.down .rp-net{color:#1e7e34}
 .rp-sub{font-size:13px;line-height:1.4;color:#7a6f5c}
 .rp-split{display:flex;height:12px;border:2px solid #a79b87;background:#fff}
 .rp-split i{display:block;height:100%}
-.rp-split .in,.rp-bar .in{background:#5aa56e}.rp-split .out,.rp-bar .out{background:#c0584f}
+.rp-split .in,.rp-bar .in{background:#c0584f}.rp-split .out,.rp-bar .out{background:#5aa56e}
 .rp-legend{display:flex;justify-content:space-between;font-size:13px;line-height:1.4;margin:2px 0 6px}
-.rp-legend .in,.rp-amt.in{color:#1e7e34}.rp-legend .out,.rp-amt.out{color:#b3261e}
+.rp-legend .in,.rp-amt.in{color:#b3261e}.rp-legend .out,.rp-amt.out{color:#1e7e34}
 .rp-sec{font-weight:bold;margin:8px 0 3px;border-bottom:1px dashed #b5a98f;padding-bottom:2px}
 .rp-row{display:flex;align-items:center;gap:6px;padding:2px 0}
 .rp-ic{width:20px;text-align:center}
@@ -197,6 +197,9 @@ select{background:#fff;border:2px solid #a79b87;padding:2px}
 .rp-bar{flex:1;height:8px;background:#e8dfcc;display:block}
 .rp-bar i{display:block;height:100%}
 .rp-amt{flex:0 0 66px;text-align:right}
+.rp-good{padding:5px 2px;border-bottom:1px dotted #cbbf9f}
+.rp-good:last-child{border-bottom:0}
+.rp-good-name{flex:0 0 96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 .rp-empty{color:#9a8f7a;font-size:13px;line-height:1.4;padding:2px 0}
 .rp-fame{margin-top:8px;padding:6px;text-align:center;border:2px solid;font-weight:bold}
 .rp-fame.up{background:#f1fbf3;border-color:#5aa56e;color:#1e7e34}.rp-fame.down{background:#fff3f0;border-color:#c0584f;color:#b3261e}

@@ -194,8 +194,8 @@ function newGame(sysKey,regionPref){
     silver:S.silver,gold:S.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
-    cartel:{state:'pledged',comp:65,sanction:0,quotaPct:0.06,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
-    staple:{streak:0,peak:1},ships:[],
+    cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pEnd:ODDS.guildBond.turns,pot:0,policy:null,policyEnd:ODDS.guildBond.turns},   // 開局即參加協議，擔保金由開局贈送；供給方針在下方各半抽選
+    staple:{streak:0,peak:1},ships:[],originTrips:{y:0,m:3,byCity:{}},
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
@@ -209,12 +209,14 @@ function newGame(sysKey,regionPref){
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c));
   {const sc=cs.filter(canSea);if(sc.length)cs=sc}   // 所有流派都在港口開局（委託採買的海運要港口）
   G.cityId=pick(cs).id;
+  G.supplySeed=hashStr('originSupply|'+G.rs+'|'+G.cityId);   // 本局固定的產地月度供貨種子
   G.cityPopulation=parseInt(CITY(G.cityId).population,10)||0;
   G.supplyQuarter={stable:0,unstable:0,turns:0};
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
   G.trade=startTrade(sysKey);                     // 第六、七個流派開局送第二貴貨物的交易許可
   initMarket();
+  buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
   officialsOf(G.cityId).forEach(n=>addKnown(n.cid));

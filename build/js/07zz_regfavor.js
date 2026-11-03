@@ -18,7 +18,7 @@ function regOffer(n,kind){
   G.regOffer=G.regOffer||{};const key=n.cid+'|'+kind,o=G.regOffer[key];
   if(o&&o.turn===G.turn&&COMM_MAP[o.name])return o;
   const L=tradeComms();if(!L.length)return null;
-  const rd=seeded(n.cid+'|'+kind+'|'+G.turn),price=c=>marketIndex(c.name,true);
+  const rd=seeded(n.cid+'|'+kind+'|'+G.turn),price=c=>marketQuote(c.name,true);
   let c;
   if(kind==='honjin')c=L[Math.floor(rd()*L.length)];
   else{const S=L.slice().sort((a,b)=>price(b)-price(a));c=S.length>1&&rd()<ODDS.regConsign.second?S[1]:S[0]}
@@ -72,7 +72,7 @@ function consignTick(log){
     if(G.turn<x.due)return true;
     const c=COMM_MAP[x.name];if(!c)return false;
     const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.qty,room);
-    if(q>0){addStock(x.name,q,x.cost/x.qty);G.inv[x.name]=(G.inv[x.name]||0)+q}
+    if(q>0){addStock(x.name,q,x.cost/x.qty);stockAdd(x.name,q,false)}
     const t=NEWS('rfav.arrive.'+x.kind,{g:c.short,q,l:x.qty-q>0?UT('rfav.lost',{n:x.qty-q}):''});pushNews(t);log.push(t);
     return false;
   });
@@ -81,8 +81,8 @@ function consignTick(log){
 function honjinTick(log){
   const H=G.honjin;if(!H||G.turn<H.start)return 0;
   const c=COMM_MAP[H.name];if(!c){G.honjin=null;return 0}
-  const have=G.inv[H.name]||0,q=Math.min(have,H.qty),amt=Math.round(q*marketIndex(H.name)*ODDS.honjin.markup);
-  G.inv[H.name]=have-q;G.silver+=amt;
+  const have=G.inv[H.name]||0,q=Math.min(have,H.qty),amt=Math.round(q*marketQuote(H.name)*ODDS.honjin.markup);
+  stockTake(H.name,q,false);G.silver+=amt;
   let t;
   if(q<H.qty){
     const r=G.rel[H.cid];if(r&&alive(H.cid)){setAff(r,Math.max(0,r.aff-ODDS.honjin.failAff));logRel(H.cid,UT('rfav.log.fail',{d:ODDS.honjin.failAff}))}

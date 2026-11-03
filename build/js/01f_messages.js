@@ -184,6 +184,7 @@ const MSG_TXT={
   'sendVoyage.4':'尚未取得【{REG_NAME}】的{sea}。請到「遠國奉行所」請託。',
   'sendVoyage.5':'委託金至少 100 兩',
   'sendVoyage.6':'現款不足，委託金需 {budget} 兩',
+  'sendVoyage.buyout':'已確認【{REG_NAME}】{month}正逢「大口買付」，本月不能再派人前往採買。',
   'sendVoyage.ap':'本旬行動次數已用完，下旬再委託吧。',
   'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
   /* —— xoAccept —— */
