@@ -1507,7 +1507,6 @@ const UI_TXT={
   'mk.base':'基準價 {p} 兩',
   'mk.price':'本旬牌價',
   'mk.vsLast':'較前次 {d}',
-  'mk.timeline':'<div class="tiny" style="margin-top:5px;padding:4px 6px;background:#f3ead8;border:1px dashed #b5a98f;text-align:center">上旬收市價／本旬新牌價 <b>{b}</b> → 本旬收市價 <b>？</b></div>',
   'mk.buyPrice':'本旬進貨價',
   'mk.jointPrice':'聯合採購價',
   'mk.stock':'庫存',
@@ -1538,7 +1537,8 @@ const UI_TXT={
   'mk.trade.ship':'📤 出貨',
   'mk.units':'{n} 單位',
   'mk.trade.quota':'協議配額 {q}（{s}）·穩定供貨線 {l}',
-  'mk.trade.quotaClose':'全員按配額出貨（不計超賣）：預估收市價 {p}',
+  'mk.trade.closeRange':'預估收市價 {p}',
+  'mk.range':'{a}～{b}',
   'mk.trade.stance.pledged':'已表態守協議配額',
   'mk.trade.stance.secret':'已簽暗約偷跑',
   'mk.trade.stance.none':'未參加協議',
@@ -4042,12 +4042,12 @@ function priceAtSupply(name,currentSupply,noLux){
 }
 /** 【核心定價】市價＝基準×城市係數×季節×(近九旬需求÷近九旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
 function priceNow(name,ship,noLux){return priceAtSupply(name,supplyEff(COMM_MAP[name],G.mk[name])+ship,noLux)}
-/** 全員都按本旬配額出貨時的預估收市價。同業不計庫存波動與超賣；玩家使用畫面所列的有效配額。 */
-function quotaCloseEstimate(name){
+/** 預估收市價範圍：你照拉霸出貨 ship；同業照本期方針的配額，只出到下限（七成，貨少價高）到出滿上限（維持十成、減供一點一倍，貨多價低）。不計超賣。回傳 [低, 高]。 */
+function closeRange(name,ship){
   shareFactor();
-  const m=G.mk[name],sh=(G.share&&G.share.me)||0;
-  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio();
-  return priceAtSupply(name,rivalQuota+quotaOf(name),false);
+  const m=G.mk[name],sh=(G.share&&G.share.me)||0,R=ODDS.rivalShip;
+  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio(),hi=cartelPolicy()==='normal'?1:R.hi;
+  return [priceAtSupply(name,rivalQuota*hi+ship,false),priceAtSupply(name,rivalQuota*R.lo+ship,false)];
 }
 /** 參考出貨量（需求的 30%），用於打毀指數與行情指數。 */
 const refShip=name=>G.mk[name].D*0.3;
@@ -6075,9 +6075,9 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
-  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)})+(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
+  h+=(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.trade.quotaClose',{p:'<b>'+UT('mk.liang',{a:fmt1(quotaCloseEstimate(name))})+'</b>'})+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px;text-align:center">'+UT('mk.trade.closeRange',{p:'<b id="m-close">'+closeRangeTxt(name,tradeOK(name)?planOf(name):0)+'</b>'})+'</div>';
   h+='</div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
@@ -6141,8 +6141,11 @@ function planCard(){
   return h+'</div>';
 }
 /** 滑桿拖動或按快速鈕後，即時更新本旬買賣面板與總表。 */
+/** 預估收市價範圍的文字（照拉霸出貨量）。 */
+const closeRangeTxt=(name,ship)=>{const [a,b]=closeRange(name,ship||0);return UT('mk.range',{a:fmt1(a),b:fmt1(b)})};
 function refreshTrade(){
   const name=UI.s.focus;if(!name||!$('#trade-card'))return;
+  {const mc=$('#m-close');if(mc)mc.textContent=closeRangeTxt(name,UI.s.ship)}
   const ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
   if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
   const bq=buyPlanOf(name);if(sb)sb.value=bq;
