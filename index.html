@@ -796,7 +796,8 @@ const ODDS={
   priceWin:{name:'收市價計算視窗（旬數）：必需品快漲快跌，奢侈品最慢',staple:3,normal:6,luxury:9},
   fest:{name:'節慶當旬需求倍率（一般貨／節慶搶手貨）',all:2,hot:2.5},
   enlist:{name:'延攬熟人：各職階所需好感、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},introMin:1,introMax:2,refuse:2},
-  drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人離城或被同業聘走的機率',p:0.35,keep:12,rival:0.4},
+  drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
+  shareShip:{name:'市佔修正：沒出貨不加市佔（出貨達配額幾成才算）；舊算法達幾成算有市場、掉到幾成回到新人；有市場後實際出貨占比的比重',shipMin:0.5,est:0.10,reset:0.05,w:0.6},
   riot:{name:'打毀：主食或鹽的收市價高於基準幾倍、連續幾旬',idx:2.5,streak:5},
   dapanDependency:{name:'大盤依賴度（實際出貨來源的固定基準價額加權）',win:9,knownMin:0.95},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
@@ -3551,7 +3552,6 @@ const NEWS_TXT={
   "fr.bust.lodge":"🚨【出事】官差在倉裡翻出「{n}」寄放的{g} × {q}。",
   "fr.bust.lend":"🚨【出事】借給「{n}」的船在港口被扣，搜出{g} × {q}。",
   "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
-  "drift.rival":"👥【另謀高就】「{n}」被同業「{who}」聘去當{r}。",
   "drift.leave":"👥【另謀高就】「{n}」離開本城，往【{c}】謀生去了。",
   "fr.bust.auto":"🚨【出事】{m}"
 };
@@ -3584,7 +3584,7 @@ const NEWS_CAT={
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
-const NEWS_MOVE=["peopleMove.official","peopleMove.residence","drift.rival","drift.leave"];
+const NEWS_MOVE=["peopleMove.official","peopleMove.residence","drift.leave"];
 const NEWS_SEA=["setEv.4","smugTick.2","regionHeld.2"];
 const NEWS_LAND=["regionHeld.1"];
 const NEWS_CAT_OF={};Object.entries(NEWS_CAT).forEach(([c,L])=>L.forEach(k=>NEWS_CAT_OF[k]=c));
@@ -3599,7 +3599,8 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
 const CHANGELOG=[
   {date:'2026年11月4日',items:[
     '新增延攬：私宅可以請介紹人出面作保，把熟識的人才直接聘到店裡。',
-    '人才設定更新：店裡沒有空缺時不能物色；本城沒見過面的人才會另謀高就。',
+    '人才設定更新：店裡沒有空缺時不能物色；本城沒見過面的人才會搬到別的城另謀高就。',
+    '修正市佔：沒出貨不會再增加市佔；生意做大後，市佔要看實際出貨。',
     '相場設定更新：必需品價格反應最快、奢侈品最慢；節慶需求降低；主食要高漲更久才會打毀。',
     '公會例會設定更新：標下的菓子折會計入貨物均價。',
     '遠國奉行所新增四件請託：唐船割符、國中物卸留、卸留請負、國商助成。',
@@ -4473,7 +4474,31 @@ function marketShares(){
   me.score*=G.mybias;
   const known=named+me.score,scale=known>0?(1-otherShare)/known:0;
   rows.forEach(r=>r.share=r.score*scale);me.share=me.score*scale;
+  shareAdjust(me,rows,otherShare);
   return {me:me.share,rows,mine:me,others:otherShare,factor:clamp(1+3*(me.share-0.05),0.85,1.5),turn:G.turn};
+}
+/** 市佔修正（ODDS.shareShip）：
+ *  一、沒出貨不加市佔：上一旬出貨未達配額一半（按基準價值），本旬舊算法的市佔不得高於上一旬。
+ *  二、有了市場：舊算法市佔達 10% 起，改為舊算法四成＋近期實際出貨占比六成；舊算法掉到 5% 以下才回到新人。
+ *  G.shareMem={turn,prev,cur}：prev＝上一旬舊算法市佔（同一旬重算多次結果一致）。 */
+function shareAdjust(me,rows,otherShare){
+  const K=ODDS.shareShip,M=G.shareMem||(G.shareMem={turn:G.turn,prev:null,cur:null});
+  if(M.turn!==G.turn){M.prev=M.cur;M.turn=G.turn}
+  let s0=me.share;
+  if(M.prev!==null&&G.shipOk===false&&s0>M.prev)s0=M.prev;
+  M.cur=s0;me.old=s0;
+  if(s0>=K.est)G.shareEst=true;else if(s0<K.reset)G.shareEst=false;
+  let s=s0;
+  if(G.shareEst){
+    let my=0,tot=0;tradeComms().forEach(c=>{const m=G.mk[c.name];((m&&m.past)||[]).forEach(x=>{my+=c.base*(x.my||0);tot+=c.base*((x.my||0)+(x.so||0))})});
+    me.ship=tot>0?my/tot:s0;s=(1-K.w)*s0+K.w*me.ship;
+  }
+  if(s!==me.share){const a=1-otherShare-me.share,b=1-otherShare-s;rows.forEach(r=>{if(a>0)r.share=r.share*b/a});me.share=s}
+}
+/** 推進前出貨結算後記下：本旬出貨（按基準價值）是否達配額一半；配額全為 0 時，有出貨就算。 */
+function markShipOk(){
+  let q=0,v=0;tradeComms().forEach(c=>{q+=c.base*quotaOf(c.name);v+=c.base*((G.mk[c.name]&&G.mk[c.name].shipped)||0)});
+  G.shipOk=q>0?v>=q*ODDS.shareShip.shipMin:v>0;
 }
 /** 取本旬市佔率倍率；舊存檔若仍帶著舊制零星供貨比例，也立即重算。 */
 function shareFactor(){if(!G.share||G.share.turn!==G.turn||G.share.others!==ODDS.rivalShip.otherShare)G.share=marketShares();return G.share.factor}
@@ -6330,6 +6355,7 @@ function autoShip(log){
   if(rep.fame)setFame((G.fame||0)+rep.fame);
   if(stableUp){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+UT('mk.revParen',{a:fmt(x.rev)})).join(NAMES_SEP)});log.push(t);pushNews(t)}
+  markShipOk();                                    // 市佔修正：本旬出貨是否達配額一半（03_market.js 的 shareAdjust）
   TURNRP=rep;
   delete G.lastShip;delete G.lastBuy;              // 舊存檔：大番頭延續的數字不再使用
   G.plan={};G.sold={};
@@ -8625,7 +8651,7 @@ function tributeTick(log){
   if(have>=T.qty){
     const rev=Math.round(quoteSale(T.name,T.qty).perUnit*T.qty*A.priceMul);
     stockTake(T.name,T.qty,false);G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
-    const f0=G.fame||0;addFame(A.fame,'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));G.share=marketShares();
+    const f0=G.fame||0;addFame(A.fame,'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));if(G.shareMem&&G.shareMem.prev!==null)G.shareMem.prev*=1+A.shareUp;G.share=marketShares();   // 上貢加的市佔不受「沒出貨不加」限制
     G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,UT('trib.tributeTick',{a:short,b:T.qty}));
     const t=NEWS('tribute.ok',{off,item:short,qty:T.qty,rev:fmt(rev),fame:gf});log.push(t);pushNews(t);sfx.coin();
   }else{
@@ -10275,6 +10301,7 @@ function migrateSave(){
   if(!G)return;
   migrateKeys();                                    // 0.7 以前：中文鍵換成代號
   G.flags=G.flags||{};
+  Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）
@@ -10848,7 +10875,7 @@ ACT.branchRefuse=()=>{
  *      職階看你與對方的好感（ODDS.enlist.aff），不看介紹人；說合禮金 20 兩、介紹人交情 −1～2、行動 1 點。
  *      好感不到門檻：對方婉拒、好感 −2，禮金照付。聘金與造船費與物色相同。
  *  二、物色：店裡各職位都滿員時關閉。
- *  三、另謀高就（每旬）：本城沒見過面的人才多於保留數時，有機會一人離城或被同業聘走；
+ *  三、另謀高就（每旬）：本城沒見過面的人才多於保留數時，有機會一人搬到別的城（不會被同業聘走，人才總數不減）；
  *      只有手帳裡有記名的人才寫進旬報。
  * ===================================================================== */
 const ENLIST_ROLES=['manager','broker','guest'];
@@ -10923,24 +10950,14 @@ ACT.enlist=el=>{
   const ok=R(cid).aff>=enlistNeed(rk);
   visitFx({cid,outcome:ok?'ok':'refuse',kind:'contract',prop:'contract'},()=>{const r=enlistTalent(cid,rk);toast(r.msg,Math.max(3200,r.msg.length*120));if(r.ok)sfx.coin();else sfx.bad();UI.render();refreshSheet()});
 };
-/** 另謀高就：本城沒見過面的人才偶爾離城或被同業聘走。 */
+/** 另謀高就：本城沒見過面的人才偶爾搬到別的城。 */
 function driftTick(log){
   const D=ODDS.drift;
   const L=cityNpcs(G.cityId).filter(n=>ENLIST_ROLES.includes(n.role)&&alive(n.cid)&&!n.hired&&!n.pos&&!jailed(n)&&!(G.rel[n.cid]&&(G.rel[n.cid].met||G.rel[n.cid].bond))&&!G.emps.some(e=>e.cid===n.cid)&&!G.intros.some(i=>i.cid===n.cid)&&!(G.recruit&&G.recruit.cands.includes(n.cid)));
   if(L.length<=D.keep||!chance(D.p))return;
-  const n=pick(L),known=G.known.includes(n.cid);
-  const rivals=cityNpcs(G.cityId,'rival').filter(x=>alive(x.cid)&&!jailed(x));
-  let t='';
-  if(rivals.length&&chance(D.rival)){
-    const who=pick(rivals),rk=pick(suitableEmpRanks(n.cid).filter(r=>['clerk','banto','chief'].includes(r)))||'clerk';
-    n.hired=true;n.hiredBy=who.cid;
-    t=NEWS('drift.rival',{n:nameOf(n.cid),who:nameOf(who.cid),r:rankName(rk)});
-  }else{
-    const cs=(G.activeIds||[]).filter(id=>id!==G.cityId&&CITY(id));if(!cs.length)return;
-    const to=pick(cs);n.cityId=to;
-    t=NEWS('drift.leave',{n:nameOf(n.cid),c:CITY(to).name});
-  }
-  if(known){pushNews(t);log.push(t)}
+  const cs=(G.activeIds||[]).filter(id=>id!==G.cityId&&CITY(id));if(!cs.length)return;
+  const n=pick(L),to=pick(cs);n.cityId=to;
+  if(G.known.includes(n.cid)){const t=NEWS('drift.leave',{n:nameOf(n.cid),c:CITY(to).name});pushNews(t);log.push(t)}
 }
 
 'use strict';
