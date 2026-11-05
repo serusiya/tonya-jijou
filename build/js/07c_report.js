@@ -41,7 +41,7 @@ function goodsRows(T){
     const bar='<span class="rp-bar" style="position:relative"><i class="'+(incomeBase?'in':'out')+'" style="width:'+w+'%"></i>'+(ws>0?'<i class="'+(incomeBase?'out':'in')+'" style="position:absolute;left:0;top:0;width:'+ws+'%"></i>':'')+'</span>';
     const next=Number.isFinite(x.next)?x.next:x.close;
     const price=Number.isFinite(x.quote)&&Number.isFinite(next)?(x.floored?UT('rep.goodsPrice.floor',{q:fmt1(x.quote),n:fmt1(next)}):UT('rep.goodsPrice',{q:fmt1(x.quote),c:fmt1(next),v:'<span class="'+(next>=x.quote?'up':'down')+'">'+amtShort(Math.round(next-x.quote))+'</span>'})):'';
-    return UT('rep.goodsLine',{d:x.date?UT('rep.marketDate',{d:x.date}):'',n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),p:price});
+    return UT('rep.goodsLine',{n:esc(x.n),bar,cls:net>=0?'up':'down',net:(net>=0?'+':'−')+fmt(Math.abs(net)),p:price});
   }).join('')});
 }
 /** 彈出旬報。reps＝本次推進的各旬報告；logs＝事件文字。 */

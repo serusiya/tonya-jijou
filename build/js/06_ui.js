@@ -120,9 +120,9 @@ function renderMarket(){
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
-  h+=UT('mk.timeline',{a:fmt1(m.lastClose||mkt),b:fmt1(mkt)})+(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
+  h+=(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:4px">'+UT('mk.trade.quotaClose',{p:'<b>'+UT('mk.liang',{a:fmt1(quotaCloseEstimate(name))})+'</b>'})+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px;text-align:center">'+UT('mk.trade.closeRange',{p:'<b id="m-close">'+closeRangeTxt(name,tradeOK(name)?planOf(name):0)+'</b>'})+'</div>';
   h+='</div>';
   // 本旬買賣（未取得交易許可的貨，只顯示行情）
   if(!tradeOK(name))h+='<div class="notice">🔒 '+esc(tradeLockMsg(name))+'</div>';
@@ -186,8 +186,11 @@ function planCard(){
   return h+'</div>';
 }
 /** 滑桿拖動或按快速鈕後，即時更新本旬買賣面板與總表。 */
+/** 預估收市價範圍的文字（照拉霸出貨量）。 */
+const closeRangeTxt=(name,ship)=>{const [a,b]=closeRange(name,ship||0);return UT('mk.range',{a:fmt1(a),b:fmt1(b)})};
 function refreshTrade(){
   const name=UI.s.focus;if(!name||!$('#trade-card'))return;
+  {const mc=$('#m-close');if(mc)mc.textContent=closeRangeTxt(name,UI.s.ship)}
   const ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
   if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
   const bq=buyPlanOf(name);if(sb)sb.value=bq;
@@ -338,6 +341,7 @@ function autoShip(log){
   if(rep.fame)setFame((G.fame||0)+rep.fame);
   if(stableUp){G.mybias=Math.min(4,(G.mybias||1)*(1+0.01*rep.fame));rep.shareUp=true}   // 穩定供貨：市佔率微幅增加
   if(rep.ship.length){const t=NEWS('autoShip.1',{rev:rep.ship.map(x=>x.n+'×'+x.q+UT('mk.revParen',{a:fmt(x.rev)})).join(NAMES_SEP)});log.push(t);pushNews(t)}
+  markShipOk();                                    // 市佔修正：本旬出貨是否達配額一半（03_market.js 的 shareAdjust）
   TURNRP=rep;
   delete G.lastShip;delete G.lastBuy;              // 舊存檔：大番頭延續的數字不再使用
   G.plan={};G.sold={};
@@ -361,7 +365,7 @@ function stepOnce(bt){
   const inp=document.getElementById(bt.dataset.step);if(!inp||inp.disabled)return false;
   const st=+inp.step||1,nv=Math.max(+inp.min,Math.min(+inp.max,+inp.value+st*(+bt.dataset.d)));
   if(nv===+inp.value)return false;
-  inp.value=nv;inp.dispatchEvent(new Event('input',{bubbles:true}));return true;
+  inp.value=nv;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));return true;   // change：讓 data-chg 的拉霸記下新值
 }
 let STEP_T=null;
 const stepStop=()=>{if(STEP_T){clearTimeout(STEP_T);clearInterval(STEP_T);STEP_T=null}};
@@ -371,4 +375,14 @@ document.addEventListener('pointerdown',e=>{
   STEP_T=setTimeout(()=>{STEP_T=setInterval(()=>{const b2=document.querySelector('[data-step="'+bt.dataset.step+'"][data-d="'+bt.dataset.d+'"]');if(!b2||!stepOnce(b2))stepStop()},80)},450);
 });
 ['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>document.addEventListener(ev,stepStop,true));
-document.addEventListener('input',e=>{if(e.target&&e.target.type==='range')stepSync()});
+/** 拉霸的「最低門檻」吸附（data-snap）：介於 0 與門檻之間時，往上拉跳到門檻，往下拉回到 0。 */
+function snapVal(el){
+  const v=+el.value,sn=+(el.dataset.snap||0),pv=+(el.dataset.prev||0);
+  return sn&&v>0&&v<sn?(pv>=sn?0:sn):v;
+}
+/** 拉動時即時更新旁邊的數字（data-lbl＝顯示元素 id；data-unit＝含 # 的單位格式）。 */
+function rangeLabel(el){
+  const id=el.dataset.lbl;if(!id)return;const t=document.getElementById(id);if(!t)return;
+  const v=snapVal(el),u=el.dataset.unit;t.textContent=u?u.replace('#',fmt(v)):String(v);
+}
+document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target)}});

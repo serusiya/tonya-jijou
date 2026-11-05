@@ -95,15 +95,18 @@ function ujobCard(){
   const maxQ=Math.max(0,Math.min(G.inv[J.name]||0,left,capOf(J.name,J.mode)));
   S.qty=clamp(Math.floor(S.qty||maxQ),0,maxQ);S.budget=clamp(Math.floor((S.budget||0)/50)*50,0,Math.max(0,Math.floor(G.silver-voyQTotal())));
   h+='<div style="margin-top:4px">'+caps.map(e=>'<span class="pill '+(e.id===S.capt?'on':'')+'" data-act="ujCapt" data-id="'+e.id+'">'+esc(e.name)+'</span>').join('')+'</div>';
-  h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.qty',{h:G.inv[J.name]||0,m:maxQ})+'</span><input type="number" min="0" max="'+maxQ+'" value="'+S.qty+'" data-chg="ujQty" style="width:70px"></div>';
-  h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.budget')+'</span><input type="number" min="0" step="50" value="'+S.budget+'" data-chg="ujBudget" style="width:90px"></div>';
+  const maxB=Math.floor(Math.max(0,G.silver-voyQTotal())/50)*50,bMax=maxB>=100?maxB:0;if(S.budget>bMax)S.budget=bMax;if(S.budget>0&&S.budget<100)S.budget=100;
+  h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.qty',{h:G.inv[J.name]||0,m:maxQ})+'</span><b id="uj-q-v">'+S.qty+'</b></div>';
+  h+=stepRow('<input id="uj-q" type="range" min="0" max="'+Math.max(1,maxQ)+'" value="'+S.qty+'" step="1" data-chg="ujQty" data-lbl="uj-q-v"'+(maxQ<1?' disabled':'')+'>','uj-q',maxQ<1||S.qty<=0,maxQ<1||S.qty>=maxQ);
+  h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.budget')+'</span><b id="uj-b-v">'+UT('r4.card.budgetVal',{a:fmt(S.budget)})+'</b></div>';
+  h+=stepRow('<input id="uj-b" type="range" min="0" max="'+Math.max(50,bMax)+'" value="'+S.budget+'" step="50" data-chg="ujBudget" data-lbl="uj-b-v" data-snap="100" data-prev="'+S.budget+'" data-unit="'+esc(UT('r4.card.budgetVal',{a:'#'}))+'"'+(bMax<100?' disabled':'')+'>','uj-b',bMax<100||S.budget<=0,bMax<100||S.budget>=bMax);
   h+='<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="ujGo" '+(maxQ<=0||S.qty<=0||apLeft()<=0?'disabled':'')+'>'+UT('btn.ujGo')+'</button>';
   h+='<div class="tiny muted" style="margin-top:3px">'+UT('r4.card.foot')+'</div>';
   return h+'</div>';
 }
 ACT.ujCapt=el=>{(UI.s.uj=UI.s.uj||{}).capt=el.dataset.id;renderRoutes()};
 CHG.ujQty=el=>{(UI.s.uj=UI.s.uj||{}).qty=+el.value;renderRoutes()};
-CHG.ujBudget=el=>{(UI.s.uj=UI.s.uj||{}).budget=+el.value;renderRoutes()};
+CHG.ujBudget=el=>{const S=(UI.s.uj=UI.s.uj||{});S.budget=snapVal(el);renderRoutes()};
 /** 外運出發：從倉庫裝貨，扣 1 行動點數；回程委託金可以是 0。 */
 ACT.ujGo=()=>{
   const J=G.ujob,S=UI.s.uj||{};if(!J||G.turn>J.until){toast(MSG('r4.ujClosed'));return}

@@ -1,6 +1,6 @@
 'use strict';
 /* ★檔案總覽：市場與時間推進
- * - 價格：priceNow＝基準價×城市係數×季節×(近九旬需求/近九旬總出貨)^α×事件；總出貨＝同業實際出貨（含隨機超賣）＋我方出貨。
+ * - 價格：priceNow＝基準價×城市係數×季節×(近 N 旬需求/近 N 旬總出貨)^α，N＝必需品 3、一般 6、奢侈品 9×事件；總出貨＝同業實際出貨（含隨機超賣）＋我方出貨。
  * - 買賣：buyGoods（下單、隔旬到貨、每旬上限）、sellGoods（出貨）、autoShip 在 06_ui.js。
  * - 公會：evalCartel（配額與偷跑）；riotTick（主食鹽價過高→打毀）；EVENTS 隨機事件。
  * - 同業：marketShares/msTick（本城同業市佔率）。
@@ -54,8 +54,8 @@ function festActive(){
   const f=homeCity().special_festival;
   return !!(f&&f.month===G.month&&f.cycle===G.cycle);
 }
-/** 節慶需求倍率：本城節慶那一旬，所有貨物需求 ×3；酒、油、布料等節慶相關貨物 ×4。 */
-const festMult=c=>festActive()?(festHot(c)?4:3):1;
+/** 節慶需求倍率：本城節慶那一旬，所有貨物需求兩倍；酒、油、布料等節慶相關貨物兩倍半（ODDS.fest）。 */
+const festMult=c=>festActive()?(festHot(c)?ODDS.fest.hot:ODDS.fest.all):1;
 /** 本期供給比例：維持為各家穩定供應量的九成，減供為七成。 */
 const policySupplyRatio=()=>cartelPolicy()==='normal'?ODDS.guildPolicy.normalRatio:ODDS.guildPolicy.restrictRatio;
 /** 本期有效配額：協議會員依自己的穩定供貨線乘本期比例；未參加協議者沒有上限，預設仍照穩定供貨線出貨。 */
@@ -122,28 +122,30 @@ const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lu
 const demandEff=(c,m,noLux)=>m.D*festMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
 /** 本旬同業有效供給；維持／減供的九成／七成目標已在 rivalSupply 計入，不再另外重複折減。 */
 const supplyEff=(c,m)=>m.so;
+/** 收市價視窗旬數：必需品三旬、一般貨六旬、奢侈品九旬（ODDS.priceWin）。 */
+const priceWin=c=>(c&&ODDS.priceWin[c.kind])||ODDS.priceWin.normal;
 /** 前（視窗旬數−1）旬的需求/同業供給/我方出貨紀錄（舊存檔或開局缺資料時，以基準值補齊）。 */
-function pastOf(m){
+function pastOf(m,c){
   if(m.past&&m.past.length)return m.past;
-  return Array.from({length:ODDS.rivalShip.win-1},()=>({d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0}));
+  return Array.from({length:priceWin(c)-1},()=>({d:m.D,d0:m.D,so:m.D*ODDS.rivalShip.base,my:0}));
 }
-/** 以指定的「本旬市場總出貨」試算收市價；前八旬仍沿用真實紀錄。 */
+/** 以指定的「本旬市場總出貨」試算收市價；視窗內前幾旬仍沿用真實紀錄。 */
 function priceAtSupply(name,currentSupply,noLux){
-  const c=COMM_MAP[name],m=G.mk[name],P=pastOf(m);
+  const c=COMM_MAP[name],m=G.mk[name],P=pastOf(m,c);
   const Dw=demandEff(c,m,noLux)+P.reduce((a,x)=>a+(noLux&&x.d0!==undefined?x.d0:x.d),0);
   const Sw=Math.max(0,currentSupply)+P.reduce((a,x)=>a+x.so+x.my,0);
   const ratio=Dw/Math.max(1,Sw);
   const p=c.base*cityMod(homeCity(),c)*seasonCoef(c)*Math.pow(ratio,c.alpha)*m.ev;
   return clamp(p,c.base*0.25,c.base*5);
 }
-/** 【核心定價】市價＝基準×城市係數×季節×(近九旬需求÷近九旬總出貨)^α×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
+/** 【核心定價】市價＝基準×城市係數×季節×(近 N 旬需求÷近 N 旬總出貨)^α（N 見 priceWin）×事件倍率；總出貨＝同業實際出貨＋我方出貨（含 ship）；限制在基準價 0.25～5 倍。 */
 function priceNow(name,ship,noLux){return priceAtSupply(name,supplyEff(COMM_MAP[name],G.mk[name])+ship,noLux)}
-/** 全員都按本旬配額出貨時的預估收市價。同業不計庫存波動與超賣；玩家使用畫面所列的有效配額。 */
-function quotaCloseEstimate(name){
+/** 預估收市價範圍：你照拉霸出貨 ship；同業照本期方針的配額，只出到下限（七成，貨少價高）到出滿上限（維持十成、減供一點一倍，貨多價低）。不計超賣。回傳 [低, 高]。 */
+function closeRange(name,ship){
   shareFactor();
-  const m=G.mk[name],sh=(G.share&&G.share.me)||0;
-  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio();
-  return priceAtSupply(name,rivalQuota+quotaOf(name),false);
+  const m=G.mk[name],sh=(G.share&&G.share.me)||0,R=ODDS.rivalShip;
+  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio(),hi=cartelPolicy()==='normal'?1:R.hi;
+  return [priceAtSupply(name,rivalQuota*hi+ship,false),priceAtSupply(name,rivalQuota*R.lo+ship,false)];
 }
 /** 參考出貨量（需求的 30%），用於打毀指數與行情指數。 */
 const refShip=name=>G.mk[name].D*0.3;
@@ -161,10 +163,10 @@ const floorQuote=(name,p)=>Math.max(marketFloor(name),p);
 function reliefIndex(name,ship){const m=G.mk[name],ev=m.ev;m.ev=1;try{return priceNow(name,ship,true)}finally{m.ev=ev}}
 /** 本旬緊急御免基準：同樣在上一旬收市時鎖定，但不含災情事件倍率。 */
 function reliefQuote(name){const m=G.mk[name];return m.quoteRelief>0?m.quoteRelief:marketQuote(name,true)}
-/** 參考行情（非本業主食用於打毀指標）：假設近九旬我方每旬至少出貨參考量（需求的 30%）。 */
+/** 參考行情（非本業主食用於打毀指標）：假設視窗內我方每旬至少出貨參考量（需求的 30%）。 */
 function refIndex(name){
   const m=G.mk[name],ref=refShip(name);
-  return priceNow(name,ref+pastOf(m).reduce((a,x)=>a+Math.max(0,ref-x.my),0));
+  return priceNow(name,ref+pastOf(m,COMM_MAP[name]).reduce((a,x)=>a+Math.max(0,ref-x.my),0));
 }
 /** 奢侈品冷熱循環：暖身期（行情正常）→久無買家（需求極低，可達數年）→大單湧入（約兩旬，倍數隨冷清長度而增）→再度冷清。 */
 function luxTick(c,m,first){
@@ -214,7 +216,7 @@ function rivalSupply(c,m,first){
 function syncPrices(){
   Object.entries(G.mk).forEach(([name,m])=>{const q=m.quote>0?m.quote:(m.price>0?m.price:marketIndex(name)),qb=m.quoteBase>0?m.quoteBase:marketIndex(name,true),qr=m.quoteRelief>0?m.quoteRelief:reliefIndex(name,0),f=marketFloor(name);m.quoteFloor=q<=f;m.quote=Math.max(q,f);m.quoteBase=Math.max(qb,f);m.quoteRelief=Math.max(qr,f);m.price=m.quote});
 }
-/** 推進一旬、日期前進之前：算出本旬收市價，並記下有效需求、同業供給與我方出貨，供 refreshMarket 寫入九旬紀錄。
+/** 推進一旬、日期前進之前：算出本旬收市價，並記下有效需求、同業供給與我方出貨，供 refreshMarket 寫入視窗紀錄。
  *  （若等日期前進後才算，節慶倍率會用到下一旬的日期：節慶前一旬被記成節慶、節慶當旬反而記成平常，節慶當旬的價格因此算了兩次。） */
 function snapMarket(){
   Object.entries(G.mk).forEach(([name,m])=>{
@@ -231,7 +233,7 @@ function refreshMarket(first){
     let close=null,closeBase=null,closeRelief=null;
     if(!first){
       close=Number.isFinite(m.close)?m.close:priceNow(name,m.shipped);closeBase=Number.isFinite(m.closeBase)?m.closeBase:priceNow(name,m.shipped,true);closeRelief=Number.isFinite(m.closeRelief)?m.closeRelief:reliefIndex(name,m.shipped);
-      const rec=m.snap||{d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};m.past=(m.past||pastOf(m)).concat([rec]).slice(-(ODDS.rivalShip.win-1));
+      const rec=m.snap||{d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};m.past=(m.past||pastOf(m,c)).concat([rec]).slice(-(priceWin(c)-1));
       const floor=marketFloor(name);m.prevQuote=marketQuote(name);m.lastClose=close;m.quoteFloor=close<=floor;m.quote=Math.max(close,floor);m.quoteBase=Math.max(closeBase,floor);m.quoteRelief=Math.max(closeRelief,floor);m.price=m.quote;
       m.hist.push(Math.round(m.quote*10)/10);if(m.hist.length>12)m.hist.shift();
     }   // 用日期前進前記下的本旬需求（snapMarket），節慶、買氣才不會錯記到前一旬
@@ -476,18 +478,18 @@ function holdTick(log){
   });
 }
 
-/* ---------- 打毀（暴動）：主食或鹽價持續高於基準 250% 超過三旬 ---------- */
+/* ---------- 打毀（暴動）：主食或鹽價持續高於基準 250% 連續五旬 ---------- */
 /** 主食/鹽相對基準價的倍數（打毀指標）。 */
 function stapleIndex(name){
   const c=COMM_MAP[name],m=G.mk[name];
   return (c.sys===G.sysKey?priceNow(name,m.shipped):refIndex(name))/c.base;
 }
-/** 每旬判定：主食或鹽價 >250% 連續超過三旬→打毀。 */
+/** 每旬判定：主食或鹽價 >250% 連續五旬→打毀（ODDS.riot）。 */
 function riotTick(log){
   const S=G.staple;if(S.cool>0)S.cool--;
   const idx=Math.max(...STAPLE_KEYS.map(stapleIndex));S.idx=idx;
-  if(idx>2.5)S.streak++;else S.streak=0;
-  if(S.streak>3&&!(S.cool>0))riot(log);
+  if(idx>ODDS.riot.idx)S.streak++;else S.streak=0;
+  if(S.streak>=ODDS.riot.streak&&!(S.cool>0))riot(log);
 }
 /** 打毀：倉庫被搶、行情回落，可能拿你當替罪羊（靠山強則逃過）。 */
 function riot(log){
@@ -537,7 +539,31 @@ function marketShares(){
   me.score*=G.mybias;
   const known=named+me.score,scale=known>0?(1-otherShare)/known:0;
   rows.forEach(r=>r.share=r.score*scale);me.share=me.score*scale;
+  shareAdjust(me,rows,otherShare);
   return {me:me.share,rows,mine:me,others:otherShare,factor:clamp(1+3*(me.share-0.05),0.85,1.5),turn:G.turn};
+}
+/** 市佔修正（ODDS.shareShip）：
+ *  一、沒出貨不加市佔：上一旬出貨未達配額一半（按基準價值），本旬舊算法的市佔不得高於上一旬。
+ *  二、有了市場：舊算法市佔達 10% 起，改為舊算法四成＋近期實際出貨占比六成；舊算法掉到 5% 以下才回到新人。
+ *  G.shareMem={turn,prev,cur}：prev＝上一旬舊算法市佔（同一旬重算多次結果一致）。 */
+function shareAdjust(me,rows,otherShare){
+  const K=ODDS.shareShip,M=G.shareMem||(G.shareMem={turn:G.turn,prev:null,cur:null});
+  if(M.turn!==G.turn){M.prev=M.cur;M.turn=G.turn}
+  let s0=me.share;
+  if(M.prev!==null&&G.shipOk===false&&s0>M.prev)s0=M.prev;
+  M.cur=s0;me.old=s0;
+  if(s0>=K.est)G.shareEst=true;else if(s0<K.reset)G.shareEst=false;
+  let s=s0;
+  if(G.shareEst){
+    let my=0,tot=0;tradeComms().forEach(c=>{const m=G.mk[c.name];((m&&m.past)||[]).forEach(x=>{my+=c.base*(x.my||0);tot+=c.base*((x.my||0)+(x.so||0))})});
+    me.ship=tot>0?my/tot:s0;s=(1-K.w)*s0+K.w*me.ship;
+  }
+  if(s!==me.share){const a=1-otherShare-me.share,b=1-otherShare-s;rows.forEach(r=>{if(a>0)r.share=r.share*b/a});me.share=s}
+}
+/** 推進前出貨結算後記下：本旬出貨（按基準價值）是否達配額一半；配額全為 0 時，有出貨就算。 */
+function markShipOk(){
+  let q=0,v=0;tradeComms().forEach(c=>{q+=c.base*quotaOf(c.name);v+=c.base*((G.mk[c.name]&&G.mk[c.name].shipped)||0)});
+  G.shipOk=q>0?v>=q*ODDS.shareShip.shipMin:v>0;
 }
 /** 取本旬市佔率倍率；舊存檔若仍帶著舊制零星供貨比例，也立即重算。 */
 function shareFactor(){if(!G.share||G.share.turn!==G.turn||G.share.others!==ODDS.rivalShip.otherShare)G.share=marketShares();return G.share.factor}
@@ -729,7 +755,8 @@ function advanceTurn(){
   roninTick(log);                                 // 浪人頭上門要錢（07zw_ronin.js）
   xgoodsTick(log);
   skimTick(log,s0);
-  friendsTick(log);                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
+  friendsTick(log);
+  driftTick(log);                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
   injuryTick(log);

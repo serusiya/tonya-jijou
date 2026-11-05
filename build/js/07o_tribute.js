@@ -26,7 +26,7 @@ function tributeTick(log){
   if(have>=T.qty){
     const rev=Math.round(quoteSale(T.name,T.qty).perUnit*T.qty*A.priceMul);
     stockTake(T.name,T.qty,false);G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
-    const f0=G.fame||0;addFame(A.fame,'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));G.share=marketShares();
+    const f0=G.fame||0;addFame(A.fame,'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;G.mybias=Math.min(4,(G.mybias||1)*(1+A.shareUp));if(G.shareMem&&G.shareMem.prev!==null)G.shareMem.prev*=1+A.shareUp;G.share=marketShares();   // 上貢加的市佔不受「沒出貨不加」限制
     G.life.tributes=(G.life.tributes||0)+1;logRel(T.cid,UT('trib.tributeTick',{a:short,b:T.qty}));
     const t=NEWS('tribute.ok',{off,item:short,qty:T.qty,rev:fmt(rev),fame:gf});log.push(t);pushNews(t);sfx.coin();
   }else{

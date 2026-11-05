@@ -385,6 +385,7 @@ function recruitFlavor(name,rank,tf,avg){
 function recruitVia(introCid){
   const it=introOf(introCid);if(!it)return {ok:false,msg:MSG('recruitVia.1')};
   const fee=costOf('recruitIntro');if(!afford('recruitIntro'))return {ok:false,msg:shortMsg('recruitIntro')};
+  if(!hasVacancy())return {ok:false,msg:MSG('recruit.full')};
   const pool=talentPool();if(!pool.length)return {ok:false,msg:MSG('recruitVia.2')};
   spendAmt('recruitIntro',fee);introCost(it);
   // 介紹人與主角的信任，加上自己與人才圈的投契，決定能請到什麼等級的人
@@ -411,7 +412,7 @@ function hireCandidate(cid,rank){
   if(!slotFree(rank))return {ok:false,msg:MSG('slotFull',{rank:rankName(rank)})};
   const ri=RANKS.indexOf(rank),max=RANKS.indexOf(G.recruit?G.recruit.rank:'apprentice');
   if(!SPECIAL.includes(rank)&&ri>max)return {ok:false,msg:MSG('hireCandidate.1',{rank:rankName(G.recruit.rank)})};
-  const wage=Math.round(RANK_WAGE[rank]*(0.8+CH(cid).derived_stats.commerce_skill/150)),fee=costOf('hireMonths',wage),ship=rank==='captain'?shipCost():0;
+  const {wage,fee,ship}=hireFee(cid,rank);
   if(G.silver<fee+ship)return {ok:false,msg:ship?MSG('hireCandidate.shipShort',{c:fmt(fee+ship),ship:fmt(ship)}):shortMsg('hireMonths',wage)};
   spendAmt('hireMonths',fee);if(ship)spendAmt('shipBuild',ship);hireEmp(cid,rank);
   if(G.recruit)G.recruit.cands=G.recruit.cands.filter(x=>x!==cid);

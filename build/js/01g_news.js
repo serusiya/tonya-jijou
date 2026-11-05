@@ -9,9 +9,9 @@
 const NEWS_TXT={
   /* —— newGame —— */
   "newGame.1":"📜【開業】{name}接掌家業，於【{CITY}】懸掛「{firm}」暖簾。",
-  "newGame.guild":"⚖️【公會】開業時已是株仲間會員，並參加聯合採購與出貨協議；擔保金 {c} 兩由家中長輩代墊。本期決議為「{policy}」，參加協議可享聯合採購價與進貨配額加給，記得守住協議配額。",
-  "guild.rivalCaught":"⚖️【公會】同業「{n}」超量拋售「{item}」被查獲，擔保金沒收。",
-  "guild.div":"⚖️【協議分紅】本期 {k} 家同業違約被沒收擔保金，由守約的 {n} 家平分，你分得 {sh} 兩。",
+  "newGame.guild":"⚖️【公會】開業時已是株仲間會員，並參加聯合採購與出貨協議；訂約金 {c} 兩由家中長輩代墊。本期決議為「{policy}」，參加協議可享聯合採購價與進貨配額加給，記得守住協議配額。",
+  "guild.rivalCaught":"⚖️【公會】同業「{n}」超量拋售「{item}」被查獲，大盤解約，訂約金作廢。",
+  "guild.div":"⚖️【協議分紅】本期 {k} 家同業違約，大盤把作廢的訂約金交給公會，由守約的 {n} 家平分，你分得 {sh} 兩。",
   "meet.soon":"⚖️【公會】下旬召開問屋公會例會：表態、投票決定本期供給，還有菓子折拍賣。",
   "meet.today":"⚖️【公會】本旬召開問屋公會例會，主畫面可前往出席。",
   "meet.autoVote":"⚖️【公會例會】你沒有出席。同業投票，維持 {n} 票、減供 {r} 票{tie}；本期方針為「{p}」。",
@@ -185,7 +185,7 @@ const NEWS_TXT={
   "cityHist.newProd":"試種「{n}」有成，成為產地",
   "ev.renqing":"📜【人情】你的名帖在城中已有人記得，往來之人對商號多有好評。",
   "ev.notice":"📜【公文】町奉行所發出告示，重申商人須守株牌專營之規。",
-  "cartel.bondLost":"擔保金 {a} 兩沒收，",
+  "cartel.bondLost":"訂約金 {a} 兩作廢，",
   "cartel.fine":"官府查抄罰銀 {a} 兩，",
   "cartel.noFine":"靠吟味方人脈壓下了查抄，",
   "rival.good":"🏪【同業】「{n}」新貨滿載入港，聲勢大振，搶下不少客源。",
@@ -277,6 +277,7 @@ const NEWS_TXT={
   "fr.bust.lodge":"🚨【出事】官差在倉裡翻出「{n}」寄放的{g} × {q}。",
   "fr.bust.lend":"🚨【出事】借給「{n}」的船在港口被扣，搜出{g} × {q}。",
   "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
+  "drift.leave":"👥【另謀高就】「{n}」離開本城，往【{c}】謀生去了。",
   "fr.bust.auto":"🚨【出事】{m}"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
@@ -308,7 +309,7 @@ const NEWS_CAT={
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
-const NEWS_MOVE=["peopleMove.official","peopleMove.residence"];
+const NEWS_MOVE=["peopleMove.official","peopleMove.residence","drift.leave"];
 const NEWS_SEA=["setEv.4","smugTick.2","regionHeld.2"];
 const NEWS_LAND=["regionHeld.1"];
 const NEWS_CAT_OF={};Object.entries(NEWS_CAT).forEach(([c,L])=>L.forEach(k=>NEWS_CAT_OF[k]=c));

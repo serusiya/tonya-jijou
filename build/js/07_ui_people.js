@@ -102,7 +102,7 @@ ACT.makeIntro=el=>{
 
 /* ======================= 面板（Bottom Sheet） ======================= */
 /** 開啟面板。 */
-UI.openSheet=function(type,arg){UI.s.sheet={type,arg};sfx.step();renderSheet(true)};
+UI.openSheet=function(type,arg){UI.s.sheet={type,arg};UI.s.quitArm=false;sfx.step();renderSheet(true)};
 /** 繪製目前面板內容。 */
 function renderSheet(first){
   const S=UI.s.sheet;if(!S)return;
@@ -151,6 +151,8 @@ ACT.yamenTab=el=>{UI.s.yamenTab=el.dataset.k;refreshSheet()};
 ACT.cartel=el=>{
   const s=el.dataset.s,C=G.cartel;guildEnsure();
   if(s===C.state){toast(MSG('cartel.same'));return}
+  if(s==='none'&&!UI.s.quitArm){UI.s.quitArm=true;refreshSheet();return}   // 退出協議要按第二次確認
+  UI.s.quitArm=false;
   const joining=s!=='none'&&!(guildMember()&&C.bond>0);
   if(joining&&!afford('guildBond')){toast(shortMsg('guildBond'));return}
   if(s==='secret'&&!afford('guildSecret')){toast(shortMsg('guildSecret'));return}
@@ -184,7 +186,7 @@ SHEETS.warehouse=()=>{
   h+=xgoodsCard();
   h+=UT('ppl.warehouse.4');
   const wc=costOf('whUp',G.wh.n),wm=G.wh.n>=whMax();
-  h+=UT('ppl.warehouse.6',{a:G.wh.cap,b:whMax(),c:wm?UT('ppl.warehouse.5'):''})+'</div></div><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:coinHtml('silver',wc)}))+'</button></div></div>';
+  h+=UT('ppl.warehouse.6',{a:G.wh.cap,b:whMax(),c:wm?UT('ppl.warehouse.5'):''})+'</div><div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="whUp" '+(wm?'disabled':'')+'>'+(wm?UT('btn.whMax'):UT('btn.whUp',{c:coinHtml('silver',wc)}))+'</button></div></div>';
   h+=UT('ppl.warehouse.8',{a:costTxt('charity'),b:G.charityT===G.turn?'disabled':''})+'>'+(G.charityT===G.turn?UT('ppl.warehouse.7'):UT('btn.charity'))+'</button></div></div>';
   return {title:UT('ppl.warehouse.9'),html:h};
 };
@@ -330,7 +332,7 @@ function renderEstate(){
   h+=G.intros.map(i=>{const cid=i.cid,r=R(cid),sel=cid===G.introId;return '<div class="card '+(sel?'good':'')+'"><div class="row"><div><b>'+UT('ppl.renderEstate.10',{a:esc(nameOf(cid)),b:top3Txt(cid)})+'</b></div></div><div style="text-align:right" class="tiny">'+(r.aff>=75?UT('ppl.renderEstate.6'):r.aff>=55?UT('ppl.renderEstate.7'):r.aff>=35?UT('ppl.renderEstate.8'):UT('ppl.renderEstate.9'))+'</div></div><div style="margin:3px 0">'+UT('ppl.renderEstate.11',{a:bar(r.aff,100,'gold'),b:Math.round(r.aff),c:affWord(r.aff)})+'</span></div></div>'}).join('')||UT('ppl.renderEstate.12',{a:UT('btn.go')})+'</button></div>';
   h+=UT('ppl.renderEstate.13');
   // 夥計
-  h+=UT('ppl.renderEstate.14',{a:UT('btn.apprentice',{c:costBtn('apprentice')})})+'</button></div>';
+  h+=UT('ppl.renderEstate.14');
   h+='<div class="notice tiny">'+RANKS.concat(['guard']).map(k=>'• <b>'+UT('ppl.renderEstate.15',{a:rankName(k),b:DUTY_DESC[k]})).join('<br>')+'</div>';
   h+=SPECIAL.filter(k=>k!=='captain'&&k!=='courier').concat(RANKS.slice().reverse()).map(rk=>{
     const ls=G.emps.filter(e=>e.rank===rk);
@@ -339,8 +341,10 @@ function renderEstate(){
       return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+UT('ppl.renderEstate.17',{a:portraitEmp(e,56),b:rankName(e.rank),c:esc(e.name)})+'</b> '+staffTags(e)+'<div class="tiny muted">'+UT('ppl.renderEstate.18',{a:e.cid?'':UT('ppl.renderEstate.16'),b:e.wage,c:staffTenure(e),d:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='chief'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
-  h+=UT('ppl.renderEstate.19',{a:costTxt('recruitIntro'),b:UT('btn.recruit')})+'</button></div></div>';
+  const apBtn=' '+UT('ppl.apprenticeBtn',{a:UT('btn.apprentice',{c:costBtn('apprentice')})});   // 招丁稚放在物色右邊
+  h+=hasVacancy()?UT('ppl.renderEstate.19',{a:costTxt('recruitIntro'),b:UT('btn.recruit')})+'</button>'+apBtn+'</div></div>':UT('ppl.renderEstate.19full',{a:costTxt('recruitIntro'),b:UT('btn.recruitFull')})+'</button>'+apBtn+'</div></div>';
   if(G.recruit&&G.recruit.cands.length)h+=UT('ppl.renderEstate.20',{a:G.recruit.cands.length,b:UT('btn.recruitView')})+'</button></div>';
+  h+=enlistBlockHtml();                             // 延攬熟人（07zz_enlist.js）
   // 家族
   h+=UT('ppl.renderEstate.21');
   if(!sp)h+=UT('ppl.renderEstate.22',{a:UT('btn.marryOpen')})+'</button></div></div>';
@@ -408,6 +412,7 @@ ACT.fire=el=>{
 };
 /** 請介紹人物色人才。 */
 ACT.recruit=()=>{
+  if(!hasVacancy()){toast(MSG('recruit.full'));return}
   if(needIntro())return;if(!afford('recruitIntro')){toast(shortMsg('recruitIntro'));return}
   visitFx({cid:G.introId,outcome:'ok',kind:'contract',prop:'contract'},()=>{const r=recruitVia(G.introId);toast(r.msg);if(r.ok)UI.openSheet('recruit');UI.render()});
 };

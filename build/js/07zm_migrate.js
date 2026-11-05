@@ -36,6 +36,7 @@ function migrateSave(){
   if(!G)return;
   migrateKeys();                                    // 0.7 以前：中文鍵換成代號
   G.flags=G.flags||{};
+  Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）

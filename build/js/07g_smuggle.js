@@ -188,7 +188,7 @@ SHEETS.smuggle=()=>{
   h+=UT('smug.smuggle.2');
   h+=UT('smug.smuggle.4',{a:Object.keys(SMUG_DEST).map(k=>'<option value="'+k+'" '+(k===S.dest?'selected':'')+'>'+UT('smug.smuggle.3',{a:SMUG_DEST[k].name,b:SMUG_DEST[k].d})).join('')})+'</select></div>';
   h+=UT('smug.smuggle.5',{a:d.items.map(k=>'<option value="'+k+'" '+(k===S.k?'selected':'')+'>'+SMUG_BY[k].icon+' '+SMUG_BY[k].name+'</option>').join('')})+'</select></div>';
-  h+=UT('smug.smuggle.6',{a:SMUG_CAP,b:SMUG_CAP})+'" value="'+S.qty+'" data-chg="smugQty"></div>';
+  h+=UT('smug.smuggle.6',{a:SMUG_CAP,q:S.qty})+stepRow('<input id="smug-q" type="range" min="1" max="'+SMUG_CAP+'" value="'+S.qty+'" step="1" data-chg="smugQty" data-lbl="smug-q-v">','smug-q',S.qty<=1,S.qty>=SMUG_CAP);
   const cost=Math.round(it.cost*d.mult*S.qty);
   h+=UT('smug.smuggle.7',{a:cost,b:Math.round(smugPrice(S.k,S.qty)*S.qty),c:apLeft()<=0?'disabled':''})+'>'+UT('btn.smugGo')+'</button></div>';
   if(!cap)h+=UT('smug.smuggle.8');

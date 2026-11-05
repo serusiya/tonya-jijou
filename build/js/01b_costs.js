@@ -21,6 +21,7 @@ const COSTS={
   /* —— 商號·人事 —— */
   apprentice:{name:'招丁稚身價銀',cur:'silver',amt:20},
   recruitIntro:{name:'請介紹人物色人才禮金',cur:'silver',amt:40},
+  enlistTalk:{name:'延攬說合禮金',cur:'silver',amt:20},
   hireMonths:{name:'聘金（月例的倍數）',cur:'silver',amt:4,per:'月例'},
   allowance:{name:'雇員零用錢',cur:'silver',amt:5},
   reliefSoup:{name:'御救小屋合辦',cur:'silver',amt:800},
@@ -33,7 +34,7 @@ const COSTS={
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
   guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},
-  guildBond:{name:'協議擔保金',cur:'silver',amt:1000},
+  guildBond:{name:'協議訂約金（付給大盤，退出或違約作廢）',cur:'silver',amt:1000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},
   marryOfficial:{name:'聘禮：官家之女',cur:'silver',amt:800},

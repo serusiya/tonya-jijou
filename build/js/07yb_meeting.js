@@ -28,7 +28,7 @@ function meetEnsure(){if(G&&isMeetingTurn()&&!(G.guild&&G.guild.mt===G.turn))new
 function meetingTick(log){
   const C=G.cartel;guildEnsure();
   if(isMeetingTurn()){
-    if(C.bond>0){                                   // 上一期期滿：沒收的違約金平分給守約者（你＋本期沒被抓的同業）
+    if(C.bond>0){                                   // 上一期期滿：大盤把作廢的訂約金交給公會，平分給守約者（你＋本期沒被抓的同業）
       const rv=rivalsHere(),ok=rv.filter(n=>!msOf(n).caught).length+1,pot=C.pot||0,amt=costOf('guildBond');
       if(pot>0){const sh=Math.round(pot/ok);G.silver+=sh;if(TURNRP)TURNRP.guildDiv=(TURNRP.guildDiv||0)+sh;const t=NEWS('guild.div',{k:Math.round(pot/amt),n:ok,sh:fmt(sh)});pushNews(t);log.push(t);sfx.coin()}
     }
@@ -164,7 +164,7 @@ SHEETS.guild=()=>{
     const st=C.state==='pledged'?UT('gmeet.st.4'):C.state==='secret'?UT('gmeet.st.5'):UT('gmeet.st.6');
     const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
-    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+UT('btn.cartel3')+'</button>'+UT('gmeet.guild.4');
+    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+(UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
   }else if(cur===2){
     info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
       :UT('gmeet.guild.6');
@@ -182,7 +182,7 @@ SHEETS.guild=()=>{
       if(why)act='<div class="notice tiny">'+UT('gmeet.guild.14',{a:esc(why)});
       else{
         const mx=Math.max(MEET.start,Math.floor(G.silver/MEET.step)*MEET.step);M.bid=clamp(M.bid||MEET.start,MEET.start,mx);
-        act=UT('gmeet.guild.15',{a:fmt(M.bid),b:stepRow('<input type="range" id="slider-meet" min="'+MEET.start+'" max="'+mx+'" step="'+MEET.step+'" value="'+M.bid+'">','slider-meet',M.bid<=MEET.start,M.bid>=mx)});
+        act=UT('gmeet.guild.15',{a:fmt(M.bid),u:meetUnitTxt(M),b:stepRow('<input type="range" id="slider-meet" min="'+MEET.start+'" max="'+mx+'" step="'+MEET.step+'" value="'+M.bid+'">','slider-meet',M.bid<=MEET.start,M.bid>=mx)});
       }
     }else{
       const r=M.res;
@@ -197,8 +197,15 @@ SHEETS.guild=()=>{
   h+=info+meetTalkHtml(cur)+act;
   return {title:UT('gmeet.guild.31'),html:h};
 };
-ACT.meetStep=()=>{const M=meetNow();if(!M)return;M.step=Math.min(4,M.step+1);refreshSheet();UI.render()};
+ACT.meetStep=()=>{const M=meetNow();if(!M)return;UI.s.quitArm=false;M.step=Math.min(4,M.step+1);refreshSheet();UI.render()};
 ACT.meetVote=el=>{const M=meetNow();if(!M||M.voted)return;const v=el.dataset.v||null;meetVote(guildMember()?v:null);sfx.step();refreshSheet();UI.render()};
 ACT.meetBid=el=>{const M=meetNow();if(!M||M.res)return;const b=el.dataset.b==='1'&&!meetBidBlock()?M.bid:0;meetAuction(b);refreshSheet();UI.render()};
 ACT.meetEnd=()=>{const M=meetNow();if(!M)return;M.done=true;UI.closeSheet();UI.render()};
-document.addEventListener('input',e=>{if(e.target&&e.target.id==='slider-meet'){const M=meetNow();if(!M)return;M.bid=+e.target.value;const b=document.getElementById('meet-b');if(b)b.textContent=UT('gmeet.guildInfoCard.3',{a:fmt(M.bid)})}});
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='slider-meet'){const M=meetNow();if(!M)return;M.bid=+e.target.value;const b=document.getElementById('meet-b');if(b)b.textContent=UT('gmeet.guildInfoCard.3',{a:fmt(M.bid)});const u=document.getElementById('meet-u');if(u)u.textContent=meetUnitTxt(M)}});
+/** 菓子折：本旬牌價與出價換算的每單位價格（約牌價幾成）。 */
+function meetUnitTxt(M){
+  const L=M.lot,q=marketQuote(L.name),per=(M.bid||0)/Math.max(1,L.qty);
+  return UT('gmeet.unit',{q:fmt1(q),b:fmt1(per),r:q>0?(Math.round(per/q*100)/10):0});
+}
+/** 退出協議的二次確認：取消。 */
+ACT.cartelQuitCancel=()=>{UI.s.quitArm=false;refreshSheet()};
