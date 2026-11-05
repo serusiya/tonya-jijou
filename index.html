@@ -1572,7 +1572,6 @@ const UI_TXT={
   'mk.share.f4':'本業買氣偏弱',
   'mk.share.others':'未列名的零星供貨約 {p}%（市占估計誤差）。',
   'mk.dep.title':'大盤依賴度（近{w}旬）',
-  'mk.dep.note':'依實際出貨來源，以固定基準價額加權。',
   'mk.dep.wait':'統計中 {n}/{w}旬',
   'mk.dep.source':'來源統計中',
   'mk.dep.none':'—',
@@ -3668,7 +3667,8 @@ const CHANGELOG=[
     '新增大名行列：每年有一旬大名行列過境本城，那一旬本業的貨特別好賣，出門也不會遇襲。',
     '新增拜訪巧遇：登門時偶爾會在主人家碰上別的客人，主人順手替你們引見。',
     '新增同行引見：交情深的商人朋友有時想跟你去奉行所，請你引見一位熟識的官員。',
-    '新增商路地圖：商路頁可以看五個地區與各城的海陸航線，出門採買的船長、飛腳會在地圖上來回；城市說明標出能走海運或陸運。'
+    '新增商路地圖：商路頁可以看五個地區與各城的海陸航線，出門採買的船長、飛腳會在地圖上來回；城市說明標出能走海運或陸運。',
+    '修改背景資料'
   ]},
   {date:'2026年11月4日',items:[
     '新增延攬：私宅可以請介紹人出面作保，把熟識的人才直接聘到店裡。',
@@ -6585,20 +6585,19 @@ function renderMarket(){
   h+='</div>';
   $('#view-market').innerHTML=h;updateQuote();
 }
-/** 市佔率卡片：我與本城同行的佔比與趨勢。 */
+/** 大盤依賴度的顯示（相場面板逐項貨顯示）。 */
 function depDisplay(x){
   const R=ODDS.dapanDependency;if(x.turns<R.win)return UT('mk.dep.wait',{n:x.turns,w:R.win});
   if(x.total>0&&x.coverage<R.knownMin)return UT('mk.dep.source');
   return x.value===null?UT('mk.dep.none'):(x.value*100).toFixed(2)+'%';
 }
+/** 市佔率卡片：我與本城同行的佔比與趨勢。 */
 function shareCard(){
-  shareFactor();const sh=G.share,dep=dapanDependency();if(!sh)return '';
+  shareFactor();const sh=G.share;if(!sh)return '';
   const rows=sh.rows.map(r=>({n:r.name,v:r.share,pv:r.prev,tag:r.raided?UT('mk.share.raided'):r.ev>1.1?UT('mk.share.hot'):r.ev<0.9?UT('mk.share.hurt'):''})).concat([{n:UT('mk.share.me'),v:sh.me,pv:null,me:true,tag:''}]).sort((a,b)=>b.v-a.v);
   const line=r=>{const pct=(r.v*100).toFixed(1);const tr=r.pv!==null&&r.pv!==undefined?(r.v>r.pv+0.002?'<span class="up">▲</span>':r.v<r.pv-0.002?'<span class="down">▼</span>':''):'';return '<div style="margin-top:3px"><div class="row tiny"><span'+(r.me?' style="font-weight:bold;color:#9b2c3a"':'')+'>'+esc(r.n)+r.tag+' '+tr+'</span><b>'+pct+'%</b></div>'+bar(r.v,0.5,r.me?'gold':'gray')+'</div>'};
   return '<div class="card"><div class="row"><b class="small">'+UT('mk.share.title')+'</b><span class="tag '+(sh.factor>=1?'green':'red')+'">'+UT(sh.factor>=1.25?'mk.share.f1':sh.factor>=1.05?'mk.share.f2':sh.factor>=0.95?'mk.share.f3':'mk.share.f4')+'</span></div>'+rows.map(line).join('')
    +'<div class="tiny muted" style="margin-top:4px">'+UT('mk.share.others',{p:(sh.others*100).toFixed(1)})+'</div>'
-   +'<div class="row tiny" style="border-top:1px solid #d8ccb3;margin-top:5px;padding-top:5px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(dep)+'</b></div>'
-   +'<div class="tiny muted">'+UT('mk.dep.note')+'</div>'
    +'</div>';
 }
 /** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
@@ -6620,6 +6619,7 @@ function tradeCard(name){
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='</div>';
   return h;
