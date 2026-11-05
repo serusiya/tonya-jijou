@@ -781,6 +781,7 @@ function shortMsg(k,mul){
  *  修正來源（風聲 heat、知名度 fame、保鏢、仇人…）仍由各系統代入。
  * ===================================================================== */
 const ODDS={
+  sick:{name:'病倒（07zzd_sick.js）',flower:{nom:3,turns:2}},   // 吉原同一旬指名第 nom 位花魁後病倒，之後 turns 個完整的旬不能出門
   marketFloor:{name:'大盤牌價地板（固定基準價倍數）；收市價低於地板時，下一旬牌價與收市價脫鉤',staple:1.50,normal:1.20,luxury:1.05},
   /* —— 每旬隨機事件（旬報）—— */
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
@@ -1520,6 +1521,10 @@ const UI_TXT={
   'top.debtTipIn':'{n} 旬後',
   'top.exile':'⛓️ 遠島 {n} 旬',
   'top.injured':'🤕 養傷 {n} 旬',
+  'top.sick':'🤒 臥病 {n} 旬',
+  'sick.title':'🤒 病倒',
+  'sick.text.flower':'踏出吉原後，突然頭暈目眩，不省人事，醫師看了也直搖頭說：年輕人太衝動了……',
+  'sick.days':'接下來 {n} 旬只能臥床靜養，不能出門。',
   'top.tickerSep':'　｜　',
   'home.season':'{i} {s}季·{c}',
   'home.sanction':'⚠️ 遭公會斷貨 {n} 旬',
@@ -2223,7 +2228,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.21':'💎 奢侈品',
   'wiki.WIKI_GUIDE.22':'每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。',
   'wiki.WIKI_GUIDE.23':'🌸 花街與名流',
-  'wiki.WIKI_GUIDE.24':'吉原花街是人脈的重地：花魁是紅顏知己，也是消息來源。這裡的往來要小心分寸，否則風評與家庭都會受影響。',
+  'wiki.WIKI_GUIDE.24':'吉原花街是人脈的重地：花魁是紅顏知己，也是消息來源。這裡的往來要小心分寸，否則風評與家庭都會受影響；一旬裡指名太多位，身子也會吃不消。',
   'wiki.WIKI_GUIDE.25':'🏯 人生終章',
   'wiki.WIKI_GUIDE.26':'你只有這一生，家業不傳給下一代。壽終、破產、走私重罪被處刑，或是主動退隱，這一生便落幕；終章會依你的家產、人脈與生平寫下蓋棺評語，還有眾人對你的評價。之後可以重新開始新的人生。',
   'wiki.notesTabsHtml':'📜 名冊',
@@ -2790,6 +2795,7 @@ const UI_TXT={
   'fr.log.visit.fire':'聽說你的倉庫失火，上門慰問',
   'fr.log.visit.theft':'聽說你的倉庫遭竊，上門慰問',
   'fr.log.visit.heal':'聽說你傷好了，上門探望',
+  'fr.log.visit.healSick':'聽說你病好了，上門探望',
   'fr.lend.wh':'聽說府上的倉庫空著，想寄放一批{g} × {q}，放 {t} 旬，期滿奉上寄放費 {a} 兩。',
   'fr.lend.crew':'想借府上的{m}「{e}」跑一趟，約 {t} 旬，回來奉上 {a} 兩酬勞。',
   'fr.hint.wh':'箱子封得特別緊。',
@@ -3032,6 +3038,7 @@ const MSG_TXT={
   /* —— injuredBlock —— */
   'injuredBlock.1':'⛓️ 你正在遠島服刑，還需 {exile} 旬，無法出門。',
   'injuredBlock.2':'🤕 你身上有傷，還需靜養 {injured} 旬，無法出門。',
+  'injuredBlock.2.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，無法出門。',
   /* —— encGive —— */
   'encGive.1':'「{cid}」感激涕零，從此記住你的恩情。（已結識，好感 10）',
   'encGive.2':'「{cid}」感激不盡，交情更深了。（好感 +10）',
@@ -3042,6 +3049,7 @@ const MSG_TXT={
   'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
   'smugGo.ap':'本旬行動次數已用完，下旬再出海吧。',
   'smugGo.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
+  'smugGo.hurt.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，沒法到河岸交代。',
   'smugGo.6':'船長「{name}」趁夜出港，{d} 旬後回航。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
@@ -3056,6 +3064,7 @@ const MSG_TXT={
   'sendVoyage.buyout':'已確認【{REG_NAME}】{month}正逢「大口買付」，本月不能再派人前往採買。',
   'sendVoyage.ap':'本旬行動次數已用完，下旬再委託吧。',
   'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
+  'sendVoyage.hurt.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，沒法到河岸交代。',
   /* —— xoAccept —— */
   'xoAccept.1':'現款不足，需 {O} 兩',
   'xoAccept.2':'倉庫放不下抵押品，只好婉拒。',
@@ -3444,6 +3453,8 @@ const NEWS_TXT={
   "skimTick.1":"🟨【私房錢】本旬盈餘 {surplus} 兩，按 {p}% 抽出 {amt} 兩存入私房錢。",
   /* —— injuryTick —— */
   "injuryTick.1":"💪【傷癒】傷勢痊癒，可以再度出門。",
+  "injuryTick.sick":"💪【病癒】臥床休養之後，總算能下床走動。",
+  "sick.fall":"🤒【病倒】{t}之後 {n} 旬只能臥床靜養。",
   /* —— rollAmbush —— */
   "rollAmbush.1":"⚔️【遇襲】途中遭人埋伏，保鏢「{name}」拔刀退敵，毫髮無傷！",
   "rollAmbush.2":"🩸【遇襲】途中遭人埋伏，保鏢「{name}」替你擋下一刀，當場殉職……",
@@ -3601,6 +3612,7 @@ const NEWS_TXT={
   "fr.visit.fire":"🤝【慰問】{n} 聽說倉庫失火，特地上門慰問。",
   "fr.visit.theft":"🤝【慰問】{n} 聽說倉庫遭竊，特地上門慰問。",
   "fr.visit.heal":"🤝【探望】{n} 聽說你傷好了，特地上門探望。",
+  "fr.visit.healSick":"🤝【探望】{n} 聽說你病好了，特地上門探望。",
   "fr.lend.news":"🤝【借用】「{n}」上門想借東西。",
   "fr.lodge.done":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩。",
   "fr.lodge.doneThanks":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩，另外塞了 {b} 兩謝禮。",
@@ -3668,6 +3680,7 @@ const CHANGELOG=[
     '新增拜訪巧遇：登門時偶爾會在主人家碰上別的客人，主人順手替你們引見。',
     '新增同行引見：交情深的商人朋友有時想跟你去奉行所，請你引見一位熟識的官員。',
     '新增商路地圖：商路頁可以看五個地區與各城的海陸航線，出門採買的船長、飛腳會在地圖上來回；城市說明標出能走海運或陸運。',
+    '花街設定更新：一旬指名太多位花魁，踏出吉原就會病倒，臥床兩旬不能出門。',
     '修改背景資料'
   ]},
   {date:'2026年11月4日',items:[
@@ -4713,7 +4726,8 @@ function populationTick(log){
 function advanceTurn(){
   syncPeaks();
   homeEventsVoid();                               // 上一旬「回府時」沒輪到的事件作廢（07zx_homeevt.js）
-  const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
+  const log=[],s0=G.silver;sickTurnFire(log);      // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
+                         // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
   autoShip(log);
@@ -6501,7 +6515,7 @@ function updateTop(){
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent=UT('top.debt',{a:fmt(tot),w:near?UT('top.debtIn',{n:near}):UT('top.debtNow')});e.title=UT('top.debtTip',{a:fmt(tot),w:near?UT('top.debtTipIn',{n:near}):UT('top.debtNow')});e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=UT('top.amt',{a:Math.round(G.gold)});
   updateAP();updateFame();
-  { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent=UT('top.exile',{n:G.exile}); else if(a&&(G.injured||0)>0) a.textContent=UT('top.injured',{n:G.injured}); }
+  { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent=UT('top.exile',{n:G.exile}); else if(a&&(G.injured||0)>0) a.textContent=UT(G.injKind==='sick'?'top.sick':'top.injured',{n:G.injured}); }
   setTicker();
 }
 let _tk='';
@@ -7449,12 +7463,12 @@ function skimTick(log,s0){
 /** 養傷中則提示並回傳 true（所有「出門前往」都受限）。 */
 function injuredBlock(){
   if((G.exile||0)>0){toast(MSG('injuredBlock.1',{exile:G.exile}));return true}
-  if((G.injured||0)>0){toast(MSG('injuredBlock.2',{injured:G.injured}));return true}
+  if((G.injured||0)>0){toast(MSG(hurtKey('injuredBlock.2'),{injured:G.injured}));return true}
   return false;
 }
 /** 每旬遞減養傷期。 */
 function injuryTick(log){
-  if((G.injured||0)>0){G.injured--;if(G.injured===0){log.push(NEWS('injuryTick.1'));consoleNote('heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
+  if((G.injured||0)>0){G.injured--;if(G.injured===0){const sick=G.injKind==='sick';G.injKind=null;log.push(NEWS(sick?'injuryTick.sick':'injuryTick.1'));consoleNote(sick?'healSick':'heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
 }
 /** 遇襲機率：基本 0.5%～3%（風聲、知名度越高越危險），另加每位仇人 +3%。 */
 function ambushChance(){const A_=ODDS.ambush;return clamp(A_.base+A_.perHeat*Math.min(G.heat||0,A_.heatCap)+A_.perFame*(G.fame||0),A_.min,A_.max)+ENEMY_AMBUSH*enemyCount()}   // 每位仇人 +3%
@@ -7480,7 +7494,7 @@ function rollAmbush(){
     const t=NEWS('rollAmbush.2',{name:g.name});
     pushNews(t);toast(t,4800);sfx.bad();UI.render();return {ok:true,died:true};
   }
-  G.injured=1+Math.floor(rnd()*6);
+  G.injured=1+Math.floor(rnd()*6);G.injKind=null;
   const t=NEWS('rollAmbush.3',{injured:G.injured});
   pushNews(t);toast(t,5200);sfx.bad();UI.render();
   return {abort:true};
@@ -7968,7 +7982,7 @@ ACT.smugGo=()=>{
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
-  if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('smugGo.hurt'),{injured:G.injured}));return}
   if(!spendAP()){toast(MSG('smugGo.ap'));return}     // 走私出海也要親自到碼頭交代：扣 1 行動點數
   G.gold-=cost;addHeat(0.3);
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});
@@ -8255,7 +8269,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
   if(buyoutDepartureBlocked(dest))return {ok:false,msg:MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month)})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
-  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG('sendVoyage.hurt',{injured:G.injured})};
+  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured})};
   if(!free&&!batch&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣；出運清單一起出發只扣一次）
   if(!free&&!batch){G.ap--;updateAP()}
   const st=statsOfEmp(cap);let d=dl.d;
@@ -8422,7 +8436,7 @@ ACT.vDel=el=>{voyQ().splice(+el.dataset.i,1);sfx.tap();UI.render()};
 /** 全部出發：一次檢查現款、傷勢與行動點數；逐一出發，失去許可的留在清單；有人出發就扣 1 行動點數。 */
 ACT.vGoAll=()=>{
   voyQPrune();const Q=voyQ();if(!Q.length){toast(MSG('voyQ.empty'));return}
-  if((G.injured||0)>0){toast(MSG('sendVoyage.hurt',{injured:G.injured}),4200);return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured}),4200);return}
   if(apLeft()<=0){toast(MSG('sendVoyage.ap'));return}
   if(voyQTotal()>G.silver){toast(MSG('voyQ.short',{c:fmt(voyQTotal())}),4200);return}
   const ok=[],fail=[];
@@ -8805,6 +8819,7 @@ ACT.nomOiran=el=>{
   const note=flowerSpend(spend('nominate'));
   if(!r.bond){r.bond={mult:1,label:UT('flower.nomOiran'),introId:null};r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(0.6)}}
   setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
+  if(nomCountTurn()>=ODDS.sick.flower.nom)sickArm('flower');   // 一旬指名到第三位：離開吉原或推進時病倒（07zzd_sick.js）
   logRel(cid,UT('flower.nomOiran.2'));sfx.gift();
   const sm=chance(ODDS.smugMeet.nominate)?meetSmuggler('nominate'):null;   // 隔壁座敷偶遇闇商人
   const rn=chance(ODDS.ronin.nominate)?meetRonin('nominate'):null;          // 隔壁座敷偶遇浪人頭
@@ -12184,7 +12199,7 @@ CHG.ujBudget=el=>{const S=(UI.s.uj=UI.s.uj||{});S.budget=snapVal(el);renderRoute
 ACT.ujGo=()=>{
   const J=G.ujob,S=UI.s.uj||{};if(!J||G.turn>J.until){toast(MSG('r4.ujClosed'));return}
   if(banditBlocks(J.mode)){toast(UT('bandit.notice.'+J.mode,{n:banditLeft()}),4200);return}
-  if((G.injured||0)>0){toast(MSG('sendVoyage.hurt',{injured:G.injured}),4200);return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured}),4200);return}
   const cap=idleCaptains(J.mode).find(e=>e.id===S.capt);if(!cap){toast(MSG('sendVoyage.2',{mode:NM('crew',J.mode)}));return}
   const ct=CITY(J.city);if(!ujobRoute(ct)){toast(MSG('sendVoyage.4',{REG_NAME:REG_NAME(ct.region_id),sea:(J.mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))}),4200);return}
   const left=J.qty-J.done-ujobTransit(),q=Math.floor(Math.min(S.qty||0,G.inv[J.name]||0,left,capOf(J.name,J.mode)));
@@ -12256,7 +12271,7 @@ ACT.tallyGo=()=>{
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
-  if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('smugGo.hurt'),{injured:G.injured}));return}
   if(!spendAP()){toast(MSG('smugGo.ap'));return}
   G.gold-=cost;T.out=true;
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,tally:true,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});
@@ -12475,6 +12490,36 @@ function daimyoTick(log){
   if(!daimyoActive())return;
   const t=NEWS('daimyo.pass',{name:homeCity().name});pushNews(t);log.push(t);
 }
+
+/* =====================================================================
+ * 07zzd_sick.js — 病倒（通用機制）
+ *  - 條件成立時先記下「待發作」（sickArm），等玩家離開場景（關掉面板）或直接推進一旬時立刻發作（sickFire）。
+ *  - 發作：接下來兩個完整的旬不能出門（沿用養傷 G.injured，另記 G.injKind='sick' 換文字）；
+ *    離開場景時當旬剩下的時間也算倒下。病好時朋友照樣上門探望。
+ *  - 目前的觸發：吉原同一旬指名到第三位花魁（07l_flower.js）。之後壓力過高病倒也走這裡，只換 kind 與台詞。
+ *  數值 ODDS.sick；文字 sick.*（01e、01g）、*.sick（01f）。
+ * ===================================================================== */
+/** 推進一旬途中（doTurn 先關面板）不算「離開場景」，留給 advanceTurn 發作。 */
+let SICK_ADV=false;
+/** 記下待發作。kind：flower（之後加 stress 等）。 */
+function sickArm(kind){if(G&&!G.sickPend&&!((G.injured||0)>0))G.sickPend={kind,t:G.turn}}
+/** 發作：設定臥病旬數（含當旬：離開場景時當旬已倒下；推進時當旬結束就扣一旬），回傳台詞。 */
+function sickFire(){
+  const P=G&&G.sickPend;if(!P)return null;G.sickPend=null;
+  const n=(ODDS.sick[P.kind]||ODDS.sick.flower).turns;
+  G.injured=Math.max(G.injured||0,n+1);G.injKind='sick';
+  return {kind:P.kind,n,text:UT('sick.text.'+P.kind)};
+}
+/** 推進一旬時發作：寫進本旬大事（advanceTurn 開頭呼叫）。 */
+function sickTurnFire(log){const s=sickFire();if(s)log.push(NEWS('sick.fall',{t:s.text,n:s.n}))}
+/** 離開場景時發作：跳出視窗。 */
+function sickLeaveFire(){const s=sickFire();if(!s)return;sfx.tap();UI.showInfo(UT('sick.title'),'<div class="text-prose">'+esc(s.text)+'</div><div class="tiny muted" style="margin-top:6px">'+UT('sick.days',{n:s.n})+'</div>');UI.render()}
+/** 臥病時改用病的提示文字。 */
+const hurtKey=k=>G&&G.injKind==='sick'&&MSG_TXT[k+'.sick']!==undefined?k+'.sick':k;
+/** 吉原：同一旬指名到第幾位花魁。 */
+const nomCountTurn=()=>Object.keys(G.rel||{}).filter(cid=>G.rel[cid].nomT===G.turn&&(npc(cid)||{}).role==='oiran').length;
+{const _c=UI.closeSheet;UI.closeSheet=function(){const was=UI.s.sheet;_c.apply(this,arguments);if(was&&!UI.s.sheet&&!SICK_ADV&&G&&G.sickPend)sickLeaveFire()}}
+{const _d=doTurn;doTurn=function(){SICK_ADV=true;try{return _d.apply(this,arguments)}finally{SICK_ADV=false}}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
