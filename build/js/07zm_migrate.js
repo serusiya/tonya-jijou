@@ -40,7 +40,15 @@ function migrateSave(){
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）
-  if(!G.caughtLog)G.caughtLog={};                    // 違約查獲的公開紀錄（公會長候選人用）
+  if(!G.caughtLog)G.caughtLog={};
+  if(!G.rec)recOf();                                 // 商號紀錄（旬報、番付、走勢）；舊存檔從現存的番付補起                    // 違約查獲的公開紀錄（公會長候選人用）
+  if(G.gm===undefined){                              // 0.7.3 公會長：舊存檔由市佔率最高的同業擔任，到下一個 3 月例會改選
+    const rows=(G.share&&G.share.rows)||[],L=cityNpcs(G.cityId,'rival').filter(n=>alive(n.cid));
+    const sh=c=>((rows.find(r=>r.cid===c)||{}).share||0),top=L.slice().sort((a,b)=>sh(b.cid)-sh(a.cid))[0];
+    G.gm=top?{cid:top.cid,other:null,year:G.year}:null;
+  }
+  if(G.gmDue===undefined)G.gmDue=null;
+  if(!G.gmOut)G.gmOut={};
   if(!G.cityRoutes)G.cityRoutes={};                  // 後天開通的海運（外港開闢）
   if(!G.openedRoads)G.openedRoads=[];                // 開闢的道路（地區 id）
   if(!G.debts)G.debts=[];

@@ -58,6 +58,7 @@ function showTurnReport(reps,logs,n,kind){
   const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin;      // 其餘雜項：員工私吞、罰款、事件等
   const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
+  if(!kind&&G&&!G.ended)recRep(T.net,inc,outl,n);       // 商號紀錄（07zzg_record.js）；重開舊旬報同一旬不重記
   const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
   h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>0?'▲ ':T.net<0?'▼ ':'',b:sgn(T.net),c:fmt(G.silver)});

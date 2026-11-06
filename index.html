@@ -2242,8 +2242,7 @@ const UI_TXT={
   'wiki.WIKI_SECS.2':'🏛️ 役人',
   'wiki.WIKI_SECS.3':'🗺️ 城市',
   'wiki.WIKI_SECS.4':'📦 物產',
-  'wiki.WIKI_SECS.rec':'📒 紀錄',
-  'rec.intro':'本號開業以來的旬報、番付與走勢，一筆不漏。',
+  'rec.h':'{a}<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>📒 商號紀錄</b><div class="tiny muted">本號開業以來的旬報、番付與走勢，一筆不漏。</div></div></div>',
   'rec.tab.rep':'旬報',
   'rec.tab.bz':'番付',
   'rec.tab.trend':'走勢',
@@ -2276,7 +2275,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
   'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨，要等人回來才知道。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
-  'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。',
+  'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
   'wiki.WIKI_GUIDE.14':'丁稚替你跑腿；手代顧店頭，出貨價好一些；番頭管採購，能向相場多進貨；大番頭總管全店，還會替你問候人脈。船長、飛腳負責商路，保鏢守倉庫、護你出門。店員會長進，也會動手腳，偶爾還會惹上麻煩；平常待他們好，比事後查帳有用。每種人手都只能先雇一名，要多雇，得先向官府申請許可；熟識的人才，也可以請介紹人作保延攬進店。',
   'wiki.WIKI_GUIDE.15':'🏛️ 官府',
@@ -2293,6 +2292,11 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.26':'你只有這一生，家業不傳給下一代。壽終、破產、重罪處刑，或主動退隱，這一生便落幕；終章會依你的家產、人脈與生平寫下評語。之後可以重新開始新的人生。',
   'wiki.notesTabsHtml':'📜 名冊',
   'wiki.notesTabsHtml.2':'📖 百科',
+  'wiki.notesTabsHtml.3':'📒 紀錄',
+  'mk.help':'🤝 {n}本旬來幫忙，{a}{b}',
+  'mk.help.inc':'收入、進貨量略增',
+  'mk.help.buy':'進貨量略增',
+  'mk.help.keep':'，損耗略減',
   'wiki.h':'<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>',
   'wiki.wikiGuide':'🏪 七種問屋流派',
   'wiki.wikiGuide.2':'{a}</div><div class="text-meta muted">起手：{b}',
@@ -2505,7 +2509,7 @@ const UI_TXT={
   'deal.buyoutIntel.log':'探得【{region}】{month}的大口買付風聲，好感 -{aff}。',
   'deal.buyoutIntel.ok':'「{name}」壓低聲音說：【{region}】下一次大口買付在{month}。屆時別派人去產地採買。（好感 -{aff}）',
   'deal.dealerReqs.5':'臨時打工一旬',
-  'deal.dealerReqs.6':'他來店裡幫忙到這一旬結算：進貨上限變高、出貨價略增、穩定供貨線略降（算兩名番頭、兩名手代）。',
+  'deal.dealerReqs.6':'他來店裡幫忙到這一旬結算：進貨上限變高、出貨價略增、穩定供貨線略降（算兩名番頭、兩名手代）；店裡的手代空出手來照料庫存，損耗與倉儲保險跟著減少。',
   'deal.dealerReqs.7':'代售：{a} × {b}',
   'deal.dealerReqs.8':'他找熟識的店家整批收下，約可得 {a} 兩（基準價的 {b}% 上下）。',
   'deal.dealerReqs.9':'脫手：{a} × {b}',
@@ -2602,9 +2606,9 @@ const UI_TXT={
   'bz.g.meGm':'「{a}」當上公會長以後，走路都有風。',
   'fav.fireAid':'火難御救',
   'fav.fireAid.d':'本旬倉庫失火：官府撥下救濟銀，損失貨值的一半，最多 800 兩。',
-  'fav.cargoAid':'荷損御届',
+  'fav.cargoAid':'荷損御賑',
   'fav.cargoAid.d':'本旬船長或飛腳遇險失了貨：申報荷損，領回損失貨值的一半，最多 800 兩。',
-  'fav.theftAid':'盜難御届',
+  'fav.theftAid':'盜難御賑',
   'fav.theftAid.d':'本旬倉庫遭竊：吟味所辦案，追回兩三成的贓貨。',
   'fav.suspend':'株札暫扣',
   'fav.suspend.d':'付 3,000 兩辦案堂費：挑一家同業以帳目可疑為由停業一個月，他的份額轉到你手上。他會記恨你。',
@@ -2614,9 +2618,9 @@ const UI_TXT={
   'fav.mono6.d':'付 10,000 兩：九旬內本城只有你能賣這項貨，進貨上限加倍；全城的需求都要靠你供應，須事先囤貨。',
   'fav.newTown':'新町取立',
   'fav.newTown.d':'付 6,000 兩申請開立新町，審理後若獲准，本城人口增加。頭一回未必成，再三申請必成。',
-  'fav.rwreck':'破船届',
+  'fav.rwreck':'破船賑',
   'fav.rwreck.d':'叫一位閒著的船長假裝落水，當場領撫恤銀；他得避三旬風頭。一年一次，風聲大增。',
-  'fav.rrobbed':'盜難届',
+  'fav.rrobbed':'盜難賑',
   'fav.rrobbed.d':'叫一位閒著的飛腳假裝遇劫，當場領撫恤銀；他得避三旬風頭。一年一次，風聲大增。',
   'f8.fearNote':'船長們心有餘悸，還要 {n} 旬才肯出海。',
   'f8.pick':'選定',
@@ -3957,13 +3961,15 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
 const CHANGELOG=[
   {date:'2026年11月7日',items:[
     '商人番付改版：分身代、名望兩欄各排前十名，旅商人也一起上榜；開局本城的旅商人變多。把他行貨賣給旅商，他轉手賺的錢也會讓他往前爬。',
-    '新增商號紀錄：百科多了「紀錄」一頁，開業以來每一旬的收支、每一期番付的名次，以及身代與知名度的走勢都留著。'
+    '新增商號紀錄：筆記多了「紀錄」一頁，開業以來每一旬的收支、每一期番付的名次，以及身代與知名度的走勢都留著。',
+    '人才設定更新：請差配人來打工那一旬，店裡的手代空出手來照料庫存，損耗略減；相場面板會註明誰來幫忙。',
+    '修改背景資料'
   ]},
   {date:'2026年11月6日',items:[
     '新增問屋公會長：每年三月例會先改選公會長；公會長要裁決平手、把菓子折的得標金向御金奉行報告，任內偶爾要評理同業糾紛、安排御用金，在任期間名望視同四階。',
     '公會例會設定更新：例會流程改為先改選、再表態；票數相同由公會長裁決。',
     '人才設定更新：本城的仲買人、旅商人、差配人太少時，每季會有人改行補上。',
-    '新增請託：株札暫扣、專賣株、新町取立、闕所、破船届與盜難届；倉庫失火、遭竊或貨在路上出事，當旬可以向三階官員申報。',
+    '新增請託：株札暫扣、專賣株、新町取立、闕所、破船賑與盜難賑；倉庫失火、遭竊或貨在路上出事，當旬可以向三階官員申報。',
     '走私設定更新：一般走私出了事，船長們三旬內不肯出海。',
     '新增商人番付：每季最後一旬，瓦版印出本城問屋的番付與花邊八卦，同業也會拿來說嘴。',
     '修改背景資料'
@@ -5281,7 +5287,7 @@ function doFavor(cid,key,arg){
   {const ck=regFavorCheck(f,n);if(ck)return {ok:true,status:'held',msg:ck}}   // 遠國奉行所三階新請託（07zz_regfavor.js）
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
   if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
-  const drop=f.drop||(key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal);   // f.drop：自訂（破船届、盜難届 −15）
+  const drop=f.drop||(key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal);   // f.drop：自訂（破船賑、盜難賑 −15）
   setAff(r,Math.max(0,r.aff-drop));if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n,arg)}
@@ -6939,6 +6945,7 @@ function tradeCard(name){
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  {const hn=tempHelpNote();if(hn)h+='<div class="tiny" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#27407a">'+hn+'</div>'}   // 差配人臨時打工（07h_duties.js）
   h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
   if(monoItem(name))h+=UT('f8.monoTag',{n:G.mono.until-G.turn+1});                                    // 專賣株（07zze_favor8.js）
   rivalsHere().filter(suspended).forEach(r=>{h+=UT('f8.suspTag',{n:esc(nameOf(r.cid)),t:r.suspUntil-G.turn+1})});   // 株札暫扣
@@ -8318,14 +8325,24 @@ const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsO
 /** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
 /** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
-function tellerBonus(){const t=tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
+function tellerBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
 /** 大盤進貨上限倍數（乘在「需求×市佔率＋參加協議者的協議配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
 const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('clerk')+(tempHelp()===null?0:2)));
-/** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。只算本店手代（臨時打工不算）。回傳乘數。 */
+/** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。回傳乘數。
+ *  差配人臨時打工頂替兩名手代的櫃上工作，空出的店裡手代去照料庫存：打工那一旬算「店裡手代＋2」（DESIGN_NOTES 第二百十三節）。
+ *  損耗與倉儲保險在日期推進後才結算，所以上一旬（剛結束的那一旬）有人打工也算。 */
 const KEEP_FROM=4,KEEP_PER=0.05,KEEP_MAX=0.3;
-const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,nEmp('clerk')-KEEP_FROM));
+const keepHelp=()=>!!(G.tempHelp&&(G.tempHelp.turn===G.turn||G.tempHelp.turn===G.turn-1));
+const keeperN=help=>nEmp('clerk')+(help?2:0);
+const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN(keepHelp())-KEEP_FROM));
+/** 相場面板：本旬有人打工時的說明（收入加成已滿就不寫收入；照料人數不到第 5 名就不寫損耗）。 */
+function tempHelpNote(){
+  const t=tempHelp();if(t===null||!G.tempHelp)return '';
+  const inc=tellerBonus()-tellerBonus(true)>0.0001,keep=keeperN(true)>KEEP_FROM&&keeperN(false)-KEEP_FROM<KEEP_MAX/KEEP_PER;
+  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(inc?'mk.help.inc':'mk.help.buy'),b:keep?UT('mk.help.keep'):''});
+}
 /** 大番頭：壓低其他店員私吞的係數。 */
 function guardF(e){
   if(e.rank==='chief')return 1;
@@ -8661,7 +8678,7 @@ function resolveVoyage(s,log){
   if(kind!=='outOnly')L.push(NEWS('kind.7',{fee:fmt(fee),refund:fmt(refund)}));
   E.back=refund+income;
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
-  if(E.lossVal>0)lossNote('cargo',E.lossVal);        // 荷損御届：一旬取損失最大的那隊（07zze_favor8.js）
+  if(E.lossVal>0)lossNote('cargo',E.lossVal);        // 荷損御賑：一旬取損失最大的那隊（07zze_favor8.js）
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
   if(buyout){buyoutDiscover(s.buyoutY,s.buyoutRegion,s.buyoutM);const b=NEWS('buyout.arrive',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM),crew:NM('crew',mode),name:s.captName});pushNews(b);log.push(b)}
   const t=NEWS('kind.8',{mode:NM('crew',mode),captName:s.captName,dest:E.dest,cross:(kind==='outOnly'?UT('r4.out.back'):kind==='own'?UT('voy.t'):kind==='cross'?UT('voy.t.2'):UT('voy.t.3')),sea:(wreck&&kind!=='empty'?UT('voy.t.6',{a:robbed&&mode==='sea'?UT('voy.tPirate'):mode==='sea'?UT('voy.t.4'):UT('voy.t.5')}):'')});
@@ -9468,10 +9485,10 @@ const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE.23'),UT('wiki.WIKI_GUIDE.24')],
   [UT('wiki.WIKI_GUIDE.25'),UT('wiki.WIKI_GUIDE.26')]
 ];
-/** 筆記頂端的「名冊／百科」切換。 */
+/** 筆記頂端的「名冊／百科／紀錄」切換。 */
 function notesTabsHtml(){
   const t=UI.s.notesTab||'book';
-  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
+  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')],['rec',UT('wiki.notesTabsHtml.3')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
 }
 ACT.nTab=el=>{UI.s.notesTab=el.dataset.k;UI.render();$('#main').scrollTop=0};
 ACT.wikiSec=el=>{UI.s.wikiSec=el.dataset.k;UI.render();$('#main').scrollTop=0};
@@ -9867,7 +9884,7 @@ function debtCard(){
   if(!D.length)return UT('silver.debtCard',{a:h});
   D.forEach(d=>{
     const left=Math.max(0,d.due-G.turn),who=d.cid&&CH(d.cid)?nameOf(d.cid)+(alive(d.cid)?'':UT('silver.who')):UT('silver.who.2');
-    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?UT('silver.debtCard.2',{a:esc(d.kind)}):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(d.amt),b:left?UT('silver.debtCard.3',{a:left}):UT('silver.debtCard.4')})+'</b></div>';
+    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?UT('silver.debtCard.2',{a:esc(debtKindName(d.kind))}):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(d.amt),b:left?UT('silver.debtCard.3',{a:left}):UT('silver.debtCard.4')})+'</b></div>';
   });
   if(D.length>1)h+=UT('silver.debtCard.6',{a:fmt(D.reduce((a,d)=>a+d.amt,0))});
   return h+'</div>';
@@ -12942,7 +12959,7 @@ function outboundSettle(s,E,log){
   if(J)J.done+=got;
   E.lines.push(NEWS('r4.out.line',{g:c.short,q:O.q,got,lost:lost?UT('r4.out.lost',{n:lost}):'',a:fmt(pay)}));
   E.items.push({n:UT('r4.out.item',{g:c.short}),q:O.q,unit:O.q?pay/O.q:0,cost:0,lost});
-  E.outPay=pay;E.outGo=go;if(lost>0)E.lossVal=(E.lossVal||0)+lost*marketQuote(O.name);   // 去程遇險的貨損（荷損御届）
+  E.outPay=pay;E.outGo=go;if(lost>0)E.lossVal=(E.lossVal||0)+lost*marketQuote(O.name);   // 去程遇險的貨損（荷損御賑）
   return pay;
 }
 /** 每旬（委託採買歸來之後）：交齊或期滿結算。 */
@@ -13243,7 +13260,7 @@ const nomCountTurn=()=>Object.keys(G.rel||{}).filter(cid=>G.rel[cid].nomT===G.tu
  * 07zze_favor8.js — 0.8 先行的一批請託與規則（DESIGN_NOTES 第 152、204～206 節、第二十九節五六階）
  *  - 走私失敗後船長三旬不敢出海（第 152 節第一項）：一般走私遇險或入港被扣，從當旬起三旬所有船長不肯出海
  *    （不能走私、不能派海運委託與卸留請負的海運外運）；唐船割符不觸發、也不受限。
- *  - 破船届、盜難届（遠國奉行所五階，本地；第 204 節）：叫一位閒著的船長／飛腳演戲，當場領撫恤銀；他三旬不能出門；
+ *  - 破船賑、盜難賑（遠國奉行所五階，本地；第 204 節）：叫一位閒著的船長／飛腳演戲，當場領撫恤銀；他三旬不能出門；
  *    好感 −15、風聲 +1.5；兩項各一年一次。
  *  - 株札暫扣（吟味方五階 町奉行；第 204 節）：公款 3,000 兩；挑一家同業停業三旬（不出貨、不超賣），他的份額轉給你
  *    （穩定供貨線、協議配額、相場進貨上限都加上他那一份）；他對你好感 −30；風聲 +1；冷卻 12 旬。
@@ -13253,8 +13270,8 @@ const nomCountTurn=()=>Object.keys(G.rel||{}).filter(cid=>G.rel[cid].nomT===G.tu
  *    本城同業至少三家才出現；訂約金作廢併入本期違約金；他是公會長時由另一位候選人接任。
  *  - 新町取立（普請方五階 普請奉行；第二十九節、第 205 節）：公款 6,000 兩，走申請審理；成功率第一次 40%、第二次 70%、第三次一定成功；
  *    成功時本城人口 +5%、寫進城史；審理完成後冷卻 12 旬，冷卻期間季度人口因出貨不穩而減少的幅度減半。
- *  - 三階的災損申請（第 206 節）：火難御救（普請方三階）、荷損御届（勘定方三階）、盜難御届（吟味方三階）；
- *    只能在事件發生的當旬申請；損失貨值的五成、最多 800 兩（盜難御届改為追回贓貨，貨值最多 800 兩）。
+ *  - 三階的災損申請（第 206 節）：火難御救（普請方三階）、荷損御賑（勘定方三階）、盜難御賑（吟味方三階）；
+ *    只能在事件發生的當旬申請；損失貨值的五成、最多 800 兩（盜難御賑改為追回贓貨，貨值最多 800 兩）。
  *  數值 ODDS.f8；文字 fav.*、f8.*（01e、01f、01g）。
  *  狀態：G.seaFear、G.fraudY{sea,land}、n.suspUntil、G.mono{name,until}、G.newTown{tries,cd}、G.loss{fire,theft,cargo}、n.kessho。
  * ===================================================================== */
@@ -13294,7 +13311,7 @@ const FAVOR_PICK={};
 }}
 const pickRow=(cid,k,t,label,note)=>'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+label+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+k+'" data-t="'+t+'">'+UT('f8.pick')+'</button></div>'+(note?'<div class="tiny muted">'+note+'</div>':'')+'</div>';
 
-/* ---------- 二、破船届、盜難届（詐領） ---------- */
+/* ---------- 二、破船賑、盜難賑（詐領） ---------- */
 const fraudMode=k=>k==='rwreck'?'sea':'land';
 function fraudOpen(mode){return (G.fraudY||{})[mode]!==G.year&&idleCaptains(mode).length>0}
 function fraudDo(mode){
@@ -13736,7 +13753,7 @@ function bzTopic(cid){
 
 'use strict';
 /* =====================================================================
- * 07zzg_record.js — 商號紀錄（百科「📒 紀錄」；DESIGN_NOTES 第二百十二節）
+ * 07zzg_record.js — 商號紀錄（筆記「📒 紀錄」分頁；DESIGN_NOTES 第二百十二節）
  *  全時期保存，存成精簡的數字陣列：
  *  - G.rec.r 旬報：[日期碼, 收支, 現款, 收入, 支出, (合計旬數)]；每次跳出一般旬報記一筆，重開同一旬不重記。
  *  - G.rec.b 番付：[日期碼, 身代前十, 名望前十, 本號身代名次, 本號名望名次]；人物存成數字（本號 0、旅商取負號）。
@@ -13838,7 +13855,8 @@ function recChart(pts,title,fm,col){
   let lastY=null;pts.forEach((p,i)=>{if(p.y!==lastY){lastY=p.y;const x=X(i);s+='<line x1="'+x.toFixed(1)+'" y1="'+T+'" x2="'+x.toFixed(1)+'" y2="'+(H-B)+'" stroke="#eee3c9"/><text x="'+(x+2).toFixed(1)+'" y="'+(H-7)+'" font-size="10" fill="#6b6256">'+esc(yearStr(p.y))+'</text>'}});
   s+='<path d="'+pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join('')+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>';
   const im=vs.indexOf(Math.max(...vs)),mark=(i,lb)=>{const x=X(i),y=Y(pts[i].v),a=i===0?'start':i===n-1?'end':'middle';return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3" fill="'+col+'"/><text x="'+x.toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="'+a+'" font-size="10.5" fill="#3b2e1c">'+lb+fm(pts[i].v)+'</text>'};
-  s+=mark(0,UT('rec.start'));if(X(im)-X(0)>60&&X(n-1)-X(im)>60)s+=mark(im,UT('rec.max'));   // 太靠近起點或現在就不另標if(n>1)s+=mark(n-1,UT('rec.now'));
+  s+=mark(0,UT('rec.start'));if(X(im)-X(0)>60&&X(n-1)-X(im)>60)s+=mark(im,UT('rec.max'));   // 太靠近起點或現在就不另標
+  if(n>1)s+=mark(n-1,UT('rec.now'));
   return s+'</svg>';
 }
 function recTrendHtml(){
@@ -13849,16 +13867,13 @@ function recTrendHtml(){
 }
 function wikiRecord(){
   const t=UI.s.recTab||'rep';
-  let h='<div class="small muted">'+UT('rec.intro')+'</div><div style="margin:4px 0">'+REC_TABS.map(k=>'<span class="pill '+(t===k?'on':'')+'" data-act="recTab" data-k="'+k+'">'+UT('rec.tab.'+k)+'</span>').join('')+'</div>';
+  let h='<div style="margin:4px 0">'+REC_TABS.map(k=>'<span class="pill '+(t===k?'on':'')+'" data-act="recTab" data-k="'+k+'">'+UT('rec.tab.'+k)+'</span>').join('')+'</div>';
   return h+({rep:recRepHtml,bz:recBzHtml,trend:recTrendHtml}[t]||recRepHtml)();
 }
-WIKI_SECS.push(['rec',UT('wiki.WIKI_SECS.rec')]);
-{const _w=renderWiki;renderWiki=function(){
-  if(UI.s.wikiSec!=='rec')return _w.apply(this,arguments);
-  let h='<div class="pixel-box" style="padding:8px">'+UT('wiki.h.5',{a:notesTabsHtml()});
-  h+='<div style="margin-top:6px">'+WIKI_SECS.map(([k,n])=>'<span class="pill '+(k==='rec'?'on':'')+'" data-act="wikiSec" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
-  h+='<div style="margin-top:4px">'+wikiRecord()+'</div></div>';
-  $('#view-notes').innerHTML=h;
+/** 筆記頂端第三個分頁「紀錄」。 */
+{const _n=renderNotes;renderNotes=function(){
+  if(UI.s.notesTab!=='rec')return _n.apply(this,arguments);
+  $('#view-notes').innerHTML='<div class="pixel-box" style="padding:8px">'+UT('rec.h',{a:notesTabsHtml()})+'<div style="margin-top:6px">'+wikiRecord()+'</div></div>';
 }}
 
 'use strict';

@@ -48,7 +48,7 @@ function debtCard(){
   if(!D.length)return UT('silver.debtCard',{a:h});
   D.forEach(d=>{
     const left=Math.max(0,d.due-G.turn),who=d.cid&&CH(d.cid)?nameOf(d.cid)+(alive(d.cid)?'':UT('silver.who')):UT('silver.who.2');
-    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?UT('silver.debtCard.2',{a:esc(d.kind)}):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(d.amt),b:left?UT('silver.debtCard.3',{a:left}):UT('silver.debtCard.4')})+'</b></div>';
+    h+='<div class="row tiny" style="margin-top:2px'+(left<=2?';color:#b3392b':'')+'"><span>'+esc(who)+(d.kind?UT('silver.debtCard.2',{a:esc(debtKindName(d.kind))}):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(d.amt),b:left?UT('silver.debtCard.3',{a:left}):UT('silver.debtCard.4')})+'</b></div>';
   });
   if(D.length>1)h+=UT('silver.debtCard.6',{a:fmt(D.reduce((a,d)=>a+d.amt,0))});
   return h+'</div>';

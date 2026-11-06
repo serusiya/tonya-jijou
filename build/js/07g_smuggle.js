@@ -57,6 +57,7 @@ function smugTick(log){
     if(robbed||chance(v.risk)){
       const lost=Math.round(v.qty*0.7);v.qty-=lost;
       const t=robbed?NEWS('bandit.smugRobbed',{name2:it.name,lost}):NEWS('smugTick.1',{name:SMUG_DEST[v.dest].name,name2:it.name,lost});pushNews(t);log.push(t);sfx.bad();
+      if(!v.tally)seaFearStart(log);                 // 一般走私出事：船長三旬不敢出海（07zze_favor8.js）；唐船割符不算
     }
     if(v.tally){                                     // 唐船割符：只擲海難，不擲入港被扣（07zz_regfavor4.js）
       G.tally=null;
@@ -67,7 +68,7 @@ function smugTick(log){
     }
     const SZ_=ODDS.smugSeize,pSeize=clamp(SZ_.perDanger*it.danger+SZ_.perHeat*(G.heat||0)-((G.flags.blind>0)?SZ_.blind:0),SZ_.min,SZ_.max);
     if(v.qty>0&&chance(pSeize)){
-      const t=NEWS('smugTick.2',{name:it.name,qty:v.qty});pushNews(t);log.push(t);sfx.bad();
+      const t=NEWS('smugTick.2',{name:it.name,qty:v.qty});pushNews(t);log.push(t);sfx.bad();seaFearStart(log);
       const loyal=cap?statsOfEmp(cap).integrity_loyalty:50;
       if(chance(confessP(loyal))){
         const t2=NEWS('smugTick.3',{captName:v.captName});pushNews(t2);log.push(t2);

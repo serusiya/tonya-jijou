@@ -1,13 +1,13 @@
 'use strict';
-/* ======================= 問屋公會例會：供給投票、菓子折拍賣（0.7 先行；公會長尚未開放） =======================
+/* ======================= 問屋公會例會：公會長選舉、供給投票、菓子折拍賣 =======================
  *  - 例會固定在 3、6、9、12 月上旬（每季第一旬；02b_calendar.js 的 isMeetingTurn）；一期＝九旬；開局那一旬（3 月上旬）就是第一次例會。主畫面在例會旬出現整列按鈕，
  *    扣 1 行動、照常擲遇襲與路遇；整場例會只扣進場那 1 點。關掉視窗後可再按按鈕繼續，不再扣行動。
- *  - 流程：① 協議立場（加入、暗約、退出只能在這裡辦）→ ③ 供給投票 → ④ 菓子折拍賣 → ⑤ 本期總結。② 公會長選舉尚未開放。
+ *  - 流程：（3 月）公會長選舉 step 0（07yc_gm.js）→ ① 協議立場（加入、暗約、退出只能在這裡辦；公會長不能退出）→ ② 供給投票 → ③ 菓子折拍賣 → ④ 本期總結。
  *  - 決議當旬生效：投票後立即以新方針重算本旬同業供給。沒出席（或沒走完）時，推進那一旬、出貨之前自動決議：
  *    同業各自 60% 投減供；你沒有票、不能出價。
- *  - 投票：只有參加協議的會員；你一票；你出席時每位同業跟你投一樣的機率＝80%×好感÷100，否則投另一方。平手維持上一期方針（公會長開放後改由公會長裁決）。
+ *  - 投票：只有參加協議的會員；你一票；你出席時每位同業跟你投一樣的機率＝80%×好感÷100，否則投另一方。平手由公會長裁決（你在場自己選、你缺席維持上期、同業公會長一律減供；沒有公會長維持上期）。
  *  - 菓子折：名義上是大盤答謝公會的點心禮，盒底那層是給誰的人人都知道。每期一批：一項本業貨（越貴越容易被挑中），
- *    照當旬市價約值 8,000～12,000 兩，6,000 兩起標；封閉出價、價高者得、付自己出的價；得標金由公會代為打點（公會長開放後歸公會長、由他報告）。
+ *    照當旬市價約值 8,000～12,000 兩，6,000 兩起標；封閉出價、價高者得、付自己出的價；得標金歸公會長（公會長不出價；你當公會長時要向御金奉行報告）。
  *  - 狀態：G.guild＝{mt 本期例會旬, att 已進場, step, voted, myVote, tally, lot:{name,qty,val}, bid, res:{who,price}, done}。 */
 const MEET=ODDS.meeting;
 /** 本旬的例會資料（不是例會旬或還沒建立時回傳 null）。 */
@@ -21,7 +21,10 @@ function meetLot(){
   return {name:c.name,qty,val:Math.round(qty*p)};
 }
 /** 建立本旬的例會。 */
-function newMeeting(){G.guild={mt:G.turn,att:false,step:1,voted:false,myVote:null,tally:null,lot:meetLot(),bid:MEET.start,res:null,done:false,prev:cartelPolicy()}}
+function newMeeting(){
+  G.guild={mt:G.turn,att:false,step:1,voted:false,myVote:null,tally:null,lot:meetLot(),bid:MEET.start,res:null,done:false,prev:cartelPolicy()};
+  if(G.month===3){const E=gmElectSetup();if(E){G.guild.el=E;G.guild.step=0}}   // 3 月例會先選公會長（07yc_gm.js）
+}
 /** 舊存檔或讀檔時正好是例會旬而還沒有例會資料：補建（不分配違約金）。 */
 function meetEnsure(){if(G&&isMeetingTurn()&&!(G.guild&&G.guild.mt===G.turn))newMeeting()}
 /** 例會旬開始（日期前進後）：上一期的違約金分配、建立本期例會；例會前一旬提醒。 */
@@ -33,6 +36,7 @@ function meetingTick(log){
       if(pot>0){const sh=Math.round(pot/ok);G.silver+=sh;if(TURNRP)TURNRP.guildDiv=(TURNRP.guildDiv||0)+sh;const t=NEWS('guild.div',{k:Math.round(pot/amt),n:ok,sh:fmt(sh)});pushNews(t);log.push(t);sfx.coin()}
     }
     C.pot=0;rivalsHere().forEach(n=>{msOf(n).caught=false});
+    gmPeriodEnd(log);                              // 公會長：本期沒向御金奉行報告就罰款（07yc_gm.js）
     newMeeting();
     const t=NEWS('meet.today');pushNews(t);log.push(t);
   }else{const d=dateAfter(1);if(isMeetingDate(d.month,d.cycle)){const t=NEWS('meet.soon');pushNews(t);log.push(t)}}
@@ -48,16 +52,25 @@ function meetVote(me){
     if(me){const p=Math.min(MEET.followMax,MEET.followMax*R(x.cid).aff/100);cast(chance(p)?me:(me==='normal'?'restrict':'normal'))}
     else cast(chance(MEET.restrictP)?'restrict':'normal');
   });
-  const tie=n===r,pol=tie?M.prev:(n>r?'normal':'restrict');
+  const tie=n===r,g=gmCid();
+  if(tie&&g==='me'&&me){M.tieAsk={n,r,me};return null}   // 平手：你是公會長又在場，由你裁決（ACT.gmTie）
+  const pol=!tie?(n>r?'normal':'restrict'):g&&g!=='me'?'restrict':M.prev;   // 同業公會長一律減供；你缺席或沒有公會長時維持上期
+  return meetVoteFinal(n,r,me,pol,tie);
+}
+/** 投票定案。 */
+function meetVoteFinal(n,r,me,pol,tie){
+  const M=meetNow();M.tieAsk=null;
   const C=G.cartel,changed=pol!==cartelPolicy();C.policy=pol;if(changed)G.plan={};
-  M.voted=true;M.myVote=me||null;M.tally={n,r,me:me||null,policy:pol,tie};
+  M.voted=true;M.myVote=me||null;M.tally={n,r,me:me||null,policy:pol,tie,gm:tie?gmCid():null};
   meetResupply();
   return M.tally;
 }
+ACT.gmTie=el=>{const M=meetNow();if(!M||M.voted||!M.tieAsk)return;const T=M.tieAsk;meetVoteFinal(T.n,T.r,T.me,el.dataset.v==='normal'?'normal':'restrict',true);sfx.step();refreshSheet();UI.render()};
 /** 你能不能標菓子折：回傳不能的原因（可以時回傳空字串）。 */
 function meetBidBlock(){
   const M=meetNow();if(!M)return UT('gmeet.meetBidBlock');
   if(!M.att)return UT('gmeet.meetBidBlock.2');
+  if(gmIsMe())return UT('gm.noBid');
   if(!guildMember())return UT('gmeet.meetBidBlock.3');
   if(!tradeOK(M.lot.name))return UT('gmeet.meetBidBlock.4');
   if(G.silver<MEET.start)return UT('gmeet.meetBidBlock.5',{a:fmt(MEET.start)});
@@ -76,19 +89,20 @@ function rivalBid(n,lot){
   const b=Math.round(lot.val*clamp(f,0.5,1.05)/100)*100;
   return b>=MEET.start?b:0;
 }
-/** 開標。myBid＝你的出價（不出價 0）。得標金由公會代為打點（公會長尚未開放）。 */
+/** 開標。myBid＝你的出價（不出價 0）。得標金歸公會長（gmLotPaid）。 */
 function meetAuction(myBid){
   const M=meetNow();if(!M||M.res)return M&&M.res;
-  const lot=M.lot,bids=rivalsHere().map(n=>({cid:n.cid,b:rivalBid(n,lot),sh:((G.share&&G.share.rows||[]).find(x=>x.cid===n.cid)||{}).share||0})).filter(x=>x.b>0);
+  const lot=M.lot,bids=rivalsHere().filter(n=>n.cid!==gmCid()).map(n=>({cid:n.cid,b:rivalBid(n,lot),sh:((G.share&&G.share.rows||[]).find(x=>x.cid===n.cid)||{}).share||0})).filter(x=>x.b>0);
   M.bids={};bids.forEach(x=>{M.bids[x.cid]=x.b});
   bids.sort((a,b)=>b.b-a.b||b.sh-a.sh);
   const top=bids[0];let res;
   if(myBid>0&&(!top||myBid>top.b)){
-    G.silver-=myBid;addStock(lot.name,lot.qty,myBid/lot.qty);stockAdd(lot.name,lot.qty,false);   // 得標價計入均價notePublicSpend('spend.lot|'+lot.name,myBid);
+    G.silver-=myBid;addStock(lot.name,lot.qty,myBid/lot.qty);stockAdd(lot.name,lot.qty,false);notePublicSpend('spend.lot|'+lot.name,myBid);   // 得標價計入均價；記入主動支出（原本誤併進註解）
     res={who:'me',price:myBid};sfx.fanfare();
   }else if(top)res={who:top.cid,price:top.b};
   else res={who:null,price:0};
   M.res=res;M.myBid=myBid||0;
+  gmLotPaid(M,res);                                // 你是公會長：得標金進你的現款，待向御金奉行報告（07yc_gm.js）
   const t=res.who==='me'?NEWS('meet.lotMe',{n:COMM_MAP[lot.name].short,q:lot.qty,p:fmt(res.price)}):res.who?NEWS('meet.lotRival',{who:nameOf(res.who),n:COMM_MAP[lot.name].short,q:lot.qty,p:fmt(res.price)}):NEWS('meet.lotNone',{n:COMM_MAP[lot.name].short});
   pushNews(t);M.lotNews=t;
   return res;
@@ -96,8 +110,10 @@ function meetAuction(myBid){
 /** 推進一旬、出貨之前：本旬例會若還沒走完，照規則自動決議（你沒有票、不能出價）。 */
 function meetingAuto(log){
   const M=meetNow();if(!M||M.done)return;
+  if(M.el&&!M.el.done)gmElectAuto(M);              // 公會長選舉（07yc_gm.js）
   if(!M.voted){const T=meetVote(null);const t=NEWS('meet.autoVote',{p:policyName(T.policy),n:T.n,r:T.r,tie:T.tie?UT('gmeet.t'):''});pushNews(t);log.push(t)}
   if(!M.res){meetAuction(0);if(M.lotNews)log.push(M.lotNews)}
+  gmAutoRemind(M);
   M.done=true;
 }
 const policyName=p=>p==='normal'?UT('gmeet.policyName'):UT('gmeet.policyName.2');
@@ -111,7 +127,7 @@ function meetTalk(step){
   const rv=shuffle(rivalsHere().slice()).slice(0,rint(1,3)),item=COMM_MAP[M.lot.name].short,me=UT('gmeet.me',{a:G.me.family});
   const out=rv.map(n=>{
     const cid=n.cid,foe=isEnemy(cid),r=R(cid),v={me,item};let t;
-    if(step===1){t=foe?say('meet.greet.enemy',v):G.month===3&&chance(0.5)?say('meet.greet.spring',v):say('meet.greet.'+(r.bond&&r.aff>=60?'warm':r.bond&&r.aff<20?'cold':'plain'),v)}
+    if(step<=1){t=foe?say('meet.greet.enemy',v):G.month===3&&chance(0.5)?say('meet.greet.spring',v):say('meet.greet.'+(r.bond&&r.aff>=60?'warm':r.bond&&r.aff<20?'cold':'plain'),v)}
     else if(step===2){const st=chance(MEET.restrictP)?'restrict':'normal';t=say('meet.stance.'+(foe?(st==='normal'?'enemyNormal':'enemyRestrict'):st),v)}
     else if(step===3){const u=rnd(),k=u<0.35?'high':u<0.65?'none':'chat';t=say('meet.lot.'+(foe?'enemy'+k[0].toUpperCase()+k.slice(1):k),v)}
     else{
@@ -157,22 +173,24 @@ SHEETS.guild=()=>{
   guildEnsure();
   const M=meetNow(),C=G.cartel;
   if(!M||!M.att)return {title:UT('gmeet.guild'),html:UT('gmeet.guild.2')};
-  const steps=[UT('gmeet.steps'),UT('gmeet.steps.2'),UT('gmeet.steps.3'),UT('gmeet.steps.4')],cur=M.step;
-  let h='<div class="chevs">'+steps.map((s,i)=>'<span class="chev '+(cur===i+1?'on':cur>i+1?'done':'todo')+(i===0?' first':'')+'"'+(s.length>4?' style="flex-grow:1.3"':'')+'><i>'+s+'</i></span>').join('')+'</div>';   // 箭頭串接的步驟列（style.css .chevs）
+  const steps=(M.el?[UT('gm.step')]:[]).concat([UT('gmeet.steps'),UT('gmeet.steps.2'),UT('gmeet.steps.3'),UT('gmeet.steps.4')]),cur=M.step,o=M.el?0:1;   // 3 月多一步「改選」
+  let h='<div class="chevs">'+steps.map((s,i)=>'<span class="chev '+(cur===i+o?'on':cur>i+o?'done':'todo')+(i===0?' first':'')+'"'+(s.length>4?' style="flex-grow:1.3"':'')+'><i>'+s+'</i></span>').join('')+'</div>';   // 箭頭串接的步驟列（style.css .chevs）
   let info='',act='';                              // 每一步三層：說明 → 同業發言 → 決策按鈕
-  if(cur===1){
+  if(cur===0&&M.el){const X=gmElectHtml(M);info=X.info;act=X.act}
+  else if(cur===1){
     const st=C.state==='pledged'?UT('gmeet.st.4'):C.state==='secret'?UT('gmeet.st.5'):UT('gmeet.st.6');
     const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
-    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+(UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
+    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
   }else if(cur===2){
     info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
       :UT('gmeet.guild.6');
-    if(!M.voted)act=guildMember()?UT('gmeet.guild.7')
+    if(!M.voted&&M.tieAsk)act=UT('gm.tieAsk',{n:M.tieAsk.n,r:M.tieAsk.r});
+    else if(!M.voted)act=guildMember()?UT('gmeet.guild.7')
       :UT('gmeet.guild.8');
     else{
       const T=M.tally;
-      act=UT('gmeet.guild.11',{a:T.n,b:T.r,c:policyName(T.policy)})+'</b>'+(T.tie?UT('gmeet.guild.9'):'')+(T.me?UT('gmeet.guild.10',{a:policyName(T.me)}):'')+'</div></div>'+UT('gmeet.guild.12');
+      act=UT('gmeet.guild.11',{a:T.n,b:T.r,c:policyName(T.policy)})+'</b>'+(T.tie?(T.gm==='me'?UT('gm.tieMe'):T.gm?UT('gm.tieRival',{n:esc(gmName(T.gm))}):UT('gmeet.guild.9')):'')+(T.me?UT('gmeet.guild.10',{a:policyName(T.me)}):'')+'</div></div>'+UT('gmeet.guild.12');
     }
   }else if(cur===3){
     const L=M.lot,c=COMM_MAP[L.name];

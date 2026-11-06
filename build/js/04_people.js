@@ -181,7 +181,7 @@ function doFavor(cid,key,arg){
   {const ck=regFavorCheck(f,n);if(ck)return {ok:true,status:'held',msg:ck}}   // 遠國奉行所三階新請託（07zz_regfavor.js）
   if(key==='lessen'&&(G.lessen||0)>0)return {ok:true,status:'held',msg:MSG('doFavor.lessenHeld')};
   if(key==='sellAid'&&!xLot())return {ok:true,status:'held',msg:MSG('doFavor.sellAidFull')};
-  const drop=key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal;
+  const drop=f.drop||(key==='lessen'?REQ_AFF.lessen:REQ_AFF.normal);   // f.drop：自訂（破船賑、盜難賑 −15）
   setAff(r,Math.max(0,r.aff-drop));if(f.cd)r.cd[key]=G.turn+f.cd;
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n,arg)}

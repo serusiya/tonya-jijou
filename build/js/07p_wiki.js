@@ -22,10 +22,10 @@ const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE.23'),UT('wiki.WIKI_GUIDE.24')],
   [UT('wiki.WIKI_GUIDE.25'),UT('wiki.WIKI_GUIDE.26')]
 ];
-/** 筆記頂端的「名冊／百科」切換。 */
+/** 筆記頂端的「名冊／百科／紀錄」切換。 */
 function notesTabsHtml(){
   const t=UI.s.notesTab||'book';
-  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
+  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')],['rec',UT('wiki.notesTabsHtml.3')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
 }
 ACT.nTab=el=>{UI.s.notesTab=el.dataset.k;UI.render();$('#main').scrollTop=0};
 ACT.wikiSec=el=>{UI.s.wikiSec=el.dataset.k;UI.render();$('#main').scrollTop=0};
@@ -45,7 +45,7 @@ function wikiRegions(){
 }
 function wikiGuide(){
   let h=UT('wiki.h');
-  h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]))).join('');
+  h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]).replace(/\n/g,'<br>'))).join('');
   h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(UT('wiki.wikiGuide.4'))})+'</div></div>').join('')}));
   return h;
 }

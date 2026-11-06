@@ -81,7 +81,7 @@ function rivalHeirTick(log){
   const W=G.world.npcs,lost=(G.rivalHeirs||[]).slice();G.rivalHeirs=[];
   Object.values(W).forEach(n=>{if(n.role==='rival'&&n.cityId===G.cityId&&!n.heir&&!alive(n.cid))lost.push({cid:n.cid,ms:n.ms?Object.assign({},n.ms):null,raided:!!n.raided,npc:n})});
   lost.forEach(L=>{
-    const far=Object.values(W).filter(m=>m.role==='rival'&&m.cityId!==G.cityId&&alive(m.cid)&&strangerTo(m.cid));
+    const far=Object.values(W).filter(m=>m.role==='rival'&&m.cityId!==G.cityId&&m.cityId&&!m.kessho&&alive(m.cid)&&strangerTo(m.cid));   // 闕所除名的人不會回來
     let h=far.length?pick(far):null;
     if(!h){
       const pool=CHARS.filter(c=>!W[c.id]&&hasRole(c,'rival')&&c.birth_year<=G.year-20&&c.death_year>G.year+2&&strangerTo(c.id));

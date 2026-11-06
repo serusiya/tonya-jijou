@@ -59,7 +59,7 @@ const festMult=c=>festActive()?(festHot(c)?ODDS.fest.hot:ODDS.fest.all):1;
 /** 本期供給比例：維持為各家穩定供應量的九成，減供為七成。 */
 const policySupplyRatio=()=>cartelPolicy()==='normal'?ODDS.guildPolicy.normalRatio:ODDS.guildPolicy.restrictRatio;
 /** 本期有效配額：協議會員依自己的穩定供貨線乘本期比例；未參加協議者沒有上限，預設仍照穩定供貨線出貨。 */
-const quotaOf=name=>guildMember()?Math.max(0,Math.round(supplyLine(name)*policySupplyRatio())):supplyLine(name);
+const quotaOf=name=>monoItem(name)?supplyLine(name):guildMember()?Math.max(0,Math.round(supplyLine(name)*policySupplyRatio())):supplyLine(name);   // 專賣的貨不適用協議配額
 
 /** 建立各物品市場資料（需求、供給、事件倍率、進貨壓力）與開局庫存。 */
 function initMarket(){
@@ -190,6 +190,7 @@ function luxTick(c,m,first){
  *  - 非本業參考行情仍沿用需求×0.58 的基準供給。 */
 function rivalSupply(c,m,first){
   const R=ODDS.rivalShip,own=c.sys===G.sysKey,normal=own&&cartelPolicy()==='normal',rv=rivalsHere();
+  if(own&&monoItem(c.name))return 0;                // 專賣株：本城同業與零星商家都不能出這項貨（07zze_favor8.js）
   if(own)shareFactor();
   const shares=own?G.share:marketShares(),sc=shares.rows;
   const rivalShare=own?Math.max(0,1-(shares.me||0)):1;
@@ -199,6 +200,7 @@ function rivalSupply(c,m,first){
   const rivalPool=own?Math.max(0.000001,sc.reduce((a,r)=>a+(r.share||0),0)+(shares.others||0)):1;
   let sum=own?base*(shares.others||0)/rivalPool*(normal?0.95+rnd()*0.05:R.lo+rnd()*(R.hi-R.lo)):base*R.otherShare*(0.95+rnd()*0.1),big=null;
   sc.forEach(r=>{
+    if(suspended(npc(r.cid)))return;                // 株札暫扣：停業，不出貨（他的份額轉給你，見 supplyLine）
     const w=own?(r.share||0)/rivalPool:(tot>0?r.score/tot:0);
     // 「維持」時仍不超過配額，但大多數同業會趨近足額出貨；「減供」沿用原本的均勻波動。
     let f=normal?1-(1-R.lo)*Math.pow(rnd(),R.normalPow):R.lo+rnd()*(R.hi-R.lo);
@@ -272,7 +274,7 @@ function settleSaleQuote(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{const sh=(G.share&&G.share.me)||0.05,base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)))};
+const buyLimit=name=>{const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -404,7 +406,7 @@ function thieves(){
   if(guardCount()>=2&&roll('thiefRepel'))return NEWS('thieves.1');
   const loss=Math.min(invUsed(),Math.max(1,Math.round(invUsed()*0.05)));
   const keys=Object.keys(G.inv).filter(k=>G.inv[k]>0);if(!keys.length)return null;
-  const k=pick(keys);const l=Math.min(G.inv[k],loss);stockTake(k,l,false);if(l>0)consoleNote('theft');
+  const k=pick(keys);const l=Math.min(G.inv[k],loss);stockTake(k,l,false);if(l>0){consoleNote('theft');lossNote('theft',l*marketQuote(k),{n:k,q:l})}
   return NEWS('thieves.2',{k:COMM_MAP[k].short,l});
 }
 
@@ -451,7 +453,8 @@ function invUpkeep(log){
     const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1);   // 每位仇人 +2% 縱火；火除地拜領後減半
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
-      Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l});
+      let val=0;Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l;val+=l*marketQuote(n)});
+      lossNote('fire',val);                         // 火難御救（07zze_favor8.js）
       G.life.fires++;sfx.bad();consoleNote('fire');
       const t=NEWS('invUpkeep.1',{tot});pushNews(t);log.push(t);
       setEv(c=>commTag(c,'fire'),1.5);
@@ -472,7 +475,7 @@ function holdTick(log){
     if(p>0&&chance(p)){
       const l=Math.max(1,Math.floor(q*(H.lossMin+rnd()*(H.lossMax-H.lossMin))));
       stockTake(n,l,false);sfx.bad();
-      const hk=1+Math.floor(rnd()*3);if(hk===1)consoleNote('theft');
+      const hk=1+Math.floor(rnd()*3);if(hk===1){consoleNote('theft');lossNote('theft',l*marketQuote(n),{n,q:l})}
       const t=NEWS('holdTheft.'+hk,{name:COMM_MAP[n].short,l});pushNews(t);log.push(t);
     }
   });
@@ -758,7 +761,10 @@ function advanceTurn(){
   xgoodsTick(log);
   skimTick(log,s0);
   friendsTick(log);
-  escortTick(log);                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
+  escortTick(log);
+  gmTick(log);
+  f8Tick(log);
+  bzTick(log);                                    // 商人番付：季末最後一旬發行（07zzf_banzuke.js）                                    // 株札暫扣、專賣株期滿（07zze_favor8.js）                                    // 公會長：同業公會長離城或過世接任、任內知名度、報告提醒、任內事件（07yc_gm.js）                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
   roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）
   driftTick(log);                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}

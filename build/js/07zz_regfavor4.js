@@ -137,7 +137,7 @@ function outboundSettle(s,E,log){
   if(J)J.done+=got;
   E.lines.push(NEWS('r4.out.line',{g:c.short,q:O.q,got,lost:lost?UT('r4.out.lost',{n:lost}):'',a:fmt(pay)}));
   E.items.push({n:UT('r4.out.item',{g:c.short}),q:O.q,unit:O.q?pay/O.q:0,cost:0,lost});
-  E.outPay=pay;E.outGo=go;
+  E.outPay=pay;E.outGo=go;if(lost>0)E.lossVal=(E.lossVal||0)+lost*marketQuote(O.name);   // 去程遇險的貨損（荷損御賑）
   return pay;
 }
 /** 每旬（委託採買歸來之後）：交齊或期滿結算。 */

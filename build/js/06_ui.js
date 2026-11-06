@@ -171,7 +171,10 @@ function tradeCard(name){
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  {const hn=tempHelpNote();if(hn)h+='<div class="tiny" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#27407a">'+hn+'</div>'}   // 差配人臨時打工（07h_duties.js）
   h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
+  if(monoItem(name))h+=UT('f8.monoTag',{n:G.mono.until-G.turn+1});                                    // 專賣株（07zze_favor8.js）
+  rivalsHere().filter(suspended).forEach(r=>{h+=UT('f8.suspTag',{n:esc(nameOf(r.cid)),t:r.suspUntil-G.turn+1})});   // 株札暫扣
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='</div>';
   return h;
@@ -263,6 +266,7 @@ function renderRoutes(){
   h+=ujobCard();                                   // 卸留請負的外運（07zz_regfavor4.js）
   h+=voyagePanel();
   h+=voyQueueCard();
+  h+=VOY_NOTE;VOY_NOTE='';                         // 順序：加入出運清單 → 一起出發 → 長說明
   h+=voyLogCard();
   h+='<hr class="sep"><div class="tiny muted">'+UT('rt.foot')+'</div></div>';
   $('#view-routes').innerHTML=h;
@@ -317,7 +321,7 @@ function planOf(name){
   return clamp(G.plan[name],0,have);
 }
 /** 【穩定供貨線】本城該物品需求 × 你的市佔率，四捨五入（可以是 0：冷門奢侈品在小城常如此）。出貨量達此線才算穩定供貨；0 的貨不列入判定。 */
-function supplyLine(name){const sh=(G.share&&G.share.me)||0.05;return Math.max(0,Math.round((G.mk[name].D||0)*sh*supplyCut()))}
+function supplyLine(name){if(monoItem(name))return Math.max(0,Math.round(G.mk[name].D||0));const sh=((G.share&&G.share.me)||0.05)+suspBonus();return Math.max(0,Math.round((G.mk[name].D||0)*sh*supplyCut()))}   // 專賣＝本城全部需求；株札暫扣的份額轉給你（07zze_favor8.js）
 /** 推進一旬前，對本旬沒按『出貨』的物品自動按預定量出貨，並清空本旬計畫。 */
 function autoShip(log){
   G.sold=G.sold||{};G.plan=G.plan||{};

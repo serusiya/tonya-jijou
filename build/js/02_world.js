@@ -78,7 +78,8 @@ function genWorld(homeId){
   take('rival',4,c=>age0(c)>=28).forEach(c=>add(c,homeId,{role:'rival'}));
   take('smuggler',2).forEach(c=>add(c,homeId,{role:'smuggler'}));
   take('broker',2,c=>age0(c)>=25).forEach(c=>add(c,homeId,{role:'broker'}));
-  take('guest',3,c=>age0(c)>=28).forEach(c=>add(c,homeId,{role:'guest'}));
+  const gN=rint(ODDS.bz.guests[0],ODDS.bz.guests[1]);   // 本城旅商人數（番付熱鬧，DESIGN_NOTES 第二百十一節）
+  take('guest',gN,c=>age0(c)>=28).forEach(c=>add(c,homeId,{role:'guest'}));
   take('guard',2).forEach(c=>add(c,homeId,{role:'guard'}));
   // 其餘：隨機抽樣至 600~700 人；若在世名冊不足 700 人，以上限人數為準
   const target=rint(Math.min(600,pool.length),Math.min(700,pool.length));W.sampleSize=target;
@@ -94,6 +95,10 @@ function genWorld(homeId){
     if(role==='official'){const court=pick(CITY_COURTS);const rank=pick([1,1,2,2,2,3,3,4,5,6]);extra.pos={court,rank,posId:posPick(court,rank).id}}   // 其他城市的官員：一～六階都可能出現
     add(c,ct.id,extra);
   });
+  // 隨機抽樣落在本城的旅商太多時，多出的人改到同地區別的城
+  const hg=shuffle(Object.values(W.npcs).filter(n=>n.cityId===homeId&&n.role==='guest'));
+  const homeReg=(CITIES.find(ct=>ct.id===homeId)||{}).region_id,alt=CITIES.filter(ct=>ct.id!==homeId&&ct.region_id===homeReg);
+  hg.slice(gN).forEach(n=>{n.cityId=pick(alt.length?alt:CITIES.filter(ct=>ct.id!==homeId)).id});
   return W;
 }
 /* ---------- 巡迴官員：本城三系官署的五、六階官員每三個月來本城一個月 ----------
@@ -200,7 +205,7 @@ function newGame(sysKey,regionPref,startTier=0){
     family:{spouse:null,kids:[],married:false},
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
-    fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},cityRoutes:{},openedRoads:[]};
+    fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
   G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地

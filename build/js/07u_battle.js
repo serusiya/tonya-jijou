@@ -217,15 +217,17 @@ const REQ_AFF={normal:10,apply:20,lessen:30,special:30};
 ACT.reqAsk=el=>{
   const cid=el.dataset.cid,k=el.dataset.k,r=R(cid);BT=null;
   const sp=specialList(cid).find(x=>x.k===k);
+  if(sp&&sp.special==='kessho'&&!el.dataset.t){if(G.gold<ODDS.f8.kesshoGold){toast(MSG('f8.shortGold',{a:fmt(ODDS.f8.kesshoGold)}));return}UI.showInfo(UT('f8.pickTitle',{a:nameOf(cid)}),kesshoPick(cid));return}   // 闕所：先挑對象（07zze_favor8.js）
   if(sp){
     r.specialUsed=true;setAff(r,Math.max(0,r.aff-REQ_AFF.special));logRel(cid,UT('bt.reqAsk',{a:sp.name,b:REQ_AFF.special}));
     UI.hideInfo();
-    if(sp.special==='tribute')startTribute(cid);else startScheme(cid);
+    if(sp.special==='tribute')startTribute(cid);else if(sp.special==='kessho')kesshoDo(cid,el.dataset.t);else startScheme(cid);
     return;
   }
   const dm=dealerDo(cid,k);
   if(dm!==null){UI.showInfo(UT('bt.reqAsk.2',{a:nameOf(cid)}),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+UT('bt.reqAsk.3',{a:esc(dm)}));sfx.coin();UI.render();refreshSheet();return}
   if(k==='reconcile'&&!el.dataset.t){UI.showInfo(UT('bt.reqAsk.4',{a:nameOf(cid)}),reconcilePick(cid));return}
+  if(FAVOR_PICK[k]&&!el.dataset.t){UI.showInfo(UT('f8.pickTitle',{a:nameOf(cid)}),FAVOR_PICK[k](cid));return}   // 株札暫扣、專賣株：先挑對象（07zze_favor8.js）
   const res=doFavor(cid,k,el.dataset.t);
   UI.showInfo(UT('bt.reqAsk.2',{a:nameOf(cid)}),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+UT('bt.reqAsk.3',{a:esc(res.msg)}));
   if(res.status==='done')sfx.coin();else sfx.bad();UI.render();refreshSheet();

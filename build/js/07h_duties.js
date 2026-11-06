@@ -13,14 +13,24 @@ const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsO
 /** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
 /** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
-function tellerBonus(){const t=tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
+function tellerBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
 /** 大盤進貨上限倍數（乘在「需求×市佔率＋參加協議者的協議配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
 const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
 /** 手代：穩定供貨線折減。 */
 const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('clerk')+(tempHelp()===null?0:2)));
-/** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。只算本店手代（臨時打工不算）。回傳乘數。 */
+/** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。回傳乘數。
+ *  差配人臨時打工頂替兩名手代的櫃上工作，空出的店裡手代去照料庫存：打工那一旬算「店裡手代＋2」（DESIGN_NOTES 第二百十三節）。
+ *  損耗與倉儲保險在日期推進後才結算，所以上一旬（剛結束的那一旬）有人打工也算。 */
 const KEEP_FROM=4,KEEP_PER=0.05,KEEP_MAX=0.3;
-const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,nEmp('clerk')-KEEP_FROM));
+const keepHelp=()=>!!(G.tempHelp&&(G.tempHelp.turn===G.turn||G.tempHelp.turn===G.turn-1));
+const keeperN=help=>nEmp('clerk')+(help?2:0);
+const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN(keepHelp())-KEEP_FROM));
+/** 相場面板：本旬有人打工時的說明（收入加成已滿就不寫收入；照料人數不到第 5 名就不寫損耗）。 */
+function tempHelpNote(){
+  const t=tempHelp();if(t===null||!G.tempHelp)return '';
+  const inc=tellerBonus()-tellerBonus(true)>0.0001,keep=keeperN(true)>KEEP_FROM&&keeperN(false)-KEEP_FROM<KEEP_MAX/KEEP_PER;
+  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(inc?'mk.help.inc':'mk.help.buy'),b:keep?UT('mk.help.keep'):''});
+}
 /** 大番頭：壓低其他店員私吞的係數。 */
 function guardF(e){
   if(e.rank==='chief')return 1;
