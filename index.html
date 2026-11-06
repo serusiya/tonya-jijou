@@ -798,6 +798,7 @@ const ODDS={
   fest:{name:'節慶當旬需求倍率（一般貨／節慶搶手貨）',all:2,hot:2.5},
   enlist:{name:'延攬熟人：各職階所需好感、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},introMin:1,introMax:2,refuse:2},
   drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
+  roleShift:{name:'職業調整：每季第一旬，本城低於基本數的身分從多出的身分轉入一人（只轉沒見過面、手帳沒有的人）',base:{broker:2,guest:3,manager:4}},
   shareShip:{name:'市佔修正：沒出貨不加市佔（出貨達配額幾成才算）；舊算法達幾成算有市場、掉到幾成回到新人；有市場後實際出貨占比的比重',shipMin:0.5,est:0.10,reset:0.05,w:0.6},
   riot:{name:'打毀：主食或鹽的收市價高於基準幾倍、連續幾旬',idx:2.5,streak:5},
   dapanDependency:{name:'大盤依賴度（實際出貨來源的固定基準價額加權）',win:9,knownMin:0.95},
@@ -3681,6 +3682,7 @@ const CHANGELOG=[
     '新增同行引見：交情深的商人朋友有時想跟你去奉行所，請你引見一位熟識的官員。',
     '新增商路地圖：商路頁可以看五個地區與各城的海陸航線，出門採買的船長、飛腳會在地圖上來回；城市說明標出能走海運或陸運。',
     '花街設定更新：一旬指名太多位花魁，踏出吉原就會病倒，臥床兩旬不能出門。',
+    '人才設定更新：本城的仲買人、旅商人、差配人太少時，每季會有人改行補上。',
     '修改背景資料'
   ]},
   {date:'2026年11月4日',items:[
@@ -4782,6 +4784,7 @@ function advanceTurn(){
   skimTick(log,s0);
   friendsTick(log);
   escortTick(log);                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
+  roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）
   driftTick(log);                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
@@ -11584,10 +11587,23 @@ ACT.enlist=el=>{
   const ok=R(cid).aff>=enlistNeed(rk);
   visitFx({cid,outcome:ok?'ok':'refuse',kind:'contract',prop:'contract'},()=>{const r=enlistTalent(cid,rk);toast(r.msg,Math.max(3200,r.msg.length*120));if(r.ok)sfx.coin();else sfx.bad();UI.render();refreshSheet()});
 };
-/** 另謀高就：本城沒見過面的人才偶爾搬到別的城。 */
+/** 本城沒見過面、可以異動的人才（另謀高就、職業調整共用）：不含員工、介紹人、物色名冊上的人。 */
+const driftPool=()=>cityNpcs(G.cityId).filter(n=>ENLIST_ROLES.includes(n.role)&&alive(n.cid)&&!n.hired&&!n.pos&&!jailed(n)&&!(G.rel[n.cid]&&(G.rel[n.cid].met||G.rel[n.cid].bond))&&!G.emps.some(e=>e.cid===n.cid)&&!G.intros.some(i=>i.cid===n.cid)&&!(G.recruit&&G.recruit.cands.includes(n.cid)));
+/** 職業調整：每季第一旬（例會旬）判一次。仲買人、旅商人、差配人有哪一種低於基本數，
+ *  就從高於基本數（多出最多）的那一種，挑一位本城沒見過面、手帳裡也沒有的人轉過去；一次只轉一人，都達基本數就不發生。不寫旬報。 */
+function roleShiftTick(){
+  if(!isMeetingTurn())return;
+  const B=ODDS.roleShift.base,cnt=k=>cityNpcs(G.cityId,k).filter(n=>alive(n.cid)&&!n.hired).length;
+  const C={};ENLIST_ROLES.forEach(k=>C[k]=cnt(k));
+  const need=ENLIST_ROLES.filter(k=>C[k]<B[k]).sort((a,b)=>(C[a]-B[a])-(C[b]-B[b]))[0];if(!need)return;   // 缺得多的先補
+  const pool=driftPool().filter(n=>!G.known.includes(n.cid));
+  const from=ENLIST_ROLES.filter(k=>k!==need&&C[k]>B[k]&&pool.some(n=>n.role===k)).sort((a,b)=>(C[b]-B[b])-(C[a]-B[a]))[0];if(!from)return;   // 多出最多的先轉出
+  pick(pool.filter(n=>n.role===from)).role=need;
+}
+/** 另謀高就：本城沒見過面的人才偶爾搬到別的城（不搬會讓該身分低於基本數的人）。 */
 function driftTick(log){
-  const D=ODDS.drift;
-  const L=cityNpcs(G.cityId).filter(n=>ENLIST_ROLES.includes(n.role)&&alive(n.cid)&&!n.hired&&!n.pos&&!jailed(n)&&!(G.rel[n.cid]&&(G.rel[n.cid].met||G.rel[n.cid].bond))&&!G.emps.some(e=>e.cid===n.cid)&&!G.intros.some(i=>i.cid===n.cid)&&!(G.recruit&&G.recruit.cands.includes(n.cid)));
+  const D=ODDS.drift,B=ODDS.roleShift.base,cnt=k=>cityNpcs(G.cityId,k).filter(n=>alive(n.cid)&&!n.hired).length;
+  const L=driftPool().filter(n=>cnt(n.role)>(B[n.role]||0));   // 不搬會讓該身分低於基本數的人
   if(L.length<=D.keep||!chance(D.p))return;
   const cs=(G.activeIds||[]).filter(id=>id!==G.cityId&&CITY(id));if(!cs.length)return;
   const n=pick(L),to=pick(cs);n.cityId=to;
