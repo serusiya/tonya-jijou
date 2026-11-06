@@ -64,12 +64,12 @@ function skimTick(log,s0){
 /** 養傷中則提示並回傳 true（所有「出門前往」都受限）。 */
 function injuredBlock(){
   if((G.exile||0)>0){toast(MSG('injuredBlock.1',{exile:G.exile}));return true}
-  if((G.injured||0)>0){toast(MSG('injuredBlock.2',{injured:G.injured}));return true}
+  if((G.injured||0)>0){toast(MSG(hurtKey('injuredBlock.2'),{injured:G.injured}));return true}
   return false;
 }
 /** 每旬遞減養傷期。 */
 function injuryTick(log){
-  if((G.injured||0)>0){G.injured--;if(G.injured===0){log.push(NEWS('injuryTick.1'));consoleNote('heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
+  if((G.injured||0)>0){G.injured--;if(G.injured===0){const sick=G.injKind==='sick';G.injKind=null;log.push(NEWS(sick?'injuryTick.sick':'injuryTick.1'));consoleNote(sick?'healSick':'heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
 }
 /** 遇襲機率：基本 0.5%～3%（風聲、知名度越高越危險），另加每位仇人 +3%。 */
 function ambushChance(){const A_=ODDS.ambush;return clamp(A_.base+A_.perHeat*Math.min(G.heat||0,A_.heatCap)+A_.perFame*(G.fame||0),A_.min,A_.max)+ENEMY_AMBUSH*enemyCount()}   // 每位仇人 +3%
@@ -80,6 +80,7 @@ const guardPower=e=>statsOfEmp(e).audacity_courage;
  * 其他＝遇襲但化解（無傷退敵／保鏢替死），行程照常。
  */
 function rollAmbush(){
+  if(daimyoActive())return null;                    // 大名行列過境當旬沿路警備森嚴，不擲遇襲（07zzc_daimyo.js）
   if(!chance(ambushChance()))return null;
   {const rc=roninRescue();if(rc){const t=NEWS('ronin.rescue',{n:nameOf(rc)});pushNews(t);toast(t,5200);sfx.gift();UI.render();return {ok:true,repelled:true}}}   // 浪人頭拔刀相助（07zw_ronin.js）
   const gs=G.emps.filter(e=>e.rank==='guard'&&!jailedEmp(e)).sort((a,b)=>guardPower(b)-guardPower(a));
@@ -94,7 +95,7 @@ function rollAmbush(){
     const t=NEWS('rollAmbush.2',{name:g.name});
     pushNews(t);toast(t,4800);sfx.bad();UI.render();return {ok:true,died:true};
   }
-  G.injured=1+Math.floor(rnd()*6);
+  G.injured=1+Math.floor(rnd()*6);G.injKind=null;
   const t=NEWS('rollAmbush.3',{injured:G.injured});
   pushNews(t);toast(t,5200);sfx.bad();UI.render();
   return {abort:true};

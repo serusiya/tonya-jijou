@@ -119,7 +119,7 @@ const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOr
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
 const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lux.ph==='dry'?L.dryMult:m.lux.ph==='burst'?m.lux.mul:1};
-const demandEff=(c,m,noLux)=>m.D*festMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
+const demandEff=(c,m,noLux)=>m.D*festMult(c)*daimyoMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
 /** 本旬同業有效供給；維持／減供的九成／七成目標已在 rivalSupply 計入，不再另外重複折減。 */
 const supplyEff=(c,m)=>m.so;
 /** 收市價視窗旬數：必需品三旬、一般貨六旬、奢侈品九旬（ODDS.priceWin）。 */
@@ -703,7 +703,8 @@ function populationTick(log){
 function advanceTurn(){
   syncPeaks();
   homeEventsVoid();                               // 上一旬「回府時」沒輪到的事件作廢（07zx_homeevt.js）
-  const log=[],s0=G.silver;                       // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
+  const log=[],s0=G.silver;sickTurnFire(log);      // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
+                         // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
   autoShip(log);
@@ -712,7 +713,7 @@ function advanceTurn(){
   snapMarket();                                   // 日期前進前，記下本旬的收市價、需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
-  if(newYear)buyoutEnsure();                       // 新年重抽五區各自的四個大口買付月
+  if(newYear){buyoutEnsure();daimyoPlan()}          // 新年重抽五區各自的四個大口買付月；排定今年的大名行列（07zzc_daimyo.js）
   G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};G.voyQueue=[];   // 出運清單只在本旬有效
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
@@ -739,6 +740,7 @@ function advanceTurn(){
   upkeep(log);
   randomEvent(log);
   cityTick(log);
+  daimyoTick(log);                                // 大名行列過境：當旬一開始就上旬報（07zzc_daimyo.js）
   unloadTick(log);                                // 國中物卸留：卸留月開始與結束（07zz_regfavor4.js）
   kokushoTick(log);                               // 國商助成：回扣進私房錢（07zz_regfavor4.js）
   syncPrices();                                   // 事件只影響本旬收市；公開牌價維持上旬收市，不在旬中重算
@@ -756,6 +758,8 @@ function advanceTurn(){
   xgoodsTick(log);
   skimTick(log,s0);
   friendsTick(log);
+  escortTick(log);                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
+  roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）
   driftTick(log);                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
   if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;

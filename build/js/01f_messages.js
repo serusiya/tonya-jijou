@@ -160,6 +160,7 @@ const MSG_TXT={
   /* —— injuredBlock —— */
   'injuredBlock.1':'⛓️ 你正在遠島服刑，還需 {exile} 旬，無法出門。',
   'injuredBlock.2':'🤕 你身上有傷，還需靜養 {injured} 旬，無法出門。',
+  'injuredBlock.2.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，無法出門。',
   /* —— encGive —— */
   'encGive.1':'「{cid}」感激涕零，從此記住你的恩情。（已結識，好感 10）',
   'encGive.2':'「{cid}」感激不盡，交情更深了。（好感 +10）',
@@ -170,6 +171,7 @@ const MSG_TXT={
   'smugGo.5':'私房錢不足，需 {cost} 兩（可按上方「＋」補充）。',
   'smugGo.ap':'本旬行動次數已用完，下旬再出海吧。',
   'smugGo.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
+  'smugGo.hurt.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，沒法到河岸交代。',
   'smugGo.6':'船長「{name}」趁夜出港，{d} 旬後回航。',
   /* —— errandTrim —— */
   'errandTrim.1':'（丁稚代跑，好感實得 {q}）',
@@ -184,6 +186,7 @@ const MSG_TXT={
   'sendVoyage.buyout':'已確認【{REG_NAME}】{month}正逢「大口買付」，本月不能再派人前往採買。',
   'sendVoyage.ap':'本旬行動次數已用完，下旬再委託吧。',
   'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
+  'sendVoyage.hurt.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，沒法到河岸交代。',
   /* —— xoAccept —— */
   'xoAccept.1':'現款不足，需 {O} 兩',
   'xoAccept.2':'倉庫放不下抵押品，只好婉拒。',
@@ -452,7 +455,10 @@ const MSG_TXT={
   'letter.sent':'信和 {a} 兩禮金送到了 {n} 手上。好感 +{g}。',
   'letter.friend':'交情已深，可以直接寄書狀請託。',
   'letter.notFriend':'交情還不夠，寄書狀請託恐怕石沉大海。',
-  'letter.noReq':'眼下沒有能託他辦的事。'
+  'letter.noReq':'眼下沒有能託他辦的事。',
+  'escort.no':'婉拒了「{f}」，好感 −{g}。',
+  'escort.door':'同行的「{f}」說：改天再說吧。',
+  'escort.snub':'同行的「{f}」也只好跟著告辭，引見的事改天再說。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){

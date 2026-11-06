@@ -67,7 +67,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
   if(buyoutDepartureBlocked(dest))return {ok:false,msg:MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month)})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
-  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG('sendVoyage.hurt',{injured:G.injured})};
+  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured})};
   if(!free&&!batch&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣；出運清單一起出發只扣一次）
   if(!free&&!batch){G.ap--;updateAP()}
   const st=statsOfEmp(cap);let d=dl.d;
@@ -234,7 +234,7 @@ ACT.vDel=el=>{voyQ().splice(+el.dataset.i,1);sfx.tap();UI.render()};
 /** 全部出發：一次檢查現款、傷勢與行動點數；逐一出發，失去許可的留在清單；有人出發就扣 1 行動點數。 */
 ACT.vGoAll=()=>{
   voyQPrune();const Q=voyQ();if(!Q.length){toast(MSG('voyQ.empty'));return}
-  if((G.injured||0)>0){toast(MSG('sendVoyage.hurt',{injured:G.injured}),4200);return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured}),4200);return}
   if(apLeft()<=0){toast(MSG('sendVoyage.ap'));return}
   if(voyQTotal()>G.silver){toast(MSG('voyQ.short',{c:fmt(voyQTotal())}),4200);return}
   const ok=[],fail=[];

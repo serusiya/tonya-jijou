@@ -65,11 +65,15 @@ function regionMapSvg(rid,opts){
     if(!islands){const L=Math.hypot(b.sx-a.sx,b.sy-a.sy),n=Math.floor(L/22);for(let i=1;i<=n;i++){const t=i/(n+1),qx=(1-t)*(1-t)*a.sx+2*(1-t)*t*mx+t*t*b.sx,qy=(1-t)*(1-t)*a.sy+2*(1-t)*t*my+t*t*b.sy;s+='<circle cx="'+qx.toFixed(1)+'" cy="'+qy.toFixed(1)+'" r="1.1" fill="'+INK+'"/>'}}
     else{const t=.5,qx=(1-t)*(1-t)*a.sx+2*(1-t)*t*mx+t*t*b.sx,qy=(1-t)*(1-t)*a.sy+2*(1-t)*t*my+t*t*b.sy;s+='<path d="M'+(qx-3).toFixed(1)+' '+(qy+1).toFixed(1)+'l1 2h4l1 -2zM'+qx.toFixed(1)+' '+(qy+1).toFixed(1)+'V'+(qy-5).toFixed(1)+'l3 4z" fill="#fff" stroke="'+INK+'" stroke-width=".5"/>'}});
   // 城市
-  const placed=px.map(p=>[p.sx-7,p.sy-7,p.sx+7,p.sy+7]);
+  if(opts.under)s+=opts.under({px,E,W,H,rid});       // 商路地圖：航線（07qa_routemap.js）
+  // 名牌位置：圖示與已放的名牌都不能疊到（座標一律用圖面座標）；題簽也要避開
+  const rn0=(list[0]||{}).region_name||'',sf0=UT('map.regionSuffix'),titleH=([...UT('map.title',{r:rn0.endsWith(sf0)?rn0.slice(0,-sf0.length):rn0})].length+2)*11+8;
+  const placed=px.map(p=>[p.sx-8,p.sy-11,p.sx+8,p.sy+8]).concat([[11,11,30,15+titleH]]);
   const hit=r=>placed.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1]);
+  const inside=r=>r[0]>=9&&r[1]>=9&&r[2]<=W-9&&r[3]<=H-9;
   px.slice().sort((a,b)=>cityPop(b.c)-cityPop(a.c)).forEach(p=>{
     const cx=p.sx,cy=p.sy,home=opts.home===p.c.id,sel=opts.sel===p.c.id;
-    let g='<g data-act="mapCity" data-cid="'+p.c.id+'" style="cursor:pointer">';
+    let g='<g data-act="'+(opts.act||'mapCity')+'" data-cid="'+p.c.id+'" style="cursor:pointer">';
     g+='<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="transparent"/>';
     if(home)g+='<circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="'+RED+'" opacity=".22"/><circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="none" stroke="'+RED+'" stroke-width="1"/>';
     if(sel)g+='<circle cx="'+cx+'" cy="'+cy+'" r="10.5" fill="none" stroke="'+INK+'" stroke-width=".8" stroke-dasharray="2 1.5"/>';
@@ -81,14 +85,16 @@ function regionMapSvg(rid,opts){
     else g+='<g transform="translate('+cx+' '+cy+')" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"><path d="M-6 2L0 -5L6 2Z" fill="#c89e52"/><rect x="-4" y="2" width="8" height="3.6" fill="#fbf6e4"/><path d="M-8 7H8M-8 9.2H8" stroke="#7d8f4b" stroke-width=".8" fill="none"/></g>';
     // 直書名牌
     const lab=p.c.name.slice(0,2),fs=8.6,w=fs+4.6,h=fs*2+5.4;
-    const cand=[[cx+10,cy-h/2],[cx-10-w,cy-h/2],[cx-w/2,cy-12-h+2],[cx-w/2,cy+9],[cx+10,cy-h-1],[cx+10,cy+1]];
-    let pick=null;for(const c of cand){const r=[c[0]+x0,c[1]+y0,c[0]+w+x0,c[1]+h+y0];if(!hit(r)){pick=[c,r];break}}
-    if(!pick){const c=cand[0];pick=[c,[c[0]+x0,c[1]+y0,c[0]+w+x0,c[1]+h+y0]]}
-    placed.push(pick[1]);const [lx,ly]=pick[0];
+    const cand=[[cx+10,cy-h/2],[cx-10-w,cy-h/2],[cx-w/2,cy-12-h+2],[cx-w/2,cy+9],[cx+10,cy-h-1],[cx+10,cy+1],[cx-10-w,cy-h-1],[cx-10-w,cy+1]];
+    [6,12,18,26].forEach(d=>cand.push([cx+10+d,cy-h/2],[cx-10-w-d,cy-h/2],[cx-w/2,cy-10-h-d],[cx-w/2,cy+9+d],[cx+10+d,cy-h-1-d/2],[cx-10-w-d,cy-h-1-d/2],[cx+10+d,cy+1+d/2],[cx-10-w-d,cy+1+d/2]));
+    const rr=c=>[c[0],c[1],c[0]+w,c[1]+h];
+    let pick=cand.find(c=>inside(rr(c))&&!hit(rr(c)))||cand.find(c=>!hit(rr(c)))||cand[0];
+    placed.push(rr(pick));const [lx,ly]=pick;
     g+='<rect x="'+(lx+.7).toFixed(1)+'" y="'+(ly+.7).toFixed(1)+'" width="'+w+'" height="'+h+'" fill="#6b4a1f" opacity=".25"/>';
     g+='<rect x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" width="'+w+'" height="'+h+'" fill="'+(home?'#fde3d6':'#fbf4dc')+'" stroke="'+(home?RED:INK)+'" stroke-width=".8"/>';
     g+=[...lab].map((ch,i)=>'<text x="'+(lx+w/2).toFixed(1)+'" y="'+(ly+3.4+fs*(i+0.82)+i*0.4).toFixed(1)+'" text-anchor="middle" font-size="'+fs+'" font-weight="bold" fill="'+(home?RED:INK)+'">'+esc(ch)+'</text>').join('');
     s+=g+'</g>'});
+  if(opts.over)s+=opts.over({px,E,W,H,rid});         // 商路地圖：示意船、馬（07qa_routemap.js）
   // 紙質、暈邊
   s+='<rect width="'+W+'" height="'+H+'" filter="url(#pap'+id+')" style="pointer-events:none"/><rect width="'+W+'" height="'+H+'" fill="url(#vg'+id+')" style="pointer-events:none"/>';
   // 外框
@@ -99,7 +105,7 @@ function regionMapSvg(rid,opts){
   s+='<g><rect x="13" y="13" width="'+tw+'" height="'+th+'" fill="#f7efd2" stroke="'+INK+'" stroke-width="1"/><rect x="15" y="15" width="'+(tw-4)+'" height="'+(th-4)+'" fill="none" stroke="'+RED+'" stroke-width=".6"/>'
    +tl.map((ch,i)=>'<text x="'+(13+tw/2)+'" y="'+(17+pitch*(i+0.5)).toFixed(1)+'" dominant-baseline="central" text-anchor="middle" font-size="11.5" font-weight="bold" fill="'+INK+'">'+esc(ch)+'</text>').join('')+'</g>';
   // 方位（北）：在幾個候選位置中挑離城市與名牌最遠者
-  const cc=[[W-26,34],[W-26,H-70],[W/2,24]].map(c=>[c,Math.min(...px.map(p=>Math.hypot(p.sx-c[0],p.sy-c[1])))]).sort((a,b)=>b[1]-a[1])[0][0],cx=cc[0],cy=cc[1];
+  const cc=[[W-26,34],[W-26,H-70],[W/2,34]].map(c=>[c,Math.min(...px.map(p=>Math.hypot(p.sx-c[0],p.sy-c[1])))]).sort((a,b)=>b[1]-a[1])[0][0],cx=cc[0],cy=cc[1];
   s+='<g stroke="'+INK+'" fill="none" stroke-width=".8"><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="#f7efd2" fill-opacity=".8"/><path d="M'+cx+' '+(cy-10)+'L'+(cx+3.2)+' '+(cy+2)+'L'+cx+' '+(cy-1)+'L'+(cx-3.2)+' '+(cy+2)+'Z" fill="'+RED+'"/><path d="M'+(cx-9)+' '+cy+'H'+(cx+9)+'M'+cx+' '+(cy+1)+'V'+(cy+10)+'" stroke-width=".5"/></g><text x="'+cx+'" y="'+(cy-14.5)+'" text-anchor="middle" font-size="10" font-weight="bold" fill="'+UT('map2.regionMapSvg',{a:INK});
   // 比例尺（百里）與落款印
   s+='<g stroke="'+INK+'" stroke-width=".8"><path d="M14 '+(H-14)+'H'+(14+50)+'M14 '+(H-17)+'V'+(H-11)+'M'+(14+50)+' '+(H-17)+'V'+(H-11)+'"/></g><text x="39" y="'+(H-18.5)+'" text-anchor="middle" font-size="8.5" fill="'+UT('map2.regionMapSvg.2',{a:INK});

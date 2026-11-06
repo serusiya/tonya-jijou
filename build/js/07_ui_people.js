@@ -22,6 +22,7 @@ function personBlock(cid,ctx){
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
   h+='<div class="text-brief muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
+  if(isOff)h+=escortTag(cid);                        // 同行朋友等著被引見（07zzb_escort.js）
   if(!r.bond&&foreignReg(n)){
     h+=letterMeetHtml(cid);                          // 外地遠國奉行所官員：只能寄問候信（07zz_letters.js）
   }else if(!r.bond){
@@ -81,8 +82,8 @@ ACT.visit=el=>{
   const roll=visitRoll(cid);
   visitFx({cid,outcome:roll.outcome,kind:'gift',prop:byErr?'gold':(g?g.prop:'letter'),propName:byErr?UT('ppl.visit'):(g?g.name:UT('ppl.visit.2')),actor:byErr?'apprentice':'player'},()=>{
     const r=R(cid);
-    if(roll.outcome==='absent'){logRel(cid,UT('ppl.visit.3'));toast(MSG('resolveVisit.1',{cid:nameOf(cid)}));UI.render();refreshSheet();return}
-    if(roll.outcome==='refuse'){const c=Math.min(G.silver,costOf('visitRefused'));spendAmt('visitRefused',c);r.lastOk=false;logRel(cid,UT('ppl.visit.4'));toast(MSG('resolveVisit.2',{c}));sfx.bad();UI.render();refreshSheet();return}
+    if(roll.outcome==='absent'){logRel(cid,UT('ppl.visit.3'));toast(MSG('resolveVisit.1',{cid:nameOf(cid)})+escortFail(cid,'door'));UI.render();refreshSheet();return}
+    if(roll.outcome==='refuse'){const c=Math.min(G.silver,costOf('visitRefused'));spendAmt('visitRefused',c);r.lastOk=false;logRel(cid,UT('ppl.visit.4'));toast(MSG('resolveVisit.2',{c})+escortFail(cid,'door'));sfx.bad();UI.render();refreshSheet();return}
     if(byErr){errandVisit(cid);return}
     battleStart(cid,gift);
   });
@@ -130,6 +131,10 @@ ACT.go=el=>{const k=el.dataset.go,i=GO_INFO[k];
   goTo(k)};
 /** 真正出門：公會登記開會時間，播走路動畫後開啟面板。 */
 function goTo(k){const i=GO_INFO[k];
+  if(escortOffer(k,()=>goWalk(k)))return;          // 出門時有人想同行（07zzb_escort.js）
+  goWalk(k)}
+/** 播走路動畫後開啟面板。 */
+function goWalk(k){const i=GO_INFO[k];
   playFx('walk',i[0],i[1],()=>UI.openSheet(k),900)}
 
 /** 人物卡是否為「見不到」（巡迴在外、嫌你不善言辭、名氣不足）——與 personBlock 的判斷相同。 */

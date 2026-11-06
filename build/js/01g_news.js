@@ -107,6 +107,8 @@ const NEWS_TXT={
   "skimTick.1":"🟨【私房錢】本旬盈餘 {surplus} 兩，按 {p}% 抽出 {amt} 兩存入私房錢。",
   /* —— injuryTick —— */
   "injuryTick.1":"💪【傷癒】傷勢痊癒，可以再度出門。",
+  "injuryTick.sick":"💪【病癒】臥床休養之後，總算能下床走動。",
+  "sick.fall":"🤒【病倒】{t}之後 {n} 旬只能臥床靜養。",
   /* —— rollAmbush —— */
   "rollAmbush.1":"⚔️【遇襲】途中遭人埋伏，保鏢「{name}」拔刀退敵，毫髮無傷！",
   "rollAmbush.2":"🩸【遇襲】途中遭人埋伏，保鏢「{name}」替你擋下一刀，當場殉職……",
@@ -264,6 +266,7 @@ const NEWS_TXT={
   "fr.visit.fire":"🤝【慰問】{n} 聽說倉庫失火，特地上門慰問。",
   "fr.visit.theft":"🤝【慰問】{n} 聽說倉庫遭竊，特地上門慰問。",
   "fr.visit.heal":"🤝【探望】{n} 聽說你傷好了，特地上門探望。",
+  "fr.visit.healSick":"🤝【探望】{n} 聽說你病好了，特地上門探望。",
   "fr.lend.news":"🤝【借用】「{n}」上門想借東西。",
   "fr.lodge.done":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩。",
   "fr.lodge.doneThanks":"🤝【寄放】「{n}」取回寄放的{g}，付寄放費 {a} 兩，另外塞了 {b} 兩謝禮。",
@@ -278,7 +281,10 @@ const NEWS_TXT={
   "fr.bust.lend":"🚨【出事】借給「{n}」的船在港口被扣，搜出{g} × {q}。",
   "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
   "drift.leave":"👥【另謀高就】「{n}」離開本城，往【{c}】謀生去了。",
-  "fr.bust.auto":"🚨【出事】{m}"
+  "fr.bust.auto":"🚨【出事】{m}",
+  "daimyo.pass":"🏯【大名行列】某藩大名行列今日過境本城，宿場人馬雜沓，城中買氣大旺。",
+  "escort.skip":"🚶【同行】「{f}」陪你去了奉行所，卻沒見到「{o}」大人，悻悻而回。",
+  "escort.risk":"🚨【牽連】「{f}」走「{o}」大人的門路行賄被查，供出當初是你引見的，風聲上升。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -302,10 +308,10 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
   firm:["branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
-  market:["rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
+  market:["daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  trouble:["escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];

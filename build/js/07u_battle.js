@@ -153,7 +153,8 @@ function battleEnd(){
   const cid=B.cid,r=R(cid),n=npc(cid),win=B.dmg>=B.hp;
   if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
     r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,UT('bt.battleEnd.2',{a:B.spent?UT('bt.battleEnd',{a:B.spent}):''}));sfx.bad();
-    UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub'),4600);BT=null;return;
+    const ef=escortFail(cid,'snub');                                 // 同行朋友的引見落空（07zzb_escort.js）
+    UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub')+ef,4600);BT=null;return;
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
@@ -162,8 +163,10 @@ function battleEnd(){
   logRel(cid,UT('bt.battleEnd.6',{a:((win?UT('bt.battleEnd.3'):UT('bt.battleEnd.4'))+(B.spent?UT('bt.battleEnd.5',{a:B.spent}):'')),b:gain}));
   if(win)sfx.gift();
   const msg=UT('bt.msg',{a:win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'),b:gain})+friendTip(cid);   // 好感 100 的商人朋友講出官員軟肋（07zz_friends.js）
+  const es=escortSettle(cid),side=es!==null?es:chanceMeetRoll(cid);   // 同行朋友引見（07zzb_escort.js）；沒有同行時擲拜訪巧遇（07zza_chancemeet.js）
   UI.render();refreshSheet();
-  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg));return}
+  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),side+requestHtml(cid,msg));return}
+  if(side){UI.showInfo(UT('cm.title',{a:nameOf(cid)}),side+'<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+esc(msg)+'</div></div><button class="pixel-btn btn-sm" data-act="reqDone" style="margin-top:6px">'+UT('cm.ok')+'</button>');return}
   UI.hideInfo();toast(msg,4200);BT=null;
 }
 /* 對話框被直接關掉＝閒話告辭 */

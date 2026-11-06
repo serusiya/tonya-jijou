@@ -62,10 +62,12 @@ function wikiOffice(){
   h+=UT('wiki.wikiOffice.5');
   return h;
 }
+/** 城名旁的「海運」「陸運」標籤：港口城可走海運；南海群島以外的城有陸路。 */
+const cityRouteTags=ct=>(canSea(ct)?' <span class="tag navy">'+UT('wiki.cityRoute.sea')+'</span>':'')+(ct.region_id!=='reg_south'?' <span class="tag green">'+UT('wiki.cityRoute.land')+'</span>':'');
 function cityLine(ct){
   const home=ct.id===G.cityId;
   const open=UI.s.wikiOpen&&UI.s.wikiOpen['c'+ct.id];
-  let h='<div class="card" style="margin-top:4px;'+(home?'border-color:#9b2c3a':'')+'"><div class="row" data-act="wikiToggle" data-k="c'+ct.id+'" style="cursor:pointer"><div><b>'+esc(ct.name)+'</b>'+(home?UT('wiki.h.2'):'')+' <span class="tag gray">'+UT('wiki.h.3',{a:esc(ct.location_type),b:fmt(cityPop(ct)),c:open?'▲':'▼'})+'</span></div>';
+  let h='<div class="card" style="margin-top:4px;'+(home?'border-color:#9b2c3a':'')+'"><div class="row" data-act="wikiToggle" data-k="c'+ct.id+'" style="cursor:pointer"><div><b>'+esc(ct.name)+'</b>'+(home?UT('wiki.h.2'):'')+cityRouteTags(ct)+' <span class="tag gray">'+UT('wiki.h.3',{a:esc(ct.location_type),b:fmt(cityPop(ct)),c:open?'▲':'▼'})+'</span></div>';
   h+=UT('wiki.cityLine.2',{a:cityProds(ct).length?cityProds(ct).map(n=>{const c=COMM_MAP[n];return c?'<span class="tag clk" data-act="commInfo" data-n="'+esc(n)+'">'+(isDevProd(ct,n)?'🌱':'')+esc(c.short.slice(0,6))+'</span>':''}).join(' '):UT('wiki.cityLine')})+'</div>';
   if(open){
     const f=ct.special_festival||{},sr=ct.seasonal_annual_rhythms||{},hist=(ct.history_100_years||[]).slice(0,3).map(x=>({year:yearStr(parseInt(x.year,10)),title:x.title})).concat(cityHistExtra(ct).map(x=>({year:yearStr(x.year),title:x.title})));   // 年份一律換成遊戲年（原本直接顯示「-39年」）

@@ -111,7 +111,7 @@ CHG.ujBudget=el=>{const S=(UI.s.uj=UI.s.uj||{});S.budget=snapVal(el);renderRoute
 ACT.ujGo=()=>{
   const J=G.ujob,S=UI.s.uj||{};if(!J||G.turn>J.until){toast(MSG('r4.ujClosed'));return}
   if(banditBlocks(J.mode)){toast(UT('bandit.notice.'+J.mode,{n:banditLeft()}),4200);return}
-  if((G.injured||0)>0){toast(MSG('sendVoyage.hurt',{injured:G.injured}),4200);return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured}),4200);return}
   const cap=idleCaptains(J.mode).find(e=>e.id===S.capt);if(!cap){toast(MSG('sendVoyage.2',{mode:NM('crew',J.mode)}));return}
   const ct=CITY(J.city);if(!ujobRoute(ct)){toast(MSG('sendVoyage.4',{REG_NAME:REG_NAME(ct.region_id),sea:(J.mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))}),4200);return}
   const left=J.qty-J.done-ujobTransit(),q=Math.floor(Math.min(S.qty||0,G.inv[J.name]||0,left,capOf(J.name,J.mode)));
@@ -183,7 +183,7 @@ ACT.tallyGo=()=>{
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
-  if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('smugGo.hurt'),{injured:G.injured}));return}
   if(!spendAP()){toast(MSG('smugGo.ap'));return}
   G.gold-=cost;T.out=true;
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,tally:true,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});

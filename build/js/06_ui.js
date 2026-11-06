@@ -53,7 +53,7 @@ function updateTop(){
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent=UT('top.debt',{a:fmt(tot),w:near?UT('top.debtIn',{n:near}):UT('top.debtNow')});e.title=UT('top.debtTip',{a:fmt(tot),w:near?UT('top.debtTipIn',{n:near}):UT('top.debtNow')});e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
   $('#d-gold').textContent=UT('top.amt',{a:Math.round(G.gold)});
   updateAP();updateFame();
-  { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent=UT('top.exile',{n:G.exile}); else if(a&&(G.injured||0)>0) a.textContent=UT('top.injured',{n:G.injured}); }
+  { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent=UT('top.exile',{n:G.exile}); else if(a&&(G.injured||0)>0) a.textContent=UT(G.injKind==='sick'?'top.sick':'top.injured',{n:G.injured}); }
   setTicker();
 }
 let _tk='';
@@ -137,20 +137,19 @@ function renderMarket(){
   h+='</div>';
   $('#view-market').innerHTML=h;updateQuote();
 }
-/** 市佔率卡片：我與本城同行的佔比與趨勢。 */
+/** 大盤依賴度的顯示（相場面板逐項貨顯示）。 */
 function depDisplay(x){
   const R=ODDS.dapanDependency;if(x.turns<R.win)return UT('mk.dep.wait',{n:x.turns,w:R.win});
   if(x.total>0&&x.coverage<R.knownMin)return UT('mk.dep.source');
   return x.value===null?UT('mk.dep.none'):(x.value*100).toFixed(2)+'%';
 }
+/** 市佔率卡片：我與本城同行的佔比與趨勢。 */
 function shareCard(){
-  shareFactor();const sh=G.share,dep=dapanDependency();if(!sh)return '';
+  shareFactor();const sh=G.share;if(!sh)return '';
   const rows=sh.rows.map(r=>({n:r.name,v:r.share,pv:r.prev,tag:r.raided?UT('mk.share.raided'):r.ev>1.1?UT('mk.share.hot'):r.ev<0.9?UT('mk.share.hurt'):''})).concat([{n:UT('mk.share.me'),v:sh.me,pv:null,me:true,tag:''}]).sort((a,b)=>b.v-a.v);
   const line=r=>{const pct=(r.v*100).toFixed(1);const tr=r.pv!==null&&r.pv!==undefined?(r.v>r.pv+0.002?'<span class="up">▲</span>':r.v<r.pv-0.002?'<span class="down">▼</span>':''):'';return '<div style="margin-top:3px"><div class="row tiny"><span'+(r.me?' style="font-weight:bold;color:#9b2c3a"':'')+'>'+esc(r.n)+r.tag+' '+tr+'</span><b>'+pct+'%</b></div>'+bar(r.v,0.5,r.me?'gold':'gray')+'</div>'};
   return '<div class="card"><div class="row"><b class="small">'+UT('mk.share.title')+'</b><span class="tag '+(sh.factor>=1?'green':'red')+'">'+UT(sh.factor>=1.25?'mk.share.f1':sh.factor>=1.05?'mk.share.f2':sh.factor>=0.95?'mk.share.f3':'mk.share.f4')+'</span></div>'+rows.map(line).join('')
    +'<div class="tiny muted" style="margin-top:4px">'+UT('mk.share.others',{p:(sh.others*100).toFixed(1)})+'</div>'
-   +'<div class="row tiny" style="border-top:1px solid #d8ccb3;margin-top:5px;padding-top:5px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(dep)+'</b></div>'
-   +'<div class="tiny muted">'+UT('mk.dep.note')+'</div>'
    +'</div>';
 }
 /** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
@@ -171,7 +170,8 @@ function tradeCard(name){
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
   h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
   h+='</div>';
   return h;
@@ -254,6 +254,7 @@ function renderRoutes(){
   const R_=UI.s.route;
   const crew=m=>UT('rt.crewFree',{n:crewCount(m),f:Math.max(0,crewCount(m)-crewBusy(m))});
   let h='<div class="pixel-box" style="padding:8px"><div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('rt.title')+'</b></div><span class="tag navy">'+UT('rt.slots',{c:crewCount('sea'),cc:slotCap('captain'),f:crewCount('land'),fc:slotCap('courier')})+'</span></div>';
+  h+=routeMapCard();                               // 商路地圖（07qa_routemap.js）
   h+='<div class="grid2 small" style="margin:6px 0;text-align:center"><div class="card" style="margin:0">'+UT('rt.sea')+'<br><b>'+(permitsOf().sea.all?UT('rt.allRegions'):UT('rt.nRegions',{n:Object.keys(permitsOf().sea).length}))+'</b><div class="tiny muted">'+UT('rt.captains',{c:crew('sea')})+'</div></div><div class="card" style="margin:0">'+UT('rt.land')+'<br><b>'+UT(landPermit()?'rt.got':'rt.notGot')+'</b><div class="tiny muted">'+UT('rt.couriers',{c:crew('land')})+'</div></div></div>';
   if(!anySea()&&!landPermit())h+='<div class="notice tiny">'+UT('rt.needPermit')+'</div>';
   if(G.ships.length){h+='<div class="small bold">'+UT('rt.outTitle')+'</div>'+G.ships.map(s=>'<div class="card"><div class="row"><b class="small">'+UT(s.mode==='land'?'rt.outLand':'rt.outSea',{n:esc(s.captName)})+'</b><span class="tag '+(s.eta<=1?'green':'gray')+'">'+UT('rt.left',{n:s.eta})+'</span></div><div class="tiny muted">'+(s.out?UT('rt.outSubOut',{c:esc(CITY(s.origId).name),g:COMM_MAP[s.out.name].short,q:s.out.q,b:fmt(s.budget)}):UT('rt.outSub',{c:esc(CITY(s.origId).name),b:fmt(s.budget),w:NM('crew',s.mode==='land'?'land':'sea')}))+'</div></div>').join('')}

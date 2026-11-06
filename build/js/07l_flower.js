@@ -84,6 +84,7 @@ ACT.nomOiran=el=>{
   const note=flowerSpend(spend('nominate'));
   if(!r.bond){r.bond={mult:1,label:UT('flower.nomOiran'),introId:null};r.met=true;r.seen=true;addKnown(cid);if(!r.fameGot){r.fameGot=true;addFame(0.6)}}
   setAff(r,clamp(r.aff+5,0,100));r.nomT=G.turn;r.decT=G.turn;
+  if(nomCountTurn()>=ODDS.sick.flower.nom)sickArm('flower');   // 一旬指名到第三位：離開吉原或推進時病倒（07zzd_sick.js）
   logRel(cid,UT('flower.nomOiran.2'));sfx.gift();
   const sm=chance(ODDS.smugMeet.nominate)?meetSmuggler('nominate'):null;   // 隔壁座敷偶遇闇商人
   const rn=chance(ODDS.ronin.nominate)?meetRonin('nominate'):null;          // 隔壁座敷偶遇浪人頭

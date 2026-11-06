@@ -80,10 +80,23 @@ ACT.enlist=el=>{
   const ok=R(cid).aff>=enlistNeed(rk);
   visitFx({cid,outcome:ok?'ok':'refuse',kind:'contract',prop:'contract'},()=>{const r=enlistTalent(cid,rk);toast(r.msg,Math.max(3200,r.msg.length*120));if(r.ok)sfx.coin();else sfx.bad();UI.render();refreshSheet()});
 };
-/** 另謀高就：本城沒見過面的人才偶爾搬到別的城。 */
+/** 本城沒見過面、可以異動的人才（另謀高就、職業調整共用）：不含員工、介紹人、物色名冊上的人。 */
+const driftPool=()=>cityNpcs(G.cityId).filter(n=>ENLIST_ROLES.includes(n.role)&&alive(n.cid)&&!n.hired&&!n.pos&&!jailed(n)&&!(G.rel[n.cid]&&(G.rel[n.cid].met||G.rel[n.cid].bond))&&!G.emps.some(e=>e.cid===n.cid)&&!G.intros.some(i=>i.cid===n.cid)&&!(G.recruit&&G.recruit.cands.includes(n.cid)));
+/** 職業調整：每季第一旬（例會旬）判一次。仲買人、旅商人、差配人有哪一種低於基本數，
+ *  就從高於基本數（多出最多）的那一種，挑一位本城沒見過面、手帳裡也沒有的人轉過去；一次只轉一人，都達基本數就不發生。不寫旬報。 */
+function roleShiftTick(){
+  if(!isMeetingTurn())return;
+  const B=ODDS.roleShift.base,cnt=k=>cityNpcs(G.cityId,k).filter(n=>alive(n.cid)&&!n.hired).length;
+  const C={};ENLIST_ROLES.forEach(k=>C[k]=cnt(k));
+  const need=ENLIST_ROLES.filter(k=>C[k]<B[k]).sort((a,b)=>(C[a]-B[a])-(C[b]-B[b]))[0];if(!need)return;   // 缺得多的先補
+  const pool=driftPool().filter(n=>!G.known.includes(n.cid));
+  const from=ENLIST_ROLES.filter(k=>k!==need&&C[k]>B[k]&&pool.some(n=>n.role===k)).sort((a,b)=>(C[b]-B[b])-(C[a]-B[a]))[0];if(!from)return;   // 多出最多的先轉出
+  pick(pool.filter(n=>n.role===from)).role=need;
+}
+/** 另謀高就：本城沒見過面的人才偶爾搬到別的城（不搬會讓該身分低於基本數的人）。 */
 function driftTick(log){
-  const D=ODDS.drift;
-  const L=cityNpcs(G.cityId).filter(n=>ENLIST_ROLES.includes(n.role)&&alive(n.cid)&&!n.hired&&!n.pos&&!jailed(n)&&!(G.rel[n.cid]&&(G.rel[n.cid].met||G.rel[n.cid].bond))&&!G.emps.some(e=>e.cid===n.cid)&&!G.intros.some(i=>i.cid===n.cid)&&!(G.recruit&&G.recruit.cands.includes(n.cid)));
+  const D=ODDS.drift,B=ODDS.roleShift.base,cnt=k=>cityNpcs(G.cityId,k).filter(n=>alive(n.cid)&&!n.hired).length;
+  const L=driftPool().filter(n=>cnt(n.role)>(B[n.role]||0));   // 不搬會讓該身分低於基本數的人
   if(L.length<=D.keep||!chance(D.p))return;
   const cs=(G.activeIds||[]).filter(id=>id!==G.cityId&&CITY(id));if(!cs.length)return;
   const n=pick(L),to=pick(cs);n.cityId=to;

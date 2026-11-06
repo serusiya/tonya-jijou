@@ -217,6 +217,7 @@ function newGame(sysKey,regionPref,startTier=0){
   G.trade=startTrade(sysKey,tier);                // 第六、七等級開局送第二貴貨物的交易許可
   initMarket();
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
+  daimyoPlan();                                    // 今年的大名行列過境旬（07zzc_daimyo.js）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
   // 官署人物皆為公開身分，列入手帳
   officialsOf(G.cityId).forEach(n=>addKnown(n.cid));

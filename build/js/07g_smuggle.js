@@ -219,7 +219,7 @@ ACT.smugGo=()=>{
   if(contraQty()+S.qty>CONTRA_CAP){toast(MSG('smugGo.4'));return}
   const cost=Math.round(it.cost*d.mult*S.qty);
   if(G.gold<cost){toast(MSG('smugGo.5',{cost}));return}
-  if((G.injured||0)>0){toast(MSG('smugGo.hurt',{injured:G.injured}));return}
+  if((G.injured||0)>0){toast(MSG(hurtKey('smugGo.hurt'),{injured:G.injured}));return}
   if(!spendAP()){toast(MSG('smugGo.ap'));return}     // 走私出海也要親自到碼頭交代：扣 1 行動點數
   G.gold-=cost;addHeat(0.3);
   smugList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),k:S.k,qty:S.qty,dest:S.dest,eta:d.d,capt:cap.id,captName:cap.name,risk:clamp(ODDS.smugRisk.p*d.d*crewRiskMult(cap),ODDS.smugRisk.min,ODDS.smugRisk.max)});
