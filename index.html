@@ -904,6 +904,7 @@ const ODDS={
   ,unloadJob:{name:'卸留請負（07zz_regfavor4.js）：需求倍數（旬數）、期限、報酬倍率、遇險損失、失約扣好感',turns:9,limit:6,payRate:1.5,lossRate:0.7,failAff:30,minQty:5}
   ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,daimyo:{name:'大名行列過境（07zzc_daimyo.js）：當旬本業貨需求倍率',mult:2}
+  ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
@@ -2603,6 +2604,7 @@ const UI_TXT={
   'bz.g.gRob':'「{a}」這趟在路上遇了劫，貨丟了大半。',
   'bz.g.gBuy':'「{a}」從「{b}」手上收了一批{c}，轉手賺了不少。',
   'bz.g.meGm':'「{a}」當上公會長以後，走路都有風。',
+  'bz.g.meWife':'聽說「{a}」的老闆娘收拾細軟回了娘家，東家連一句挽留都沒有。',
   'fav.fireAid':'火難御救',
   'fav.fireAid.d':'本旬倉庫失火：官府撥下救濟銀，損失貨值的一半，最多 800 兩。',
   'fav.cargoAid':'荷損御賑',
@@ -2838,6 +2840,32 @@ const UI_TXT={
   'body.regionalGo':'遞名帖 ▶',
   /* —— 店員偶發事件（07zt_staffevents.js） —— */
   'face.title.staff':'👥 店員急事',
+  'wife.title.good':'🌸 夫人',
+  'wife.title.bad':'🌸 家務事',
+  'wife.tag':'夫人',
+  'wife.lead':'<div class="tiny muted" style="margin-bottom:6px">你回到後屋，夫人正等著你……</div>',
+  'wife.good.fans':'娘家那條街的街坊說，往後要買{g}都來咱們店裡。',
+  'wife.good.fans.eff':'{g}在 {t} 旬內比平常好賣。',
+  'wife.good.intel':'今早在井邊打水，聽隔壁的老嬤嬤說起一樁買付的事。',
+  'wife.good.intel.eff':'【{r}】下一次大口買付在{m}。屆時別派人去產地採買。',
+  'wife.good.intel.none':'夫人說的那樁買付，你早已聽說了。',
+  'wife.good.recover':'帳上有一筆說不清的錢，妾身已經悄悄要回來了。是誰拿的，就別問了。',
+  'wife.good.recover.eff':'追回 {a} 兩，計入下一期旬報。店裡沒人察覺。',
+  'wife.good.recover.none':'夫人翻了幾天帳，說帳目清楚，沒什麼好追的。',
+  'wife.good.heat':'回娘家時聽說，奉行所近來對你沒什麼意見，妾身也替你說了幾句好話。',
+  'wife.good.heat.eff':'風聲 -{a}。',
+  'wife.bad.bully':'{k}{n}仗著資歷，當著夥計的面使喚妾身，說町人家的女兒也配當老闆娘……',
+  'wife.bad.bully.ask':'替夫人出頭，{n}就待不下去了；不管，他只會更囂張。',
+  'wife.bad.quarrel':'大番頭{n}說妾身不懂規矩，插手店裡的帳。妾身在娘家看了十幾年的帳，哪裡不懂？請老爺評評理。',
+  'wife.bad.quarrel.ask':'站在夫人這邊，大番頭會不高興；站在大番頭那邊，夫人會記在心裡。',
+  'wife.bad.flame':'{k}{n}今天又來了，說當年在父親府上就認得妾身，硬要妾身出去見他……',
+  'wife.bad.flame.ask':'替夫人擋下，就得罪了{n}；不管，街坊遲早要說閒話。',
+  'btn.wifeHelp.bully':'逼他走人',
+  'btn.wifeIgnore.bully':'視而不見',
+  'btn.wifeHelp.quarrel':'站夫人這邊',
+  'btn.wifeIgnore.quarrel':'站大番頭這邊',
+  'btn.wifeHelp.flame':'替夫人擋下',
+  'btn.wifeIgnore.flame':'視而不見',
   'sev.gamble':'東家……小的一時糊塗，在賭場欠下一筆債，債主揚言要上門來討。',
   'sev.gamble.ask':'替他還債，約 {a} 兩。',
   'sev.drunk':'昨夜喝多了，在酒館砸了人家的桌椅，對方說不賠錢就要告官……',
@@ -3081,6 +3109,7 @@ const UI_TXT={
   'letter.log.sent':'寄信附禮 {a} 兩，好感 +{g}',
   'letter.log.req':'寄書狀請託，附禮 {a} 兩',
   'mk.daimyo':'大名行列過境，需求大增',
+  'mk.wifeFans':'夫人娘家街坊捧場，需求較旺',
   'cm.title':'🍵 拜訪·{a}',
   'cm.ok':'告辭',
   'cm.bond':'經{a}引見',
@@ -3496,6 +3525,15 @@ const MSG_TXT={
   'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）',
   /* —— 店員偶發事件（07zt_staffevents.js） —— */
   'sev.short':'現款不夠。',
+  'wife.help.bully':'你當著全店的面把{n}叫來，他收拾包袱走了。夥計們這幾天說話都小聲了些。',
+  'wife.help.quarrel':'你說老闆娘看帳是天經地義。大番頭{n}嘴上應了，臉色卻不好看。',
+  'wife.help.flame':'你親自出面把{n}請了出去，他臨走前狠狠瞪了你一眼。',
+  'wife.happy':'夫人這幾日眉開眼笑。',
+  'wife.ign.bully':'你裝作沒聽見。{n}更不把夫人放在眼裡了。',
+  'wife.ign.quarrel':'你說店裡的帳還是交給大番頭。{n}鬆了口氣，夫人一聲不吭回了房。',
+  'wife.ign.flame':'你推說店裡忙，沒有出面。{n}在門口站了半晌才走。',
+  'wife.warn':'夫人當晚沒等你吃飯。',
+  'wife.left':'第二天一早，夫人{w}收拾細軟回了娘家，再也沒有回來。知名度 -{f}。',
   'sev.gamble.pay':'你替{n}還清了賭債，他連聲道謝，發誓再也不碰骰子。',
   'sev.gamble.ign':'{n}低著頭退下，眼神有些怨懟。',
   'sev.drunk.pay':'你替{n}賠了錢，他酒醒後羞愧不已。',
@@ -3845,6 +3883,10 @@ const NEWS_TXT={
   "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。",
   /* —— 店員偶發事件 —— */
   "sev.auto":"👥【店員】{m}",
+  "wife.auto":"🌸【家務】{m}",
+  "wife.bullyOut":"🌸【家務】{k}{n}對老闆娘無禮，被東家逼走了。",
+  "wife.recover":"🌸【家務】夫人悄悄追回帳上一筆 {a} 兩的虧空。",
+  "wife.left":"🌸【街談】{name}的夫人{w}收拾細軟回了娘家。街坊都說，是東家冷落了她。",
   "sev.creditor":"💢【店員】債主找上店門討{n}的賭債，街坊議論紛紛。",
   "sev.quit":"🚪【店員】{k}{n}寄來辭呈，說要回鄉照顧家人。",
   "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。",
@@ -3942,7 +3984,7 @@ const NEWS_CAT={
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
-  family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
+  family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
 const NEWS_MOVE=["peopleMove.official","peopleMove.residence","drift.leave"];
@@ -3963,6 +4005,7 @@ const CHANGELOG=[
     '新增商號紀錄：筆記多了「紀錄」一頁，開業以來每一旬的收支、每一期番付的名次，以及身代與知名度的走勢都留著。',
     '人才設定更新：請差配人來打工那一旬，店裡的手代空出手來照料庫存，損耗略減；相場面板會註明誰來幫忙。',
     '地圖設定更新：畫出河流與出海航路，街道改細；商路地圖上的船沿航路來回，出外地的船駛向出海口；拿掉指北針與比例尺，問屋印只標在本店所在地區。',
+    '新增夫人事件：每年夫人會帶來一件好事；依夫人出身，偶爾也有家務事要你出面，幫夫人添丁的機會較高，連續兩次視而不見，夫人會回娘家。',
     '修改背景資料'
   ]},
   {date:'2026年11月6日',items:[
@@ -4263,7 +4306,7 @@ function newGame(sysKey,regionPref,startTier=0){
     cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:null},   // 開局即參加協議，訂約金由開局贈送；供給方針在下方各半抽選
     staple:{streak:0,peak:1},ships:[],originTrips:{y:0,m:3,byCity:{}},
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
-    family:{spouse:null,kids:[],married:false},
+    family:{spouse:null,kids:[],married:false,birthBonus:0},wifeEv:null,wifeFans:null,wifeGone:null,
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};
@@ -4447,7 +4490,7 @@ const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOr
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
 const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lux.ph==='dry'?L.dryMult:m.lux.ph==='burst'?m.lux.mul:1};
-const demandEff=(c,m,noLux)=>m.D*festMult(c)*daimyoMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
+const demandEff=(c,m,noLux)=>m.D*festMult(c)*daimyoMult(c)*wifeMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
 /** 本旬同業有效供給；維持／減供的九成／七成目標已在 rivalSupply 計入，不再另外重複折減。 */
 const supplyEff=(c,m)=>m.so;
 /** 收市價視窗旬數：必需品三旬、一般貨六旬、奢侈品九旬（ODDS.priceWin）。 */
@@ -5068,6 +5111,7 @@ function advanceTurn(){
   chiefTick(log);
   branchTick(log);                                // 暖簾分（07zy_branch.js）
   staffEventTick(log);                            // 店員偶發事件（07zt_staffevents.js）
+  wifeTick(log);                                  // 夫人的好事與壞事（07zzh_wife.js）
   upkeep(log);
   randomEvent(log);
   cityTick(log);
@@ -5559,7 +5603,7 @@ function marry(kind,targetCid,introCid){
   spend(mk);introCost(it);
   const p=clamp(ODDS.marry.base+ODDS.marry.perScore*sc,ODDS.marry.min,ODDS.marry.max);
   if(!chance(p)){if(targetCid)setAff(R(targetCid),Math.max(0,R(targetCid).aff-5));logRel(introCid,MSG('log.marryFail'));return {ok:true,fail:true,msg:MSG('marry.4',{p:Math.round(p*100)})}}
-  const spouse={name:pick(NAMES.spouse)+UT('spouse.of',{f:NM('marryFam',kind)}),kind,birthYear:G.year-rint(17,24)};
+  const spouse={name:pick(NAMES.spouse)+UT('spouse.of',{f:NM('marryFam',kind)}),kind,birthYear:G.year-rint(17,24),since:G.turn,fatherCid:kind==='commoner'?null:(targetCid||null)};   // 岳父先記下，尚未牽動好感
   addFame(3,'mid');G.family.spouse=spouse;G.family.married=true;G.life.spouseKind=kind;
   let extra='';
   if(kind==='rival'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+25,0,100));G.cartel.comp=Math.min(90,G.cartel.comp+5);extra=MSG('marry.rival')}
@@ -5612,9 +5656,10 @@ function yearTick(log){
     if(a===12&&!k.revealed){k.revealed=true;const tt=NEWS('yearTick.4',{name:k.name,top3Of:statName(top3Of(k.stats)[0])});pushNews(tt);log.push(tt)}
     if(a>=16&&!k.prodigal&&k.stats.greed_index>65&&k.stats.integrity_loyalty<48&&roll('prodigal')){k.prodigal=true;const tt=NEWS('yearTick.5',{name:k.name});pushNews(tt);log.push(tt)}
   });
-  if(G.family.spouse&&G.family.kids.length<4&&G.year-G.family.spouse.birthYear<=42&&roll('birth')){
+  if(G.family.spouse&&G.family.kids.length<4&&G.year-G.family.spouse.birthYear<=42&&roll('birth',ODDS.birth.p+(G.family.birthBonus||0))){
     const k=newKid();G.family.kids.push(k);const tt=NEWS('yearTick.6',{gender:NM('gender',k.gender),name:k.name});pushNews(tt);log.push(tt);
   }
+  G.family.birthBonus=0;                           // 幫夫人的添丁加成只算當年（07zzh_wife.js）
   staffYearTick(log);                              // 員工久任成長
   newProdTick(log);                                // 一月上旬：一定機率新增本業貨產地
   // 壽數：40 歲起每年擲一次（基本小機率），45 歲後逐年遞增
@@ -6944,7 +6989,7 @@ function tradeCard(name){
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
-  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
+  h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(wifeMult(c)>1?' <span class="up">'+UT('mk.wifeFans')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
   {const hn=tempHelpNote();if(hn)h+='<div class="tiny" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#27407a">'+hn+'</div>'}   // 差配人臨時打工（07h_duties.js）
   h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
   if(monoItem(name))h+=UT('f8.monoTag',{n:G.mono.until-G.turn+1});                                    // 專賣株（07zze_favor8.js）
@@ -12176,7 +12221,7 @@ function roninVisit(cid){
 /* ======================= 回府時的事件（第一百六十一節） =======================
  *  第三個事件切入點：這一旬只要用掉行動點數（出門前往、商路出發、私房錢、宴客……），做完回到主畫面時，若有排隊的事件就跳出一件（每次最多一件）。
  *  開頭一句：出門回來＝「你回到店裡……」；在店裡做的事＝「正忙著，帳房進來說有人求見……」。
- *  - 排在這裡的：商人借錢、大番頭回報意外之財、浪人要錢、分號來訪、店員急事。
+ *  - 排在這裡的：商人借錢、大番頭回報意外之財、浪人要錢、分號來訪、店員急事、夫人事件（07zzh_wife.js）。
  *  - 這一旬沒輪到的，推進一旬時全部作廢：借錢＝婉拒；意外之財與分號送錢＝沒有這筆錢；浪人、分號調貨＝不算回絕；店員急事＝不算「不管」。
  *  - 輪到時才入帳的錢（意外之財、分號送錢）記在 G.carryIn，算進下一期旬報。
  *  旬報後的事件（查貨、官員索賄、官吏硬塞貨、暖簾分提議）仍走 07s_face_events.js 的 queueFaceEvent。 */
@@ -13720,6 +13765,7 @@ function bzGossip(){
   if((G.heat||0)>=BZ().heatGossip)T.push({key:'meHeat',about:['me']});
   const fl=(G.flower&&G.flower.spent)||0,fl0=G.bzFlower||0;if(fl-fl0>=BZ().flowerGossip)T.push({key:'meFlower',about:['me']});G.bzFlower=fl;
   if(gmIsMe())T.push({key:'meGm',about:['me']});
+  if(G.wifeGone&&G.wifeGone.t>(L?L.turn:-1))T.push({key:'meWife',about:['me']});   // 夫人離家出走（07zzh_wife.js）
   const n=Math.min(rint(BZ().gossip[0],BZ().gossip[1]),Math.max(1,new Set(T.map(g=>g.key)).size));
   const seen=new Set(),U=shuffle(T).filter(g=>!seen.has(g.key)&&seen.add(g.key));   // 同一種八卦一期只出一則
   const sameKind=c=>{const r=npc(c)&&npc(c).role;return (r==='guest'?gs:rv).map(x=>x.cid)};
@@ -13731,6 +13777,7 @@ function bzGossip(){
     }
     out.push(Object.assign({truth:true},g));
   });
+  if(T.some(g=>g.key==='meWife')&&!out.some(g=>g.key==='meWife')){if(out.length>=BZ().gossip[0])out.pop();out.unshift({key:'meWife',about:['me'],truth:true})}   // 夫人離家一定上八卦
   while(out.length<BZ().gossip[0]&&rv.length){out.push({key:'private',about:[pick(rv).cid],truth:false,v:rint(0,LINES.bz.private.length-1)})}
   return out;
 }
@@ -13970,6 +14017,145 @@ function wikiRecord(){
   if(UI.s.notesTab!=='rec')return _n.apply(this,arguments);
   $('#view-notes').innerHTML='<div class="pixel-box" style="padding:8px">'+UT('rec.h',{a:notesTabsHtml()})+'<div style="margin-top:6px">'+wikiRecord()+'</div></div>';
 }}
+
+'use strict';
+/* =====================================================================
+ * 07zzh_wife.js — 夫人事件（DESIGN_NOTES 第二百一十六節）
+ *  - 好事：每年一定一件，不分出身。街坊捧場（本業最便宜的貨兩旬好賣）、井邊風聲（免費買付風聲）、
+ *    暗中追討（要回揩油最多那人的錢，不算查帳）、娘家遞消息（風聲 -1）。
+ *  - 壞事：依出身各一種，成親滿兩季後才有，每年最多一件（ODDS.wife.badP），一位夫人一生最多三件。
+ *    町人之女＝店員欺負夫人；商人之女＝夫人與大番頭爭執；官員之女＝一階官員來找夫人舊情復燃。
+ *    只有「幫夫人」「視而不見」兩個選項。幫夫人：當年添丁機率提高（G.family.birthBonus，年底擲完歸零）。
+ *    第一次視而不見只有一句警告；連續兩次，夫人離家出走：知名度 -5、瓦版與番付八卦。孩子留下，之後可以再娶。
+ *  - 排程存在 G.wifeEv={key,y,good,bad,goodDone,badDone,cur}；回府時跳出（07zx_homeevt.js），沒輪到的下一旬再排。
+ *    壞事見過卻沒選就關掉：下一旬推進時視為視而不見。
+ *  數值 ODDS.wife；文字 01e（wife.*）、01f（wife.*）、01g（wife.*）。
+ * ===================================================================== */
+const WIFE_BAD={commoner:'bully',rival:'quarrel',official:'flame'};
+const wifeKey=sp=>sp?sp.name+'|'+(sp.since||0):'';
+/** 夫人頭像（同一位夫人外貌固定）。 */
+function portraitWife(sp,px){
+  const key='edo3|wife|'+sp.name,o={seed:'wife'+sp.name,gender:'f',age:Math.max(16,G.year-sp.birthYear),role:'guest',cloth:'#c46a8a',st:{}};
+  const size=px||48;
+  return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
+}
+/** 排定本年度（從本旬起到年底）的好事與壞事旬。成親、換年、舊存檔都會重排。 */
+function wifePlan(){
+  const sp=G.family.spouse;if(!sp){G.wifeEv=null;return}
+  const O=ODDS.wife,left=(12-G.month)*3+(3-G.cycle),start=G.turn,since=sp.since||0;
+  const good=start+rint(0,left);
+  const L=[];for(let t=start;t<=start+left;t++)if(t-since>=O.badAfter)L.push(t);
+  const bad=(sp.bad||0)<O.badMax&&L.length&&chance(O.badP)?pick(L):null;
+  G.wifeEv={key:wifeKey(sp),y:G.year,good,bad,goodDone:false,badDone:bad===null,cur:null};
+}
+/** 推進一旬（日期前進後）：上旬見過沒選的壞事＝視而不見；到期的事排進回府時。 */
+function wifeTick(log){
+  const W=G.wifeEv;
+  if(W&&W.cur&&W.cur.bad&&W.cur.shown&&!W.cur.done){const m=wifeResolve(false);if(m){const t=NEWS('wife.auto',{m});pushNews(t);log.push(t)}}
+  if(W)W.cur=null;
+  const sp=G.family.spouse;
+  if(!sp||(G.exile||0)>0||G.ended)return;
+  if(!G.wifeEv||G.wifeEv.y!==G.year||G.wifeEv.key!==wifeKey(sp))wifePlan();
+  const V=G.wifeEv;if(!V)return;
+  if(!V.badDone&&V.bad<=G.turn){const c=wifeBadPick(sp);if(c){V.cur=c;queueHomeEvent({type:'wifeBad'});return}V.badDone=true}
+  if(!V.goodDone&&V.good<=G.turn){V.cur={good:true,kind:wifeGoodPick()};queueHomeEvent({type:'wifeGood'})}
+}
+/** 壞事的對象；找不到就這一年不發生。 */
+function wifeBadPick(sp){
+  const kind=WIFE_BAD[sp.kind]||'bully';
+  if(kind==='bully'){
+    const L=G.emps.filter(e=>['apprentice','clerk','banto'].includes(e.rank)&&!jailedEmp(e)&&!sevAway(e));if(!L.length)return null;
+    const sc=e=>{const s=statsOfEmp(e);return s.greed_index-s.integrity_loyalty};
+    return {bad:true,kind,empId:L.slice().sort((a,b)=>sc(b)-sc(a))[0].id};
+  }
+  if(kind==='quarrel'){const e=G.emps.find(x=>x.rank==='chief'&&!jailedEmp(x)&&!sevAway(x));return e?{bad:true,kind,empId:e.id}:null}
+  const L=officialsOf(G.cityId).filter(n=>n.pos&&n.pos.rank===1&&!n.ronin&&alive(n.cid)&&!jailed(n)&&CH(n.cid).gender!=='f');
+  return L.length?{bad:true,kind,cid:pick(L).cid}:null;
+}
+/** 好事：每年一定一件；條件不合的不抽。 */
+function wifeGoodPick(){
+  const L=['fans'];
+  if(buyoutIntelNext())L.push('intel');
+  if(G.emps.some(e=>(e.skim||0)>=1))L.push('recover');
+  if((G.heat||0)>=1)L.push('heat');
+  return pick(L);
+}
+/** 本業最便宜的貨（街坊捧場的那一樣）。 */
+const wifeCheapest=()=>ownComms().slice().sort((a,b)=>a.base-b.base)[0];
+/** 街坊捧場的需求倍率（03_market.js 的 demandEff）。 */
+const wifeMult=c=>G&&G.wifeFans&&G.turn<=G.wifeFans.until&&c.name===G.wifeFans.name?ODDS.wife.fansMult:1;
+/** 好事生效（回府時跳出那一刻）；回傳效果說明。 */
+function wifeGoodApply(kind){
+  const O=ODDS.wife;
+  if(kind==='fans'){const c=wifeCheapest();if(!c)return '';G.wifeFans={name:c.name,until:G.turn+O.fansTurns-1};return UT('wife.good.fans.eff',{g:xName(c.name),t:O.fansTurns})}
+  if(kind==='intel'){const I=buyoutIntelNext();if(!I)return UT('wife.good.intel.none');buyoutDiscover(I.y,I.rid,I.m);return UT('wife.good.intel.eff',{r:REG_NAME(I.rid),m:buyoutMonth(I.m)})}
+  if(kind==='recover'){
+    const e=G.emps.filter(x=>(x.skim||0)>=1).sort((a,b)=>b.skim-a.skim)[0];if(!e)return UT('wife.good.recover.none');
+    const amt=Math.round(e.skim);e.skim=0;G.silver+=amt;G.carryIn=G.carryIn||{};G.carryIn.windfall=(G.carryIn.windfall||0)+amt;sfx.coin();
+    pushNews(NEWS('wife.recover',{a:fmt(amt)}));
+    return UT('wife.good.recover.eff',{a:fmt(amt)});
+  }
+  if(kind==='heat'){G.heat=Math.max(0,(G.heat||0)-O.heatCut);return UT('wife.good.heat.eff',{a:O.heatCut})}
+  return '';
+}
+/** 回府時事件卡。 */
+function wifeCard(e){
+  const sp=G.family.spouse,W=G.wifeEv,C=W&&W.cur;if(!sp||!C)return null;
+  const head=(line,effect,buttons)=>'<div class="card warn" style="display:flow-root">'+portraitWife(sp,56)+'<div><b style="font-size:17px">'+esc(sp.name)+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(UT('wife.tag')),b:esc(line),c:esc(effect)})+'</div>'+(buttons||UT('face.buttons'))+'</div>';
+  if(e.type==='wifeGood'){
+    if(!C.good)return null;
+    if(C.eff===undefined){C.eff=wifeGoodApply(C.kind);W.goodDone=true}
+    return head(UT('wife.good.'+C.kind,{g:G.wifeFans?xName(G.wifeFans.name):''}),C.eff);
+  }
+  if(!C.bad||C.done)return null;
+  const v=wifeVars(C);if(!v)return null;
+  C.shown=true;
+  return head(UT('wife.bad.'+C.kind,v),UT('wife.bad.'+C.kind+'.ask',v),
+    '<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="wifeHelp">'+UT('btn.wifeHelp.'+C.kind)+'</button><button class="pixel-btn btn-sm" data-act="wifeIgnore">'+UT('btn.wifeIgnore.'+C.kind)+'</button></div>');
+}
+/** 壞事文字用的變數（對象已不在就不發生）。 */
+function wifeVars(C){
+  if(C.empId){const e=G.emps.find(x=>x.id===C.empId);return e?{n:e.name,k:rankName(e.rank)}:null}
+  if(C.cid){const n=npc(C.cid);return n&&alive(C.cid)?{n:nameOf(C.cid),k:posTitle(n)}:null}
+  return null;
+}
+/** 結算壞事：help＝幫夫人。回傳給玩家看的一句話。 */
+function wifeResolve(help){
+  const W=G.wifeEv,C=W&&W.cur,sp=G.family.spouse;if(!C||!C.bad||C.done||!sp)return null;
+  const O=ODDS.wife,v=wifeVars(C)||{n:'',k:''};
+  C.done=true;W.badDone=true;sp.bad=(sp.bad||0)+1;
+  const e=C.empId&&G.emps.find(x=>x.id===C.empId);
+  if(help){
+    sp.ign=0;
+    if(C.kind==='bully'&&e){
+      G.emps=G.emps.filter(x=>x!==e);if(e.cid&&npc(e.cid))npc(e.cid).hired=false;
+      G.emps.forEach(x=>{x.aff=clamp(empAff(x)-O.bullyOthers,0,100)});
+      pushNews(NEWS('wife.bullyOut',{n:v.n,k:v.k}));
+    }else if(C.kind==='quarrel'&&e)e.aff=clamp(empAff(e)-O.quarrelAff,0,100);
+    else if(C.kind==='flame'&&C.cid)setAff(R(C.cid),Math.max(0,R(C.cid).aff-O.flameAff));
+    G.family.birthBonus=Math.min(O.birthCap,(G.family.birthBonus||0)+O.birthUp);
+    return MSG('wife.help.'+C.kind,v)+MSG('wife.happy');
+  }
+  if(C.kind==='bully'&&e)e.boldUntil=Math.max(e.boldUntil||0,G.turn+O.boldTurns);
+  else if(C.kind==='quarrel'&&e)e.aff=clamp(empAff(e)+O.chiefUp,0,100);
+  sp.ign=(sp.ign||0)+1;
+  if(sp.ign>=O.leaveAfter)return MSG('wife.ign.'+C.kind,v)+wifeLeave();
+  return MSG('wife.ign.'+C.kind,v)+MSG('wife.warn');
+}
+/** 夫人離家出走：孩子留下；知名度下降；瓦版與下一期番付的八卦。 */
+function wifeLeave(){
+  const sp=G.family.spouse;if(!sp)return '';
+  G.family.exWives=(G.family.exWives||[]).concat([{name:sp.name,kind:sp.kind,left:G.turn}]);
+  G.family.spouse=null;G.wifeEv=null;G.wifeGone={t:G.turn,name:sp.name};
+  setFame((G.fame||0)-ODDS.wife.leaveFame);
+  pushNews(NEWS('wife.left',{name:G.me.name,w:sp.name}));
+  return MSG('wife.left',{w:sp.name,f:ODDS.wife.leaveFame});
+}
+ACT.wifeHelp=()=>{const m=wifeResolve(true);UI.hideInfo();if(m){sfx.coin();toast(m,4600)}UI.render()};
+ACT.wifeIgnore=()=>{const m=wifeResolve(false);UI.hideInfo();if(m)toast(m,4600);UI.render()};
+FACE_TITLE.wifeGood='wife.title.good';FACE_TITLE.wifeBad='wife.title.bad';
+{const _s=showHomeEvent;showHomeEvent=function(lead){const e=homeQ().find(x=>x.turn===G.turn);return _s(e&&(e.type==='wifeGood'||e.type==='wifeBad')?'wife.lead':lead)}}   // 夫人事件換一句開頭
+{const _f=faceEventCard;faceEventCard=function(e){return e&&(e.type==='wifeGood'||e.type==='wifeBad')?wifeCard(e):_f(e)}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
