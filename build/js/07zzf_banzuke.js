@@ -148,6 +148,7 @@ function bzGossip(){
   if((G.heat||0)>=BZ().heatGossip)T.push({key:'meHeat',about:['me']});
   const fl=(G.flower&&G.flower.spent)||0,fl0=G.bzFlower||0;if(fl-fl0>=BZ().flowerGossip)T.push({key:'meFlower',about:['me']});G.bzFlower=fl;
   if(gmIsMe())T.push({key:'meGm',about:['me']});
+  if(G.wifeGone&&G.wifeGone.t>(L?L.turn:-1))T.push({key:'meWife',about:['me']});   // 夫人離家出走（07zzh_wife.js）
   const n=Math.min(rint(BZ().gossip[0],BZ().gossip[1]),Math.max(1,new Set(T.map(g=>g.key)).size));
   const seen=new Set(),U=shuffle(T).filter(g=>!seen.has(g.key)&&seen.add(g.key));   // 同一種八卦一期只出一則
   const sameKind=c=>{const r=npc(c)&&npc(c).role;return (r==='guest'?gs:rv).map(x=>x.cid)};
@@ -159,6 +160,7 @@ function bzGossip(){
     }
     out.push(Object.assign({truth:true},g));
   });
+  if(T.some(g=>g.key==='meWife')&&!out.some(g=>g.key==='meWife')){if(out.length>=BZ().gossip[0])out.pop();out.unshift({key:'meWife',about:['me'],truth:true})}   // 夫人離家一定上八卦
   while(out.length<BZ().gossip[0]&&rv.length){out.push({key:'private',about:[pick(rv).cid],truth:false,v:rint(0,LINES.bz.private.length-1)})}
   return out;
 }

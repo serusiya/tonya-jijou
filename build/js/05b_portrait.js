@@ -27,6 +27,7 @@ const PT_SKIN=[
 
 /** 角色使用的江戶服飾類型。 */
 function ptDress(o){
+  if(o.dress)return o.dress;                       // 指定衣著：monk 和尚、miko 巫女、sansuke 三助（07zzi_stress.js 的出遊）
   if(o.oiran)return 'oiran';
   if(o.gender==='f')return 'kosode';
   if(o.rank>0||o.role==='official')return 'kamishimo';
@@ -99,10 +100,22 @@ function ptDraw(o){
     R(8,41,3,3,'#d7ac4a');R(37,42,3,3,'#d7ac4a');R(10,43,2,2,'#ead08a');R(35,39,2,2,'#ead08a');
   }else if(dress==='samurai'){
     H(6,13,42,clothDark,2);H(34,41,42,clothDark,2);R(39,33,3,8,'#6a4a2e');R(40,32,2,3,'#b39150');
+  }else if(dress==='monk'){
+    // 墨染衣上斜披袈裟：左肩往右下，加一條肩帶與金色環扣。
+    const kesa=o.kesa||'#8a5a2c',kd=ptShade(kesa,-30);
+    for(let y=36;y<=47;y++){R(7+Math.round((y-36)*1.6),y,6,1,kesa);R(7+Math.round((y-36)*1.6),y,1,1,kd)}
+    V(33,35,47,kesa,3);R(32,41,5,3,'#c9a64a');R(33,42,3,1,'#e3c873');
+  }else if(dress==='miko'){
+    // 巫女：白衣，下緣露出緋袴。
+    H(4,43,45,'#b3322b',3);H(4,43,45,'#8f2420');V(23,44,47,'#8f2420');
+  }else if(dress==='sansuke'){
+    // 三助：藍半纏捲袖，襷掛交叉，手拭搭在肩上。
+    for(let i=0;i<10;i++){R(10+i*2,37+i,3,1,'#c9b37a');R(36-i*2,37+i,3,1,'#c9b37a')}
+    R(5,37,7,3,'#ece6d6');R(6,40,3,4,'#ece6d6');R(5,37,7,1,'#cfc7b4');
   }
 
   // 小袖交領；羽織在外，白襟只露窄邊。
-  const collar=woman||dress==='oiran'?'#eee5d2':'#e4dccb';
+  const collar=woman||dress==='oiran'||dress==='miko'?'#eee5d2':'#e4dccb';
   H(18,21,35,collar);H(26,29,35,collar);
   H(17,22,36,collar);H(25,30,36,collar);H(18,23,37,collar);H(24,29,37,collar);
   H(19,24,38,clothDark);H(24,28,38,clothDark);V(23,38,47,clothDark,2);
@@ -123,12 +136,21 @@ function ptDraw(o){
     H(19,28,3,hair,3);H(21,30,1,hair,2);R(13,10,4,5,hairHi);R(31,10,4,6,hairHi);
     V(13,19,27,hair);V(34,18,27,hair);
     const pin=['#a5453d','#b48a36','#315f70'][Math.floor(rg()*3)];
-    if(age<58){H(29,37,6,pin,2);R(36,5,2,5,pin)}
+    if(dress==='miko'){
+      // 垂髮在背後以檀紙束起，額前平分；不插簪。
+      V(10,22,40,hair,3);V(35,22,40,hair,3);R(9,30,5,3,'#f1ede2');R(34,30,5,3,'#f1ede2');R(20,2,8,3,'#f1ede2');R(22,1,4,1,'#b3322b');
+    }else if(age<58){H(29,37,6,pin,2);R(36,5,2,5,pin)}
     if(o.oiran){
       H(8,18,7,'#c49a3f',2);H(30,40,9,'#c49a3f',2);V(9,5,14,'#d7b85f',2);V(38,6,16,'#d7b85f',2);
       R(7,4,4,3,'#a63f38');R(38,7,4,3,'#a63f38');H(20,29,2,'#b99038');
     }
   }else{
+    if(dress==='monk'){
+      // 剃髮：整顆頭是皮膚色的圓頂，留一點青色髮根。
+      H(18,29,5,outline);H(16,31,6,outline);H(15-broad,32+broad,7,outline,2);
+      H(18,29,6,sk.mid);H(16,31,7,sk.mid,2);H(15-broad,32+broad,9,sk.mid,3);H(17,30,7,'#9a9488');H(19,28,6,'#aaa498');
+      R(18,8,4,2,sk.hi);V(14-broad,12,22,sk.lo);V(33+broad,12,22,sk.lo);
+    }else{
     // 側髮與後髮保留，前額剃月代；頭頂髷向後收束。
     H(15-broad,32+broad,8,hair,3);R(13-broad,10,5,8,hair);R(30,10,5+broad,9,hair);
     V(12-broad,14,23,hair,3);V(34,14,24,hair,3);R(15,10,4,3,hairHi);R(31,11,3,5,hairHi);
@@ -136,8 +158,10 @@ function ptDraw(o){
     if(dress==='captain'){
       H(10,37,10,'#ded5c0',3);R(34,12,6,3,'#ded5c0');R(38,15,4,4,'#ded5c0');R(40,18,2,3,'#bdb39e');
       R(13,10,7,2,'#405d75');R(26,10,7,2,'#405d75');
-    }else if(dress==='courier'){
+    }else if(dress==='courier'||dress==='sansuke'){
       H(11,36,11,'#e4dccb',3);R(34,14,6,2,'#e4dccb');R(38,16,3,3,'#e4dccb');
+      if(dress==='sansuke'){H(11,36,12,'#3f5f7a');R(39,15,2,4,'#e4dccb')}
+    }
     }
   }
 
@@ -194,6 +218,14 @@ function ptDraw(o){
 function ptShade(hex,amt){
   const n=parseInt(hex.slice(1),16),r=Math.max(0,Math.min(255,(n>>16)+amt)),g=Math.max(0,Math.min(255,((n>>8)&255)+amt)),b=Math.max(0,Math.min(255,(n&255)+amt));
   return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+/** 名冊以外的人物（寺社的和尚、巫女，溫泉的三助）：kind＝monk／miko／sansuke，seed 固定外貌。 */
+function portraitFigure(kind,seed,px){
+  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'}}[kind];
+  const key='edo3|fig|'+kind+'|'+seed;
+  const o=Object.assign({seed:kind+seed,role:'guest',dress:kind,st:{diplomacy_charm:70}},F);
+  return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+(px||48)+'" height="'+(px||48)+'" alt="" aria-hidden="true">';
 }
 
 /** 依人物 cid 取頭像；每八歲更新年齡層，換裝與職位同步更新。 */

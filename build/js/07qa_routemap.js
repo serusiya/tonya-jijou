@@ -2,7 +2,7 @@
  * 07qa_routemap.js — 商路頁的地圖
  *  - 五地區縮圖：手繪感的地區輪廓（照各城相對位置疊出），只畫海運航線：本店 → 其他地區的主城。
  *    有該地區泊位許可＝實線，沒有＝淡虛線。點地區展開該地區的城市圖（regionMapSvg）。
- *  - 城市圖：陸運沿既有道路走；本地區港口之間另畫海運航線（南海島間原本就有海路，不另畫）。
+ *  - 城市圖：馬沿街道走；船沿地圖上的河流與航路走（南海沿島間海路）；往外地的船併成一艘，沿航路往出口來回。不另畫航線。
  *  - 在途的委託採買與卸留請負外運：一條路線只畫一艘示意船（或一匹馬），從本店慢慢走到目的地、轉頭回本店，一直來回。
  *    點船或馬，列出這條路線上的人與各剩幾旬。走私、唐船割符、借給朋友的人不畫。
  *  文字在 01e 的 rmap.*。
@@ -91,26 +91,26 @@ function rmapOverviewSvg(){
   s+='<rect x="3" y="3" width="'+(W-6)+'" height="'+(H-6)+'" fill="none" stroke="'+RMAP_INK+'" stroke-width="2.2" style="pointer-events:none"/><rect x="7" y="7" width="'+(W-14)+'" height="'+(H-14)+'" fill="none" stroke="'+RMAP_INK+'" stroke-width=".6" style="pointer-events:none"/>';
   return s+'</svg>';
 }
-/** 城市圖疊加層：區內海運航線（底層）。 */
-function rmapUnder(ctx){
-  const home=homeCity();if(ctx.rid!==home.region_id||!canSea(home)||ctx.rid==='reg_south')return '';   // 南海島間本來就畫了海路
-  const hp=ctx.px.find(p=>p.c.id===home.id);if(!hp)return '';
-  const ok=seaPermitFor(home);
-  return ctx.px.filter(p=>p.c.id!==home.id&&canSea(p.c)).map(p=>{const cv=rmapCurve([hp.sx,hp.sy],[p.sx,p.sy],'in'+p.c.id);
-    return '<path id="rmsea_'+p.c.id+'" d="'+cv.d+'" fill="none" stroke="'+(ok?RMAP_SEA:'#7d8b8a')+'" stroke-width="'+(ok?1.1:.7)+'" stroke-dasharray="'+(ok?'4 2.5':'1.5 3')+'" stroke-linecap="round" opacity="'+(ok?.8:.6)+'"/>'}).join('');
-}
-/** 城市圖疊加層：示意船與馬（畫在城市與名牌底下）。陸運沿道路走最短路線；南海的船沿島間海路走。 */
+/** 城市圖疊加層：示意船與馬（畫在城市與名牌底下）。馬沿街道走；船沿河流與航路走（南海沿島間海路）；往外地的船沿航路往出口來回。 */
+let rmapSeq=0;   // 路線 path 的 id 流水號（同一頁不重複）
 function rmapOver(ctx){
   const home=homeCity();if(ctx.rid!==home.region_id)return '';
   const px=ctx.px,hi=px.findIndex(p=>p.c.id===home.id);if(hi<0)return '';
-  const groups=rmapGroups();let s='';
+  const groups=rmapGroups(),hp=px[hi];let s='';
+  const mover=(key,cv,dx,icon)=>{const id='rm'+(++rmapSeq)+'_'+key.replace(/[^\w]/g,'_');s+='<path id="'+id+'" d="'+cv.d+'" fill="none" stroke="none"/>'+rmapMover(id,cv.len,dx,icon,key)};
+  // 往外地的船：全部併成一艘，沿航路駛向出口、出了圖框再回來（南海先沿島間海路到出海的那座島）
+  if(Object.keys(groups).some(k=>k[0]==='R')){
+    let cv=ctx.net&&ctx.net.path(hp,null);
+    if(!cv){const W=ctx.W,H=ctx.H,c=[[-20,hp.sy,hp.sx],[W+20,hp.sy,W-hp.sx],[hp.sx,-20,hp.sy],[hp.sx,H+20,H-hp.sy]].sort((a,b)=>a[2]-b[2])[0];cv=rmapCurve([hp.sx,hp.sy],[c[0],c[1]],'out'+home.id)}
+    mover('X',cv,1,RMAP_BOAT);
+  }
   Object.keys(groups).forEach(k=>{
     const mode=k[0],id=k.slice(1),di=px.findIndex(p=>p.c.id===id);if(di<0||mode==='R')return;
-    if(mode==='S'&&ctx.rid!=='reg_south'){const cv=rmapCurve([px[hi].sx,px[hi].sy],[px[di].sx,px[di].sy],'in'+id);
-      s+='<path id="rmsea2_'+id+'" d="'+cv.d+'" fill="none" stroke="none"/>'+rmapMover('rmsea2_'+id,cv.len,px[di].sx-px[hi].sx,RMAP_BOAT,k);return}
+    const dx=px[di].sx-hp.sx;
+    if(mode==='S'&&ctx.rid!=='reg_south'){mover(k,(ctx.net&&ctx.net.path(hp,px[di]))||rmapCurve([hp.sx,hp.sy],[px[di].sx,px[di].sy],'in'+id),dx,RMAP_BOAT);return}
     const path=rmapRoadPath(px,ctx.E,hi,di);let d='',len=0;
     path.forEach((i,j)=>{d+=(j?'L':'M')+px[i].sx+' '+px[i].sy;if(j)len+=Math.hypot(px[i].sx-px[path[j-1]].sx,px[i].sy-px[path[j-1]].sy)});
-    s+='<path id="rmland_'+id+'" d="'+d+'" fill="none" stroke="none"/>'+rmapMover('rmland_'+id,len,px[di].sx-px[hi].sx,mode==='S'?RMAP_BOAT:RMAP_HORSE,k);
+    mover(k,{d,len},dx,mode==='S'?RMAP_BOAT:RMAP_HORSE);
   });
   return s;
 }
@@ -132,7 +132,7 @@ function routeMapCard(){
   }
   h+='<div style="margin:2px 0 4px"><span class="pill" data-act="rmapBack">'+UT('rmap.back')+'</span> <b class="small">'+esc(REG_NAME(rid))+'</b></div>';
   const sel=UI.s.rmapSel&&CITY(UI.s.rmapSel)&&CITY(UI.s.rmapSel).region_id===rid?UI.s.rmapSel:null;
-  h+=regionMapSvg(rid,{home:G.cityId,sel,act:'rmapCity',under:x=>rmapUnder(x)+rmapOver(x)});   // 船馬畫在城市與名牌底下，經過時不會蓋住城名
+  h+=regionMapSvg(rid,{home:G.cityId,sel,act:'rmapCity',under:x=>rmapOver(x)});   // 船馬畫在城市與名牌底下，經過時不會蓋住城名
   h+='<div class="tiny muted" style="text-align:center;margin-top:3px">'+UT('rmap.hint2')+'</div></div>';
   if(sel)h+=cityLine(CITY(sel));
   return h;
@@ -141,7 +141,7 @@ ACT.rmapReg=el=>{UI.s.rmap=el.dataset.id;UI.s.rmapSel=null;renderRoutes();sfx.ta
 ACT.rmapBack=()=>{UI.s.rmap=null;UI.s.rmapSel=null;renderRoutes();sfx.tap()};
 ACT.rmapCity=el=>{const id=el.dataset.cid;UI.s.rmapSel=UI.s.rmapSel===id?null:id;UI.s.wikiOpen=UI.s.wikiOpen||{};UI.s.wikiOpen['c'+id]=true;renderRoutes();sfx.tap()};
 ACT.rmapShip=el=>{
-  const k=el.dataset.k,L=rmapGroups()[k]||[];if(!L.length)return;
-  const place=k[0]==='R'?UT('rmap.reg.'+k.slice(1)):CITY(k.slice(1)).name;
+  const k=el.dataset.k,G_=rmapGroups(),L=k==='X'?Object.keys(G_).filter(q=>q[0]==='R').flatMap(q=>G_[q]):(G_[k]||[]);if(!L.length)return;
+  const place=k==='X'?UT('rmap.abroad'):k[0]==='R'?UT('rmap.reg.'+k.slice(1)):CITY(k.slice(1)).name;
   UI.showInfo(UT('rmap.shipTitle',{a:place}),L.map(s=>'<div class="card small">'+UT(s.out?'rmap.shipRowOut':'rmap.shipRow',{n:esc(s.captName||''),c:esc(CITY(s.origId).name),t:s.eta})+'</div>').join(''));
 };

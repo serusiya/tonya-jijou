@@ -245,6 +245,14 @@ const NEWS_TXT={
   "rival.heirF":"🏪【繼承】已故「{old}」的私生女「{name}」繼承家業，接掌商號。",
   /* —— 店員偶發事件 —— */
   "sev.auto":"👥【店員】{m}",
+  "stress.up.1":"🍵【身心】近來諸事纏身，有些力不從心了。",
+  "stress.up.2":"🍵【身心】心力交瘁，再撐下去恐怕要病倒。",
+  "stress.ease":"🍵【身心】這陣子心頭輕鬆了不少。",
+  "stress.yearWorn":"🍵【身心】你這一年操勞過度，身子大不如前。",
+  "wife.auto":"🌸【家務】{m}",
+  "wife.bullyOut":"🌸【家務】{k}{n}對老闆娘無禮，被東家逼走了。",
+  "wife.recover":"🌸【家務】夫人悄悄追回帳上一筆 {a} 兩的虧空。",
+  "wife.left":"🌸【街談】{name}的夫人{w}收拾細軟回了娘家。街坊都說，是東家冷落了她。",
   "sev.creditor":"💢【店員】債主找上店門討{n}的賭債，街坊議論紛紛。",
   "sev.quit":"🚪【店員】{k}{n}寄來辭呈，說要回鄉照顧家人。",
   "sev.poached":"🚪【店員】{k}{n}辭工，轉往「{r}」效力。",
@@ -342,7 +350,7 @@ const NEWS_CAT={
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
-  family:["marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
+  family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
 const NEWS_MOVE=["peopleMove.official","peopleMove.residence","drift.leave"];

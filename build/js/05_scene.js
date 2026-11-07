@@ -531,7 +531,7 @@ function playFx(kind,cap,sub,done,ms){
   if(FX.busy){done&&done();return}
   FX.busy=true;ms=ms||1150;
   const fx=$('#fx');fx.classList.add('on');fx.style.setProperty('--dur',(ms/1000)+'s');
-  const town=$('#fx-town');town.style.backgroundImage='url('+IMG_STREET+')';
+  const town=$('#fx-town');town.style.backgroundImage='url('+(FX.bg||IMG_STREET)+')';FX.bg=null;   // FX.bg：這一次換背景（寺社、溫泉）
   town.style.animation='none';void town.offsetWidth;town.style.animation='';
   const cv=$('#fx-walker');cv.style.animation='none';void cv.offsetWidth;cv.style.animation='';
   fxSprite(kind,0);

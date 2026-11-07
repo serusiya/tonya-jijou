@@ -13,7 +13,7 @@ const ODDS={
     gap:[0.9,0.6],gossip:[3,4],falseP:0.3,keep:4,heatGossip:3,flowerGossip:600,topicTurns:9,sayP:0.3},   // 身代以玩家開局現款為基準的倍數；rv 同業、gs 旅商（每季行商結果）；gap：和上一位（或榜尾）相比，只差一步／還差一截的比例；falseP：八卦是假的比例
   f8:{name:'0.8 先行請託（07zze_favor8.js）',fearTurns:3,fraud:{sea:[3500,4500],land:[2500,3500]},fraudRest:3,fraudHeat:1.5,suspCost:3000,suspTurns:3,suspAff:30,suspHeat:1,mono:{mono5:{cost:5000,turns:3},mono6:{cost:10000,turns:9}},monoBuyX:2,kesshoGold:1000,kesshoMin:3,newTown:{cost:6000,p:[0.4,0.7,1],pop:0.05,cd:12},lossRate:0.5,lossCap:800,theftBack:[0.2,0.3]},
   gm:{name:'問屋公會長（07yc_gm.js）',fameWin:5,famePerTurn:0.1,rivalAff:3,voteAff:5,bribeVar:0.1,canvassX:3,canvassComp:[0.5,1,1.5,2],canvassShare:2,fineX:1.2,evP:0.5,arbFav:10,arbHurt:20,arbAff:5,arbCost:[500,1500],levy:[3000,8000],levyFame:5,levyAff:40},   // canvassComp：投票人與對手相容（格格不入、相談甚歡、意氣相投、一見如故）的心防係數；canvassShare：對手市佔每多一成，心防 +20%
-  sick:{name:'病倒（07zzd_sick.js）',flower:{nom:3,turns:2}},   // 吉原同一旬指名第 nom 位花魁後病倒，之後 turns 個完整的旬不能出門
+  sick:{name:'病倒（07zzd_sick.js）',flower:{nom:3,turns:2},stress:{turns:3}},   // stress：壓力到 90 病倒，靜養三旬（07zzi_stress.js）   // 吉原同一旬指名第 nom 位花魁後病倒，之後 turns 個完整的旬不能出門
   marketFloor:{name:'大盤牌價地板（固定基準價倍數）；收市價低於地板時，下一旬牌價與收市價脫鉤',staple:1.50,normal:1.20,luxury:1.05},
   /* —— 每旬隨機事件（旬報）—— */
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
@@ -28,7 +28,8 @@ const ODDS={
   rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,normalPow:4,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93},
   priceWin:{name:'收市價計算視窗（旬數）：必需品快漲快跌，奢侈品最慢',staple:3,normal:6,luxury:9},
   fest:{name:'節慶當旬需求倍率（一般貨／節慶搶手貨）',all:2,hot:2.5},
-  enlist:{name:'延攬熟人：各職階所需好感、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},introMin:1,introMax:2,refuse:2},
+  enlist:{name:'延攬熟人：各職階所需好感、各職能力下限、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},stat:{clerk:{commerce_skill:40},banto:{commerce_skill:50},chief:{commerce_skill:50,integrity_loyalty:40},courier:{diplomacy_charm:50},captain:{audacity_courage:50},guard:{audacity_courage:50,integrity_loyalty:45}},   // stat：延攬各職的能力下限（比物色寬）
+  introMin:1,introMax:2,refuse:2},
   drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
   roleShift:{name:'職業調整：每季第一旬，本城低於基本數的身分從多出的身分轉入一人（只轉沒見過面、手帳沒有的人）',base:{broker:2,guest:6,manager:4}},
   shareShip:{name:'市佔修正：沒出貨不加市佔（出貨達配額幾成才算）；舊算法達幾成算有市場、掉到幾成回到新人；有市場後實際出貨占比的比重',shipMin:0.5,est:0.10,reset:0.05,w:0.6},
@@ -129,6 +130,9 @@ const ODDS={
   ,unloadJob:{name:'卸留請負（07zz_regfavor4.js）：需求倍數（旬數）、期限、報酬倍率、遇險損失、失約扣好感',turns:9,limit:6,payRate:1.5,lossRate:0.7,failAff:30,minQty:5}
   ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,daimyo:{name:'大名行列過境（07zzc_daimyo.js）：當旬本業貨需求倍率',mult:2}
+  ,stress:{name:'壓力（07zzi_stress.js）：疲憊／心力交瘁門檻、病倒門檻、病癒後壓力；每用一點行動、拒見、交涉失利、不善言辭、暗殺放火栽贓打壓、供貨不穩、失火、現款為負；自然恢復、每點沒用完的行動、夫人與子女在家、宴會、夜宴、指名、節慶、忘年會、闔家同遊；疲憊以上進出貨拉霸手抖的機率（疲憊、心力交瘁）與偏離幅度（拉霸全長的比例、最少一格）；心力交瘁後幾歲起、每年壽數判定加多少；扣知名度事件對應的壓力',tiers:[40,70],sick:90,after:60,ap:1,refuse:3,lose:2,snub:5,dirty:8,unstable:2,fire:6,debt:3,natural:2,idle:1,family:1,banquet:5,feast:5,nominate:2,fest:5,party:15,famwalk:10,oldAge:45,shakeP:[0.3,0.6],shakeFrac:0.02,oldDeath:0.02,fameKeys:{raid1:5,raid2:8,raid3:10,riot:8,inspect:5,arrest:8,tributeFail:3}}
+  ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5}   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
+  ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}

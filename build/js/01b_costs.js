@@ -45,6 +45,8 @@ const COSTS={
   pathCourt:{name:'子女歷練：侍童（每年）',cur:'silver',amt:40},
   /* —— 吉原 —— */
   feast:{name:'包場花金夜宴',cur:'gold',amt:80},
+  temple:{name:'寺社參拜（免費；香油錢另捐）',cur:'gold',amt:0},
+  onsen:{name:'溫泉旅籠',cur:'gold',amt:5},
   nominate:{name:'指名花魁',cur:'gold',amt:20},
   oiranGiftMul:{name:'花魁禮物價格倍率（指名後）',cur:'gold',amt:2},
   ransom:{name:'花魁贖身（基本價，±100）',cur:'gold',amt:1000},

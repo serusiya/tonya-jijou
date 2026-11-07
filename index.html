@@ -96,6 +96,9 @@ nav#bottom button .ic{font-size:18px}.nav-dot{position:absolute;right:6px;top:3p
 /* toast */
 #toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:99;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
 #toast.on{opacity:1}
+.shake-tip{color:#b3392b;font-weight:bold;margin:2px 0 0}
+.step-row.shaking{animation:shakeRow .42s linear 1}
+@keyframes shakeRow{0%,100%{transform:translateX(0)}12%{transform:translateX(-4px)}25%{transform:translateX(4px)}37%{transform:translateX(-4px)}50%{transform:translateX(3px)}62%{transform:translateX(-3px)}75%{transform:translateX(2px)}87%{transform:translateX(-1px)}}
 /* transition overlay */
 #fx{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:620px;transform:translateX(-50%);z-index:80;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
 #fx.on{display:flex}
@@ -808,7 +811,8 @@ const ODDS={
   rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,normalPow:4,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93},
   priceWin:{name:'收市價計算視窗（旬數）：必需品快漲快跌，奢侈品最慢',staple:3,normal:6,luxury:9},
   fest:{name:'節慶當旬需求倍率（一般貨／節慶搶手貨）',all:2,hot:2.5},
-  enlist:{name:'延攬熟人：各職階所需好感、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},introMin:1,introMax:2,refuse:2},
+  enlist:{name:'延攬熟人：各職階所需好感、各職能力下限、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},stat:{clerk:{commerce_skill:40},banto:{commerce_skill:50},chief:{commerce_skill:50,integrity_loyalty:40},courier:{diplomacy_charm:50},captain:{audacity_courage:50},guard:{audacity_courage:50,integrity_loyalty:45}},   // stat：延攬各職的能力下限（比物色寬）
+  introMin:1,introMax:2,refuse:2},
   drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
   roleShift:{name:'職業調整：每季第一旬，本城低於基本數的身分從多出的身分轉入一人（只轉沒見過面、手帳沒有的人）',base:{broker:2,guest:6,manager:4}},
   shareShip:{name:'市佔修正：沒出貨不加市佔（出貨達配額幾成才算）；舊算法達幾成算有市場、掉到幾成回到新人；有市場後實際出貨占比的比重',shipMin:0.5,est:0.10,reset:0.05,w:0.6},
@@ -909,7 +913,7 @@ const ODDS={
   ,unloadJob:{name:'卸留請負（07zz_regfavor4.js）：需求倍數（旬數）、期限、報酬倍率、遇險損失、失約扣好感',turns:9,limit:6,payRate:1.5,lossRate:0.7,failAff:30,minQty:5}
   ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,daimyo:{name:'大名行列過境（07zzc_daimyo.js）：當旬本業貨需求倍率',mult:2}
-  ,stress:{name:'壓力（07zzi_stress.js）：疲憊／心力交瘁門檻、病倒門檻、病癒後壓力；每用一點行動、拒見、交涉失利、不善言辭、暗殺放火栽贓打壓、供貨不穩、失火、現款為負；自然恢復、每點沒用完的行動、夫人與子女在家、宴會、夜宴、指名、節慶、忘年會、闔家同遊；疲憊時暗示準確度；心力交瘁後幾歲起、每年壽數判定加多少；扣知名度事件對應的壓力',tiers:[40,70],sick:90,after:60,ap:1,refuse:3,lose:2,snub:5,dirty:8,unstable:2,fire:6,debt:3,natural:2,idle:1,family:1,banquet:5,feast:5,nominate:2,fest:5,party:15,famwalk:10,hintTired:0.5,oldAge:45,oldDeath:0.02,fameKeys:{raid1:5,raid2:8,raid3:10,riot:8,inspect:5,arrest:8,tributeFail:3}}
+  ,stress:{name:'壓力（07zzi_stress.js）：疲憊／心力交瘁門檻、病倒門檻、病癒後壓力；每用一點行動、拒見、交涉失利、不善言辭、暗殺放火栽贓打壓、供貨不穩、失火、現款為負；自然恢復、每點沒用完的行動、夫人與子女在家、宴會、夜宴、指名、節慶、忘年會、闔家同遊；疲憊以上進出貨拉霸手抖的機率（疲憊、心力交瘁）與偏離幅度（拉霸全長的比例、最少一格）；心力交瘁後幾歲起、每年壽數判定加多少；扣知名度事件對應的壓力',tiers:[40,70],sick:90,after:60,ap:1,refuse:3,lose:2,snub:5,dirty:8,unstable:2,fire:6,debt:3,natural:2,idle:1,family:1,banquet:5,feast:5,nominate:2,fest:5,party:15,famwalk:10,oldAge:45,shakeP:[0.3,0.6],shakeFrac:0.02,oldDeath:0.02,fameKeys:{raid1:5,raid2:8,raid3:10,riot:8,inspect:5,arrest:8,tributeFail:3}}
   ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5}   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
   ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
@@ -1449,7 +1453,7 @@ const UI_TXT={
   'btn.recruitFull':'店裡沒有空缺',
   'btn.enlist':'延攬為{r}',
   'btn.enlistOpen':'延攬{r}',
-  'enl.block':'<div class="card"><b class="small">🤝 延攬熟人</b><div class="tiny muted">跟人物熟了以後，可以請介紹人出面作保，延攬他到店裡任職。說合禮金 {a}·介紹人交情 -1～2·行動 1 點。好感手代、船長、飛腳、保鏢 ≥ 50，番頭 ≥ 65，大番頭 ≥ 80；不夠會被婉拒。</div><div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:4px">{b}</div></div>',
+  'enl.block':'<div class="card"><b class="small">🤝 延攬熟人</b><div class="tiny muted">跟人物熟了以後，可以請介紹人出面作保，延攬他到店裡任職。說合禮金 {a}·介紹人交情 -1～2·行動 1 點。好感手代、船長、飛腳、保鏢 ≥ 50，番頭 ≥ 65，大番頭 ≥ 80；不夠會被婉拒。能力要求比物色寬，熟人只要有幾分本事就能延攬。</div><div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:4px">{b}</div></div>',
   'enl.noVacancy':'<span class="tiny muted">店裡沒有空缺</span>',
   'enl.sheetTitle':'🤝 延攬{r}',
   'enl.sheetLead':'本城已結識、適任{r}的人，依好感排列。好感 ≥ {n} 才會答應；不夠會婉拒，好感 -2。評價以星數表示，未必準確。',
@@ -3174,7 +3178,7 @@ const UI_TXT={
   'stress.tier.2':'心力交瘁',
   'stress.tier.3':'病倒中',
   'stress.say.0':'精神飽滿，諸事順手。',
-  'stress.say.1':'近來有些力不從心，每旬能辦的事少了一件，與人應對也不如往常機敏。',
+  'stress.say.1':'近來有些力不從心，每旬能辦的事少了一件，與人應對時手忙腳亂，撥算盤也常手抖。',
   'stress.say.2':'心力交瘁，只能勉強應付幾件要事；再撐下去，恐怕要病倒。',
   'stress.say.3':'臥病在床，什麼都別想，先把身子養好。',
   'stress.prev':'上一旬的變化',
@@ -3189,7 +3193,7 @@ const UI_TXT={
   'stress.way.idle':'少用行動點數：每省一點，壓力 −{a}',
   'stress.way.temple':'外城出遊・寺社參拜：壓力 −{a}',
   'stress.way.onsen':'外城出遊・溫泉：壓力 −{a}',
-  'stress.rules':'每辦一件事、碰一次釘子，心裡都會多壓一點；日子平順、家人在旁，就慢慢鬆下來。累積到疲憊，每旬行動少一次；心力交瘁時再少一次，上了年紀更傷身；壓力極大時會病倒。',
+  'stress.rules':'每辦一件事、碰一次釘子，心裡都會多壓一點；日子平順、家人在旁，就慢慢鬆下來。累積到疲憊，每旬行動少一次，交涉時手忙腳亂，進出貨也容易手抖（用加減鈕就不會）；心力交瘁時再少一次行動，上了年紀更傷身；壓力極大時會病倒。',
   'stress.k.ap':'出門辦事',
   'stress.k.refuse':'登門被拒',
   'stress.k.lose':'交涉沒談攏',
@@ -3221,6 +3225,8 @@ const UI_TXT={
   'trip.onsen.d':'到山間的溫泉旅籠泡湯住一晚。每旬一次。',
   'trip.meta':'行動 {ap} 點・{c}・壓力 −{r}',
   'trip.free':'免費',
+  'trip.hatsu':'初詣',
+  'trip.hatsuTag':'正月初詣，人潮洶湧',
   'btn.tripGiftDo':'奉納香油錢',
   'btn.tripGiftSkip':'不捐，直接參拜',
   'trip.gift.h':'香油錢（私房錢）：{a} 兩',
@@ -3329,6 +3335,14 @@ const MSG_TXT={
   'doFavor.licHeld':'對方翻了翻你的文書：「你手上的許可，已不比我能給的少。」',
   'doFavor.sellAidFull':'倉庫放不下，這批貨沒法接手。',
   'doFavor.lessenHeld':'你手上已有一張御赦免狀，用掉之前不必再求。',
+  'hatsu.open':'正月初詣，參道擠得水洩不通，一步一步跟著人潮往本堂挪。',
+  'hatsu.item':'參道旁的石燈籠下，有人落下一件「{n}」。你在社務所等了半晌，始終沒人來領，巫女便請你收下。',
+  'hatsu.oiran':'人潮裡一陣香風，原來是「{n}」也來初詣。她認出你，笑著道了聲新年好，又被人群帶走了。',
+  'hatsu.official':'排隊等著搖鈴時，前頭一位便服的中年人回過頭來——竟是{t}「{n}」。他擺擺手示意別聲張，與你互道了新年。',
+  'hatsu.thief':'在賽錢箱前擠成一團時，有人撞了你一下。等你回過神，腰間的錢袋已經輕了不少。',
+  'hatsu.thiefCaught':'在賽錢箱前擠成一團時，有隻手伸向你的錢袋——跟在後頭的保鏢一把抓住了扒手。',
+  'hatsu.thiefEmpty':'擠到賽錢箱前時，有人摸了你的錢袋，卻只摸到一把空氣，悻悻地鑽回人群裡。',
+  'hatsu.family':'你帶著{who}一起初詣，求了御守、喝了甘酒，一家人說說笑笑地走完參道。',
   'fest.item':'人潮散去的攤位角落，躺著一件沒人認領的「{n}」。你等了一會兒，始終沒人回來找，便收下了。',
   'fest.oiran':'人群裡一陣香風，原來是「{n}」也出來逛祭典。她認出你，笑著說了幾句話，又被人潮帶走了。',
   'fest.official':'賣糖人的攤子前，一位便服的中年人正看得出神——竟是{t}「{n}」。他擺擺手，示意別聲張，和你閒聊了幾句。',
@@ -3680,6 +3694,7 @@ const MSG_TXT={
   'loyal.chiefBook.5':'「{a}」把帳做平了，{b} +{c} 兩。（好感 -{d}）',
   /* —— 店員偶發事件（07zt_staffevents.js） —— */
   'sev.short':'現款不夠。',
+  'stress.shake':'手一抖，從 {a} 滑到了 {b}。可以用加減鈕修正。',
   'trip.fx.temple':'前往城外的古寺……',
   'trip.fxSub.temple':'寺社參拜',
   'trip.fx.onsen':'翻過山嶺，前往溫泉……',
@@ -3688,6 +3703,7 @@ const MSG_TXT={
   'trip.fxSubWith.temple':'與{f}同行',
   'trip.fxSubWith.onsen':'與{f}同行',
   'trip.arrive.temple':'穿過鳥居，參道兩旁香煙繚繞。賽錢箱就在本堂前，要放多少香油錢？',
+  'trip.arrive.hatsu':'正月初詣，鳥居外就排起了長龍。好不容易擠到賽錢箱前，要放多少香油錢？',
   'trip.done.temple':'你在本堂前合掌，香煙裊裊，鐘聲一響，心裡的雜念散了大半。',
   'trip.done.onsen':'泡在熱湯裡看著山色，一身的疲憊隨著水氣蒸散。夜裡睡得格外安穩。',
   'wife.help.bully':'你當著全店的面把{n}叫來，他收拾包袱走了。夥計們這幾天說話都小聲了些。',
@@ -4177,6 +4193,10 @@ const CHANGELOG=[
     '新增夫人事件：每年夫人會帶來一件好事；依夫人出身，偶爾也有家務事要你出面，幫夫人添丁的機會較高，連續兩次視而不見，夫人會回娘家。',
     '新增壓力：辦事、碰釘子會累積壓力，太累每旬行動變少，撐不住會病倒；點行動值可以看身心狀況與紓解方法。',
     '新增外城出遊：主畫面可以去寺社參拜或泡溫泉紓解壓力，花的是私房錢；寺社參拜免費，香油錢隨意捐，溫泉五兩。交情深的朋友有時會想一起去；寺社有住持、巫女，溫泉有三助，泡湯時還可能碰上城裡的人。外城友人之後開放。',
+    '壓力設定更新：疲憊以後，交涉時小中大的按鈕位置會亂換，拖動進出貨的拉霸也容易手抖（用加減鈕就不會）。',
+    '新增出遊配樂：打開外城出遊就換成輕快悠閒的《道中囃子》，回到店裡再換回原本的曲子。',
+    '新增正月初詣：一月上旬去寺社參拜，人潮洶湧，會像逛祭典一樣碰上意外的事。',
+    '人才設定更新：延攬熟人的能力要求比物色寬，熟識的人有幾分本事就能請到店裡。',
     '版本更新為 0.7.5，舊存檔可以繼續玩。',
     '修改背景資料'
   ]},
@@ -10486,7 +10506,7 @@ const btKind=cid=>{const n=npc(cid);return n&&n.pos?officialKind(n):'merchant'};
 /** 依偏重抽這一回合的期待（0 小、1 中、2 大）。 */
 function btRollExpect(cid){const w=BT_EXPECT_W[btKind(cid)];let x=rnd()*(w[0]+w[1]+w[2]);for(let i=0;i<3;i++){x-=w[i];if(x<0)return i}return 1}
 /** 暗示期待的台詞：七成照實，三成指向別檔。 */
-function btHint(cid,expect){const t=rnd()<btHintAcc()?expect:pick([0,1,2].filter(i=>i!==expect));return btSay(cid,'hint.'+['small','mid','large'][t])}
+function btHint(cid,expect){const t=rnd()<BT_HINT_ACC?expect:pick([0,1,2].filter(i=>i!==expect));return btSay(cid,'hint.'+['small','mid','large'][t])}
 /** 人物適用的增補句庫（身份：官階帶或商邸身分；系統別；年齡層；女性）。 */
 function btGroups(cid){
   const n=npc(cid),c=CH(cid),L=LINES.battle,out=[];if(!c)return out;
@@ -10567,7 +10587,9 @@ function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
   let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?UT('bt.battleHtml'):left===2?UT('bt.battleHtml.2'):UT('bt.battleHtml.3'))+(B.spent?UT('bt.battleHtml.4',{a:fmt(B.spent)}):'')+'</div>';
-  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
+  if(B.ordRound!==B.round){B.ordRound=B.round;B.order=stressTier()>=1?shuffle([0,1,2]):[0,1,2]}   // 疲憊以上：每回合小中大的位置打亂（07zzi_stress.js）
+  const LB=[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')];
+  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+B.order.map(i=>[LB[i],i]).map(([lb,i])=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
   h+=UT('bt.battleHtml.8');
   return h;
 }
@@ -10808,9 +10830,9 @@ function partyDraw(){
 
 'use strict';
 /* ======================= 配樂：江戶風 WebAudio 音序器 =======================
- *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器]（音高 0＝休止），即時合成。
+ *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器, 音量(可省略＝1)]（音高 0＝休止），即時合成。
  *  - 樂器：koto 箏、kotoLow 低音箏、shami 三味線、fue 笛、taiko 大太鼓、shime 締太鼓、ka 鼓邊、kane 鉦。
- *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）；皆依祭典囃子形式編排，非特定曲目。
+ *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）、trip《道中囃子》（外城出遊，G 調陽音階、跳步節奏、伴奏減半）；皆依祭典囃子形式編排，非特定曲目。
  *  - 播放採預排：每 25 毫秒把接下來 0.25 秒內的音符排進時間軸，循環播放；換曲時淡出淡入。
  *  - 設定（音樂開關、音效開關、音量）存在本機瀏覽器（AUDIO_KEY），屬個人偏好，不寫進存檔。
  *  - 手機瀏覽器要在使用者點擊之後才能出聲：開局／繼續人生時開始播放，之後任何點擊都會喚醒。 */
@@ -10829,9 +10851,9 @@ const mtof=m=>440*Math.pow(2,(m-69)/12);
 function musOut(){if(!AC)return null;if(!MUS.out){MUS.out=AC.createGain();MUS.out.gain.value=0.0001;MUS.out.connect(AC.destination)}return MUS.out}
 function musNoise(){if(MUS.noise)return MUS.noise;const n=AC.sampleRate*0.5,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return MUS.noise=b}
 /** 一個音：依樂器組合振盪器與音量包絡。 */
-function musVoice(inst,midi,t,dur){
+function musVoice(inst,midi,t,dur,vol){
   const made=[],K=n=>{made.push(n);return n};       // 這個音用到的聲音元件；全部播完後一起斷開，讓瀏覽器回收（Safari 不斷開會越積越多）
-  const out=K(AC.createGain());out.connect(MUS.out);
+  const out=K(AC.createGain());if(vol!==undefined&&vol!==1){const vg=K(AC.createGain());vg.gain.value=vol;out.connect(vg);vg.connect(MUS.out)}else out.connect(MUS.out);   // vol：音符表第五欄，伴奏減量用
   const env=(g,a,peak,decay,sustain,rel)=>{g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(Math.max(0.0001,peak*sustain),t+a+decay);g.gain.exponentialRampToValueAtTime(0.0001,t+Math.max(dur,a+decay)+rel)};
   const osc=(type,f,det)=>{const o=K(AC.createOscillator());o.type=type;o.frequency.setValueAtTime(f,t);if(det)o.detune.value=det;return o};
   if(inst==='koto'||inst==='kotoLow'){
@@ -10939,10 +10961,39 @@ function songTitle(){
   [0,0.5,1,1.5,2,2.25,2.5,2.75,3,3.25,3.5,3.75].forEach(o=>N(0,60+o,1,o<2?'taiko':'shime'));N(0,60,1,'kane');N(A5,63,1,'koto');
   return {bpm:96,len:64,notes};
 }
-const SONGS={market:songMarket,visit:songVisit,title:songTitle};
+/** 《道中囃子》（外城出遊）：G 調陽音階，每分鐘 104 拍，十六小節；跳步節奏（長短），箏分散和弦＋笛，締太鼓輕點當腳步。
+ *  1～8 小節：輕鬆漫步；9～16：旋律往上走，末小節停在高音不收尾，帶著期待接回開頭。 */
+function songTrip(){
+  const D3=50,E3=52,G3=55,A3=57,G4=67,A4=69,B4=71,D5=74,E5=76,G5=79,A5=81,B5=83,D6=86;
+  const notes=[],N=(m,s,d,i)=>notes.push(i==='fue'?[m,s,d,i]:[m,s,d,i,0.5]);   // 伴奏（箏、低音箏、鼓、鉦）音量減半，笛照原音量
+  const mel=[
+    [[B4,.75],[D5,.25],[E5,1],[D5,1],[B4,1]],[[A4,.75],[B4,.25],[G4,2],[0,1]],
+    [[B4,.75],[D5,.25],[E5,1],[G5,1],[E5,1]],[[D5,3],[0,1]],
+    [[E5,.75],[D5,.25],[B4,1],[A4,1],[B4,1]],[[D5,.75],[B4,.25],[A4,1],[G4,2]],
+    [[A4,.75],[B4,.25],[D5,1],[E5,.75],[D5,.25],[B4,1]],[[A4,3],[0,1]],
+    [[D5,.75],[E5,.25],[G5,1],[A5,1],[G5,1]],[[E5,.75],[G5,.25],[A5,2],[0,1]],
+    [[G5,.75],[A5,.25],[B5,1],[A5,1],[G5,1]],[[E5,.75],[D5,.25],[E5,1],[G5,2]],
+    [[A5,.75],[G5,.25],[E5,1],[D5,1],[E5,1]],[[G5,.75],[A5,.25],[B5,2],[0,1]],
+    [[A5,.75],[G5,.25],[E5,.75],[G5,.25],[A5,1],[B5,1]],[[D6,3],[0,1]]
+  ];
+  const root=[G3,G3,E3,D3, G3,E3,A3,D3, G3,E3,G3,E3, A3,E3,A3,D3];
+  mel.forEach((bar,i)=>{
+    const b=i*4;let x=b;
+    bar.forEach(([m,d])=>{if(m)N(m,x,d,'fue');x+=d});
+    const r=root[i],arp=[r,r+7,r+12,r+7,r+12,r+16>r+14?r+14:r+16,r+12,r+7];
+    arp.forEach((m,k)=>N(m,b+Math.floor(k/2)+(k%2?0.67:0),0.5,'koto'));      // 跳步：每拍兩個音，第二個晚一點（長短）
+    N(r-12,b,4,'kotoLow');
+    [1,3].forEach(o=>N(0,b+o,1,'shime'));N(0,b+3.67,1,'ka');                // 腳步：二、四拍輕點，四拍尾帶一下鼓邊
+    if(i%2===0)N(0,b,1,'kane');
+    if(i===0||i===8)N(0,b,1,'taiko');
+    if(i===15){[2,2.67,3,3.33,3.67].forEach(o=>N(0,b+o,1,'shime'))}
+  });
+  return {bpm:104,len:64,notes};
+}
+const SONGS={market:songMarket,visit:songVisit,title:songTitle,trip:songTrip};
 
 /* ======================= 播放 ======================= */
-/** 想播的曲子（market／visit／title；null＝停止）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
+/** 想播的曲子（market／visit／title／trip；null＝停止）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
 function musicWant(key){MUS.want=key;musicSync()}
 /** 依設定與想播的曲子，開始、換曲或停止。 */
 function musicSync(){
@@ -10959,7 +11010,7 @@ function musicSync(){
     while(true){
       if(P.i>=P.list.length){P.i=0;P.t0+=P.S.len*P.spb}
       const n=P.list[P.i],t=P.t0+n[1]*P.spb;if(t>ahead)break;
-      if(t>=AC.currentTime-0.02)try{musVoice(n[3],n[0],t,n[2]*P.spb)}catch(e){}
+      if(t>=AC.currentTime-0.02)try{musVoice(n[3],n[0],t,n[2]*P.spb,n[4])}catch(e){}
       P.i++;
     }
   };
@@ -11907,34 +11958,35 @@ function festCands(){
   if(G.family.spouse||(G.family.kids||[]).length||(G.family.conc||[]).length)C.family={};
   return C;
 }
-/** 抽一件事件並套用效果，回傳 {cid,txt,eff}。 */
-function festWalkRoll(){
+/** 抽一件事件並套用效果，回傳 {cid,txt,eff}；pre 換一組敘事文字（初詣用 hatsu）。 */
+function festWalkRoll(pre){
+  const P=pre||'fest';                              // 文字前綴：fest＝逛祭典、hatsu＝正月初詣（07zzi_stress.js）
   const C=festCands(),keys=Object.keys(FEST_WALK_W).filter(k=>C[k]);
   let r=rnd()*keys.reduce((a,k)=>a+FEST_WALK_W[k],0),k=keys[0];
   for(const x of keys){r-=FEST_WALK_W[x];if(r<=0){k=x;break}}
   const D=C[k];
   if(k==='item'){
     G.xinv=G.xinv||{};G.xinv[D.c.name]=(G.xinv[D.c.name]||0)+1;
-    return {txt:MSG('fest.item',{n:D.c.short}),eff:UT('fwalk.festWalkRoll',{a:D.c.short})};
+    return {txt:MSG(P+'.item',{n:D.c.short}),eff:UT('fwalk.festWalkRoll',{a:D.c.short})};
   }
   if(k==='oiran'){
     const cid=D.n.cid,r0=R(cid);addKnown(cid);addAff(r0,5);logRel(cid,UT('fwalk.festWalkRoll.2',{a:G.festival}));
-    return {cid,txt:MSG('fest.oiran',{n:nameOf(cid)}),eff:UT('fwalk.festWalkRoll.3',{a:nameOf(cid)})};
+    return {cid,txt:MSG(P+'.oiran',{n:nameOf(cid)}),eff:UT('fwalk.festWalkRoll.3',{a:nameOf(cid)})};
   }
   if(k==='official'){
     const cid=D.n.cid,r0=R(cid),known=r0.topKnown;addKnown(cid);addAff(r0,5);r0.topKnown=true;logRel(cid,UT('fwalk.festWalkRoll.4',{a:G.festival}));
-    return {cid,txt:MSG('fest.official',{n:nameOf(cid),t:offTitle(D.n)}),eff:UT('fwalk.festWalkRoll.6',{a:nameOf(cid),b:known?'':UT('fwalk.festWalkRoll.5')})};
+    return {cid,txt:MSG(P+'.official',{n:nameOf(cid),t:offTitle(D.n)}),eff:UT('fwalk.festWalkRoll.6',{a:nameOf(cid),b:known?'':UT('fwalk.festWalkRoll.5')})};
   }
   if(k==='thief'){
-    if(guardCount()>0)return {txt:MSG('fest.thiefCaught'),eff:UT('fwalk.festWalkRoll.7')};
-    if(G.silver<=0)return {txt:MSG('fest.thiefEmpty'),eff:UT('fwalk.festWalkRoll.8')};
+    if(guardCount()>0)return {txt:MSG(P+'.thiefCaught'),eff:UT('fwalk.festWalkRoll.7')};
+    if(G.silver<=0)return {txt:MSG(P+'.thiefEmpty'),eff:UT('fwalk.festWalkRoll.8')};
     const loss=Math.min(300,Math.max(1,Math.round(G.silver*(0.01+rnd()*0.02))));G.silver-=loss;
-    return {txt:MSG('fest.thief'),eff:UT('fwalk.festWalkRoll.9',{a:fmt(loss)}),bad:true};
+    return {txt:MSG(P+'.thief'),eff:UT('fwalk.festWalkRoll.9',{a:fmt(loss)}),bad:true};
   }
   const conc=(G.family.conc||[]).map(x=>x.cid).filter(cid=>G.rel[cid]);
   conc.forEach(cid=>{addAff(R(cid),5);logRel(cid,UT('fwalk.festWalkRoll.10',{a:G.festival}))});
   addStress('famwalk',-ODDS.stress.famwalk);                 // 闔家同遊（07zzi_stress.js）
-  return {txt:MSG('fest.family',{who:famWho()}),eff:conc.length?UT('fwalk.festWalkRoll.11'):UT('fwalk.festWalkRoll.12')};
+  return {txt:MSG(P+'.family',{who:famWho()}),eff:conc.length?UT('fwalk.festWalkRoll.11'):UT('fwalk.festWalkRoll.12')};
 }
 /** 同遊的家人稱呼。 */
 function famWho(){const L=[];if(G.family.spouse)L.push(NEWS('fwalk.famWho'));if((G.family.kids||[]).length)L.push(NEWS('fwalk.famWho.2'));if((G.family.conc||[]).length)L.push(NEWS('fwalk.famWho.3'));return L.join(UT('fwalk.famWho.4'))||UT('fwalk.famWho.5')}
@@ -12595,7 +12647,12 @@ function enlistRanks(cid){
   if(!n||!r||!r.bond||n.cityId!==G.cityId||!alive(cid)||n.hired||n.raided||jailed(n)||n.pos||!ENLIST_ROLES.includes(n.role)||isEnemy(cid))return [];
   if(G.emps.some(e=>e.cid===cid)||G.intros.some(i=>i.cid===cid))return [];
   const a=ageOf(cid);if(a<18||a>62)return [];
-  return suitableEmpRanks(cid).filter(slotFree);
+  return enlistFitRanks(cid).filter(slotFree);
+}
+/** 延攬看能力本身（物色看出身標籤，等於商才 65～70、膽識 70 等門檻）；延攬放寬約 20（ODDS.enlist.stat）。 */
+function enlistFitRanks(cid){
+  const s=(CH(cid)||{}).derived_stats||{},T=ODDS.enlist.stat;
+  return RECRUIT_RANKS.filter(rk=>T[rk]&&Object.entries(T[rk]).every(([k,v])=>(s[k]||0)>=v));
 }
 /** 私宅的延攬區塊：說明＋各有空缺職位的按鈕（大番頭、番頭、手代、船長、飛腳、保鏢）。 */
 const ENLIST_ORDER=['chief','banto','clerk','captain','courier','guard'];
@@ -14366,7 +14423,7 @@ FACE_TITLE.wifeGood='wife.title.good';FACE_TITLE.wifeBad='wife.title.bad';
 'use strict';
 /* =====================================================================
  * 07zzi_stress.js — 壓力值與外城出遊（DESIGN_NOTES 第二十九節「壓力值」、第二百一十七節）
- *  - G.stress 0～100：從容（<40）／疲憊（40～69，每旬行動 4、拜訪暗示五成準）／心力交瘁（70～89，行動 3、暗示五成、
+ *  - G.stress 0～100：從容（<40）／疲憊（40～69，每旬行動 4；交涉的小中大按鈕每回合換位置；進出貨拉霸會手抖）／心力交瘁（70～89，行動 3、同上、
  *    45 歲後壽數判定略不利）／90 以上病倒（07zzd_sick.js 的 sickArm('stress')，病倒時壓力回到 60，臥病期間不變動）。
  *  - 增減一律走 addStress(key,v)，記在 G.stressCur；推進一旬結束時搬到 G.stressPrev（「上一旬的變化」）。
  *  - 掛點：行動點數（spendAP）、拜訪拒見（visitRoll）、交涉失利與不善言辭（battleEnd）、暗殺放火栽贓打壓、
@@ -14384,8 +14441,6 @@ function stressTier(){
 }
 /** 本旬行動點數上限。 */
 const apMaxNow=()=>AP_MAX-([0,1,2,2][stressTier()]);
-/** 拜訪時對方台詞暗示的準確度（07u_battle.js 的 btHint）。 */
-const btHintAcc=()=>stressTier()>=1?ST().hintTired:BT_HINT_ACC;
 let STRESS_SKIP=false;
 /** 增減壓力；病倒臥床期間不變動。到 90 記下病倒。 */
 function addStress(key,v){
@@ -14462,7 +14517,11 @@ SHEETS.stress=()=>{
   return {title:UT('stress.title'),html:h};
 };
 /* ---------- 外城出遊 ---------- */
-ACT.tripOpen=()=>{if(G)UI.openSheet('trip')};
+ACT.tripOpen=()=>{if(!G)return;TRIP_GOING=false;musicWant('trip');UI.openSheet('trip')};   // 打開出遊頁就換《道中囃子》
+/* 出遊配樂：出遊頁打開到最後的結果視窗關掉，都播《道中囃子》；沒出發就關掉出遊頁、或婉拒視窗直接關掉，換回《市井囃子》。 */
+let TRIP_GOING=false,TRIP_RESULT=false;
+const tripMusicEnd=()=>{TRIP_GOING=false;TRIP_RESULT=false;if(MUS.want==='trip')musicWant('market')};
+{const _c=UI.closeSheet;UI.closeSheet=function(){const was=UI.s.sheet&&UI.s.sheet.type;const r=_c.apply(this,arguments);if(was==='trip'&&!TRIP_GOING)tripMusicEnd();return r}}
 /** 不能去的原因（文字鍵）；可以去回傳 null。 */
 function tripBlock(k){
   const T=ODDS.trip[k];
@@ -14479,6 +14538,7 @@ SHEETS.trip=()=>{
   ['temple','onsen'].forEach(k=>{
     const T=ODDS.trip[k],b=tripBlock(k);
     h+='<div class="card"><b>'+UT('trip.'+k)+'</b><div class="tiny muted" style="margin:3px 0">'+UT('trip.'+k+'.d')+'</div>'
+      +(k==='temple'&&hatsuNow()?'<div class="tiny" style="color:#9b2c3a">'+UT('trip.hatsuTag')+'</div>':'')
       +'<div class="tiny">'+UT('trip.meta',{ap:T.ap,c:costOf(k)?coinHtml(COSTS[k].cur,costOf(k)):UT('trip.free'),r:T.relief})+'</div>'
       +(b?'<div class="tiny" style="color:#b3392b;margin-top:3px">'+UT(b)+'</div>':'')
       +'<div style="margin-top:5px"><button class="pixel-btn btn-sm btn-gold" data-act="tripGo" data-k="'+k+'" '+(b?'disabled':'')+'>'+UT('btn.tripGo.'+k)+'</button></div></div>';
@@ -14499,9 +14559,12 @@ ACT.tripGo=el=>{
   const k=el.dataset.k,T=ODDS.trip[k];if(!T)return;
   const b=tripBlock(k);if(b){toast(UT(b));return}
   const f=tripCompRoll(k);
+  TRIP_GOING=true;
   if(f){TRIP_OFFER={k,f};UI.closeSheet();UI.showInfo(UT('trip.comp.title'),tripCompAsk(k,f));return}
   tripStart(k,null);
 };
+/** 正月初詣：一月上旬。 */
+const hatsuNow=()=>G&&G.month===1&&G.cycle===1;
 /* ---------- 同行：本城好感 80 以上的商人或官員 ---------- */
 var TRIP_OFFER=null;
 const tripIsOff=cid=>(npc(cid)||{}).role==='official';
@@ -14542,7 +14605,7 @@ function tripStart(k,f){
   FX.bg=k==='temple'?IMG_TEMPLE:IMG_ONSEN;
   playFx('walk',MSG('trip.fx.'+k),MSG(f?'trip.fxSubWith.'+k:'trip.fxSub.'+k,{f:f?nameOf(f):''}),()=>{
     addStress(k,-T.relief);
-    if(k==='temple'){TRIP_PEND={k,f};UI.s.tripGift=0;UI.showInfo(UT('trip.done.temple'),'<div class="text-prose" style="margin-bottom:6px">'+MSG('trip.arrive.temple')+'</div>'+tripGiftRow()
+    if(k==='temple'){TRIP_PEND={k,f};UI.s.tripGift=0;UI.showInfo(UT('trip.done.temple'),'<div class="text-prose" style="margin-bottom:6px">'+MSG(hatsuNow()?'trip.arrive.hatsu':'trip.arrive.temple')+'</div>'+tripGiftRow()
       +'<div class="grid2" style="margin-top:6px"><button class="pixel-btn btn-gold btn-sm" data-act="tripGiftDo">'+UT('btn.tripGiftDo')+'</button><button class="pixel-btn btn-sm" data-act="tripGiftSkip">'+UT('btn.tripGiftSkip')+'</button></div>');UI.render();return}
     tripArrive(k,f,0);
   },1500);
@@ -14551,7 +14614,8 @@ function tripStart(k,f){
 var TRIP_PEND=null;
 ACT.tripGiftDo=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,UI.s.tripGift||0)};   // 直接換掉視窗內容，不先關（關掉會讓排隊的事件插進來）
 ACT.tripGiftSkip=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,0)};
-{const _h=UI.hideInfo;UI.hideInfo=function(){const P=TRIP_PEND;TRIP_PEND=null;const r=_h.apply(this,arguments);if(P)tripArrive(P.k,P.f,0,true);return r}}
+{const _h=UI.hideInfo;UI.hideInfo=function(){const P=TRIP_PEND;TRIP_PEND=null;const O=TRIP_OFFER,done=TRIP_RESULT;const r=_h.apply(this,arguments);
+  if(P){tripArrive(P.k,P.f,0,true);tripMusicEnd()}else if(done||(O&&TRIP_OFFER===O)){TRIP_OFFER=null;tripMusicEnd()}return r}}   // 同行詢問直接關掉＝不出發
 /** 到了當地：香油錢、當地人物、湯客、同行的人、求籤，最後一張結果視窗。quiet＝不跳視窗（玩家直接關掉時）。 */
 function tripArrive(k,f,gift,quiet){
   const T=ODDS.trip[k],O=ODDS.trip,worn=stressTier()>=2?'worn':'calm';
@@ -14563,7 +14627,10 @@ function tripArrive(k,f,gift,quiet){
       foots.push(UT('trip.gift.eff',{a:amt})+(r?UT('trip.gift.relief',{r}):'')+(fm?UT('trip.gift.fame',{f:fm}):''))}}
   let h='<div class="text-prose" style="margin-bottom:6px">'+MSG('trip.done.'+k)+'</div>';
   // 當地的人
-  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripCard(portraitFigure(fig,G.cityId,48),UT('trip.fig.'+fig),UT('trip.figTag.'+fig),TX('trip.'+fig+'.'+worn),'')}
+  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripCard(portraitFigure(fig,G.cityId,48),UT('trip.fig.'+fig),UT('trip.figTag.'+fig),TX('trip.'+fig+'.'+worn),'');
+    if(hatsuNow()){                                // 正月初詣：一月上旬參拜，比照逛祭典抽一件臨時事件（07zf_festwalk.js 的 festWalkRoll）
+      const fv=G.festival;G.festival=UT('trip.hatsu');let ev;try{ev=festWalkRoll('hatsu')}finally{G.festival=fv}
+      h+='<div class="small" style="margin:6px 0 2px">'+esc(MSG('hatsu.open'))+'</div><div class="card" style="display:flow-root;margin-bottom:6px">'+(ev.cid?portraitHtml(ev.cid,48):'')+'<div class="small">'+esc(ev.txt)+'</div><div class="tiny" style="margin-top:4px;color:'+(ev.bad?'#1e7e34':'#9b2c3a')+'">'+esc(ev.eff)+'</div></div>'}}
   else{
     h+=tripCard(portraitFigure('sansuke',G.cityId,48),UT('trip.fig.sansuke'),UT('trip.figTag.sansuke'),TX('trip.sansuke.'+worn),'');
     const c=tripBather(f);
@@ -14581,8 +14648,34 @@ function tripArrive(k,f,gift,quiet){
   }
   if(k==='temple'&&chance(T.omen))h+='<div class="small" style="margin:4px 0">'+esc(TX('trip.omen'))+'</div>';   // 求籤只是氣氛，沒有作用
   UI.render();if(quiet)return;
-  sfx.gift();UI.showInfo(UT('trip.done.'+k),h+'<div class="tiny muted" style="margin-top:4px">'+foots.join('；')+'</div>');
+  sfx.gift();TRIP_RESULT=false;UI.showInfo(UT('trip.done.'+k),h+'<div class="tiny muted" style="margin-top:4px">'+foots.join('；')+'</div>');
+  TRIP_RESULT=true;                                 // 這張結果視窗關掉時換回主畫面配樂
 }
+
+/* ---------- 手抖：疲憊以上，用手拖動進出貨拉霸放開時，數字可能偏開一兩格（加減按鈕、鍵盤不會） ----------
+ *  演出：整條拉霸左右晃 3～4 下，滑塊先往旁邊彈一兩次才停下；中間的彈動不寫進計畫，停下的數字才算。
+ *  抖動中又去拖拉霸或按加減鈕：立刻停住、先落在最後的數字，再接玩家的新操作。 */
+let SHAKE_ARM=null,SHAKE_ANIM=null;
+function shakeFinish(){const A=SHAKE_ANIM;if(!A)return;SHAKE_ANIM=null;A.timers.forEach(clearTimeout);A.row&&A.row.classList.remove('shaking');
+  const el=document.getElementById(A.id);if(el){el.value=A.nv;el.dispatchEvent(new Event('input',{bubbles:true}))}}
+document.addEventListener('pointerdown',e=>{const t=e.target;if(SHAKE_ANIM&&t&&(t.id===SHAKE_ANIM.id||(t.closest&&t.closest('[data-step="'+SHAKE_ANIM.id+'"]'))))shakeFinish();
+  SHAKE_ARM=t&&(t.id==='slider-ship'||t.id==='slider-buy')?t.id:null},true);
+document.addEventListener('change',e=>{
+  const el=e.target;if(!el||!SHAKE_ARM||el.id!==SHAKE_ARM)return;SHAKE_ARM=null;
+  if(!G||el.disabled)return;const t=stressTier();if(t<1||t>2||!chance(ST().shakeP[t-1]))return;
+  const lo=+el.min,hi=+el.max,v=+el.value,unit=Math.max(1,Math.round((hi-lo)*ST().shakeFrac)),d=rint(1,2)*unit*(chance(0.5)?1:-1);
+  let nv=clamp(v+d,lo,hi);if(nv===v)nv=clamp(v-d,lo,hi);if(nv===v)return;
+  const row=el.closest('.step-row');
+  const old=row&&row.parentNode.querySelector('.shake-tip');if(old)old.remove();
+  if(row){const tip=document.createElement('div');tip.className='shake-tip tiny';tip.textContent=MSG('stress.shake',{a:v,b:nv});row.insertAdjacentElement('afterend',tip);setTimeout(()=>tip.remove(),3000)}
+  sfx.bad&&sfx.bad();
+  // 滑塊彈動：反方向一下、再越過目標一下，最後停在 nv（只改畫面，不寫計畫）
+  const dir=Math.sign(nv-v)||1,path=[clamp(v-dir*unit,lo,hi),clamp(nv+dir*unit,lo,hi),clamp(v+Math.round((nv-v)/2),lo,hi)],A={id:el.id,nv,row,timers:[]};
+  if(row){row.classList.remove('shaking');void row.offsetWidth;row.classList.add('shaking')}
+  path.forEach((x,k)=>A.timers.push(setTimeout(()=>{const e2=document.getElementById(A.id);if(e2)e2.value=x},70+k*90)));
+  A.timers.push(setTimeout(shakeFinish,70+path.length*90+40));
+  SHAKE_ANIM=A;
+},true);
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件

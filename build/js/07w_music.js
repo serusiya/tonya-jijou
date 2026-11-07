@@ -1,8 +1,8 @@
 'use strict';
 /* ======================= 配樂：江戶風 WebAudio 音序器 =======================
- *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器]（音高 0＝休止），即時合成。
+ *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器, 音量(可省略＝1)]（音高 0＝休止），即時合成。
  *  - 樂器：koto 箏、kotoLow 低音箏、shami 三味線、fue 笛、taiko 大太鼓、shime 締太鼓、ka 鼓邊、kane 鉦。
- *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）；皆依祭典囃子形式編排，非特定曲目。
+ *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）、trip《道中囃子》（外城出遊，G 調陽音階、跳步節奏、伴奏減半）；皆依祭典囃子形式編排，非特定曲目。
  *  - 播放採預排：每 25 毫秒把接下來 0.25 秒內的音符排進時間軸，循環播放；換曲時淡出淡入。
  *  - 設定（音樂開關、音效開關、音量）存在本機瀏覽器（AUDIO_KEY），屬個人偏好，不寫進存檔。
  *  - 手機瀏覽器要在使用者點擊之後才能出聲：開局／繼續人生時開始播放，之後任何點擊都會喚醒。 */
@@ -21,9 +21,9 @@ const mtof=m=>440*Math.pow(2,(m-69)/12);
 function musOut(){if(!AC)return null;if(!MUS.out){MUS.out=AC.createGain();MUS.out.gain.value=0.0001;MUS.out.connect(AC.destination)}return MUS.out}
 function musNoise(){if(MUS.noise)return MUS.noise;const n=AC.sampleRate*0.5,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return MUS.noise=b}
 /** 一個音：依樂器組合振盪器與音量包絡。 */
-function musVoice(inst,midi,t,dur){
+function musVoice(inst,midi,t,dur,vol){
   const made=[],K=n=>{made.push(n);return n};       // 這個音用到的聲音元件；全部播完後一起斷開，讓瀏覽器回收（Safari 不斷開會越積越多）
-  const out=K(AC.createGain());out.connect(MUS.out);
+  const out=K(AC.createGain());if(vol!==undefined&&vol!==1){const vg=K(AC.createGain());vg.gain.value=vol;out.connect(vg);vg.connect(MUS.out)}else out.connect(MUS.out);   // vol：音符表第五欄，伴奏減量用
   const env=(g,a,peak,decay,sustain,rel)=>{g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(Math.max(0.0001,peak*sustain),t+a+decay);g.gain.exponentialRampToValueAtTime(0.0001,t+Math.max(dur,a+decay)+rel)};
   const osc=(type,f,det)=>{const o=K(AC.createOscillator());o.type=type;o.frequency.setValueAtTime(f,t);if(det)o.detune.value=det;return o};
   if(inst==='koto'||inst==='kotoLow'){
@@ -131,10 +131,39 @@ function songTitle(){
   [0,0.5,1,1.5,2,2.25,2.5,2.75,3,3.25,3.5,3.75].forEach(o=>N(0,60+o,1,o<2?'taiko':'shime'));N(0,60,1,'kane');N(A5,63,1,'koto');
   return {bpm:96,len:64,notes};
 }
-const SONGS={market:songMarket,visit:songVisit,title:songTitle};
+/** 《道中囃子》（外城出遊）：G 調陽音階，每分鐘 104 拍，十六小節；跳步節奏（長短），箏分散和弦＋笛，締太鼓輕點當腳步。
+ *  1～8 小節：輕鬆漫步；9～16：旋律往上走，末小節停在高音不收尾，帶著期待接回開頭。 */
+function songTrip(){
+  const D3=50,E3=52,G3=55,A3=57,G4=67,A4=69,B4=71,D5=74,E5=76,G5=79,A5=81,B5=83,D6=86;
+  const notes=[],N=(m,s,d,i)=>notes.push(i==='fue'?[m,s,d,i]:[m,s,d,i,0.5]);   // 伴奏（箏、低音箏、鼓、鉦）音量減半，笛照原音量
+  const mel=[
+    [[B4,.75],[D5,.25],[E5,1],[D5,1],[B4,1]],[[A4,.75],[B4,.25],[G4,2],[0,1]],
+    [[B4,.75],[D5,.25],[E5,1],[G5,1],[E5,1]],[[D5,3],[0,1]],
+    [[E5,.75],[D5,.25],[B4,1],[A4,1],[B4,1]],[[D5,.75],[B4,.25],[A4,1],[G4,2]],
+    [[A4,.75],[B4,.25],[D5,1],[E5,.75],[D5,.25],[B4,1]],[[A4,3],[0,1]],
+    [[D5,.75],[E5,.25],[G5,1],[A5,1],[G5,1]],[[E5,.75],[G5,.25],[A5,2],[0,1]],
+    [[G5,.75],[A5,.25],[B5,1],[A5,1],[G5,1]],[[E5,.75],[D5,.25],[E5,1],[G5,2]],
+    [[A5,.75],[G5,.25],[E5,1],[D5,1],[E5,1]],[[G5,.75],[A5,.25],[B5,2],[0,1]],
+    [[A5,.75],[G5,.25],[E5,.75],[G5,.25],[A5,1],[B5,1]],[[D6,3],[0,1]]
+  ];
+  const root=[G3,G3,E3,D3, G3,E3,A3,D3, G3,E3,G3,E3, A3,E3,A3,D3];
+  mel.forEach((bar,i)=>{
+    const b=i*4;let x=b;
+    bar.forEach(([m,d])=>{if(m)N(m,x,d,'fue');x+=d});
+    const r=root[i],arp=[r,r+7,r+12,r+7,r+12,r+16>r+14?r+14:r+16,r+12,r+7];
+    arp.forEach((m,k)=>N(m,b+Math.floor(k/2)+(k%2?0.67:0),0.5,'koto'));      // 跳步：每拍兩個音，第二個晚一點（長短）
+    N(r-12,b,4,'kotoLow');
+    [1,3].forEach(o=>N(0,b+o,1,'shime'));N(0,b+3.67,1,'ka');                // 腳步：二、四拍輕點，四拍尾帶一下鼓邊
+    if(i%2===0)N(0,b,1,'kane');
+    if(i===0||i===8)N(0,b,1,'taiko');
+    if(i===15){[2,2.67,3,3.33,3.67].forEach(o=>N(0,b+o,1,'shime'))}
+  });
+  return {bpm:104,len:64,notes};
+}
+const SONGS={market:songMarket,visit:songVisit,title:songTitle,trip:songTrip};
 
 /* ======================= 播放 ======================= */
-/** 想播的曲子（market／visit／title；null＝停止）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
+/** 想播的曲子（market／visit／title／trip；null＝停止）；音樂關閉或還沒有使用者點擊時只記下，等可以時再播。 */
 function musicWant(key){MUS.want=key;musicSync()}
 /** 依設定與想播的曲子，開始、換曲或停止。 */
 function musicSync(){
@@ -151,7 +180,7 @@ function musicSync(){
     while(true){
       if(P.i>=P.list.length){P.i=0;P.t0+=P.S.len*P.spb}
       const n=P.list[P.i],t=P.t0+n[1]*P.spb;if(t>ahead)break;
-      if(t>=AC.currentTime-0.02)try{musVoice(n[3],n[0],t,n[2]*P.spb)}catch(e){}
+      if(t>=AC.currentTime-0.02)try{musVoice(n[3],n[0],t,n[2]*P.spb,n[4])}catch(e){}
       P.i++;
     }
   };

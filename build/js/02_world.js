@@ -202,7 +202,7 @@ function newGame(sysKey,regionPref,startTier=0){
     cartel:{state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:null},   // 開局即參加協議，訂約金由開局贈送；供給方針在下方各半抽選
     staple:{streak:0,peak:1},ships:[],originTrips:{y:0,m:3,byCity:{}},
     rel:{},known:[],intros:[],introId:null,emps:[],permits:{sea:{},land:{}},
-    family:{spouse:null,kids:[],married:false},
+    family:{spouse:null,kids:[],married:false,birthBonus:0},wifeEv:null,wifeFans:null,wifeGone:null,stress:0,stressCur:[],stressPrev:[],
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};

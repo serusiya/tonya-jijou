@@ -32,33 +32,35 @@ function festCands(){
   if(G.family.spouse||(G.family.kids||[]).length||(G.family.conc||[]).length)C.family={};
   return C;
 }
-/** 抽一件事件並套用效果，回傳 {cid,txt,eff}。 */
-function festWalkRoll(){
+/** 抽一件事件並套用效果，回傳 {cid,txt,eff}；pre 換一組敘事文字（初詣用 hatsu）。 */
+function festWalkRoll(pre){
+  const P=pre||'fest';                              // 文字前綴：fest＝逛祭典、hatsu＝正月初詣（07zzi_stress.js）
   const C=festCands(),keys=Object.keys(FEST_WALK_W).filter(k=>C[k]);
   let r=rnd()*keys.reduce((a,k)=>a+FEST_WALK_W[k],0),k=keys[0];
   for(const x of keys){r-=FEST_WALK_W[x];if(r<=0){k=x;break}}
   const D=C[k];
   if(k==='item'){
     G.xinv=G.xinv||{};G.xinv[D.c.name]=(G.xinv[D.c.name]||0)+1;
-    return {txt:MSG('fest.item',{n:D.c.short}),eff:UT('fwalk.festWalkRoll',{a:D.c.short})};
+    return {txt:MSG(P+'.item',{n:D.c.short}),eff:UT('fwalk.festWalkRoll',{a:D.c.short})};
   }
   if(k==='oiran'){
     const cid=D.n.cid,r0=R(cid);addKnown(cid);addAff(r0,5);logRel(cid,UT('fwalk.festWalkRoll.2',{a:G.festival}));
-    return {cid,txt:MSG('fest.oiran',{n:nameOf(cid)}),eff:UT('fwalk.festWalkRoll.3',{a:nameOf(cid)})};
+    return {cid,txt:MSG(P+'.oiran',{n:nameOf(cid)}),eff:UT('fwalk.festWalkRoll.3',{a:nameOf(cid)})};
   }
   if(k==='official'){
     const cid=D.n.cid,r0=R(cid),known=r0.topKnown;addKnown(cid);addAff(r0,5);r0.topKnown=true;logRel(cid,UT('fwalk.festWalkRoll.4',{a:G.festival}));
-    return {cid,txt:MSG('fest.official',{n:nameOf(cid),t:offTitle(D.n)}),eff:UT('fwalk.festWalkRoll.6',{a:nameOf(cid),b:known?'':UT('fwalk.festWalkRoll.5')})};
+    return {cid,txt:MSG(P+'.official',{n:nameOf(cid),t:offTitle(D.n)}),eff:UT('fwalk.festWalkRoll.6',{a:nameOf(cid),b:known?'':UT('fwalk.festWalkRoll.5')})};
   }
   if(k==='thief'){
-    if(guardCount()>0)return {txt:MSG('fest.thiefCaught'),eff:UT('fwalk.festWalkRoll.7')};
-    if(G.silver<=0)return {txt:MSG('fest.thiefEmpty'),eff:UT('fwalk.festWalkRoll.8')};
+    if(guardCount()>0)return {txt:MSG(P+'.thiefCaught'),eff:UT('fwalk.festWalkRoll.7')};
+    if(G.silver<=0)return {txt:MSG(P+'.thiefEmpty'),eff:UT('fwalk.festWalkRoll.8')};
     const loss=Math.min(300,Math.max(1,Math.round(G.silver*(0.01+rnd()*0.02))));G.silver-=loss;
-    return {txt:MSG('fest.thief'),eff:UT('fwalk.festWalkRoll.9',{a:fmt(loss)}),bad:true};
+    return {txt:MSG(P+'.thief'),eff:UT('fwalk.festWalkRoll.9',{a:fmt(loss)}),bad:true};
   }
   const conc=(G.family.conc||[]).map(x=>x.cid).filter(cid=>G.rel[cid]);
   conc.forEach(cid=>{addAff(R(cid),5);logRel(cid,UT('fwalk.festWalkRoll.10',{a:G.festival}))});
-  return {txt:MSG('fest.family',{who:famWho()}),eff:conc.length?UT('fwalk.festWalkRoll.11'):UT('fwalk.festWalkRoll.12')};
+  addStress('famwalk',-ODDS.stress.famwalk);                 // 闔家同遊（07zzi_stress.js）
+  return {txt:MSG(P+'.family',{who:famWho()}),eff:conc.length?UT('fwalk.festWalkRoll.11'):UT('fwalk.festWalkRoll.12')};
 }
 /** 同遊的家人稱呼。 */
 function famWho(){const L=[];if(G.family.spouse)L.push(NEWS('fwalk.famWho'));if((G.family.kids||[]).length)L.push(NEWS('fwalk.famWho.2'));if((G.family.conc||[]).length)L.push(NEWS('fwalk.famWho.3'));return L.join(UT('fwalk.famWho.4'))||UT('fwalk.famWho.5')}

@@ -124,7 +124,9 @@ function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
   let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?UT('bt.battleHtml'):left===2?UT('bt.battleHtml.2'):UT('bt.battleHtml.3'))+(B.spent?UT('bt.battleHtml.4',{a:fmt(B.spent)}):'')+'</div>';
-  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')].map((lb,i)=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
+  if(B.ordRound!==B.round){B.ordRound=B.round;B.order=stressTier()>=1?shuffle([0,1,2]):[0,1,2]}   // 疲憊以上：每回合小中大的位置打亂（07zzi_stress.js）
+  const LB=[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')];
+  h+='<div class="grid3" style="margin-top:6px;gap:4px">'+B.order.map(i=>[LB[i],i]).map(([lb,i])=>'<button class="pixel-btn btn-sm btn-gold" data-act="btOffer" data-i="'+i+'" '+(G.silver<t[i]?'disabled':'')+'>'+lb+'·'+coinHtml('silver',t[i])+'</button>').join('')+'</div>';
   h+=UT('bt.battleHtml.8');
   return h;
 }

@@ -1,6 +1,6 @@
 /* ★樣式總覽
  * - 前半：像素風基礎（色彩變數 :root、按鈕 .pixel-btn、卡片 .card、標籤 .tag、進度條 .bar）。
- * - 面板：#sheet（上下置中的彈出面板）、#info（說明視窗）、#visit（拜訪動畫小視窗）、#fx（全螢幕轉場）。
+ * - 面板：#sheet（上下置中的彈出面板）、#info（說明視窗）、#visit（拜訪動畫小視窗）、#fx（轉場，只蓋遊戲那一欄，最寬 620px）。
  * - 檔尾：後續追加的覆寫規則（彈出視窗置中、人物卡字體加大、行動點數等）。同一選擇器以『後寫者為準』。 */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -84,8 +84,11 @@ nav#bottom button .ic{font-size:18px}.nav-dot{position:absolute;right:6px;top:3p
 /* toast */
 #toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);max-width:92%;background:var(--ink);color:var(--paper);border:2px solid var(--gold2);padding:6px 10px;font-size:14px;font-weight:bold;z-index:99;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 6px 20px #000}
 #toast.on{opacity:1}
+.shake-tip{color:#b3392b;font-weight:bold;margin:2px 0 0}
+.step-row.shaking{animation:shakeRow .42s linear 1}
+@keyframes shakeRow{0%,100%{transform:translateX(0)}12%{transform:translateX(-4px)}25%{transform:translateX(4px)}37%{transform:translateX(-4px)}50%{transform:translateX(3px)}62%{transform:translateX(-3px)}75%{transform:translateX(2px)}87%{transform:translateX(-1px)}}
 /* transition overlay */
-#fx{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
+#fx{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:620px;transform:translateX(-50%);z-index:80;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
 #fx.on{display:flex}
 #fx .town{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.55) saturate(.9);image-rendering:pixelated;transform:scale(1.1);animation:pan 1.2s linear forwards}
 @keyframes pan{from{transform:scale(1.1) translateX(3%)}to{transform:scale(1.1) translateX(-3%)}}
@@ -143,7 +146,7 @@ select{background:#fff;border:2px solid #a79b87;padding:2px}
 #visit-cap{padding:6px 8px;min-height:22px;line-height:22px;font-size:14px;color:#2b2520;font-weight:bold}
 #visit .vskip{padding:0 8px 5px;font-size:13px;line-height:1.4;color:#8a8070;text-align:right}
 
-.ap{font-size:13px;color:#f2cb57;border:1px solid #6b5d3a;background:#2a2430;padding:2px 5px;white-space:nowrap}.ap.low{color:#ff8a7a;border-color:#a33}
+.ap{font-size:13px;color:#f2cb57;border:1px solid #6b5d3a;background:#2a2430;padding:2px 5px;white-space:nowrap;cursor:pointer}.ap.tired{color:#f0a040;border-color:#b07a2a}.ap.worn{color:#ff6a5a;border-color:#a33;background:#3a2228}.ap.low{color:#ff8a7a;border-color:#a33}
 #top .hrow{flex-wrap:wrap;row-gap:3px}#top .hrow>.row:first-child{white-space:nowrap}#top .hrow>.row:last-child{flex-wrap:nowrap;margin-left:auto}#top .hbtn{padding-left:6px;padding-right:6px}
 
 .card[data-cid]{font-size:15px;line-height:1.6}

@@ -35,7 +35,7 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#info-bd').classList.contains('hidden'))UI.hideInfo();else UI.closeSheet()}});
 window.addEventListener('DOMContentLoaded',()=>{
-  $$('.loc').forEach(el=>el.dataset.act='go');
+  $$('.loc').forEach(el=>{if(!el.dataset.act)el.dataset.act='go'});   // 外城出遊卡自帶 data-act（07zzi_stress.js）
   $$('#bottom button').forEach(b=>b.addEventListener('click',()=>{UI.go(UI.s.tab===b.dataset.tab?'home':b.dataset.tab)}));
   $('#b-next').addEventListener('click',()=>doTurn(1));
   $('#b-menu').addEventListener('click',()=>UI.openSheet('menu'));

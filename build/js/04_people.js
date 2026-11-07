@@ -453,7 +453,7 @@ function marry(kind,targetCid,introCid){
   spend(mk);introCost(it);
   const p=clamp(ODDS.marry.base+ODDS.marry.perScore*sc,ODDS.marry.min,ODDS.marry.max);
   if(!chance(p)){if(targetCid)setAff(R(targetCid),Math.max(0,R(targetCid).aff-5));logRel(introCid,MSG('log.marryFail'));return {ok:true,fail:true,msg:MSG('marry.4',{p:Math.round(p*100)})}}
-  const spouse={name:pick(NAMES.spouse)+UT('spouse.of',{f:NM('marryFam',kind)}),kind,birthYear:G.year-rint(17,24)};
+  const spouse={name:pick(NAMES.spouse)+UT('spouse.of',{f:NM('marryFam',kind)}),kind,birthYear:G.year-rint(17,24),since:G.turn,fatherCid:kind==='commoner'?null:(targetCid||null)};   // 岳父先記下，尚未牽動好感
   addFame(3,'mid');G.family.spouse=spouse;G.family.married=true;G.life.spouseKind=kind;
   let extra='';
   if(kind==='rival'&&targetCid){setAff(R(targetCid),clamp(R(targetCid).aff+25,0,100));G.cartel.comp=Math.min(90,G.cartel.comp+5);extra=MSG('marry.rival')}
@@ -506,14 +506,15 @@ function yearTick(log){
     if(a===12&&!k.revealed){k.revealed=true;const tt=NEWS('yearTick.4',{name:k.name,top3Of:statName(top3Of(k.stats)[0])});pushNews(tt);log.push(tt)}
     if(a>=16&&!k.prodigal&&k.stats.greed_index>65&&k.stats.integrity_loyalty<48&&roll('prodigal')){k.prodigal=true;const tt=NEWS('yearTick.5',{name:k.name});pushNews(tt);log.push(tt)}
   });
-  if(G.family.spouse&&G.family.kids.length<4&&G.year-G.family.spouse.birthYear<=42&&roll('birth')){
+  if(G.family.spouse&&G.family.kids.length<4&&G.year-G.family.spouse.birthYear<=42&&roll('birth',ODDS.birth.p+(G.family.birthBonus||0))){
     const k=newKid();G.family.kids.push(k);const tt=NEWS('yearTick.6',{gender:NM('gender',k.gender),name:k.name});pushNews(tt);log.push(tt);
   }
+  G.family.birthBonus=0;                           // 幫夫人的添丁加成只算當年（07zzh_wife.js）
   staffYearTick(log);                              // 員工久任成長
   newProdTick(log);                                // 一月上旬：一定機率新增本業貨產地
   // 壽數：40 歲起每年擲一次（基本小機率），45 歲後逐年遞增
   const age=myAge();
-  if(age>=ODDS.death.rollAge&&chance(deathChance(age)))endLife('death');   // 40 歲起才擲
+  if(age>=ODDS.death.rollAge&&chance(deathChance(age)+stressDeathAdd(age)))endLife('death');   // 上一年心力交瘁略增（07zzi_stress.js）   // 40 歲起才擲
 }
 
 /* ---------- 蓋棺評語 ---------- */

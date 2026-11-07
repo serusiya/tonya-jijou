@@ -24,7 +24,12 @@ function enlistRanks(cid){
   if(!n||!r||!r.bond||n.cityId!==G.cityId||!alive(cid)||n.hired||n.raided||jailed(n)||n.pos||!ENLIST_ROLES.includes(n.role)||isEnemy(cid))return [];
   if(G.emps.some(e=>e.cid===cid)||G.intros.some(i=>i.cid===cid))return [];
   const a=ageOf(cid);if(a<18||a>62)return [];
-  return suitableEmpRanks(cid).filter(slotFree);
+  return enlistFitRanks(cid).filter(slotFree);
+}
+/** 延攬看能力本身（物色看出身標籤，等於商才 65～70、膽識 70 等門檻）；延攬放寬約 20（ODDS.enlist.stat）。 */
+function enlistFitRanks(cid){
+  const s=(CH(cid)||{}).derived_stats||{},T=ODDS.enlist.stat;
+  return RECRUIT_RANKS.filter(rk=>T[rk]&&Object.entries(T[rk]).every(([k,v])=>(s[k]||0)>=v));
 }
 /** 私宅的延攬區塊：說明＋各有空缺職位的按鈕（大番頭、番頭、手代、船長、飛腳、保鏢）。 */
 const ENLIST_ORDER=['chief','banto','clerk','captain','courier','guard'];
