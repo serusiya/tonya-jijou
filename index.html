@@ -397,6 +397,8 @@ const NAMES={
     medicine:{family:'大和',name:'唐物藥種問屋',firm:'大和屋',style:'走私型',tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的商株御免；私房錢稍多。'},
     luxury:{family:'京',name:'陶磁雅玩問屋',firm:'京屋',style:'公關型',tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}
   },
+  /* 開局隨機店名（屋號）候選 50 個；名冊人物已用過的屋號（越後屋、尾張屋等）不放，免得同城撞名。主角的姓＝屋號去掉「屋」。 */
+  firms:['伊豆屋','上總屋','下總屋','常陸屋','和泉屋','河內屋','飛驒屋','備前屋','遠州屋','能登屋','越前屋','若狹屋','丹波屋','但馬屋','美濃屋','備中屋','三河屋','伯耆屋','相模屋','武藏屋','信濃屋','甲斐屋','出雲屋','長門屋','讚岐屋','阿波屋','土佐屋','筑前屋','肥前屋','紀伊國屋','大和屋','山城屋','鴻池屋','住友屋','京屋','因幡屋','大丸屋','松坂屋','萬屋','丸屋','鍵屋','鶴屋','龜屋','菱屋','橘屋','松屋','豐後屋','玉屋','薩摩屋','柏屋'],
   /* 主角、子女的名字候選 */
   given:['甚左衛門','藤兵衛','彌七郎','傳右衛門','平次郎','利兵衛','宗右衛門','嘉兵衛','太郎左衛門','宗兵衛','清十郎','與三郎'],
   childM:['甚太郎','藤吉','彌市','傳之助','平八','利助','宗吉','嘉七'],
@@ -1475,14 +1477,6 @@ const UI_TXT={
   'btn.vGoAll':'全部出發',
   'txt.vGoAll':'一次全部出發，只扣 1 行動點數。',
   'txt.vGoAllNoAP':'本旬行動點數已用完，下旬再出發。',
-  'voyQ.warn.t':'📋 出運清單',
-  'voyQ.warn':'出運清單上還有 {n} 人沒出發，這一旬過去清單就作廢。',
-  'voyQ.warn.noAP':'本旬行動已用完，清單上的 {n} 人出不了門，推進後清單作廢。',
-  'voyQ.warn.hurt':'你還需靜養，清單上的 {n} 人出不了門，推進後清單作廢。',
-  'btn.vQGo':'全部出發（行動 −1）',
-  'btn.vQSkip':'不出發，推進',
-  'btn.vQSkip.2':'照樣推進',
-  'btn.vQBack':'返回',
   'btn.vDel':'取消',
   'btn.visit':'親自登門拜訪 ▶',
   'btn.whMax':'已達上限',
@@ -4193,9 +4187,6 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
-  {date:'2026年11月8日',items:[
-    '修改背景資料'
-  ]},
   {date:'2026年11月7日',items:[
     '商人番付改版：分身代、名望兩欄各排前十名，旅商人也一起上榜；開局本城的旅商人變多。把他行貨賣給旅商，他轉手賺的錢也會讓他往前爬。',
     '新增商號紀錄：筆記多了「紀錄」一頁，開業以來每一旬的收支、每一期番付的名次，以及身代與知名度的走勢都留著。',
@@ -4205,6 +4196,7 @@ const CHANGELOG=[
     '新增壓力：辦事、碰釘子會累積壓力，太累每旬行動變少，撐不住會病倒；點行動值可以看身心狀況與紓解方法。',
     '新增外城出遊：主畫面可以去寺社參拜或泡溫泉紓解壓力，花的是私房錢；寺社參拜免費，香油錢隨意捐，溫泉五兩。交情深的朋友有時會想一起去；寺社有住持、巫女，溫泉有三助，泡湯時還可能碰上城裡的人。外城友人之後開放。',
     '壓力設定更新：疲憊以後，交涉時小中大的按鈕位置會亂換，拖動進出貨的拉霸也容易手抖（用加減鈕就不會）。',
+    '開局設定更新：每次開局，七個流派的店名都從五十個屋號裡隨機抽。',
     '新增出遊配樂：打開外城出遊就換成輕快悠閒的《道中囃子》，回到店裡再換回原本的曲子。',
     '新增正月初詣：一月上旬去寺社參拜，人潮洶湧，會像逛祭典一樣碰上意外的事。',
     '人才設定更新：延攬熟人的能力要求比物色寬，熟識的人有幾分本事就能請到店裡。',
@@ -4499,10 +4491,10 @@ function pickActiveCities(homeId,own){
 }
 /** 建立新局：行業決定本業，資源等級決定現款、員工等起步加成，再初始化世界與市場。 */
 function newGame(sysKey,regionPref,startTier=0){
-  const S=SYS_BY_KEY[sysKey],tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
+  const S=SYS_BY_KEY[sysKey],FIRM=typeof startFirm==='function'?startFirm(sysKey):S.firm,tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,startTier:tier,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
-    me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
+    sysKey,startTier:tier,firm:UT('me.firm',{firm:FIRM,sys:S.name}),firmShort:FIRM,
+    me:{family:FIRM.replace(/屋$/,''),given:'',name:'',birthYear:-20,gen:1},
     silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
@@ -7097,8 +7089,7 @@ UI.render=function(){
   else if(t==='notes')renderNotes();
   else if(t==='estate')renderEstate();
   const od=Object.values(G.rel).some(r=>r.promises.some(p=>!p.done&&G.turn>p.due-1));
-  const vq=voyQPending()>0;                      // 出運清單還有人沒出發：商路按鈕亮紅點（07i_voyage.js）
-  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if((b.dataset.tab==='notes'&&od)||(b.dataset.tab==='routes'&&vq)){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
+  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if(b.dataset.tab==='notes'&&od){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
@@ -7959,8 +7950,12 @@ SHEETS.legacy=()=>{
 function makeStartDeck(){
   const a=SYS.map(s=>s.key);
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  const f=NAMES.firms.slice();for(let i=f.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[f[i],f[j]]=[f[j],f[i]]}
+  UI.s.startFirms={};a.forEach((k,i)=>{UI.s.startFirms[k]=f[i]});   // 每次洗牌，七個流派各抽一個不重複的店名
   return a;
 }
+/** 開局卡片與新局用的店名（舊流程沒有抽過時用流派原本的店名）。 */
+const startFirm=key=>(UI.s.startFirms&&UI.s.startFirms[key])||SYS_BY_KEY[key].firm;
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){
   if(!Array.isArray(UI.s.startDeck)||UI.s.startDeck.length!==START_TIERS.length)UI.s.startDeck=makeStartDeck();
@@ -7972,7 +7967,7 @@ UI.showStart=function(){
   if(!sv&&OLD_SAVE_FOUND)h+=UT('ppl.showStart.2',{a:GAME_VER});
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
   h+=UT('ppl.showStart.3');
-  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
+  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+startFirm(s.key)+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
   h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
@@ -8835,26 +8830,6 @@ const idleCaptains=(mode,inclQ)=>{
 };
 /** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
 function voyQPrune(){if(!G.voyQueue)return;G.voyQueue=G.voyQueue.filter(q=>idleCaptains(q.mode,true).some(e=>e.id===q.capt))}
-/** 出運清單裡還等著出發的人數（推進前提醒、商路按鈕紅點用）。 */
-function voyQPending(){if(!G||!G.voyQueue||!G.voyQueue.length)return 0;voyQPrune();return G.voyQueue.length}
-/** 推進一旬時已確認「照樣推進」：這一次不再攔。 */
-let VOYQ_SKIP=false;
-/** 推進一旬前：出運清單還有人沒出發就先跳提醒，回傳 true 表示已攔下（08_boot.js 的 doTurn）。 */
-function voyQGuard(n){
-  if(VOYQ_SKIP){VOYQ_SKIP=false;return false}
-  const k=voyQPending();if(!k)return false;
-  const stuck=(G.injured||0)>0?'hurt':apLeft()<=0?'noAP':'';
-  const btn=(act,key,cls,extra)=>'<button class="pixel-btn '+cls+'" style="flex:1 1 '+(act==='vQGo'?'100%':'0')+';padding:8px" data-act="'+act+'"'+(extra||'')+'>'+UT(key)+'</button>';
-  let h='<p class="small">'+UT(stuck?'voyQ.warn.'+stuck:'voyQ.warn',{n:k})+'</p><div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">';
-  if(!stuck)h+=btn('vQGo','btn.vQGo','btn-gold');
-  h+=btn('vQSkip',stuck?'btn.vQSkip.2':'btn.vQSkip','',' data-n="'+(n||1)+'"')+btn('vQBack','btn.vQBack','')+'</div>';
-  UI.showInfo(UT('voyQ.warn.t'),h);sfx.tap();
-  return true;
-}
-const voyQClose=()=>{INFO_AFTER=null;UI.hideInfo()};
-ACT.vQGo=()=>{voyQClose();ACT.vGoAll()};
-ACT.vQSkip=el=>{voyQClose();VOYQ_SKIP=true;doTurn(+el.dataset.n||1)};
-ACT.vQBack=()=>voyQClose();
 const ownNameSet=()=>new Set(ownComms().map(c=>c.name));
 /** 本業中已可交易的貨（委託採買時船長只買這些）。 */
 const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
@@ -12577,7 +12552,7 @@ const homeSoon=()=>{if(!HOME_T)HOME_T=setTimeout(homeCheck,60)};
  *  - 第一階段（回府時）：每旬 10% 來調一批隨機本業貨（約一旬的協議配額或穩定供貨線）；倉庫不夠只能回絕。給滿 10 次送 8,000～12,000 兩、進入第二階段；累計回絕 3 次分號倒閉。
  *  - 第二階段（回府時）：每旬 5% 送 3,000～5,000 兩，永遠持續。
  *  - 一次只能一家；倒閉後下一位符合條件的大番頭才能再開。數值 ODDS.branch；狀態 G.branch。 */
-const branchName=()=>G.branch?UT('branch.name',{f:(SYS_BY_KEY[G.sysKey]||{}).firm||'',c:CITY(G.branch.cityId)?CITY(G.branch.cityId).name:'',n:G.branch.name}):'';
+const branchName=()=>G.branch?UT('branch.name',{f:G.firmShort||(SYS_BY_KEY[G.sysKey]||{}).firm||'',c:CITY(G.branch.cityId)?CITY(G.branch.cityId).name:'',n:G.branch.name}):'';
 const branchOpen=()=>!!(G.branch&&!G.branch.closed);
 /** 大番頭升任起算的年資。 */
 const chiefTenure=e=>G.turn-(e.promotedAt!==undefined?e.promotedAt:e.since);
@@ -14717,7 +14692,6 @@ document.addEventListener('change',e=>{
 /** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次現款變化。 */
 function doTurn(n){
   if(!G||G.ended||FX.busy)return;
-  if(voyQGuard(n))return;                         // 出運清單還有人沒出發：先提醒（07i_voyage.js）
   /* 推進前先回到主畫面：關掉開著的面板與說明視窗，旬報才不會被擋住 */
   try{UI.s.outGo=null;if(UI.s.sheet)UI.closeSheet();if(typeof ENC==='undefined'||!ENC)$('#info-bd').classList.add('hidden');if(UI.s.tab!=='home')UI.go('home')}catch(e){}
   const before=G.silver,head=G.news[0];          // head：推進前最新的一則瓦版，用來找出這段期間新出的消息
