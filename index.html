@@ -397,8 +397,6 @@ const NAMES={
     medicine:{family:'大和',name:'唐物藥種問屋',firm:'大和屋',style:'走私型',tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的商株御免；私房錢稍多。'},
     luxury:{family:'京',name:'陶磁雅玩問屋',firm:'京屋',style:'公關型',tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}
   },
-  /* 開局隨機店名（屋號）候選 50 個；名冊人物已用過的屋號（越後屋、尾張屋等）不放，免得同城撞名。主角的姓＝屋號去掉「屋」。 */
-  firms:['伊豆屋','上總屋','下總屋','常陸屋','和泉屋','河內屋','飛驒屋','備前屋','遠州屋','能登屋','越前屋','若狹屋','丹波屋','但馬屋','美濃屋','備中屋','三河屋','伯耆屋','相模屋','武藏屋','信濃屋','甲斐屋','出雲屋','長門屋','讚岐屋','阿波屋','土佐屋','筑前屋','肥前屋','紀伊國屋','大和屋','山城屋','鴻池屋','住友屋','京屋','因幡屋','大丸屋','松坂屋','萬屋','丸屋','鍵屋','鶴屋','龜屋','菱屋','橘屋','松屋','豐後屋','玉屋','薩摩屋','柏屋'],
   /* 主角、子女的名字候選 */
   given:['甚左衛門','藤兵衛','彌七郎','傳右衛門','平次郎','利兵衛','宗右衛門','嘉兵衛','太郎左衛門','宗兵衛','清十郎','與三郎'],
   childM:['甚太郎','藤吉','彌市','傳之助','平八','利助','宗吉','嘉七'],
@@ -916,7 +914,7 @@ const ODDS={
   ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,daimyo:{name:'大名行列過境（07zzc_daimyo.js）：當旬本業貨需求倍率',mult:2}
   ,stress:{name:'壓力（07zzi_stress.js）：疲憊／心力交瘁門檻、病倒門檻、病癒後壓力；每用一點行動、拒見、交涉失利、不善言辭、暗殺放火栽贓打壓、供貨不穩、失火、現款為負；自然恢復、每點沒用完的行動、夫人與子女在家、宴會、夜宴、指名、節慶、忘年會、闔家同遊；疲憊以上進出貨拉霸手抖的機率（疲憊、心力交瘁）與偏離幅度（拉霸全長的比例、最少一格）；心力交瘁後幾歲起、每年壽數判定加多少；扣知名度事件對應的壓力',tiers:[40,70],sick:90,after:60,ap:1,refuse:3,lose:2,snub:5,dirty:8,unstable:2,fire:6,debt:3,natural:2,idle:1,family:1,banquet:5,feast:5,nominate:2,fest:5,party:15,famwalk:10,oldAge:45,shakeP:[0.3,0.6],shakeFrac:0.02,oldDeath:0.02,fameKeys:{raid1:5,raid2:8,raid3:10,riot:8,inspect:5,arrest:8,tributeFail:3}}
-  ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5}   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
+  ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5,pill:{p:0.08,turns:3,lv:[{price:10,good:0.5},{price:50,good:0.75},{price:100,good:1}]},sansuke:{p:0.15,ask:[50,100,500],back:2},tea:{gift:1000,hi:[60,75],greed:[15,35],betray:[10,25],aff:60},bless:{p:0.05,heat:1},season:{onsenWinter:2,templeAutumn:1,templeSpringAff:2}}   // pill 賣藥郎：出現機率、藥效旬數、三級價錢與真藥機率；sansuke 三助投資：開口機率、三次開口金額、還錢倍數；tea 三獻茶：本城寺社累計香油錢門檻、能力偏高區間、貪欲與背叛區間、起始好感；bless 祈福：機率、風聲減幾點；season 季節小景：冬溫泉多減壓、秋寺社多減壓、春寺社同行好感多加（07zzk_tripev.js）   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
   ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
@@ -1304,6 +1302,32 @@ const LINES={
       calm:['客官，背給您刷一刷，保管通體舒暢。','今兒湯溫正好，泡久一點也不燙。','客官這身子骨結實，刷起來都有勁。','要不要來壺熱茶？泡完湯喝最潤。'],
       worn:['客官，您這肩膀硬得跟門板似的，小的使點勁了。','忙壞了吧？泡湯的時候，什麼都別想。','您這背上的結，小的揉了三回才鬆開。','今晚早點歇著，明天起來保證換個人似的。']
     },
+    /* 出遊奇遇（07zzk_tripev.js）：賣藥郎、三助投資、祈福 */
+    peddler:{
+      pitch:['客官留步！這是祖傳的金剛丸，一帖下肚，三天三夜不知累。只要十兩！','看客官氣色，八成是操勞過度。小號的強身藥，一帖見效，十兩就好。','走過路過別錯過！強筋健骨、提神醒腦，一帖才十兩。'],
+      excuse:['哎呀，是您！上回那批……受了潮，藥性走了樣。這回是新熬的，加了老參，五十兩，保管有效。','上回那帖？咳，那是給牛吃的，小的一時拿錯了。這帖才是人吃的，五十兩。','客官息怒！上回是學徒配的藥，小的已經把他趕走了。這帖小的親手配，五十兩。'],
+      excuse2:['客官……小的這回把壓箱底的拿出來了，師父傳下來的方子，一百兩，再不靈小的把藥箱給您。','又是您……小的實在沒臉。這帖是看家的真貨，一百兩，不靈您砸了小的招牌。']
+    },
+    ssk:{
+      ask:{
+        0:['客官，小的跟您說件好事：山上要開一家新湯屋，缺點本錢。您先借小的五十兩，下回來，小的還您一百兩。','客官手頭寬裕吧？小的有門路收溫泉蛋賣到城裡，借五十兩周轉，下回加倍奉還。'],
+        1:['客官上回那筆生意做得漂亮吧？這回湯屋要添座露天風呂，借一百兩，下回還您二百。','客官信得過小的了吧？這回再借一百兩，下回連本帶利，二百兩奉上。'],
+        2:['客官，大生意來了！山那頭有座舊旅籠要賣，小的湊不夠錢，您出五百兩，往後的利錢分您一半。','這回是千載難逢的機會：五百兩盤下整間湯屋，往後客官泡湯不用錢，紅利年年有。']
+      },
+      paid:['多謝客官！下回來，連本帶利奉還。','客官爽快！小的這就去辦，包您不吃虧。'],
+      back:['客官，說好的錢，小的分文不少，您點點。','小的說話算話，這是您的本錢加利錢。'],
+      no:{
+        0:['也罷，客官再想想，機會還在。','客官謹慎，小的明白。改日再說。'],
+        1:['可惜了，可惜了。客官再考慮考慮。','客官不信小的？那小的下回再跟您提。'],
+        2:['……客官真是精明，小的佩服。','也罷，這種好事，小的找別人去。']
+      },
+      flee:['您問前頭那位{p}？唉，人去樓空啦，連鋪蓋都捲走了。小的是他表弟{q}，往後請客官多照顧。','{p}那傢伙？前些日子半夜走了，欠了一屁股債。小的{q}，他表弟，客官放心，小的老實。'],
+      quit:['{p}那傢伙？賺了大錢，回鄉享福去囉。小的{q}，往後請客官多關照。','您說{p}？人家發了財，在鄉下蓋了大宅子。小的{q}接他的班。']
+    },
+    bless:{
+      monk:['貧僧替施主誦一段經，願災厄遠離。','願佛祖庇佑，流言自消，施主行事坦蕩。'],
+      miko:['我替您向神明祈福，願一切不好的風聲都散去。','請低頭——願神明替您擋下閒言閒語。']
+    },
     bather:{
       merchant:{
         known:['喲，{n}兄，在這兒碰上你。脫了衣服，誰也別談生意。','這不是{n}兄嗎？來來來，往這邊挪，這邊湯熱。','巧了！泡完一起喝一杯？'],
@@ -1477,6 +1501,14 @@ const UI_TXT={
   'btn.vGoAll':'全部出發',
   'txt.vGoAll':'一次全部出發，只扣 1 行動點數。',
   'txt.vGoAllNoAP':'本旬行動點數已用完，下旬再出發。',
+  'voyQ.warn.t':'📋 出運清單',
+  'voyQ.warn':'出運清單上還有 {n} 人沒出發，這一旬過去清單就作廢。',
+  'voyQ.warn.noAP':'本旬行動已用完，清單上的 {n} 人出不了門，推進後清單作廢。',
+  'voyQ.warn.hurt':'你還需靜養，清單上的 {n} 人出不了門，推進後清單作廢。',
+  'btn.vQGo':'全部出發（行動 −1）',
+  'btn.vQSkip':'不出發，推進',
+  'btn.vQSkip.2':'照樣推進',
+  'btn.vQBack':'返回',
   'btn.vDel':'取消',
   'btn.visit':'親自登門拜訪 ▶',
   'btn.whMax':'已達上限',
@@ -3271,6 +3303,43 @@ const UI_TXT={
   'trip.done.temple':'⛩️ 寺社參拜',
   'trip.done.onsen':'♨️ 溫泉',
   'trip.eff':'壓力 −{r}',
+  'trip.fig.peddler':'賣藥郎',
+  'trip.figTag.peddler':'行商',
+  'trip.fig.novice':'小沙彌',
+  'trip.ssk.name':'{n}助',
+  'trip.pill.price':'一帖 {a} 兩（私房錢）',
+  'btn.tripPillBuy':'買一帖（{a} 兩）',
+  'btn.tripPillNo':'不必了',
+  'trip.pill.good':'一帖下肚，渾身是勁。',
+  'trip.pill.bad':'這藥吃了心浮氣躁，渾身不對勁。',
+  'trip.pill.goodEff':'私房錢 −{a}；接下來一個月，再忙也不覺得累',
+  'trip.pill.badEff':'私房錢 −{a}；接下來一個月，事事都格外磨人',
+  'trip.pill.no':'你擺擺手，賣藥郎訕訕地背起藥箱走了。',
+  'trip.ssk.ask':'他想拉你合夥，要私房錢 {a} 兩',
+  'btn.tripSskPay':'交給他（{a} 兩）',
+  'btn.tripSskNo':'婉拒',
+  'trip.ssk.paidEff':'私房錢 −{a}',
+  'trip.ssk.backEff':'私房錢 +{a}',
+  'trip.tea.story':'住持說：「施主多年護持本寺，請到後院歇歇腳。」一名小沙彌奉上茶來。第一碗是大碗，茶溫溫的，正好解渴；你再要一碗，這回碗小了些，茶熱了些；第三碗是小小一盞，滾燙，只能慢慢品。住持笑道：「這孩子心思靈巧，不是做和尚的料。施主若不嫌棄，帶回店裡學生意吧。」',
+  'btn.tripTeaYes':'帶他回去',
+  'btn.tripTeaNo':'讓他留在寺裡',
+  'trip.tea.yes':'{n}收拾了小包袱，向住持磕了頭，跟著你下山。',
+  'trip.tea.yesEff':'丁稚 {n} 入店（自家栽培）',
+  'trip.tea.no':'住持合掌：「那便是他與佛有緣。」小沙彌收了茶具，退回後院。',
+  'trip.bless.eff':'風聲 −{a}',
+  'trip.season.onsenWinter':'外頭下起了雪，坐在熱湯裡賞雪，別有一番滋味。',
+  'trip.season.templeAutumn':'參道兩旁的楓葉紅透了，走一趟心曠神怡。',
+  'trip.season.templeSpring':'寺裡的櫻花開了，境內擺了花下茶會。',
+  'trip.season.relief':'{s}，壓力再 −{r}',
+  'trip.season.aff':'花下茶會，{f} 好感再 +{g}',
+  'trip.season.n.onsenWinter':'雪見湯',
+  'trip.season.n.templeAutumn':'紅葉參道',
+  'stress.k.season':'賞景',
+  'stress.k.pill':'金剛丸',
+  'stress.pill.good':'服了金剛丸，渾身是勁，藥效還有 {a} 旬。',
+  'stress.pill.bad':'服了金剛丸，心浮氣躁，藥效還有 {a} 旬。',
+  'staff.tagTea':'<span class="tag gold">寺中奉茶</span>',
+  'bz.g.meScam':'聽說「{a}」的老闆在湯屋被搓澡的騙走了五百兩，還四處打聽那人的下落。',
   'mk.daimyo':'大名行列過境，需求大增',
   'mk.wifeFans':'夫人娘家街坊捧場，需求較旺',
   'cm.title':'🍵 拜訪·{a}',
@@ -4187,6 +4256,10 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月8日',items:[
+    '出遊設定更新：寺社與溫泉多了幾樣奇遇——賣藥郎、搓澡三助的生意經、住持與巫女的祈福，長年護持寺社還可能遇上一段佳話；不同季節去，景致也不同。',
+    '修改背景資料'
+  ]},
   {date:'2026年11月7日',items:[
     '商人番付改版：分身代、名望兩欄各排前十名，旅商人也一起上榜；開局本城的旅商人變多。把他行貨賣給旅商，他轉手賺的錢也會讓他往前爬。',
     '新增商號紀錄：筆記多了「紀錄」一頁，開業以來每一旬的收支、每一期番付的名次，以及身代與知名度的走勢都留著。',
@@ -4196,7 +4269,6 @@ const CHANGELOG=[
     '新增壓力：辦事、碰釘子會累積壓力，太累每旬行動變少，撐不住會病倒；點行動值可以看身心狀況與紓解方法。',
     '新增外城出遊：主畫面可以去寺社參拜或泡溫泉紓解壓力，花的是私房錢；寺社參拜免費，香油錢隨意捐，溫泉五兩。交情深的朋友有時會想一起去；寺社有住持、巫女，溫泉有三助，泡湯時還可能碰上城裡的人。外城友人之後開放。',
     '壓力設定更新：疲憊以後，交涉時小中大的按鈕位置會亂換，拖動進出貨的拉霸也容易手抖（用加減鈕就不會）。',
-    '開局設定更新：每次開局，七個流派的店名都從五十個屋號裡隨機抽。',
     '新增出遊配樂：打開外城出遊就換成輕快悠閒的《道中囃子》，回到店裡再換回原本的曲子。',
     '新增正月初詣：一月上旬去寺社參拜，人潮洶湧，會像逛祭典一樣碰上意外的事。',
     '人才設定更新：延攬熟人的能力要求比物色寬，熟識的人有幾分本事就能請到店裡。',
@@ -4491,10 +4563,10 @@ function pickActiveCities(homeId,own){
 }
 /** 建立新局：行業決定本業，資源等級決定現款、員工等起步加成，再初始化世界與市場。 */
 function newGame(sysKey,regionPref,startTier=0){
-  const S=SYS_BY_KEY[sysKey],FIRM=typeof startFirm==='function'?startFirm(sysKey):S.firm,tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
+  const S=SYS_BY_KEY[sysKey],tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,startTier:tier,firm:UT('me.firm',{firm:FIRM,sys:S.name}),firmShort:FIRM,
-    me:{family:FIRM.replace(/屋$/,''),given:'',name:'',birthYear:-20,gen:1},
+    sysKey,startTier:tier,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
+    me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
     silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
     inv:{},mk:{},flags:{port:false,pass:false,exempt:0,info:null},
@@ -6724,6 +6796,10 @@ function ptDraw(o){
   }else if(dress==='miko'){
     // 巫女：白衣，下緣露出緋袴。
     H(4,43,45,'#b3322b',3);H(4,43,45,'#8f2420');V(23,44,47,'#8f2420');
+  }else if(dress==='peddler'){
+    // 賣藥郎：背上的木藥箱從右肩後露出，一條揹帶斜過胸前。
+    R(33,22,12,17,outline);R(34,23,10,15,'#7a5530');H(34,43,27,'#5c3e22');H(34,43,32,'#5c3e22');R(37,24,4,2,'#c9a64a');
+    for(let i=0;i<9;i++)R(12+i*2,46-i,3,1,'#d9d0ba');
   }else if(dress==='sansuke'){
     // 三助：藍半纏捲袖，襷掛交叉，手拭搭在肩上。
     for(let i=0;i<10;i++){R(10+i*2,37+i,3,1,'#c9b37a');R(36-i*2,37+i,3,1,'#c9b37a')}
@@ -6836,9 +6912,9 @@ function ptShade(hex,amt){
   return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 
-/** 名冊以外的人物（寺社的和尚、巫女，溫泉的三助）：kind＝monk／miko／sansuke，seed 固定外貌。 */
+/** 名冊以外的人物（寺社的和尚、巫女、小沙彌，溫泉的三助，行商的賣藥郎）：kind＝monk／miko／sansuke／peddler／novice（小沙彌沿用和尚衣著），seed 固定外貌。 */
 function portraitFigure(kind,seed,px){
-  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'}}[kind];
+  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'},peddler:{gender:'m',age:44,cloth:'#4b5563'},novice:{gender:'m',age:12,cloth:'#2f2c2c',dress:'monk',kesa:'#6f6a5a'}}[kind];
   const key='edo3|fig|'+kind+'|'+seed;
   const o=Object.assign({seed:kind+seed,role:'guest',dress:kind,st:{diplomacy_charm:70}},F);
   return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+(px||48)+'" height="'+(px||48)+'" alt="" aria-hidden="true">';
@@ -7089,7 +7165,8 @@ UI.render=function(){
   else if(t==='notes')renderNotes();
   else if(t==='estate')renderEstate();
   const od=Object.values(G.rel).some(r=>r.promises.some(p=>!p.done&&G.turn>p.due-1));
-  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if(b.dataset.tab==='notes'&&od){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
+  const vq=voyQPending()>0;                      // 出運清單還有人沒出發：商路按鈕亮紅點（07i_voyage.js）
+  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if((b.dataset.tab==='notes'&&od)||(b.dataset.tab==='routes'&&vq)){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
@@ -7950,12 +8027,8 @@ SHEETS.legacy=()=>{
 function makeStartDeck(){
   const a=SYS.map(s=>s.key);
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
-  const f=NAMES.firms.slice();for(let i=f.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[f[i],f[j]]=[f[j],f[i]]}
-  UI.s.startFirms={};a.forEach((k,i)=>{UI.s.startFirms[k]=f[i]});   // 每次洗牌，七個流派各抽一個不重複的店名
   return a;
 }
-/** 開局卡片與新局用的店名（舊流程沒有抽過時用流派原本的店名）。 */
-const startFirm=key=>(UI.s.startFirms&&UI.s.startFirms[key])||SYS_BY_KEY[key].firm;
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){
   if(!Array.isArray(UI.s.startDeck)||UI.s.startDeck.length!==START_TIERS.length)UI.s.startDeck=makeStartDeck();
@@ -7967,7 +8040,7 @@ UI.showStart=function(){
   if(!sv&&OLD_SAVE_FOUND)h+=UT('ppl.showStart.2',{a:GAME_VER});
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
   h+=UT('ppl.showStart.3');
-  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+startFirm(s.key)+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
+  h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
   h+='<button class="pixel-btn" style="width:100%;padding:7px;margin-top:12px" data-act="changelog">'+UT('btn.changelog')+'</button>';   // 更新紀錄（01h_changelog.js）
@@ -8830,6 +8903,26 @@ const idleCaptains=(mode,inclQ)=>{
 };
 /** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
 function voyQPrune(){if(!G.voyQueue)return;G.voyQueue=G.voyQueue.filter(q=>idleCaptains(q.mode,true).some(e=>e.id===q.capt))}
+/** 出運清單裡還等著出發的人數（推進前提醒、商路按鈕紅點用）。 */
+function voyQPending(){if(!G||!G.voyQueue||!G.voyQueue.length)return 0;voyQPrune();return G.voyQueue.length}
+/** 推進一旬時已確認「照樣推進」：這一次不再攔。 */
+let VOYQ_SKIP=false;
+/** 推進一旬前：出運清單還有人沒出發就先跳提醒，回傳 true 表示已攔下（08_boot.js 的 doTurn）。 */
+function voyQGuard(n){
+  if(VOYQ_SKIP){VOYQ_SKIP=false;return false}
+  const k=voyQPending();if(!k)return false;
+  const stuck=(G.injured||0)>0?'hurt':apLeft()<=0?'noAP':'';
+  const btn=(act,key,cls,extra)=>'<button class="pixel-btn '+cls+'" style="flex:1 1 '+(act==='vQGo'?'100%':'0')+';padding:8px" data-act="'+act+'"'+(extra||'')+'>'+UT(key)+'</button>';
+  let h='<p class="small">'+UT(stuck?'voyQ.warn.'+stuck:'voyQ.warn',{n:k})+'</p><div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">';
+  if(!stuck)h+=btn('vQGo','btn.vQGo','btn-gold');
+  h+=btn('vQSkip',stuck?'btn.vQSkip.2':'btn.vQSkip','',' data-n="'+(n||1)+'"')+btn('vQBack','btn.vQBack','')+'</div>';
+  UI.showInfo(UT('voyQ.warn.t'),h);sfx.tap();
+  return true;
+}
+const voyQClose=()=>{INFO_AFTER=null;UI.hideInfo()};
+ACT.vQGo=()=>{voyQClose();ACT.vGoAll()};
+ACT.vQSkip=el=>{voyQClose();VOYQ_SKIP=true;doTurn(+el.dataset.n||1)};
+ACT.vQBack=()=>voyQClose();
 const ownNameSet=()=>new Set(ownComms().map(c=>c.name));
 /** 本業中已可交易的貨（委託採買時船長只買這些）。 */
 const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
@@ -12552,7 +12645,7 @@ const homeSoon=()=>{if(!HOME_T)HOME_T=setTimeout(homeCheck,60)};
  *  - 第一階段（回府時）：每旬 10% 來調一批隨機本業貨（約一旬的協議配額或穩定供貨線）；倉庫不夠只能回絕。給滿 10 次送 8,000～12,000 兩、進入第二階段；累計回絕 3 次分號倒閉。
  *  - 第二階段（回府時）：每旬 5% 送 3,000～5,000 兩，永遠持續。
  *  - 一次只能一家；倒閉後下一位符合條件的大番頭才能再開。數值 ODDS.branch；狀態 G.branch。 */
-const branchName=()=>G.branch?UT('branch.name',{f:G.firmShort||(SYS_BY_KEY[G.sysKey]||{}).firm||'',c:CITY(G.branch.cityId)?CITY(G.branch.cityId).name:'',n:G.branch.name}):'';
+const branchName=()=>G.branch?UT('branch.name',{f:(SYS_BY_KEY[G.sysKey]||{}).firm||'',c:CITY(G.branch.cityId)?CITY(G.branch.cityId).name:'',n:G.branch.name}):'';
 const branchOpen=()=>!!(G.branch&&!G.branch.closed);
 /** 大番頭升任起算的年資。 */
 const chiefTenure=e=>G.turn-(e.promotedAt!==undefined?e.promotedAt:e.since);
@@ -14632,14 +14725,15 @@ function tripArrive(k,f,gift,quiet){
       G.templeGift=G.templeGift||{};G.templeGift[G.cityId]=(G.templeGift[G.cityId]||0)+amt;   // 各城寺社累計香油錢（之後的修繕講等事件讀這個）
       const fm=amt>=O.giftFameAt?addFame(O.giftFame):0;
       foots.push(UT('trip.gift.eff',{a:amt})+(r?UT('trip.gift.relief',{r}):'')+(fm?UT('trip.gift.fame',{f:fm}):''))}}
+  const TE=quiet?{}:tripEnc(k);                    // 出遊奇遇：一趟最多一件；三助換人（07zzk_tripev.js）
   let h='<div class="text-prose" style="margin-bottom:6px">'+MSG('trip.done.'+k)+'</div>';
   // 當地的人
-  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripCard(portraitFigure(fig,G.cityId,48),UT('trip.fig.'+fig),UT('trip.figTag.'+fig),TX('trip.'+fig+'.'+worn),'');
+  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripFigCard(fig,worn,TE);h+=tripEncCard(TE);
     if(hatsuNow()){                                // 正月初詣：一月上旬參拜，比照逛祭典抽一件臨時事件（07zf_festwalk.js 的 festWalkRoll）
       const fv=G.festival;G.festival=UT('trip.hatsu');let ev;try{ev=festWalkRoll('hatsu')}finally{G.festival=fv}
       h+='<div class="small" style="margin:6px 0 2px">'+esc(MSG('hatsu.open'))+'</div><div class="card" style="display:flow-root;margin-bottom:6px">'+(ev.cid?portraitHtml(ev.cid,48):'')+'<div class="small">'+esc(ev.txt)+'</div><div class="tiny" style="margin-top:4px;color:'+(ev.bad?'#1e7e34':'#9b2c3a')+'">'+esc(ev.eff)+'</div></div>'}}
   else{
-    h+=tripCard(portraitFigure('sansuke',G.cityId,48),UT('trip.fig.sansuke'),UT('trip.figTag.sansuke'),TX('trip.sansuke.'+worn),'');
+    h+=tripSskCard(worn,TE);h+=tripEncCard(TE);
     const c=tripBather(f);
     if(c){const r=R(c),fresh=!r.met&&!G.known.includes(c),en=isEnemy(c),rel=en?'enemy':fresh?'new':'known';
       setAff(r,clamp(r.aff+O.batherAff,0,100));
@@ -14649,10 +14743,12 @@ function tripArrive(k,f,gift,quiet){
     }
   }
   // 同行的人
-  if(f){const g=O.compAff[k],r=R(f);setAff(r,clamp(r.aff+g,0,100));addStress('company',-O.compRelief);logRel(f,UT('trip.log.with.'+k,{g}));
+  const SN=tripSeason(k,!!f,quiet);                 // 季節小景（07zzk_tripev.js）
+  if(f){const g=O.compAff[k]+(SN.aff||0),r=R(f);setAff(r,clamp(r.aff+g,0,100));addStress('company',-O.compRelief);logRel(f,UT('trip.log.with.'+k,{g}));
     h+=tripCard(portraitHtml(f,48),nameOf(f),tripTag(f),TX('trip.comp.say.'+k+'.'+tripWho(f),{n:G.me.given}),UT('trip.comp.eff',{f:nameOf(f),g}));
     foots.push(UT('trip.comp.relief',{r:O.compRelief}));
   }
+  if(SN.line){h+='<div class="small" style="margin:4px 0">'+esc(SN.line)+'</div>';if(SN.foot)foots.push(SN.foot)}
   if(k==='temple'&&chance(T.omen))h+='<div class="small" style="margin:4px 0">'+esc(TX('trip.omen'))+'</div>';   // 求籤只是氣氛，沒有作用
   UI.render();if(quiet)return;
   sfx.gift();TRIP_RESULT=false;UI.showInfo(UT('trip.done.'+k),h+'<div class="tiny muted" style="margin-top:4px">'+foots.join('；')+'</div>');
@@ -14685,6 +14781,121 @@ document.addEventListener('change',e=>{
 },true);
 
 'use strict';
+/* ★檔案總覽：出遊奇遇與季節小景（DESIGN_NOTES 第二百二十六～二百三十一節）
+ * - 一趟出遊最多碰到一件奇遇，依序判定，碰到一件就停（tripEnc）：
+ *   1 三助還錢（溫泉，上一趟交了 50／100 兩必定）→ 2 三獻茶（寺社，本城寺社累計香油錢達門檻，一局一次）
+ *   → 3 三助開口（溫泉）→ 4 賣藥郎（寺社、溫泉）→ 5 祈福（寺社，風聲 −1）。
+ * - 不算奇遇：三助換人時新某助的那句話、季節小景（tripSeason）。
+ * - 有選項的奇遇是結果視窗裡的一張卡（#trip-enc），按鈕當場換成結果；直接關掉視窗＝保守選項（不買、婉拒、留在寺裡）。
+ * - 賣藥郎的藥效掛在 addStress 的「增加」那一頭：真藥擋掉、假藥加倍；減少照常。
+ * - 存檔：G.pill{until,good,lv}、G.sansuke{gen,step,owe,flee,quit}、G.sansukeGone{t}、G.teaBoy，用到時才建立。
+ * - 數值 ODDS.trip.pill／sansuke／tea／bless／season；台詞 LINES.trip.peddler／ssk／bless；文字 trip.*（01e）。 */
+const TO=()=>ODDS.trip;
+/* ---------- 賣藥郎 ---------- */
+const pillOn=()=>!!(G&&G.pill&&G.pill.until>=G.turn);
+const pillLv=()=>(G&&G.pill&&G.pill.lv)||0;
+const pillPrice=()=>TO().pill.lv[pillLv()].price;
+/** 藥效：真藥擋掉所有增加；假藥把增加加倍。臥病期間照舊不變動。 */
+{const _a=addStress;addStress=function(key,v){
+  if(!G||!(v>0)||key==='pill'||!pillOn()||((G.injured||0)>0&&G.injKind==='sick'))return _a.apply(this,arguments);
+  if(G.pill.good){const L=G.stressCur||(G.stressCur=[]);[[key,v],['pill',-v]].forEach(([k,x])=>{const o=L.find(y=>y.k===k);if(o)o.v+=x;else L.push({k,v:x})});return 0}
+  return _a(key,v)+_a('pill',v);
+}}
+/** 身心狀況視窗：服藥期間多一行。 */
+{const _s=SHEETS.stress;SHEETS.stress=function(){const r=_s.apply(this,arguments);
+  if(pillOn())r.html='<div class="notice tiny">'+UT(G.pill.good?'stress.pill.good':'stress.pill.bad',{a:G.pill.until-G.turn+1})+'</div>'+r.html;return r}}
+/* ---------- 三助 ---------- */
+const SSK=()=>G.sansuke||(G.sansuke={gen:3,step:0,owe:0,flee:false,quit:false});
+/** 中文數字（三、十一、二十三……）。 */
+function cnNum(n){const d='〇一二三四五六七八九';if(n<10)return d[n];if(n<20)return '十'+(n%10?d[n%10]:'');if(n<100)return d[Math.floor(n/10)]+'十'+(n%10?d[n%10]:'');return String(n)}
+const sskName=g=>UT('trip.ssk.name',{n:cnNum(g)});
+const sskImg=g=>portraitFigure('sansuke',g===3?G.cityId:G.cityId+'|'+g,48);
+/* ---------- 判定 ---------- */
+/** 這一趟碰到哪一件奇遇；溫泉先處理三助換人（不算奇遇，換人那一趟不開口）。 */
+function tripEnc(k){
+  if(TRIP_ENC)tripEncResolve(false,true);          // 上一趟的互動卡沒選就被收掉（例如直接推進）：照保守選項
+  const O=TO(),E={};
+  if(k==='onsen'){const S=SSK();
+    if(S.flee||S.quit){E.swap={p:sskName(S.gen),q:sskName(S.gen+1),kind:S.flee?'flee':'quit'};if(S.flee)G.sansukeGone={t:G.turn};S.gen++;S.step=0;S.owe=0;S.flee=false;S.quit=false}
+    if(S.owe>0){E.kind='repay';return E}
+  }
+  if(k==='temple'&&!G.teaBoy&&((G.templeGift||{})[G.cityId]||0)>=O.tea.gift){E.kind='tea';G.teaBoy=true;return E}
+  if(k==='onsen'&&!E.swap){const S=SSK(),a=O.sansuke.ask[S.step];if(chance(O.sansuke.p)&&(G.gold||0)>=a){E.kind='ask';E.amt=a;return E}}
+  if(!pillOn()&&chance(O.pill.p)&&(G.gold||0)>=pillPrice()){E.kind='pill';E.lv=pillLv();E.amt=pillPrice();return E}
+  if(k==='temple'&&(G.heat||0)>0&&chance(O.bless.p)){E.kind='bless';return E}
+  return E;
+}
+/* ---------- 卡片 ---------- */
+var TRIP_ENC=null;
+const encBtns=(a,b)=>'<div class="grid2" style="margin:6px 0 8px"><button class="pixel-btn btn-gold btn-sm" data-act="tripEncYes">'+a+'</button><button class="pixel-btn btn-sm" data-act="tripEncNo">'+b+'</button></div>';
+/** 互動卡：外層 #trip-enc，按鈕後整張換成結果卡。 */
+const encWrap=(inner)=>'<div id="trip-enc">'+inner+'</div>';
+/** 寺社的住持或巫女；祈福時接一句祈福的話，風聲 −1。 */
+function tripFigCard(fig,worn,E){
+  let line=TX('trip.'+fig+'.'+worn),foot='';
+  if(E.kind==='bless'){const d=Math.min(TO().bless.heat,G.heat||0);G.heat=Math.max(0,(G.heat||0)-d);line+=TX('trip.bless.'+fig);foot=UT('trip.bless.eff',{a:TO().bless.heat})}
+  return tripCard(portraitFigure(fig,G.cityId,48),UT('trip.fig.'+fig),UT('trip.figTag.'+fig),line,foot);
+}
+/** 溫泉的三助：換人的那句話、還錢、開口。 */
+function tripSskCard(worn,E){
+  const S=SSK(),img=sskImg(S.gen),nm=sskName(S.gen),tag=UT('trip.figTag.sansuke');
+  let line=E.swap?TX('trip.ssk.'+E.swap.kind,E.swap):TX('trip.sansuke.'+worn);
+  if(E.kind==='repay'){const a=S.owe;G.gold=(G.gold||0)+a;S.owe=0;return tripCard(img,nm,tag,TX('trip.ssk.back'),UT('trip.ssk.backEff',{a}))}
+  if(E.kind==='ask'){TRIP_ENC={kind:'ask',amt:E.amt,step:S.step,img,nm,tag};
+    return encWrap(tripCard(img,nm,tag,TX('trip.ssk.ask.'+S.step),UT('trip.ssk.ask',{a:E.amt}))+encBtns(UT('btn.tripSskPay',{a:E.amt}),UT('btn.tripSskNo')))}
+  return tripCard(img,nm,tag,line,'');
+}
+/** 三獻茶、賣藥郎的卡（其他奇遇在住持、三助的卡上）。 */
+function tripEncCard(E){
+  if(E.kind==='tea'){const img=portraitFigure('novice',G.cityId,48);TRIP_ENC={kind:'tea',img};
+    return encWrap('<div class="card" style="display:flow-root;margin-bottom:6px">'+img+'<div><b>'+esc(UT('trip.fig.novice'))+'</b> <span class="tag gray">'+esc(UT('trip.figTag.monk'))+'</span></div><div class="small" style="margin:5px 0">'+esc(UT('trip.tea.story'))+'</div></div>'+encBtns(UT('btn.tripTeaYes'),UT('btn.tripTeaNo')))}
+  if(E.kind==='pill'){const img=portraitFigure('peddler',G.cityId,48),nm=UT('trip.fig.peddler'),tag=UT('trip.figTag.peddler');TRIP_ENC={kind:'pill',lv:E.lv,amt:E.amt,img,nm,tag};
+    return encWrap(tripCard(img,nm,tag,TX('trip.peddler.'+['pitch','excuse','excuse2'][E.lv]),UT('trip.pill.price',{a:E.amt}))+encBtns(UT('btn.tripPillBuy',{a:E.amt}),UT('btn.tripPillNo')))}
+  return '';
+}
+/** 選了之後：結算並把互動卡換成結果。yes＝買、交錢、帶走；否則保守選項。quiet＝視窗被關掉，不重畫。 */
+function tripEncResolve(yes,quiet){
+  const P=TRIP_ENC;TRIP_ENC=null;if(!P||!G)return;const O=TO();let html='';
+  if(P.kind==='pill'){
+    if(yes&&(G.gold||0)>=P.amt){G.gold-=P.amt;const good=chance(O.pill.lv[P.lv].good);
+      G.pill={until:G.turn+O.pill.turns-1,good,lv:good?0:Math.min(P.lv+1,O.pill.lv.length-1)};
+      html=tripCard(P.img,P.nm,P.tag,UT(good?'trip.pill.good':'trip.pill.bad'),UT(good?'trip.pill.goodEff':'trip.pill.badEff',{a:P.amt}))}
+    else{if(G.pill)G.pill.lv=0;html=tripCard(P.img,P.nm,P.tag,UT('trip.pill.no'),'')}
+  }else if(P.kind==='ask'){const S=SSK();
+    if(yes&&(G.gold||0)>=P.amt){G.gold-=P.amt;if(P.step<O.sansuke.ask.length-1){S.owe=P.amt*O.sansuke.back;S.step++}else S.flee=true;
+      html=tripCard(P.img,P.nm,P.tag,TX('trip.ssk.paid'),UT('trip.ssk.paidEff',{a:P.amt}))}
+    else{if(P.step===O.sansuke.ask.length-1)S.quit=true;html=tripCard(P.img,P.nm,P.tag,TX('trip.ssk.no.'+P.step),'')}
+  }else if(P.kind==='tea'){
+    if(yes){const e=hireEmp(null,'apprentice'),T=O.tea,st=e.stats;
+      ['commerce_skill','diplomacy_charm','integrity_loyalty'].forEach(s=>{st[s]=rint(T.hi[0],T.hi[1])});st.greed_index=rint(T.greed[0],T.greed[1]);st.betrayal_risk=rint(T.betray[0],T.betray[1]);
+      e.homegrown=true;e.origin='tea';e.aff=T.aff;e.age0=G.year-10;
+      html='<div class="card" style="display:flow-root;margin-bottom:6px">'+P.img+'<div class="small" style="margin:5px 0">'+esc(UT('trip.tea.yes',{n:e.name}))+'</div><div class="tiny" style="color:#9b2c3a">'+esc(UT('trip.tea.yesEff',{n:e.name}))+'</div></div>'}
+    else html='<div class="card" style="display:flow-root;margin-bottom:6px">'+P.img+'<div class="small" style="margin:5px 0">'+esc(UT('trip.tea.no'))+'</div></div>';
+  }
+  if(quiet){UI.render();return}
+  const el=document.getElementById('trip-enc');if(el)el.outerHTML=html;
+  sfx.tap();UI.render();
+}
+ACT.tripEncYes=()=>tripEncResolve(true);
+ACT.tripEncNo=()=>tripEncResolve(false);
+/** 結果視窗直接關掉：照保守選項結算。 */
+{const _h=UI.hideInfo;UI.hideInfo=function(){if(TRIP_ENC)tripEncResolve(false,true);return _h.apply(this,arguments)}}
+/** 三獻茶帶回來的丁稚：員工卡多一個標籤。 */
+{const _t=staffTags;staffTags=function(e){return _t.apply(this,arguments)+(e&&e.origin==='tea'?UT('staff.tagTea'):'')}}
+/* ---------- 季節小景（不算奇遇；每趟都有） ---------- */
+function tripSeason(k,withF,quiet){
+  const s=season(),O=TO().season,R_={};
+  if(k==='onsen'&&s==='winter'){addStress('season',-O.onsenWinter);R_.line=UT('trip.season.onsenWinter');R_.foot=UT('trip.season.relief',{s:UT('trip.season.n.onsenWinter'),r:O.onsenWinter})}
+  else if(k==='temple'&&s==='autumn'){addStress('season',-O.templeAutumn);R_.line=UT('trip.season.templeAutumn');R_.foot=UT('trip.season.relief',{s:UT('trip.season.n.templeAutumn'),r:O.templeAutumn})}
+  else if(k==='temple'&&s==='spring'){R_.line=UT('trip.season.templeSpring');if(withF)R_.aff=O.templeSpringAff}
+  return R_;
+}
+/* ---------- 番付八卦：被搓澡的騙走五百兩 ---------- */
+{const _g=bzGossip;bzGossip=function(){const out=_g.apply(this,arguments),L=bzLast();
+  if(G.sansukeGone&&G.sansukeGone.t>(L?L.turn:-1)&&!out.some(g=>g.key==='meScam')){if(out.length>=BZ().gossip[1])out.pop();out.push({key:'meScam',about:['me'],truth:true})}
+  return out}}
+
+'use strict';
 /* ★檔案總覽：啟動與全域事件
  * - doTurn：「推進一旬」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
  * - 以事件委派處理所有 data-act / data-chg；DOMContentLoaded 綁定頂部按鈕與開局。 */
@@ -14692,6 +14903,7 @@ document.addEventListener('change',e=>{
 /** 推進 n 旬：播放轉場→連續呼叫 advanceTurn→重繪並提示本次現款變化。 */
 function doTurn(n){
   if(!G||G.ended||FX.busy)return;
+  if(voyQGuard(n))return;                         // 出運清單還有人沒出發：先提醒（07i_voyage.js）
   /* 推進前先回到主畫面：關掉開著的面板與說明視窗，旬報才不會被擋住 */
   try{UI.s.outGo=null;if(UI.s.sheet)UI.closeSheet();if(typeof ENC==='undefined'||!ENC)$('#info-bd').classList.add('hidden');if(UI.s.tab!=='home')UI.go('home')}catch(e){}
   const before=G.silver,head=G.news[0];          // head：推進前最新的一則瓦版，用來找出這段期間新出的消息
