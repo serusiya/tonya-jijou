@@ -203,14 +203,15 @@ function tripArrive(k,f,gift,quiet){
       G.templeGift=G.templeGift||{};G.templeGift[G.cityId]=(G.templeGift[G.cityId]||0)+amt;   // 各城寺社累計香油錢（之後的修繕講等事件讀這個）
       const fm=amt>=O.giftFameAt?addFame(O.giftFame):0;
       foots.push(UT('trip.gift.eff',{a:amt})+(r?UT('trip.gift.relief',{r}):'')+(fm?UT('trip.gift.fame',{f:fm}):''))}}
+  const TE=quiet?{}:tripEnc(k);                    // 出遊奇遇：一趟最多一件；三助換人（07zzk_tripev.js）
   let h='<div class="text-prose" style="margin-bottom:6px">'+MSG('trip.done.'+k)+'</div>';
   // 當地的人
-  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripCard(portraitFigure(fig,G.cityId,48),UT('trip.fig.'+fig),UT('trip.figTag.'+fig),TX('trip.'+fig+'.'+worn),'');
+  if(k==='temple'){const fig=chance(0.5)?'monk':'miko';h+=tripFigCard(fig,worn,TE);h+=tripEncCard(TE);
     if(hatsuNow()){                                // 正月初詣：一月上旬參拜，比照逛祭典抽一件臨時事件（07zf_festwalk.js 的 festWalkRoll）
       const fv=G.festival;G.festival=UT('trip.hatsu');let ev;try{ev=festWalkRoll('hatsu')}finally{G.festival=fv}
       h+='<div class="small" style="margin:6px 0 2px">'+esc(MSG('hatsu.open'))+'</div><div class="card" style="display:flow-root;margin-bottom:6px">'+(ev.cid?portraitHtml(ev.cid,48):'')+'<div class="small">'+esc(ev.txt)+'</div><div class="tiny" style="margin-top:4px;color:'+(ev.bad?'#1e7e34':'#9b2c3a')+'">'+esc(ev.eff)+'</div></div>'}}
   else{
-    h+=tripCard(portraitFigure('sansuke',G.cityId,48),UT('trip.fig.sansuke'),UT('trip.figTag.sansuke'),TX('trip.sansuke.'+worn),'');
+    h+=tripSskCard(worn,TE);h+=tripEncCard(TE);
     const c=tripBather(f);
     if(c){const r=R(c),fresh=!r.met&&!G.known.includes(c),en=isEnemy(c),rel=en?'enemy':fresh?'new':'known';
       setAff(r,clamp(r.aff+O.batherAff,0,100));
@@ -220,10 +221,12 @@ function tripArrive(k,f,gift,quiet){
     }
   }
   // 同行的人
-  if(f){const g=O.compAff[k],r=R(f);setAff(r,clamp(r.aff+g,0,100));addStress('company',-O.compRelief);logRel(f,UT('trip.log.with.'+k,{g}));
+  const SN=tripSeason(k,!!f,quiet);                 // 季節小景（07zzk_tripev.js）
+  if(f){const g=O.compAff[k]+(SN.aff||0),r=R(f);setAff(r,clamp(r.aff+g,0,100));addStress('company',-O.compRelief);logRel(f,UT('trip.log.with.'+k,{g}));
     h+=tripCard(portraitHtml(f,48),nameOf(f),tripTag(f),TX('trip.comp.say.'+k+'.'+tripWho(f),{n:G.me.given}),UT('trip.comp.eff',{f:nameOf(f),g}));
     foots.push(UT('trip.comp.relief',{r:O.compRelief}));
   }
+  if(SN.line){h+='<div class="small" style="margin:4px 0">'+esc(SN.line)+'</div>';if(SN.foot)foots.push(SN.foot)}
   if(k==='temple'&&chance(T.omen))h+='<div class="small" style="margin:4px 0">'+esc(TX('trip.omen'))+'</div>';   // 求籤只是氣氛，沒有作用
   UI.render();if(quiet)return;
   sfx.gift();TRIP_RESULT=false;UI.showInfo(UT('trip.done.'+k),h+'<div class="tiny muted" style="margin-top:4px">'+foots.join('；')+'</div>');

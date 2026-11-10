@@ -108,6 +108,10 @@ function ptDraw(o){
   }else if(dress==='miko'){
     // 巫女：白衣，下緣露出緋袴。
     H(4,43,45,'#b3322b',3);H(4,43,45,'#8f2420');V(23,44,47,'#8f2420');
+  }else if(dress==='peddler'){
+    // 賣藥郎：背上的木藥箱從右肩後露出，一條揹帶斜過胸前。
+    R(33,22,12,17,outline);R(34,23,10,15,'#7a5530');H(34,43,27,'#5c3e22');H(34,43,32,'#5c3e22');R(37,24,4,2,'#c9a64a');
+    for(let i=0;i<9;i++)R(12+i*2,46-i,3,1,'#d9d0ba');
   }else if(dress==='sansuke'){
     // 三助：藍半纏捲袖，襷掛交叉，手拭搭在肩上。
     for(let i=0;i<10;i++){R(10+i*2,37+i,3,1,'#c9b37a');R(36-i*2,37+i,3,1,'#c9b37a')}
@@ -220,9 +224,9 @@ function ptShade(hex,amt){
   return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 
-/** 名冊以外的人物（寺社的和尚、巫女，溫泉的三助）：kind＝monk／miko／sansuke，seed 固定外貌。 */
+/** 名冊以外的人物（寺社的和尚、巫女、小沙彌，溫泉的三助，行商的賣藥郎）：kind＝monk／miko／sansuke／peddler／novice（小沙彌沿用和尚衣著），seed 固定外貌。 */
 function portraitFigure(kind,seed,px){
-  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'}}[kind];
+  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'},peddler:{gender:'m',age:44,cloth:'#4b5563'},novice:{gender:'m',age:12,cloth:'#2f2c2c',dress:'monk',kesa:'#6f6a5a'}}[kind];
   const key='edo3|fig|'+kind+'|'+seed;
   const o=Object.assign({seed:kind+seed,role:'guest',dress:kind,st:{diplomacy_charm:70}},F);
   return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+(px||48)+'" height="'+(px||48)+'" alt="" aria-hidden="true">';

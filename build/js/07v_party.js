@@ -6,6 +6,19 @@
  *    不足時以交情最高的熟人補到 2～3 人）。坐不滿的坐墊留空。
  *  - 效果：宴席費每人 5 兩（現款）；出席友人好感 +2、出席店員好感 +3。主角遠島中則停辦。 */
 const PARTY_SEATS=30,PARTY_FEE=5,PARTY_FRIEND_AFF=80,PARTY_GAIN={friend:2,staff:3};
+const PARTY_EMP_SEAT={chief:8800,banto:8400,captain:8000,courier:7900,guard:7800,clerk:7600,apprentice:7200};
+/** 忘年會座次：家人居前，其次是高位官員與核心員工，其他熟人依好感排列。 */
+function partySeatImportance(a){
+  if(a.kind==='wife')return 10000;
+  if(a.kind==='conc')return 9800;
+  if(a.kind==='kid')return 9600;
+  if(a.kind==='friend'){
+    const n=npc(a.cid),r=G.rel[a.cid];
+    return n&&n.pos?9000+n.pos.rank*100+(r?r.aff:0):6000+(r?r.aff:0);
+  }
+  if(a.kind==='emp')return PARTY_EMP_SEAT[a.rank]||7000;
+  return 0;
+}
 /** pushNews 時呼叫：依新聞鍵的分類（01g_news.js 的 NEWS_CAT）記進今年的大事簿（最多 80 筆）；不在表內的不記。
  *  tag＝新聞鍵：同一種新聞盡量只談一次。 */
 function yearLogAdd(t,key){
@@ -33,6 +46,7 @@ function yearEndParty(log){
   if(friends.length<minF){const more=Object.keys(G.rel).filter(cid=>ok(cid)&&!friends.includes(cid)).sort((a,b)=>G.rel[b].aff-G.rel[a].aff).slice(0,minF-friends.length);friends=friends.concat(more)}
   friends.sort((a,b)=>((npc(b).pos?npc(b).pos.rank:0)-(npc(a).pos?npc(a).pos.rank:0))||G.rel[b].aff-G.rel[a].aff);
   friends.forEach(cid=>{const n=npc(cid);att.push({kind:'friend',cid,label:nameOf(cid)+(n.pos?UT('party.yearEndParty.5',{a:posTitle(n)}):''),look:hostLook(cid),off:!!n.pos})});
+  att.sort((a,b)=>partySeatImportance(b)-partySeatImportance(a));
   /* 效果 */
   const cost=Math.min(Math.max(0,Math.round(G.silver)),att.length*PARTY_FEE);
   if(cost>0){G.silver-=cost;if(TURNRP){TURNRP.inTurn=TURNRP.inTurn||{};TURNRP.inTurn['spend.party']=(TURNRP.inTurn['spend.party']||0)+cost}}   // 推進途中付的錢記在本旬（不放進 G.publicSpend，以免下一旬重複計入）
@@ -86,10 +100,12 @@ function showParty(){
   partyRender();
 }
 function partySeats(){
-  const s=[],top=[[110,52],[210,52],[90,52],[230,52],[70,52],[250,52],[50,52],[270,52]];
-  top.forEach(p=>s.push(p));
-  for(let k=0;k<6;k++){s.push([30,76+k*16]);s.push([290,76+k*16])}
-  [130,190,110,210,90,230,70,250,150,170].forEach(x=>s.push([x,170]));
+  const s=[];
+  /* 主桌在前方中央；每排先放靠中央走道的左右席，再放外側席，逐排向後填滿。 */
+  for(let row=0;row<8;row++){
+    const y=66+row*14;
+    [[122,y],[198,y],[72,y],[248,y]].forEach(p=>s.push(p));
+  }
   return s.slice(0,PARTY_SEATS);
 }
 function partyRender(){
@@ -116,6 +132,19 @@ function partyDraw(){
   R_(c,0,0,320,38,'#efe6cf');for(let x=0;x<320;x+=16){R_(c,x,0,1,38,'#7a5a3a')}R_(c,0,12,320,1,'#7a5a3a');R_(c,0,25,320,1,'#7a5a3a');R_(c,0,36,320,3,'#5a3a22');
   R_(c,140,2,40,34,'#c9b48a');R_(c,152,5,16,26,'#f4ece1');R_(c,155,9,10,16,'#3b2a1e');R_(c,140,34,40,3,'#5a3a22');   // 壁龕與掛軸
   R_(c,184,24,8,10,'#2f5d3a');R_(c,186,20,4,6,'#e07a9a');                // 生花
+  /* 和室上座：中央半幅容納床之間、掛軸、花入、障子窗與櫃體；左右保留素牆。 */
+  R_(c,0,0,320,48,'#ddd6c5');
+  R_(c,80,4,90,40,'#777b63');
+  R_(c,80,3,160,5,'#855d36');R_(c,80,3,4,45,'#6e492b');R_(c,168,3,5,45,'#6e492b');R_(c,236,3,4,45,'#6e492b');
+  R_(c,84,42,84,6,'#28231d');R_(c,86,42,80,2,'#b28a52');
+  R_(c,96,7,24,32,'#b59a75');R_(c,99,5,18,31,'#eee8d8');R_(c,99,5,18,3,'#c9b48a');R_(c,97,35,22,3,'#b18b60');
+  c.fillStyle='#30271f';c.font='7px DotGothic16,monospace';c.textBaseline='top';c.fillText('壽',104,10);c.fillText('福',104,18);c.fillText('招',104,26);
+  R_(c,146,34,9,8,'#c6a36e');R_(c,148,31,5,4,'#e0c58f');R_(c,150,23,1,9,'#365b39');R_(c,146,27,1,6,'#365b39');R_(c,154,26,1,6,'#365b39');
+  R_(c,144,24,5,3,'#e6d9a2');R_(c,152,22,5,3,'#d98282');R_(c,148,20,4,3,'#eee4b7');
+  R_(c,178,12,54,25,'#f0eee2');R_(c,178,12,54,3,'#65462d');R_(c,178,34,54,3,'#65462d');R_(c,178,12,3,25,'#65462d');R_(c,229,12,3,25,'#65462d');
+  for(let x=193;x<229;x+=13)R_(c,x,15,1,19,'#9b8569');for(let y=21;y<34;y+=7)R_(c,181,y,48,1,'#9b8569');
+  R_(c,174,37,62,11,'#c8b895');R_(c,174,37,62,2,'#6e492b');R_(c,174,47,62,1,'#6e492b');R_(c,204,39,1,8,'#8c7658');R_(c,200,41,2,1,'#5a4632');R_(c,208,41,2,1,'#5a4632');
+  R_(c,0,46,320,3,'#5a3a22');
   const seats=partySeats();
   const sitAt=(x,y,look,speak)=>{
     R_(c,x-7,y-3,14,6,'#8b2c3a');                                       // 坐墊

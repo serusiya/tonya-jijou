@@ -42,7 +42,8 @@ UI.render=function(){
   else if(t==='notes')renderNotes();
   else if(t==='estate')renderEstate();
   const od=Object.values(G.rel).some(r=>r.promises.some(p=>!p.done&&G.turn>p.due-1));
-  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if(b.dataset.tab==='notes'&&od){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
+  const vq=voyQPending()>0;                      // 出運清單還有人沒出發：商路按鈕亮紅點（07i_voyage.js）
+  $$('#bottom button').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();if((b.dataset.tab==='notes'&&od)||(b.dataset.tab==='routes'&&vq)){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
@@ -73,6 +74,7 @@ function renderHome(){
   let a='';if(disasterNow())a=UT('home.dis.'+G.disaster.type);else if(banditHome())a=UT('home.bandit.'+G.bandit.type);else if(G.festival)a='🏮 '+G.festival;else if(G.cartel.sanction>0)a=UT('home.sanction',{n:G.cartel.sanction});else if((G.staple.idx||1)>2.2)a=UT('home.riot');else if(Object.values(G.mk).some(m=>m.ev>1.5))a=UT('home.market');
   al.textContent=a;al.classList.toggle('hidden',!a);
   $('#loc-city').textContent=UT('home.city',{c:city.name});
+  $('#home-next-ap').textContent=UT('body.nextAp',{a:apLeft(),m:apMaxNow()});
   {const fw=$('#fest-walk');if(fw)fw.innerHTML=festWalkHtml()}   // 節慶當旬：逛祭典（07zf_festwalk.js）
   {const gm=$('#guild-meet');if(gm)gm.innerHTML=meetHomeHtml()}   // 例會旬：問屋公會例會（07yb_meeting.js）
   $('#n-off').textContent=UT('home.nOff',{n:officialsOf(G.cityId).length});

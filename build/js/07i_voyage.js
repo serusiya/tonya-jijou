@@ -23,6 +23,26 @@ const idleCaptains=(mode,inclQ)=>{
 };
 /** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
 function voyQPrune(){if(!G.voyQueue)return;G.voyQueue=G.voyQueue.filter(q=>idleCaptains(q.mode,true).some(e=>e.id===q.capt))}
+/** 出運清單裡還等著出發的人數（推進前提醒、商路按鈕紅點用）。 */
+function voyQPending(){if(!G||!G.voyQueue||!G.voyQueue.length)return 0;voyQPrune();return G.voyQueue.length}
+/** 推進一旬時已確認「照樣推進」：這一次不再攔。 */
+let VOYQ_SKIP=false;
+/** 推進一旬前：出運清單還有人沒出發就先跳提醒，回傳 true 表示已攔下（08_boot.js 的 doTurn）。 */
+function voyQGuard(n){
+  if(VOYQ_SKIP){VOYQ_SKIP=false;return false}
+  const k=voyQPending();if(!k)return false;
+  const stuck=(G.injured||0)>0?'hurt':apLeft()<=0?'noAP':'';
+  const btn=(act,key,cls,extra)=>'<button class="pixel-btn '+cls+'" style="flex:1 1 '+(act==='vQGo'?'100%':'0')+';padding:8px" data-act="'+act+'"'+(extra||'')+'>'+UT(key)+'</button>';
+  let h='<p class="small">'+UT(stuck?'voyQ.warn.'+stuck:'voyQ.warn',{n:k})+'</p><div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">';
+  if(!stuck)h+=btn('vQGo','btn.vQGo','btn-gold');
+  h+=btn('vQSkip',stuck?'btn.vQSkip.2':'btn.vQSkip','',' data-n="'+(n||1)+'"')+btn('vQBack','btn.vQBack','')+'</div>';
+  UI.showInfo(UT('voyQ.warn.t'),h);sfx.tap();
+  return true;
+}
+const voyQClose=()=>{INFO_AFTER=null;UI.hideInfo()};
+ACT.vQGo=()=>{voyQClose();ACT.vGoAll()};
+ACT.vQSkip=el=>{voyQClose();VOYQ_SKIP=true;doTurn(+el.dataset.n||1)};
+ACT.vQBack=()=>voyQClose();
 const ownNameSet=()=>new Set(ownComms().map(c=>c.name));
 /** 本業中已可交易的貨（委託採買時船長只買這些）。 */
 const tradeNameSet=()=>new Set(tradeComms().map(c=>c.name));
@@ -204,8 +224,10 @@ function voyLogEntry(v){
 }
 function voyLogCard(){
   const L=G.voyLog||[];if(!L.length)return '';
-  return UT('voy.voyLogCard.2',{a:L.slice(0,5).map(voyLogEntry).join('')});
+  const open=!!UI.s.route.logOpen;
+  return UT('voy.voyLogCard.2',{a:open?L.slice(0,5).map(voyLogEntry).join(''):'',b:UT(open?'voy.log.hide':'voy.log.show')});
 }
+ACT.vLogToggle=()=>{UI.s.route.logOpen=!UI.s.route.logOpen;renderRoutes()};
 ACT.vCapt=el=>{UI.s.route.capt=el.dataset.id;renderRoutes()};
 ACT.vDest=el=>{const ct=CITY(el.dataset.id);if(!ct||buyoutDepartureBlocked(ct))return;UI.s.route.dest=el.dataset.id;renderRoutes()};
 CHG.rModeDummy=()=>{};
