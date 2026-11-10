@@ -2211,7 +2211,9 @@ const UI_TXT={
   'voy.voyagePanel.18':'{a}會到你指定的地方，但<b>買什麼由他決定</b>（只能買當地出產的貨）：多半是<b>你本業能賣的貨</b>，數量與價格看他的商才。每座城市、每項物產在每個月都有固定的<b>產地供貨狀況</b>；必需品平年產量較多，一般品居中，奢侈品產量較少。欠收時可買量較少、價格稍高，豐產時價格稍低，判定以出發月為準。當地產好幾樣本業貨時，受託人多半依貨源與價錢<b>偏重其中一兩樣</b>，偶爾才會均衡採買；缺貨或無處存放時會轉買其他貨。同月再派商隊前往同一城市，後來者能搜羅的貨量會逐次減少，必需品減得較慢、奢侈品最快。偶爾撿到<b>便宜卻非本業</b>的貨，同樣入倉，但得<b>找旅商人代售</b>；目的地<b>沒有本業貨</b>時，多半<b>空手而回</b>，只扣雜費{b}。各地每季有一個月可能發生<b>大口買付</b>，本業貨會被別家問屋先買走；排程不會預告，除非仲買人透露風聲，否則要等派去的人回來才知道。其他進貨管道不受上述產地狀況影響。歸來那一旬的旬報會詳列帶回了什麼。先把要派的人排進出運清單，再一次全部出發：只要親自到河岸交代一趟，扣 1 行動點數；分批出發，每批各扣 1 點。</div>',
   'voy.voyagePanel.19':'<div class="row" style="margin-top:6px"><span class="tiny muted">商才越高，買得越便宜、越多。</span><button class="pixel-btn btn-gold" data-act="vAdd">{a}',
   'voy.voyLogCard':'{a}·{b}「{c}」·委託金 {d} 兩</div>{e}',
-  'voy.voyLogCard.2':'<hr class="sep"><div class="small bold">📒 採買日誌</div>{a}',
+  'voy.voyLogCard.2':'<hr class="sep"><div class="row"><div class="small bold">📒 採買日誌</div><button class="pixel-btn btn-sm" data-act="vLogToggle">{b}</button></div>{a}',
+  'voy.log.show':'顯示',
+  'voy.log.hide':'關閉',
   'voy.h.2':'<div class="card" style="background:#fff8eb"><b class="small">📋 本旬出運清單</b>',
   'voy.voyQueueCard':'？',
   'voy.voyQueueCard.2':'{a} {b} → {c}（{d} 旬）{e}',
@@ -9105,8 +9107,10 @@ function voyLogEntry(v){
 }
 function voyLogCard(){
   const L=G.voyLog||[];if(!L.length)return '';
-  return UT('voy.voyLogCard.2',{a:L.slice(0,5).map(voyLogEntry).join('')});
+  const open=!!UI.s.route.logOpen;
+  return UT('voy.voyLogCard.2',{a:open?L.slice(0,5).map(voyLogEntry).join(''):'',b:UT(open?'voy.log.hide':'voy.log.show')});
 }
+ACT.vLogToggle=()=>{UI.s.route.logOpen=!UI.s.route.logOpen;renderRoutes()};
 ACT.vCapt=el=>{UI.s.route.capt=el.dataset.id;renderRoutes()};
 ACT.vDest=el=>{const ct=CITY(el.dataset.id);if(!ct||buyoutDepartureBlocked(ct))return;UI.s.route.dest=el.dataset.id;renderRoutes()};
 CHG.rModeDummy=()=>{};
