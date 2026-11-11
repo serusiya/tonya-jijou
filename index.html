@@ -797,7 +797,7 @@ const ODDS={
   bz:{name:'商人番付與花邊八卦（07zzf_banzuke.js）',top:10,guests:[6,8],
     rv:{init:[1.5,4],g0:0.025,share:0.3,noise:0.03,min:0.4,max:15,heir:0.8,ev:{fire:-0.15,theft:-0.05,wreck:-0.08,caught:-0.1,susp:-0.06,haul:0.05,lot:-0.02,gm:0.02}},
     gs:{init:[0.5,3],min:0.2,max:10,fame:0.6,fameDrift:4,dealFame:[1,2],
-      trip:[{k:'big',w:10,r:[0.2,0.4]},{k:'good',w:25,r:[0.05,0.15]},{k:'flat',w:30,r:[-0.03,0.03]},{k:'loss',w:25,r:[-0.15,-0.05]},{k:'rob',w:10,r:[-0.4,-0.2]}]},
+      trip:[{k:'big',w:12,r:[0.2,0.4]},{k:'good',w:36,r:[0.05,0.15]},{k:'flat',w:26,r:[-0.03,0.03]},{k:'loss',w:19,r:[-0.15,-0.05]},{k:'rob',w:7,r:[-0.4,-0.2]}]},
     gap:[0.9,0.6],gossip:[3,4],falseP:0.3,keep:4,heatGossip:3,flowerGossip:600,topicTurns:9,sayP:0.3},   // 身代以玩家開局現款為基準的倍數；rv 同業、gs 旅商（每季行商結果）；gap：和上一位（或榜尾）相比，只差一步／還差一截的比例；falseP：八卦是假的比例
   f8:{name:'0.8 先行請託（07zze_favor8.js）',fearTurns:3,fraud:{sea:[3500,4500],land:[2500,3500]},fraudRest:3,fraudHeat:1.5,suspCost:3000,suspTurns:3,suspAff:30,suspHeat:1,mono:{mono5:{cost:5000,turns:3},mono6:{cost:10000,turns:9}},monoBuyX:2,kesshoGold:1000,kesshoMin:3,newTown:{cost:6000,p:[0.4,0.7,1],pop:0.05,cd:12},lossRate:0.5,lossCap:800,theftBack:[0.2,0.3]},
   gm:{name:'問屋公會長（07yc_gm.js）',fameWin:5,famePerTurn:0.1,rivalAff:3,voteAff:5,bribeVar:0.1,canvassX:3,canvassComp:[0.5,1,1.5,2],canvassShare:2,fineX:1.2,evP:0.5,arbFav:10,arbHurt:20,arbAff:5,arbCost:[500,1500],levy:[3000,8000],levyFame:5,levyAff:40},   // canvassComp：投票人與對手相容（格格不入、相談甚歡、意氣相投、一見如故）的心防係數；canvassShare：對手市佔每多一成，心防 +20%
@@ -854,6 +854,7 @@ const ODDS={
   /* —— 官府 —— */
   imperial:{name:'欽差突查：風聲高於此值才會被罰款',heat:4},
   calm:{name:'巡見使口添：一般風聲不增加的旬數（重罪照加）',turns:9},
+  kake:{name:'定約掛賣（07zzm_kake.js）：解鎖市佔、請託好感、主動上門的好感與機率、每旬標記人數、合約旬數、每張合約佔有效總資產、三個方案的數量與價格倍率、手付比例、不超過旅商身代的比例、每旬不超過單項庫存上限的比例、大單門檻（台詞用）；貸倒機率、番頭商才每幾點減多少、災情年倍數、旅商不在時的貸倒機率、貸倒扣好感；拖一季的機率（好感 60 時）與旬數；失約扣好感',unlock:0.10,aff:60,selfAff:100,selfP:0.03,marks:[3,5],turns:9,frac:1/9,plans:[{k:'lo',q:1.2,p:0.9},{k:'mid',q:1,p:0.95},{k:'hi',q:0.8,p:1}],dep:0.2,worthCap:0.3,capHalf:0.5,bigTotal:5000,bad:0.05,skillPer:20,skillCut:0.01,disasterX:2,goneBad:0.5,badAff:20,late:0.10,lateTurns:9,failAff:30},
   evil:{name:'惡德（07zzl_tripev2.js；目前只累計）：闕所、暗殺、放火、栽贓、打壓；失手或事敗的倍率',kessho:5,assassin:3,arson:3,frame:2,suppress:2,failMul:0.5},
   heat:{name:'風聲來源（只算與官員的往來與勾結）：拜訪或寄信給貪官、一般請託開口、賣捌口利、吉原夜宴有役人入席；own＝勾結類請託各有自己的風聲、不另加；none＝不加風聲的請託（壓風聲與正當申報）',visitGreedy:0.1,favor:0.1,sellAid:0.5,feast:0.5,own:['sellAid','rconsignSea','rconsignLand','rkokusho','suspend','rwreck','rrobbed'],none:['hush','rvisit','fireAid','cargoAid','theftAid']},
   inspect:{name:'町奉行查貨（每旬）',base:0.30,perFame:0.25,min:0.05,max:0.30},
@@ -879,7 +880,7 @@ const ODDS={
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
   fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
-  fameLoss:{name:'醜聞扣知名度',staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
+  fameLoss:{name:'醜聞扣知名度',kakeFail:1,staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
   assInvestigate:{name:'命案後官府追查',base:0.12,perHeat:0.03,perRank:0.04,min:0.15,max:0.6},
@@ -1374,6 +1375,16 @@ const LINES={
         enemy:['……又是你。在湯裡，本官不想談公事。','哼。今晚泡完，明天照樣按規矩辦。','本官不記仇——至少今晚不記。']
       }
     }
+  },
+  /* 定約掛賣（07zzm_kake.js）：shop＝各行業下游的作坊；pitch 談合約；scale 依規模補一句；ask 主動上門 */
+  kake:{
+    shop:{
+      timber:['棟梁','指物師','桶屋'],grain:['酒造','味噌屋','菓子屋'],marine:['乾物屋','醬油藏','料理茶屋'],mining:['刀鍛冶','鑄物師','錺職'],
+      textile:['染物屋','吳服店','仕立屋'],medicine:['生藥屋','合藥所','線香屋'],luxury:['茶道具屋','蒔繪師','唐物屋']
+    },
+    pitch:['敝人替城裡的{shop}張羅原料，想跟貴號定約：「{g}」連續九旬，每旬一批，價錢與數量說定就不改。','城裡幾家{shop}託我找穩當的貨源。「{g}」每旬一批、連著九旬，掌櫃的挑個合意的條件吧。'],
+    scale:{small:['先拿一點試試貨。','量不大，圖個長久。'],big:['貴號如今名聲在外，這一季的料，全靠貴號了。','這可是筆大買賣，還望貴號別誤了交期。']},
+    ask:['掌櫃的，冒昧登門。城裡的{shop}催料催得緊，敝人頭一個想到的就是貴號，不知肯不肯定個約？','老交情了，我就直說：有幾家{shop}要找長期的貨源，這樁買賣我想留給貴號。']
   },
   escort:{
     ask:['聽說你要去奉行所？能不能帶我一起去，見見「{o}」大人？','你要上奉行所？我一直想拜見「{t}」「{o}」大人，就差個人引見……','巧了，我正想找門路見「{o}」大人。你跟他熟，帶我同去如何？'],
@@ -2402,7 +2413,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.3':'📅 時間與行動',
   'wiki.WIKI_GUIDE.4':'一個月分上、中、下三旬。每旬有幾點行動，出門拜訪、請託、辦事都要用掉一點；用完或不想動了，就「推進一旬」。推進時，排好的出貨與進貨會自動辦理，旬報會告訴你這一旬的收支與大事。遊戲每旬自動存在這個瀏覽器，換裝置時可以在設定裡匯出存檔。',
   'wiki.WIKI_GUIDE.5':'📊 相場買賣',
-  'wiki.WIKI_GUIDE.6':'每旬相場掛出固定牌價，進貨照牌價算；出貨要等全城都出完貨、收市價揭曉後才結算，這個收市價就是下一旬的牌價。全城出貨越多，價格越低，壓價的影響還會留上一陣子：必需品退得快，奢侈品退得慢。所以分批出貨，比一次倒完划算。相場每旬肯批給你的貨不多，光靠相場進出大約只是打平，真正的利潤在商路。本業最貴的兩樣貨，要先向勘定方取得「商株御免」才能買賣。你穩定供貨，城裡人口會慢慢增加；常常斷貨，人就會流失。市佔要靠實際出貨撐著，囤貨不賣，老主顧也會跑掉。',
+  'wiki.WIKI_GUIDE.6':'每旬相場掛出固定牌價，進貨照牌價算；出貨要等全城都出完貨、收市價揭曉後才結算，這個收市價就是下一旬的牌價。全城出貨越多，價格越低，壓價的影響還會留上一陣子：必需品退得快，奢侈品退得慢。所以分批出貨，比一次倒完划算。相場每旬肯批給你的貨不多，光靠相場進出大約只是打平，真正的利潤在商路。本業最貴的兩樣貨，要先向勘定方取得「商株御免」才能買賣。你穩定供貨，城裡人口會慢慢增加；常常斷貨，人就會流失。市佔要靠實際出貨撐著，囤貨不賣，老主顧也會跑掉。生意做出一點名堂以後，城裡的旅商人會替作坊來談「定約掛賣」：先立約收手付，連著九旬每旬交一批貨，價錢說定就不改，交完才收掛金。這些貨不算本城出貨，不受配額限制，也不壓行情；只是要派番頭經手，交不出貨就是失約，掛金也可能收不回來。',
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態守約、暗中偷跑或退出，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但得把菓子折的得標金向御金奉行報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
@@ -3433,7 +3444,61 @@ const UI_TXT={
   'btn.rushPass':'認罰',
   'rush.short':'現款不足',
   'rush.bribed':'「{n}」收下銀子，把案卷壓了下來。',
-  'rush.log.bribe':'查到贓貨時奉上 {a} 兩，把事情壓了下來。'
+  'rush.log.bribe':'查到贓貨時奉上 {a} 兩，把事情壓了下來。',
+  /* 定約掛賣（07zzm_kake.js） */
+  'kake.req':'談掛賣',
+  'kake.req.d':'他在替城裡的作坊找「{g}」的長期貨源：先立約收手付，連續九旬每旬交一批，交完才收掛金。',
+  'kake.none':'眼下談不成：他已另有安排，或店裡沒有空閒的番頭。',
+  'kake.pick.t':'定約掛賣：{a}',
+  'kake.pick.note':'「{g}」本旬牌價 {p} 兩。立約後價錢與數量固定 {t} 旬，下一旬起由番頭每旬交貨；這些貨不算本城出貨。',
+  'kake.plan.lo':'低價·數量多',
+  'kake.plan.mid':'中價·中數量',
+  'kake.plan.hi':'高價·數量少',
+  'kake.plan.per':'每旬 {q} 單位·單價 {u} 兩',
+  'kake.plan.sum':'九旬共 {q} 單位，總貨款 {a} 兩；立約先收手付 {d} 兩，交完再收掛金 {r} 兩。',
+  'btn.kakeTake':'就這麼定',
+  'btn.kakePass':'放棄，這回不談',
+  'kake.bond':'定約掛賣',
+  'kake.signed':'與「{n}」立約：「{g}」每旬 {q} 單位、單價 {u} 兩，連續九旬。手付 {d} 兩已入帳；下一旬起由番頭「{b}」負責交貨。',
+  'kake.log.sign':'立下掛賣之約：{g} 每旬 {q} 單位，連續 {t} 旬。',
+  'kake.log.done':'掛賣之約如期交完。',
+  'kake.log.fail':'掛賣交不出貨，失約。好感 -{a}。',
+  'kake.log.bad':'掛金收不回來，貸倒 {a} 兩。',
+  'kake.ask.t':'📦 旅商來訪',
+  'kake.ask.eff':'他想跟你定一份掛賣之約。婉拒也不傷交情。',
+  'btn.kakeAskYes':'看看條件',
+  'btn.kakeAskNo':'婉拒',
+  'kake.fill.ok':'填了 {n} 單位，本旬的掛賣都備齊了。',
+  'kake.fill.part':'填了 {n} 單位，還有合約沒備齊。',
+  'kake.fill.none':'倉裡沒有能填的貨。',
+  'kake.warn.t':'📦 掛賣還沒備齊',
+  'kake.warn':'這一旬要交的掛賣還缺貨。就這樣推進的話，交不齊的合約當場失約。',
+  'kake.warn.row':'尚缺 {n}',
+  'btn.kakeFill':'填貨',
+  'btn.kakeFilled':'本旬已填滿',
+  'btn.kakeSkip':'照樣推進',
+  'kake.card.t':'📦 掛賣',
+  'kake.card.cap':'合約 {n}／番頭 {m}',
+  'kake.card.none':'眼下沒有合約。帶著「求掛賣」標記的旅商人，交情夠了可以登門談。',
+  'kake.card.noBanto':'只有番頭能接掛賣，店裡眼下沒有番頭。',
+  'kake.card.note':'每旬開頭自動從倉裡備貨；之後才進的貨，按「填貨」補上。備好的貨不能再出貨。',
+  'kake.row.lack':'已備 {f}／{q}·尚缺 {n}',
+  'kake.row.full':'本旬 {q} 已備齊',
+  'kake.row.next':'下旬起每旬 {q}',
+  'kake.row.sub':'單價 {u} 兩·還剩 {l} 旬',
+  'kake.row.banto':'番頭 {b}',
+  'kake.held':'掛賣保留 {n} 單位，不能出貨。',
+  'kake.tag':'求掛賣',
+  'kake.tag.on':'掛賣中',
+  'kake.recv.t':'🧾 賣掛',
+  'kake.recv.none':'目前沒有待收的掛金。',
+  'kake.recv.late':'（請求寬限）',
+  'kake.recv.due':'{a} 旬後收帳',
+  'kake.recv.now':'本旬收帳',
+  'rep.kakeDep':'掛賣手付',
+  'rep.kakeFin':'掛金入帳',
+  'mk.chart.t':'近期收市價',
+  'mk.chart.range':'{a}～{b} 兩'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -4246,6 +4311,17 @@ const NEWS_TXT={
   "branch.pay":"🏮【分號】「{b}」送來盈餘 {a} 兩。",
   "branch.closed":"🏮【分號】「{b}」經營不下去，收了暖簾。",
   /* —— 遠國奉行所三階新請託 —— */
+  "kake.unlock":"📦【掛賣】貴號的生意做出了名堂，城裡的作坊開始託旅商人打聽：肯不肯定約長期供貨。",
+  "kake.sign":"📦【掛賣】與「{n}」立約：{g} 每旬 {q} 單位，連續九旬；手付 {d} 兩入帳。",
+  "kake.done":"📦【掛賣】給「{n}」的「{g}」九旬交齊，掛金 {a} 兩下旬收帳。",
+  "kake.fail":"📦【失約】給「{n}」的「{g}」交不出貨，合約作罷；他好感 -{a}，知名度 -1。",
+  "kake.fail.banto":"📦【失約】經手的番頭不在了，店裡無人可接，給「{n}」的「{g}」合約作罷；他好感 -{a}，知名度 -1。",
+  "kake.settle":"📦【掛賣】失約的那筆帳與「{n}」結清，補收 {a} 兩。",
+  "kake.refund":"📦【掛賣】失約的那筆帳與「{n}」結清，退還多收的手付 {a} 兩。",
+  "kake.paid":"📦【掛金】「{n}」如數付清「{g}」的掛金 {a} 兩。",
+  "kake.late":"📦【掛金】「{n}」手頭一時周轉不靈，請求寬限一季；掛金 {a} 兩晚些再收。",
+  "kake.bad.half":"📦【貸倒】「{n}」只付得出一半：「{g}」的掛金收回 {a} 兩，{l} 兩成了呆帳。",
+  "kake.bad.all":"📦【貸倒】「{n}」賴了帳：「{g}」的掛金 {l} 兩收不回來。",
   "sumo.remind":"🏟️【勸進相撲】下旬開場，屆時全城買氣大旺，記得備貨。",
   "sumo.open":"🏟️【勸進相撲】本城寺社的勸進相撲今日開場，滿城看客，買氣大旺；番付上首列贊助者「{firm}」，知名度 +{f}。",
   "sumo.open0":"🏟️【勸進相撲】本城寺社的勸進相撲今日開場，滿城看客，買氣大旺；番付上首列贊助者「{firm}」。",
@@ -4319,11 +4395,11 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["kake.unlock","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  trouble:["kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["rush.bust","inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
@@ -4342,7 +4418,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
 const CHANGELOG=[
   {date:'2026年11月11日',items:[
     '風聲設定更新：風聲只看你和官員的往來——登門拜訪一般官員不再惹來風聲，只有跟貪官走近、開口請託或彼此勾結才會；走私、挪用私房錢、暗殺與放火不再牽動風聲。巡見使與欽差的處罰說法也跟著改了。',
-    '出遊設定更新：寺社與溫泉又多了幾樣奇遇——寺裡找人贊助勸進相撲、落魄的手藝人求一筆本錢、夜裡急著脫手的外地商人，偶爾還會與一位帶著隨從的老隱居擦身而過。'
+    '出遊設定更新：寺社與溫泉又多了幾樣奇遇——寺裡找人贊助勸進相撲、落魄的手藝人求一筆本錢、夜裡急著脫手的外地商人，偶爾還會與一位帶著隨從的老隱居擦身而過。',
+    '新增定約掛賣：生意做出名堂以後，旅商人會替城裡的作坊來談長期供貨——先收手付，連著九旬由番頭每旬交貨，交完再收掛金。相場頁下方的行情表改成掛賣的帳面，各項貨的折線圖移到進出貨拉霸下方。',
+    '商人番付設定更新：旅商人的身代長期來看會慢慢往上走。'
   ]},
   {date:'2026年11月8日',items:[
     '出遊設定更新：寺社與溫泉多了幾樣奇遇——賣藥郎、搓澡三助的生意經、住持與巫女的祈福，長年護持寺社還可能遇上一段佳話；不同季節去，景致也不同。',
@@ -5435,6 +5513,7 @@ function advanceTurn(){
   const log=[],s0=G.silver;sickTurnFire(log);stressTurnStart();   // 壓力：沒用完的行動點數、自然恢復、家人、現款為負（07zzi_stress.js）      // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
                          // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
+  kakeDeliver(log);                               // 定約掛賣：自動出貨之前由番頭交貨（07zzm_kake.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
@@ -5492,11 +5571,12 @@ function advanceTurn(){
   escortTick(log);
   gmTick(log);
   f8Tick(log);
+  kakeTick(log);                                  // 定約掛賣：解鎖、收帳、標記、主動上門、旬初自動填貨（07zzm_kake.js）
   bzTick(log);                                    // 商人番付：季末最後一旬發行（07zzf_banzuke.js）                                    // 株札暫扣、專賣株期滿（07zze_favor8.js）                                    // 公會長：同業公會長離城或過世接任、任內知名度、報告提醒、任內事件（07yc_gm.js）                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
   roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）
   driftTick(log);
   stressTick(log);                                // 壓力：節慶、供貨不穩、失火；依狀態壓低本旬行動點數（07zzi_stress.js）                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
-  if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
+  if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0,ck=ci.kake||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.kakeDep=ck;TURNRP.net=G.silver-s0-ps+cw+cb+ck;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
   injuryTick(log);
   G.life.peak=Math.max(G.life.peak,G.silver);
@@ -5832,9 +5912,10 @@ function empTick(log){
     const s=statsOfEmp(e);
     const K_=ODDS.skim,p=clamp((s.greed_index*K_.greed+s.betrayal_risk*K_.betray-s.integrity_loyalty*K_.loyal)/100,0,K_.cap)*RANK_SKIM[e.rank]*skimMul(e)*guardF(e);   // 好感、自家栽培、收斂、記恨等倍率見 07zs_staffcare.js
     if(chance(p)){
-      const amt=Math.round(Math.max(0,(TURNRP&&TURNRP.rev)||0)*(0.005+rnd()*0.015)+(RANK_SKIM_BASE[e.rank]||3));
+      const amt=Math.round(Math.max(0,((TURNRP&&TURNRP.rev)||0)+(e.kakeIn||0))*(0.005+rnd()*0.015)+(RANK_SKIM_BASE[e.rank]||3));   // 番頭經手的掛賣入帳也算（07zzm_kake.js）
       e.skim+=amt;G.silver-=amt;
     }
+    if(e.kakeIn)e.kakeIn=0;
     if((e.rank==='chief'||e.rank==='banto')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*fleeMul(e)))){
       const take=Math.round(Math.max(0,G.silver)*0.3);G.silver-=take;rm.push(e);
       const t=NEWS('empTick.1',{rank:rankName(e.rank),name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();
@@ -7334,7 +7415,7 @@ const amtShort=d=>(d>=0?'+':'-')+Math.abs(d);
 function chg(name){const h=G.mk[name].hist;if(h.length<2)return 0;return (h[h.length-1]-h[h.length-2])/Math.max(0.01,h[h.length-2])*100}
 /** 協議立場的短說明。 */
 const cartelStanceTxt=()=>UT('mk.stance.'+G.cartel.state);
-/** 大盤畫面：行情、本旬買賣（出貨與進貨合併）、本旬買賣總表、市佔率、行情表。 */
+/** 大盤畫面：行情、本旬買賣（出貨與進貨合併，下方是這項貨的折線圖）、本旬買賣總表、市佔率、公會、定約掛賣、主食行情。 */
 function renderMarket(){
   const own=ownComms();
   if(!UI.s.focus||!G.mk[UI.s.focus]||!own.some(c=>c.name===UI.s.focus))UI.s.focus=(own.find(c=>tradeOK(c.name))||own[0]).name;
@@ -7354,9 +7435,7 @@ function renderMarket(){
   else h+=tradeCard(name);
   h+=G.lastSpoil?'<div class="notice" style="margin-top:6px">'+UT('mk.lastSpoil',{s:esc(G.lastSpoil)})+'</div>':'';
   h+=planCard()+shareCard()+guildInfoCard();
-  // 行情表
-  h+='<div class="small bold" style="margin:6px 0 3px">'+UT('mk.tableTitle')+'</div>';
-  h+=own.map(x=>{const mm=G.mk[x.name],ch=chg(x.name),p=marketQuote(x.name);return '<div class="mkt-row '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'"><div><b class="small">'+(tradeOK(x.name)?'':'🔒')+esc(x.short)+'</b>'+infoBtn(x.name)+'<div class="tiny muted">'+UT('mk.rowSub',{q:G.inv[x.name]||0,d:(x.decay*100).toFixed(1)})+'</div></div><div class="row" style="gap:8px">'+spark(mm.hist,ch>=0)+'<div style="text-align:right;width:62px"><b>'+fmt1(p)+'</b><div class="'+(chgAmt(x.name,p)>=0?'up':'down')+' tiny">'+amtTxt(chgAmt(x.name,p))+'</div></div></div></div>'}).join('');
+  h+=kakeCard();                                   // 定約掛賣（原行情表的位置；07zzm_kake.js）
   h+='<div class="small bold" style="margin:6px 0 3px">'+UT('mk.stapleTitle')+'</div>';
   h+=STAPLE_KEYS.filter(k=>G.mk[k]).map(k=>{const si=stapleIndex(k);return '<div class="mkt-row lock"><div><b class="small">'+esc(COMM_MAP[k].short)+'</b>'+infoBtn(k)+'<div class="tiny muted">'+UT('mk.stapleBase',{p:fmt1(COMM_MAP[k].base)})+'</div></div><div class="row" style="gap:8px">'+spark(G.mk[k].hist,chg(k)>=0)+'<div style="text-align:right;width:70px"><b class="'+(si>2?'up':'')+'">'+Math.round(si*100)+'%</b><div class="tiny muted">'+UT('mk.vsBase')+'</div></div></div></div>'}).join('');
   h+='</div>';
@@ -7379,22 +7458,23 @@ function shareCard(){
 }
 /** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
 function nextStock(name,ship,buy){
-  const c=COMM_MAP[name],n=Math.max(0,(G.inv[name]||0)-ship)+buy;
+  const c=COMM_MAP[name],n=Math.max(0,kakeFree(name)-ship)+buy;
   return Math.max(0,n-Math.round(n*c.decay*(c.staple&&season()==='summer'?1.6:1)));
 }
 /** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
 function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
 /** 【本旬買賣】單項貨的出貨與進貨：頂端顯示協議配額，下面是兩個滑桿。 */
 function tradeCard(name){
-  const c=COMM_MAP[name],m=G.mk[name],have=G.inv[name]||0,ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
+  const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
-  h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>';
+  h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
   h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
   h+='<div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
   h+='<div class="tiny">'+UT('mk.trade.unit',{p:fmt1(buy),c:'<b id="b-cost">'+UT('mk.liang',{a:fmt(Math.round(buy*bq))})+'</b>'})+'</div></div>';
+  h+=priceChart(name);                             // 這項貨的收市價折線圖（原本集中在頁面下方的行情表）
   h+='<div class="tiny muted" style="margin-top:6px">'+UT('mk.trade.demand',{d:m.D})+(m.ev>1.15?'<span class="up">'+UT('mk.trend.up')+'</span>':m.ev<0.9?'<span class="down">'+UT('mk.trend.down')+'</span>':UT('mk.trend.flat'))+(festActive()?' <span class="up">'+UT(festHot(c)?'mk.fest.hot':'mk.fest.all')+'</span>':'')+(daimyoMult(c)>1?' <span class="up">'+UT('mk.daimyo')+'</span>':'')+(sumoMult(c)>1?' <span class="up">'+UT('mk.sumo')+'</span>':'')+(wifeMult(c)>1?' <span class="up">'+UT('mk.wifeFans')+'</span>':'')+(c.luxury&&m.lux&&m.lux.ph==='dry'?' <span class="down">'+UT('mk.lux.dry')+'</span>':c.luxury&&m.lux&&m.lux.ph==='burst'?' <span class="up">'+UT('mk.lux.burst')+'</span>':'')+'</div>';
   {const hn=tempHelpNote();if(hn)h+='<div class="tiny" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#27407a">'+hn+'</div>'}   // 差配人臨時打工（07h_duties.js）
   h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
@@ -7428,7 +7508,7 @@ function refreshTrade(){
 }
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
-function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,G.inv[n]||0);UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
+function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,kakeFree(n));UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
 /** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為協議配額，出貨不動）、清除（只清進貨）。 */
 function planAllBuy(f){const L=tradeComms();G.buyPlan={};L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
@@ -7541,7 +7621,7 @@ const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">'+U
 /* ---------- 出貨預設＝本期有效協議配額；未按「出貨」，推進一旬時自動出貨 ---------- */
 /** 某物品本旬的預定出貨量：參加協議時預設為穩定供貨線的九成／七成；未參加時為穩定供貨線。不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
 function planOf(name){
-  const have=G.inv[name]||0;G.plan=G.plan||{};
+  const have=kakeFree(name);G.plan=G.plan||{};       // 定約掛賣保留的貨不能出貨（07zzm_kake.js）
   if(G.plan[name]===undefined)G.plan[name]=Math.min(quotaOf(name),have);   // 預設照本旬配額
   return clamp(G.plan[name],0,have);
 }
@@ -7637,7 +7717,7 @@ function personBlock(cid,ctx){
   const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos;autoIntro(cid);
   /* 知名度不足（含介紹人 +1 階）而見不到的人：半透明、不可點選 */
   const away=awayNow(n),lockNeed=meetTierNeed(cid),snub=snubbed(cid),locked=away||snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
-  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?UT('ppl.h',{a:tourNext(n)}):snub?UT('ppl.h.2'):locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?UT('ppl.h.3'):UT('ppl.h.4'))+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='f'?UT('ppl.h.5'):'')+' '+(isEnemy(c.id)?UT('ppl.h.6'):'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+rankName(empRole(cid))+'</span>':'');
+  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?UT('ppl.h',{a:tourNext(n)}):snub?UT('ppl.h.2'):locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?UT('ppl.h.3'):UT('ppl.h.4'))+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='f'?UT('ppl.h.5'):'')+' '+(isEnemy(c.id)?UT('ppl.h.6'):'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+kakeTag(cid)+(empRole(cid)?'<span class="tag red">'+rankName(empRole(cid))+'</span>':'');
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
   h+='<div class="text-brief muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
@@ -8274,7 +8354,7 @@ function rollAmbush(){
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={guildDiv:0,windfall:0,branch:0,honjin:0,buy:{},voy:[],market:[],goods:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
+  const T={guildDiv:0,windfall:0,branch:0,honjin:0,kakeDep:0,kakeFin:0,buy:{},voy:[],market:[],goods:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
@@ -8282,7 +8362,7 @@ function mergeReports(reps){
     (r.ship||[]).forEach(x=>{const o=rs[x.n]||(rs[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     (r.market||[]).forEach(x=>{const m=Object.assign({date},x),s=rs[x.n]||{q:0,rev:0},b=(r.buy&&r.buy[x.n])||{q:0,cost:0};T.market.push(m);T.goods.push(Object.assign({sq:s.q,rev:s.rev,bq:b.q,cost:b.cost},m))});
     Object.keys(rs).concat(Object.keys(r.buy||{})).filter((n,i,a)=>a.indexOf(n)===i&&!(r.market||[]).some(x=>x.n===n)).forEach(n=>{const s=rs[n]||{q:0,rev:0},b=(r.buy&&r.buy[n])||{q:0,cost:0};T.goods.push({date,n,sq:s.q,rev:s.rev,bq:b.q,cost:b.cost})});
-    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;
+    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;T.kakeDep+=r.kakeDep||0;T.kakeFin+=r.kakeFin||0;
     Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;if(r.fameGate)T.fameGate=true;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
@@ -8324,11 +8404,11 @@ function showTurnReport(reps,logs,n,kind){
   const exp=costs.reduce((a,x)=>a+x[2],0);
   const voyBack=T.voy.reduce((a,v)=>a+(v.back||0),0);         // 委託採買歸來退回的委託金餘額
   const buyTotal=Object.values(T.buy).reduce((a,x)=>a+x.cost,0);                 // 大盤進貨（推進時下單）
-  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin;      // 其餘雜項：員工私吞、罰款、事件等
-  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
+  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin-T.kakeDep-T.kakeFin;      // 其餘雜項：員工私吞、罰款、事件等
+  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+T.kakeDep+T.kakeFin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
   if(!kind&&G&&!G.ended)recRep(T.net,inc,outl,n);       // 商號紀錄（07zzg_record.js）；重開舊旬報同一旬不重記
-  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
+  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,T.kakeDep,T.kakeFin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
   h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>0?'▲ ':T.net<0?'▼ ':'',b:sgn(T.net),c:fmt(G.silver)});
   h+=raidCard();
@@ -8339,6 +8419,8 @@ function showTurnReport(reps,logs,n,kind){
   if(T.windfall>0)h+=repRow('💰',UT('rep.showTurnReport.9'),T.windfall,max,'in');
   if(T.branch>0)h+=repRow('🏮',UT('rep.branch'),T.branch,max,'in');
   if(T.honjin>0)h+=repRow('🏯',UT('rep.honjin'),T.honjin,max,'in');
+  if(T.kakeDep>0)h+=repRow('📦',UT('rep.kakeDep'),T.kakeDep,max,'in');
+  if(T.kakeFin>0)h+=repRow('📦',UT('rep.kakeFin'),T.kakeFin,max,'in');
   if(other>0)h+=repRow('✨',UT('rep.showTurnReport.10'),other,max,'in');
   h+=UT('rep.showTurnReport.12',{a:costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||UT('rep.showTurnReport.11')});
   if(publicSpend.length)h+=UT('rep.showTurnReport.13',{a:publicSpend.map(x=>repRow('💴',esc(spendLabel(x[0])),x[1],max,'out')).join('')});
@@ -14175,7 +14257,7 @@ function bzDeal(cid,gain,name){
 
 /* ---------- 身代與名望 ---------- */
 /** 身代的基準：本行業開局現款。 */
-const bzBase=()=>{const t=START_TIERS.find(x=>x.key===G.sysKey);return (t&&t.silver)||10000};
+const bzBase=()=>{const t=START_TIERS[G.startTier||0];return (t&&t.silver)||10000};   // 本局開局資源等級的開局現款
 const bzRand=a=>a[0]+rnd()*(a[1]-a[0]);
 function bzInit(n){
   if(n.bzw===undefined){
@@ -15196,6 +15278,243 @@ function tripEvTick(log){
 }
 
 'use strict';
+/* ★檔案總覽：定約掛賣（旅商的合約供貨；DESIGN_NOTES 第二百三十五、二百三十八、二百三十九節）
+ * - 解鎖：畫面上的市佔第一次超過一成（G.kakeOn，永久）。之後每旬隨機 3～5 位本城旅商人帶「求掛賣」標記（G.kakeMarks）。
+ * - 談掛賣：拜訪帶標記的旅商人打勝、好感 ≥60、有空閒番頭，請託多一項（dealerReqs）；好感 100 的旅商人偶爾自己上門（回府時事件 kakeAsk）。
+ *   先開方案選單（kakePickHtml：低價數量多／中價中數量／高價數量少／放棄），選定才立約（kakeSign）。
+ * - 合約 G.kake[]：{id,cid,name,unit,qty,total,dep,left,start,done,filled,banto,plan,gain}；一位番頭一張、一位旅商人一張。
+ *   立約當旬收手付（兩成）；下一旬起連續九旬，每旬推進時在自動出貨之前由番頭交貨（kakeDeliver）。不算本城出貨。
+ *   保留的貨仍在 G.inv 裡，以合約的 filled 記數（kakeHeld）；出貨拉霸與預設出貨都扣掉它。旬初自動填貨（kakeFill），可再按「填貨」。
+ * - 交不齊＝失約（好感、知名度下降，已交的照算）；九旬交完，剩下八成掛金記成賣掛 G.kakeRecv[]，下一旬收帳：可能拖一季，也可能貸倒。
+ * - 每旬 kakeTick（advanceTurn 的 f8Tick 之後）：解鎖、番頭異動、收帳、標記、主動上門、自動填貨。
+ * - 數值 ODDS.kake；台詞 LINES.kake；文字 kake.*（01e）、新聞 kake.*（01g）。 */
+const KK=()=>ODDS.kake;
+const kakeList=()=>G.kake||(G.kake=[]);
+const kakeRecvList=()=>G.kakeRecv||(G.kakeRecv=[]);
+const kakeOn=()=>!!(G&&G.kakeOn);
+const kakeMarked=cid=>!!(G.kakeMarks&&G.kakeMarks.t===G.turn&&G.kakeMarks.ids.includes(cid));
+/** 這位旅商人手上有沒有合約。 */
+const kakeWith=cid=>!!(G&&G.kake&&G.kake.some(c=>c.cid===cid));
+/** 某項貨被掛賣保留的數量（仍在倉裡，不能出貨）。 */
+function kakeHeld(name){return G&&G.kake?G.kake.reduce((s,c)=>s+(c.name===name?(c.filled||0):0),0):0}
+/** 扣掉掛賣保留後，可以自由出貨的庫存。 */
+const kakeFree=name=>Math.max(0,(G.inv[name]||0)-kakeHeld(name));
+/** 能接掛賣的番頭（大番頭、臨時打工的差配人不算；關押中、借出去的不算）。 */
+const kakeBantos=()=>(G.emps||[]).filter(e=>e.rank==='banto'&&!jailedEmp(e)&&!empLent(e));
+const kakeFreeBanto=()=>kakeBantos().find(e=>!kakeList().some(c=>c.banto===e.id));
+const kakeItems=()=>tradeComms().filter(c=>!c.luxury);
+/** 有效總資產：現款＋庫存（按上一旬收市價）－借款－還沒履約完的手付。 */
+function kakeAssets(){return Math.max(0,bzWorth('me')-kakeList().reduce((s,c)=>s+c.dep,0))}
+/** 這位旅商人這一旬想訂的貨與方案（同一人同一旬固定貨物；數量照當下的資產）。 */
+function kakeOffer(cid){
+  const K=KK(),cs=kakeItems(),n=npc(cid);if(!cs.length||!n)return null;
+  const c=cs[Math.floor(seeded('kake|'+cid+'|'+G.turn)()*cs.length)],quote=marketQuote(c.name);
+  const cap=Math.max(1,Math.floor(itemCap(c.name)*K.capHalf)),worth=bzInit(n).bzw*K.worthCap,base=kakeAssets()*K.frac;
+  const plans=[];let prev=Infinity;
+  for(const P of K.plans){
+    const unit=Math.max(0.1,Math.round(quote*P.p*10)/10);
+    let q=Math.round(Math.min(base*P.q,worth)/K.turns/unit);
+    if(!plans.length)q=Math.max(1,q);
+    q=Math.min(q,cap,prev-1);if(q<1)break;
+    const total=Math.round(unit*q*K.turns);
+    plans.push({k:P.k,unit,qty:q,total,dep:Math.round(total*K.dep)});prev=q;
+  }
+  return plans.length?{cid,name:c.name,plans}:null;
+}
+/* ---------- 請託與方案選單 ---------- */
+const kakeShop=cid=>{const L=Ls('kake.shop.'+G.sysKey);return L[Math.floor(seeded('kakeShop|'+cid)()*L.length)]};
+/** 拜訪請託：解鎖、帶標記、他手上沒有合約、有空閒番頭才出現。 */
+function kakeReq(cid){
+  if(!kakeOn()||!kakeMarked(cid)||kakeWith(cid)||!kakeFreeBanto())return null;
+  const O=kakeOffer(cid);if(!O)return null;
+  return {k:'kake',name:UT('kake.req'),desc:UT('kake.req.d',{g:COMM_MAP[O.name].short})};
+}
+{const _d=dealerReqs;dealerReqs=function(cid){const L=_d.apply(this,arguments),n=npc(cid);if(n&&n.role==='guest'&&dealReady(cid)){const r=kakeReq(cid);if(r)return [r].concat(L)}return L}}
+/** 方案選單（src：req＝拜訪請託、home＝主動上門）。 */
+function kakePickHtml(cid,src){
+  const O=kakeOffer(cid);if(!O)return '<div class="notice">'+UT('kake.none')+'</div>';
+  UI.s.kakeOffer=O;
+  const c=COMM_MAP[O.name],K=KK(),big=O.plans[0].total>=K.bigTotal;
+  let h='<div class="card" style="display:flow-root">'+portraitHtml(cid,56)+'<div><b>'+esc(nameOf(cid))+'</b> <span class="tag gray">'+esc(ROLE_LABEL.guest||'')+'</span></div><div class="small" style="margin:5px 0">「'+esc(TX('kake.pitch',{shop:kakeShop(cid),g:c.short}))+esc(TX(big?'kake.scale.big':'kake.scale.small'))+'」</div></div>';
+  h+='<div class="tiny muted" style="margin:4px 0">'+UT('kake.pick.note',{g:esc(c.short),p:fmt1(marketQuote(O.name)),t:K.turns})+'</div>';
+  O.plans.forEach(p=>{
+    h+='<div class="card" style="margin-top:4px"><div class="row"><b class="small">'+UT('kake.plan.'+p.k)+'</b><b style="color:#9b2c3a">'+UT('kake.plan.per',{q:p.qty,u:fmt1(p.unit)})+'</b></div>'
+      +'<div class="tiny muted" style="margin:3px 0">'+UT('kake.plan.sum',{q:p.qty*K.turns,a:fmt(p.total),d:fmt(p.dep),r:fmt(p.total-p.dep)})+'</div>'
+      +'<button class="pixel-btn btn-sm btn-gold" data-act="kakeTake" data-cid="'+cid+'" data-k="'+p.k+'">'+UT('btn.kakeTake')+'</button></div>';
+  });
+  h+='<div style="margin-top:6px"><button class="pixel-btn btn-sm" data-act="kakePass" data-src="'+(src||'req')+'">'+UT('btn.kakePass')+'</button></div>';
+  return h;
+}
+{const _r=ACT.reqAsk;ACT.reqAsk=function(el){
+  if(el.dataset.k==='kake'){BT=null;UI.showInfo(UT('kake.pick.t',{a:nameOf(el.dataset.cid)}),kakePickHtml(el.dataset.cid,'req'));return}
+  return _r.apply(this,arguments)}}
+ACT.kakePass=()=>{UI.s.kakeOffer=null;UI.hideInfo();UI.render()};
+ACT.kakeTake=el=>{
+  const O=UI.s.kakeOffer,cid=el.dataset.cid;if(!O||O.cid!==cid)return;
+  const p=O.plans.find(x=>x.k===el.dataset.k);if(!p)return;
+  const m=kakeSign(cid,O.name,p);UI.s.kakeOffer=null;
+  UI.showInfo(UT('kake.pick.t',{a:nameOf(cid)}),portraitHtml(cid,56)+'<div class="notice" style="margin-top:6px">'+esc(m)+'</div><button class="pixel-btn btn-sm" data-act="reqDone" style="margin-top:6px">'+UT('cm.ok')+'</button>');
+  sfx.coin();UI.render();refreshSheet();
+};
+/** 立約：收手付、指派番頭；下一旬起交貨。 */
+function kakeSign(cid,name,p){
+  const e=kakeFreeBanto();if(!e||kakeWith(cid))return UT('kake.none');
+  const K=KK(),c=COMM_MAP[name];
+  kakeList().push({id:G.turn+'_'+Math.floor(rnd()*1e5),cid,name,unit:p.unit,qty:p.qty,total:p.total,dep:p.dep,left:K.turns,start:G.turn+1,done:0,filled:0,banto:e.id,plan:p.k,gain:0});
+  G.silver+=p.dep;G.carryIn=G.carryIn||{};G.carryIn.kake=(G.carryIn.kake||0)+p.dep;e.kakeIn=(e.kakeIn||0)+p.dep;
+  const r=R(cid);if(!r.bond)r.bond={mult:1,label:UT('kake.bond'),introId:null};r.met=true;addKnown(cid);
+  logRel(cid,UT('kake.log.sign',{g:c.short,q:p.qty,t:K.turns}));
+  const t=NEWS('kake.sign',{n:nameOf(cid),g:c.short,q:p.qty,d:fmt(p.dep)});pushNews(t);
+  return UT('kake.signed',{n:nameOf(cid),g:c.short,q:p.qty,u:fmt1(p.unit),d:fmt(p.dep),b:e.name});
+}
+/* ---------- 主動上門（回府時事件） ---------- */
+FACE_TITLE.kakeAsk='kake.ask.t';
+FACE_EXT.kakeAsk=(e,name)=>{
+  if(kakeWith(e.cid)||!kakeFreeBanto()||!kakeOffer(e.cid))return null;
+  return {line:TX('kake.ask',{shop:kakeShop(e.cid)}),effect:UT('kake.ask.eff'),
+    buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="kakeAskYes" data-cid="'+e.cid+'">'+UT('btn.kakeAskYes')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.kakeAskNo')+'</button></div>'};
+};
+ACT.kakeAskYes=el=>{UI.showInfo(UT('kake.pick.t',{a:nameOf(el.dataset.cid)}),kakePickHtml(el.dataset.cid,'home'))};
+/* ---------- 填貨 ---------- */
+/** 保留量不能超過倉裡實際有的（被別的用途拿走、損耗、失火時，從晚簽的合約扣起）。 */
+function kakeSync(){
+  const L=kakeList(),names=[...new Set(L.map(c=>c.name))];
+  names.forEach(n=>{let over=kakeHeld(n)-(G.inv[n]||0);
+    for(let i=L.length-1;i>=0&&over>0;i--){const c=L[i];if(c.name!==n)continue;const d=Math.min(c.filled||0,over);c.filled-=d;over-=d}});
+}
+const kakeDue=c=>c.start<=G.turn;
+/** 把倉裡的貨填進本旬要交的合約（早簽的優先）；回傳填了幾單位。 */
+function kakeFill(){
+  kakeSync();let n=0;
+  kakeList().filter(kakeDue).forEach(c=>{const d=Math.min(c.qty-(c.filled||0),Math.floor(kakeFree(c.name)));if(d>0){c.filled=(c.filled||0)+d;n+=d}});
+  return n;
+}
+const kakeGaps=()=>{kakeSync();return kakeList().filter(c=>kakeDue(c)&&(c.filled||0)<c.qty)};
+ACT.kakeFill=()=>{const n=kakeFill(),g=kakeGaps().length;toast(UT(n?(g?'kake.fill.part':'kake.fill.ok'):'kake.fill.none',{n}));if(n)sfx.tap();UI.render();
+  if(!$('#info-bd').classList.contains('hidden')&&KAKE_WARN){UI.hideInfo()}};
+/* ---------- 交貨（每旬推進一開始，自動出貨之前；此時日期還沒前進，due＝G.turn+2 才是「下一旬的旬報收帳」） ---------- */
+function kakeEnd(c){G.kake=kakeList().filter(x=>x!==c)}
+/** 失約：有多少交多少，合約結束；下一旬照已交的貨值結算，扣掉手付（多收的退還）。 */
+function kakeFail(c,log,why){
+  const K=KK(),g=COMM_MAP[c.name],r=R(c.cid),net=Math.round(c.done*c.unit)-c.dep;
+  setAff(r,Math.max(0,r.aff-K.failAff));loseFame('kakeFail');logRel(c.cid,UT('kake.log.fail',{a:K.failAff}));
+  kakeRecvList().push({cid:c.cid,name:c.name,amt:net,due:G.turn+2,sure:true,banto:c.banto,gain:c.gain||0});
+  kakeEnd(c);
+  const t=NEWS(why==='banto'?'kake.fail.banto':'kake.fail',{n:nameOf(c.cid),g:g?g.short:c.name,a:K.failAff});pushNews(t);if(log)log.push(t);
+}
+function kakeDeliver(log){
+  if(!G.kake||!G.kake.length)return;
+  kakeSync();
+  kakeList().filter(kakeDue).forEach(c=>{
+    const q=stockTake(c.name,Math.min(c.filled||0,G.inv[c.name]||0)).qty;
+    c.done+=q;c.filled=0;c.gain=(c.gain||0)+Math.max(0,(marketQuote(c.name)-c.unit)*q);
+    if(q<c.qty){kakeFail(c,log);return}
+    c.left--;
+    if(c.left<=0){
+      kakeRecvList().push({cid:c.cid,name:c.name,amt:c.total-c.dep,due:G.turn+2,banto:c.banto,gain:c.gain||0});kakeEnd(c);
+      logRel(c.cid,UT('kake.log.done'));
+      const t=NEWS('kake.done',{n:nameOf(c.cid),g:COMM_MAP[c.name].short,a:fmt(c.total-c.dep)});pushNews(t);log.push(t);
+    }
+  });
+}
+/* ---------- 每旬 ---------- */
+const kakeInc=(k,v)=>{if(TURNRP)TURNRP[k]=(TURNRP[k]||0)+v};
+function kakeTick(log){
+  const K=KK(),put=t=>{pushNews(t);log.push(t)};
+  if(disasterNow())G.kakeDisY=G.year;
+  // 解鎖：市佔第一次超過一成
+  if(!G.kakeOn&&G.share&&G.share.me>K.unlock){G.kakeOn=true;put(NEWS('kake.unlock'))}
+  // 番頭異動：轉給空閒的番頭，沒人可接就失約
+  kakeList().slice().forEach(c=>{
+    const e=(G.emps||[]).find(x=>x.id===c.banto);
+    if(e&&e.rank==='banto'&&!jailedEmp(e))return;
+    const f=kakeFreeBanto();if(f)c.banto=f.id;else kakeFail(c,log,'banto');
+  });
+  // 收帳
+  G.kakeRecv=kakeRecvList().filter(r=>{
+    if(r.due>G.turn)return true;
+    const n=npc(r.cid),rel=R(r.cid),g=COMM_MAP[r.name]?COMM_MAP[r.name].short:r.name,who=nameOf(r.cid);
+    const e=(G.emps||[]).find(x=>x.id===r.banto),pay=v=>{G.silver+=v;if(v>0){kakeInc('kakeFin',v);if(e)e.kakeIn=(e.kakeIn||0)+v}};
+    if(n&&n.role==='guest'&&r.gain>0){bzInit(n);n.bzPend=(n.bzPend||0)+Math.round(r.gain);r.gain=0}   // 轉手利潤記進他的身代
+    if(r.sure){pay(r.amt);put(NEWS(r.amt>=0?'kake.settle':'kake.refund',{n:who,a:fmt(Math.abs(r.amt))}));return false}
+    const gone=!n||!alive(r.cid)||n.cityId!==G.cityId||n.hired;
+    const skill=e?statsOfEmp(e).commerce_skill:0;
+    const pBad=gone?K.goneBad:Math.max(0,K.bad-Math.floor(skill/K.skillPer)*K.skillCut)*(G.kakeDisY===G.year?K.disasterX:1);
+    if(chance(pBad)){
+      const got=(gone||chance(0.5))?Math.round(r.amt/2):0,loss=r.amt-got;pay(got);
+      setAff(rel,Math.max(0,rel.aff-K.badAff));logRel(r.cid,UT('kake.log.bad',{a:fmt(loss)}));
+      if(n&&n.role==='guest'){bzInit(n);n.bzPend=(n.bzPend||0)+loss}
+      put(NEWS(got?'kake.bad.half':'kake.bad.all',{n:who,g,a:fmt(got),l:fmt(loss)}));return false;
+    }
+    if(!r.late&&!gone&&chance(K.late*clamp((100-rel.aff)/(100-K.aff),0,1))){r.late=true;r.due=G.turn+K.lateTurns;put(NEWS('kake.late',{n:who,a:fmt(r.amt)}));return true}
+    pay(r.amt);put(NEWS('kake.paid',{n:who,g,a:fmt(r.amt)}));return false;
+  });
+  if(G.kakeOn){
+    // 本旬帶「求掛賣」標記的旅商人
+    const L=cityNpcs(G.cityId,'guest').filter(n=>alive(n.cid)&&!n.hired&&!jailed(n)&&!isEnemy(n.cid));
+    G.kakeMarks={t:G.turn,ids:shuffle(L).slice(0,rint(K.marks[0],K.marks[1])).map(n=>n.cid)};
+    // 好感滿的旅商人自己上門（一旬最多一位）
+    if(kakeFreeBanto()){const c=L.filter(n=>G.rel[n.cid]&&G.rel[n.cid].bond&&G.rel[n.cid].aff>=K.selfAff&&!kakeWith(n.cid)).find(()=>chance(K.selfP));
+      if(c&&kakeOffer(c.cid))queueHomeEvent({type:'kakeAsk',cid:c.cid})}
+  }
+  kakeFill();                                       // 旬初自動填貨
+}
+/* ---------- 推進前的缺貨確認 ---------- */
+let KAKE_SKIP=false,KAKE_WARN=false;
+function kakeGuard(n){
+  if(KAKE_SKIP){KAKE_SKIP=false;return false}
+  const L=kakeGaps();if(!L.length)return false;
+  let h='<p class="small">'+UT('kake.warn')+'</p>'+L.map(c=>'<div class="row small" style="margin-top:3px;color:#b3261e"><span>'+esc(nameOf(c.cid))+'·'+esc(COMM_MAP[c.name].short)+'</span><b>'+UT('kake.warn.row',{n:c.qty-(c.filled||0)})+'</b></div>').join('');
+  h+='<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><button class="pixel-btn btn-gold" style="flex:1 1 100%;padding:8px" data-act="kakeFill">'+UT('btn.kakeFill')+'</button><button class="pixel-btn" style="flex:1 1 0;padding:8px" data-act="kakeSkip" data-n="'+(n||1)+'">'+UT('btn.kakeSkip')+'</button><button class="pixel-btn" style="flex:1 1 0;padding:8px" data-act="kakeBack">'+UT('btn.vQBack')+'</button></div>';
+  KAKE_WARN=true;UI.showInfo(UT('kake.warn.t'),h);sfx.tap();
+  return true;
+}
+ACT.kakeSkip=el=>{KAKE_SKIP=true;KAKE_WARN=false;if(voyQPending())VOYQ_SKIP=true;UI.hideInfo();doTurn(Number(el.dataset.n)||1)};
+ACT.kakeBack=()=>{KAKE_WARN=false;UI.hideInfo();UI.go('market')};
+{const _h=UI.hideInfo;UI.hideInfo=function(){KAKE_WARN=false;return _h.apply(this,arguments)}}
+/* ---------- 畫面 ---------- */
+/** 相場頁的「📦 掛賣」卡（原行情表的位置）：每張合約一列，一個「填貨」按鈕。尚未解鎖時不出現。 */
+function kakeCard(){
+  if(!kakeOn())return '';
+  const L=kakeList();kakeSync();
+  let h='<div class="card" id="kake-card" style="background:#fff8eb"><div class="row"><b class="small">'+UT('kake.card.t')+'</b><span class="tiny muted">'+UT('kake.card.cap',{n:L.length,m:kakeBantos().length})+'</span></div>';
+  if(!L.length)return h+'<div class="tiny muted" style="margin-top:4px">'+UT(kakeBantos().length?'kake.card.none':'kake.card.noBanto')+'</div></div>';
+  let gap=0;
+  h+=L.map(c=>{const g=COMM_MAP[c.name],e=(G.emps||[]).find(x=>x.id===c.banto),due=kakeDue(c),lack=due?c.qty-(c.filled||0):0;if(lack>0)gap++;
+    return '<div style="margin-top:5px;padding-top:4px;border-top:1px dashed #b5a98f"><div class="row small" data-act="focus" data-n="'+esc(c.name)+'" style="cursor:pointer"><span><b>'+esc(nameOf(c.cid))+'</b>·'+esc(g.short)+'</span><b'+(lack>0?' style="color:#b3261e"':'')+'>'+(due?(lack>0?UT('kake.row.lack',{f:c.filled||0,q:c.qty,n:lack}):UT('kake.row.full',{q:c.qty})):UT('kake.row.next',{q:c.qty}))+'</b></div>'
+      +'<div class="row tiny muted"><span>'+UT('kake.row.sub',{u:fmt1(c.unit),l:c.left})+'</span><span>'+UT('kake.row.banto',{b:esc(e?e.name:'')})+'</span></div></div>'}).join('');
+  h+='<div style="margin-top:6px"><button class="pixel-btn btn-sm btn-gold" data-act="kakeFill" '+(gap?'':'disabled')+'>'+UT(gap?'btn.kakeFill':'btn.kakeFilled')+'</button></div>';
+  return h+'<div class="tiny muted" style="margin-top:4px">'+UT('kake.card.note')+'</div></div>';
+}
+/** 進出貨拉霸下方的折線圖（這項貨近期的收市價）。 */
+function priceChart(name){
+  const h=(G.mk[name]&&G.mk[name].hist)||[];if(h.length<2)return '';
+  const W=300,H=54,mn=Math.min(...h),mx=Math.max(...h),rg=Math.max(0.0001,mx-mn),up=h[h.length-1]>=h[h.length-2];
+  const pts=h.map((v,i)=>(4+i*((W-8)/(h.length-1))).toFixed(1)+','+(H-6-((v-mn)/rg)*(H-14)).toFixed(1)).join(' ');
+  return '<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row tiny muted"><span>'+UT('mk.chart.t')+'</span><span>'+UT('mk.chart.range',{a:fmt1(mn),b:fmt1(mx)})+'</span></div><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:54px;display:block"><polyline fill="none" stroke="'+(up?'#b3261e':'#1e7e34')+'" stroke-width="2" points="'+pts+'"/></svg></div>';
+}
+/** 本旬買賣面板上的保留提示。 */
+const kakeHeldNote=name=>{const n=kakeHeld(name);return n>0?'<div class="tiny" style="margin:2px 0;color:#27407a">'+UT('kake.held',{n})+'</div>':''};
+/** 人物卡上的標記。 */
+function kakeTag(cid){
+  if(!kakeOn())return '';
+  return kakeWith(cid)?'<span class="tag green">'+UT('kake.tag.on')+'</span>':kakeMarked(cid)?'<span class="tag gold">'+UT('kake.tag')+'</span>':'';
+}
+/** 現款走勢：借款卡下方的「賣掛」。 */
+function kakeRecvCard(){
+  const L=kakeRecvList().filter(r=>!r.sure).slice().sort((a,b)=>a.due-b.due);
+  if(!kakeOn()&&!L.length)return '';
+  let h='<div class="card" style="margin-top:8px"><b class="small">'+UT('kake.recv.t')+'</b>';
+  if(!L.length)return h+'<div class="tiny muted" style="margin-top:2px">'+UT('kake.recv.none')+'</div></div>';
+  L.forEach(r=>{const left=Math.max(0,r.due-G.turn);h+='<div class="row tiny" style="margin-top:2px"><span>'+esc(nameOf(r.cid))+(r.late?UT('kake.recv.late'):'')+'</span><b style="white-space:nowrap;margin-left:6px">'+UT('silver.debtCard.5',{a:fmt(r.amt),b:left?UT('kake.recv.due',{a:left}):UT('kake.recv.now')})+'</b></div>'});
+  return h+'</div>';
+}
+{const _d=debtCard;debtCard=function(){return _d.apply(this,arguments)+kakeRecvCard()}}
+/* ---------- 其他系統的銜接 ---------- */
+/** 有合約在身的旅商人不能延攬進店。 */
+{const _e=enlistRanks;enlistRanks=function(cid){return kakeWith(cid)?[]:_e.apply(this,arguments)}}
+
+'use strict';
 /* ★檔案總覽：啟動與全域事件
  * - doTurn：「推進一旬」按鈕的入口（播放轉場→呼叫 advanceTurn→重繪）。
  * - 以事件委派處理所有 data-act / data-chg；DOMContentLoaded 綁定頂部按鈕與開局。 */
@@ -15204,6 +15523,7 @@ function tripEvTick(log){
 function doTurn(n){
   if(!G||G.ended||FX.busy)return;
   if(voyQGuard(n))return;                         // 出運清單還有人沒出發：先提醒（07i_voyage.js）
+  if(kakeGuard(n))return;                         // 定約掛賣本旬的貨還沒填滿：先確認（07zzm_kake.js）
   /* 推進前先回到主畫面：關掉開著的面板與說明視窗，旬報才不會被擋住 */
   try{UI.s.outGo=null;if(UI.s.sheet)UI.closeSheet();if(typeof ENC==='undefined'||!ENC)$('#info-bd').classList.add('hidden');if(UI.s.tab!=='home')UI.go('home')}catch(e){}
   const before=G.silver,head=G.news[0];          // head：推進前最新的一則瓦版，用來找出這段期間新出的消息
