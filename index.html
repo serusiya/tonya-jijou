@@ -915,7 +915,7 @@ const ODDS={
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
   ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,quellFame:3}
   ,urge:{name:'官府督促（07zzq_urge.js）：連續幾季人口減少、市佔門檻；御救販售的份量倍數、旬數、失約與交滿的好感、交滿的知名度；推給同業的好感、推託的官員好感；闇商代出的成數、被看穿機率（基本、每超出配額一倍、上限）、罰現款比例、看穿與交不足時闇商人好感、不肯再接的旬數',streak:3,share:0.15,mult:3,turns:9,failAff:20,doneAff:10,fame:[3,5],pushAff:40,refuseAff:30,yamiCut:0.9,detect:{base:0.06,slope:0.09,max:0.4},fine:0.06,yamiAff:30,yamiShortAff:10,ban:36}
-  ,works:{name:'大工程（07zzp_works.js）：外港開闢（船奉行五階）與國產取立（遠國奉行六階）的公款、成功率依次數、失敗冷卻旬數、外港的知名度、國產取立的知名度下限',port:{cost:15000,fame:10},kokusan:{cost:30000,floor:165},p:[0.4,0.7,1],cd:12}
+  ,works:{name:'大工程（07zzp_works.js）：外港開闢（船奉行五階）、開闢道路（道中奉行五階，陸運運量倍數）與國產取立（遠國奉行六階）的公款、成功率依次數、失敗冷卻旬數、外港的知名度、國產取立的知名度下限',port:{cost:15000,fame:10},road:{cost:15000,fame:10,mult:2},kokusan:{cost:30000,floor:165},p:[0.4,0.7,1],cd:12}
   ,extortReport:{name:'告發索賄的官員（04_people.js 的 reportExtort）：風聲減幾點；撤職下獄的機率（一到四階、五六階）',heat:2,fall:0.2,fallHi:0.1}
   ,komonRumor:{name:'木戶黃門年度傳聞（07zzj_komon.js）：惡德值到 region 傳聞落在本地區、到 near 落在本城附近（離本城最近的 nearN 座城之一）',region:10,near:20,nearN:3}
   ,shun:{name:'不在協議時（沒參加或違約被查獲後）：仲買人銷貨的牌價成數（平常 0.7）、旅商人代售價再打的折扣（07x_dealers.js）',broker:0.5,xsell:0.7}
@@ -2800,6 +2800,8 @@ const UI_TXT={
   'fav.newTown.d':'付 6,000 兩申請開立新町，審理後若獲准，本城人口增加。頭一回未必成，再三申請必成。',
   'fav.rport2':'外港開闢',
   'fav.rport2.d':'付 15,000 兩，替這個地區一座沒有海運的城開闢外港，從此船隻也能進出。頭一回未必成，再三申請必成；每個地區一次。',
+  'fav.rroad2':'開闢道路',
+  'fav.rroad2.d':'付 15,000 兩，修築本地區的街道，從此陸運一趟能運兩倍的貨，產地也運得出更多。頭一回未必成，再三申請必成；每個地區一次。',
   'fav.rkokusan':'國產取立',
   'fav.rkokusan.d':'付 30,000 兩，在這個地區扶植一處你本業貨的新產地，委託採買去那裡能以產地價買到；你的名聲也從此不墜。頭一回未必成，再三申請必成；每個地區一次。',
   'works.portPick':'挑一座要開闢外港的城（受理時付 {a} 兩，審理完成才知道成不成）：',
@@ -2829,7 +2831,7 @@ const UI_TXT={
   'spend.f8Susp':'辦案堂費',
   'spend.f8Mono':'專賣株',
   'spend.f8NewTown':'新町取立',
-  'spend.works':'大工程（外港開闢、國產取立）',
+  'spend.works':'大工程（外港開闢、開闢道路、國產取立）',
   'gm.step':'改選',
   'gm.next':'<button class="pixel-btn btn-gold" style="width:100%;margin-top:8px" data-act="meetStep">改選已畢，進行協議立場 ▶</button>',
   'gm.el.first':'開業這一年頭一回改選公會長：候選人是本城市佔最高的兩家。本城每一家問屋都能投票，不看有沒有參加協議。',
@@ -4618,6 +4620,9 @@ const NEWS_TXT={
   "works.portFail":"⚓【外港開闢】【{r}】的外港工程沒有成功，款項不退。",
   "works.portVoid":"⚓【外港開闢】【{r}】那座城已經通了海運，工程作罷。",
   "works.portHist":"{f}出資開闢外港，從此船隻也能進出",
+  "works.roadOk":"🛤️【開闢道路】【{r}】的街道修築完成，從此陸運一趟能運兩倍的貨。知名度 +{g}。",
+  "works.roadFail":"🛤️【開闢道路】【{r}】的道路工程沒有成功，款項不退。",
+  "works.roadHist":"{f}出資修築【{r}】的街道，陸運從此暢通",
   "works.kokuOk":"🌱【國產取立】官府在【{r}】的「{c}」扶植「{g}」，新產地成立。",
   "works.kokuFail":"🌱【國產取立】【{r}】的國產取立沒有成功，款項不退。",
   "works.kokuVoid":"🌱【國產取立】【{r}】已經沒有能扶植的城，工程作罷。",
@@ -4654,7 +4659,7 @@ const NEWS_CAT={
   firm:["of.meet","kake.unlock","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["urge.start","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["works.roadOk","urge.start","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["urge.kyusaiFail","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -4686,7 +4691,7 @@ const CHANGELOG=[
     '新增告發：官員暗示索賄時，可以不給錢、告發他，官場風聲減輕，但從此結仇；查有實據的話，他會撤職下獄。',
     '公會長選舉設定更新：拉票改成同業名單，想找誰拉票自己挑，拉夠過半就可以開票；沒去拉的人照樣投對手。',
     '請託設定更新：新町取立成功時，城裡人口增加得更多。',
-    '新增請託：城代家老的新町取立（人口大增，名聲從此不墜）、船奉行的外港開闢（讓一座城通海運）、遠國奉行的國產取立（扶植本業貨的新產地）；五街道通行狀、朱印狀、地區通商特許狀不再發給，已拿到的照樣有效。',
+    '新增請託：城代家老的新町取立（人口大增，名聲從此不墜）、船奉行的外港開闢（讓一座城通海運）、遠國奉行的國產取立（扶植本業貨的新產地）、道中奉行的開闢道路（本地區陸運一趟能運兩倍）；五街道通行狀、朱印狀、地區通商特許狀不再發給，已拿到的照樣有效。',
     '新增官府督促：城裡人口連月減少、你的生意又做得大時，巡察使會到例會督促。見得到他就能接下「御救販售」替城裡補貨；公會長可以自己接、推給同業或推託。督促期間，相熟的闇商人也肯替你把配額以外的貨私下放出去，錢進私房錢，被看穿就算違約。',
     '問屋公會設定更新：取消暗約，協議只有參加與退出；舊存檔的暗約改為參加。',
     '外城友人設定更新：寄信與作客改到「外城出遊」辦，下方照地區列出所有外城友人；成了仇人就不再往來，出門作客期間也不寄信。',
@@ -5706,7 +5711,7 @@ const CAP_LAND={heavy:30,normal:50,light:80},CAP_SEA={heavy:120,normal:150,light
 /** 貨物重量等級：奢侈品輕巧、必需品與礦木笨重、其餘一般。 */
 function weightClass(name){const c=COMM_MAP[name];if(c.luxury)return 'light';if(c.staple||c.sys==='mining'||c.sys==='timber')return 'heavy';return 'normal'}
 /** 某物品某運輸方式的單趟運量上限。 */
-function capOf(name,mode){const w=weightClass(name);return (mode==='sea'?CAP_SEA:CAP_LAND)[w]}
+function capOf(name,mode){const w=weightClass(name);return mode==='sea'?CAP_SEA[w]:CAP_LAND[w]*roadMult()}   // 開闢道路：本地區陸運運量加倍，產地可買量跟著加倍（07zzp_works.js）
 /** 運輸許可：海運需該地區的進港泊位許可、陸路需本地區的關所通行手形（遠國奉行所核發）。 */
 const permitOf=(mode,ct)=>mode==='sea'?(ct?seaPermitFor(ct):anySea()):landPermit();
 /** 船長/飛腳的膽識與商才換算成遇險率倍數（0.7～1.3）。 */
@@ -16299,13 +16304,17 @@ ACT.dealings=()=>{UI.showInfo(UT('deal2.title'),dealHtml());sfx.tap()};
 /* ★檔案總覽：遠國奉行所的大工程（DESIGN_NOTES 第二十九、二百零五、二百五十六節）
  * - 外港開闢（五階 船奉行，rport2）：公款 15,000 兩。從那位船奉行所屬地區裡，挑一座還沒有海運的城（西道、南海各城本來都算港口，不會出現），
  *   成功後那座城永久多了海運（G.cityRoutes[城].sea），陸路保留；地圖、商路、百科照 canSea 自動跟著變。知名度 +10（大事件）。每個地區一次。
+ * - 開闢道路（五階 道中奉行，rroad2，只限本地區、南海沒有）：公款 15,000 兩。成功後本地區的陸運一趟運量加倍（capOf），產地可買量跟著加倍；
+ *   委託採買、注文、卸留請負的陸運都適用。知名度 +10（大事件）。每個地區一次。原本「打通到其他地區」的設計取消（roadOpen、G.openedRoads 保留不用）。
  * - 國產取立（六階 遠國奉行，rkokusan）：公款 30,000 兩。先挑一樣有交易許可的本業貨；審理通過時，在那個地區隨機一座到得了的城（不含本城、已產這樣貨的城）
  *   新增這項物產（G.devProd，src:'kokusan'），委託採買去那裡能以產地價買到。知名度至少 165，並永久以 165 為最低值。每個地區一次。
  * - 共通：走申請審理（受理時付公款、好感 −20、風聲 +0.1；外地審理加倍）；審理完成時依同一地區同一項工程的次數判定：第一次 40%、第二次 70%、第三次一定成功。
  *   失敗款項不退、冷卻 12 旬；成功後寫進城史。狀態 G.works{port:{地區:城},kokusan:{地區:{city,name}},tries:{鍵:次數},cd:{鍵:旬}}。
  * - 數值 ODDS.works；文字 fav.rport2*、fav.rkokusan*、works.*（01e）；新聞 works.*（01g）。 */
 const WK=()=>ODDS.works;
-const works=()=>G.works||(G.works={port:{},kokusan:{},tries:{},cd:{}});
+const works=()=>{const W=G.works||(G.works={port:{},kokusan:{},tries:{},cd:{}});W.road=W.road||{};return W};
+/** 本地區修好道路：陸運運量倍數（03_market.js 的 capOf）。 */
+const roadMult=()=>G&&G.works&&G.works.road&&G.works.road[homeRegion()]?WK().road.mult:1;
 const wkKey=(k,rid)=>k+':'+rid;
 const wkCool=(k,rid)=>(works().cd[wkKey(k,rid)]||-1)>=G.turn;
 /** 外港開闢的候選城：那個地區、本局啟用、還沒有海運的城。 */
@@ -16316,9 +16325,10 @@ function kokuCities(rid){const home=homeCity();return CITIES.filter(ct=>ct.regio
 const kokuGoods=rid=>tradeComms().filter(c=>kokuCities(rid).some(ct=>!cityProds(ct).includes(c.name)));
 REG_FAVORS.push(
   {k:'rport2',apply:true,rank:5,pos:['reg_08'],avail:n=>{const rid=regOfNpc(n);return !works().port[rid]&&!wkCool('port',rid)&&portCands(rid).length>0}},
+  {k:'rroad2',apply:true,rank:5,pos:['reg_07'],local:true,avail:n=>{const rid=regOfNpc(n);return rid!=='reg_south'&&!works().road[rid]&&!wkCool('road',rid)}},
   {k:'rkokusan',apply:true,rank:6,pos:['reg_09'],avail:n=>{const rid=regOfNpc(n);return !works().kokusan[rid]&&!wkCool('kokusan',rid)&&kokuGoods(rid).length>0}}
 );
-REG_FAVORS.filter(f=>f.k==='rport2'||f.k==='rkokusan').forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
+REG_FAVORS.filter(f=>f.k==='rport2'||f.k==='rroad2'||f.k==='rkokusan').forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
 /* ---------- 先挑對象 ---------- */
 FAVOR_PICK.rport2=cid=>{
   const rid=regOfNpc(npc(cid));
@@ -16330,6 +16340,11 @@ FAVOR_PICK.rkokusan=cid=>{
 };
 /* ---------- 受理：付公款 ---------- */
 {const _af=applyFavor;applyFavor=function(cid,n,r,f,arg){
+  if(f&&f.k==='rroad2'){
+    if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
+    if(G.silver<WK().road.cost)return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(WK().road.cost)})};
+    payPublic('spend.works',WK().road.cost);
+  }
   if(f&&(f.k==='rport2'||f.k==='rkokusan')){
     const cost=f.k==='rport2'?WK().port.cost:WK().kokusan.cost,rid=regOfNpc(n);
     if(!arg)return {ok:true,status:'held',msg:MSG('works.noPick')};
@@ -16343,11 +16358,17 @@ FAVOR_PICK.rkokusan=cid=>{
 }}
 /* ---------- 審理完成：依次數判定 ---------- */
 {const _ag=appGrant;appGrant=function(A,log){
-  if(A.key!=='rport2'&&A.key!=='rkokusan')return _ag.apply(this,arguments);
-  const W=works(),port=A.key==='rport2',n=npc(A.cid),rid=n?regOfNpc(n):(CITY(A.cityId)||{}).region_id,k=wkKey(port?'port':'kokusan',rid);
+  if(A.key!=='rport2'&&A.key!=='rkokusan'&&A.key!=='rroad2')return _ag.apply(this,arguments);
+  const W=works(),port=A.key==='rport2',road=A.key==='rroad2',n=npc(A.cid),rid=n?regOfNpc(n):(CITY(A.cityId)||{}).region_id,k=wkKey(port?'port':road?'road':'kokusan',rid);
   const tries=W.tries[k]||0,ok=rnd()<WK().p[Math.min(tries,WK().p.length-1)];
   let t;
-  if(!ok){W.tries[k]=tries+1;W.cd[k]=G.turn+WK().cd-1;t=NEWS(port?'works.portFail':'works.kokuFail',{r:REG_NAME(rid)});sfx.bad()}
+  if(!ok){W.tries[k]=tries+1;W.cd[k]=G.turn+WK().cd-1;t=NEWS(port?'works.portFail':road?'works.roadFail':'works.kokuFail',{r:REG_NAME(rid)});sfx.bad()}
+  else if(road){
+    W.road[rid]=true;delete W.tries[k];
+    const f=addFame(WK().road.fame,'major'),ct=homeCity();
+    G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('works.roadHist',{f:G.firm,r:REG_NAME(rid)})});
+    t=NEWS('works.roadOk',{r:REG_NAME(rid),g:fmt1(f)});sfx.fanfare();
+  }
   else if(port){
     const ct=CITY(A.arg);
     if(!ct||canSea(ct)){t=NEWS('works.portVoid',{r:REG_NAME(rid)})}
