@@ -19,6 +19,7 @@ function startScheme(cid){
   const tg=pick(ts),p=schemeChance(n,k),name=nameOf(tg.cid),log=[];
   playFx('walk',MSG(k==='frame'?'scheme.fxFrame':'scheme.fxSuppress',{off}),MSG(k==='frame'?'scheme.fxTitleFrame':'scheme.fxTitleSuppress'),()=>{
     if(chance(p)){
+      evilAdd(k,tg.cid);                          // 惡德（07zzl_tripev2.js）
       if(k==='frame')tg.raided=true;
       else{const m=msOf(tg);m.ev=ODDS.suppress.evMul;m.evT=ODDS.suppress.turns}
       G.share=marketShares();G.life.schemes=(G.life.schemes||0)+1;logRel(tg.cid,k==='frame'?UT('scheme.startScheme'):UT('scheme.startScheme.2'));
@@ -35,7 +36,7 @@ function startScheme(cid){
       }
       toast(msg,5200);
     }else{
-      addHeat(2,true);
+      addHeat(2,true);evilAdd(k,tg.cid,true);
       const r=R(cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(cid,UT('scheme.startScheme.4'));
       const r2=R(tg.cid);setAff(r2,0);r2.peak=Math.max(r2.peak||0,40);logRel(tg.cid,UT('scheme.startScheme.5'));
       sfx.bad();toast(MSG('scheme.fail',{off,target:name}),5200);

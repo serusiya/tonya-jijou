@@ -119,7 +119,7 @@ const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOr
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
 const luxMult=(c,m)=>{if(!c.luxury||!m.lux)return 1;const L=ODDS.lux;return m.lux.ph==='dry'?L.dryMult:m.lux.ph==='burst'?m.lux.mul:1};
-const demandEff=(c,m,noLux)=>m.D*festMult(c)*daimyoMult(c)*wifeMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
+const demandEff=(c,m,noLux)=>m.D*festMult(c)*daimyoMult(c)*sumoMult(c)*wifeMult(c)*(c.sys===G.sysKey?shareFactor():1)*(noLux?1:luxMult(c,m));
 /** 本旬同業有效供給；維持／減供的九成／七成目標已在 rivalSupply 計入，不再另外重複折減。 */
 const supplyEff=(c,m)=>m.so;
 /** 收市價視窗旬數：必需品三旬、一般貨六旬、奢侈品九旬（ODDS.priceWin）。 */
@@ -144,7 +144,7 @@ function priceNow(name,ship,noLux){return priceAtSupply(name,supplyEff(COMM_MAP[
 function closeRange(name,ship){
   shareFactor();
   const m=G.mk[name],sh=(G.share&&G.share.me)||0,R=ODDS.rivalShip;
-  const rivalQuota=m.D*Math.max(0,1-sh)*policySupplyRatio(),hi=cartelPolicy()==='normal'?1:R.hi;
+  const rivalQuota=m.D*(tradeOK(name)?Math.max(0,1-sh):1)*policySupplyRatio(),hi=cartelPolicy()==='normal'?1:R.hi;   // 跟 rivalSupply 一致：沒有交易許可的貨，同業照全城需求出（第二百四十九節）
   return [priceAtSupply(name,rivalQuota*hi+ship,false),priceAtSupply(name,rivalQuota*R.lo+ship,false)];
 }
 /** 參考出貨量（需求的 30%），用於打毀指數與行情指數。 */
@@ -193,7 +193,7 @@ function rivalSupply(c,m,first){
   if(own&&monoItem(c.name))return 0;                // 專賣株：本城同業與零星商家都不能出這項貨（07zze_favor8.js）
   if(own)shareFactor();
   const shares=own?G.share:marketShares(),sc=shares.rows;
-  const rivalShare=own?Math.max(0,1-(shares.me||0)):1;
+  const rivalShare=own&&tradeOK(c.name)?Math.max(0,1-(shares.me||0)):1;   // 你沒有交易許可的貨，同業補上你的份，照全城需求出貨（第二百四十九節）
   const base=own?m.D*rivalShare*policySupplyRatio():m.D*R.base;
   if(!rv.length)return Math.round(base*(normal?1:R.lo+rnd()*(R.hi-R.lo)));
   const tot=sc.reduce((a,r)=>a+r.score,0),frac=1-R.otherShare;
@@ -223,7 +223,7 @@ function syncPrices(){
 function snapMarket(){
   Object.entries(G.mk).forEach(([name,m])=>{
     const c=COMM_MAP[name],close=priceNow(name,m.shipped),closeBase=priceNow(name,m.shipped,true),closeRelief=reliefIndex(name,m.shipped);
-    m.close=close;m.closeBase=closeBase;m.closeRelief=closeRelief;m.snap={d:demandEff(c,m),d0:demandEff(c,m,true),so:supplyEff(c,m),my:m.shipped};
+    m.close=close;m.closeBase=closeBase;m.closeRelief=closeRelief;m.snap={d:demandEff(c,m),d0:demandEff(c,m,true),dn:m.D*(c.sys===G.sysKey?shareFactor():1),so:supplyEff(c,m),my:m.shipped};   // dn：平常需求（不含節慶等加倍與奢侈品冷熱），季度人口用
     m.depPast=(Array.isArray(m.depPast)?m.depPast:[]).concat([{total:m.depTotal||0,known:m.depKnown||0,dapan:m.depDapan||0}]).slice(-ODDS.dapanDependency.win);
     if(TURNRP&&c.sys===G.sysKey){const floor=marketFloor(name),next=Math.max(close,floor);TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next,floored:close<=floor})}
   });
@@ -681,23 +681,34 @@ function cityTick(){
 }
 
 /** 每期（例會旬開始時結算上一期）依穩定供貨旬數調整本城人口：全穩定 ±2%，其餘依多數 ±0.6%。 */
+/** 本旬全城需求被滿足的比例（本業貨，不含奢侈品；同業＋你的出貨，每項以平常需求為上限，按基準價加權）。沒有資料時回傳 null。 */
+function citySatNow(){
+  let d=0,s=0;
+  ownComms().forEach(c=>{if(c.luxury)return;const S=G.mk[c.name]&&G.mk[c.name].snap;if(!S||!(S.dn>0))return;d+=c.base*S.dn;s+=c.base*Math.min(S.dn,(S.so||0)+(S.my||0))});
+  return d>0?s/d:null;
+}
+/** 本期到目前為止的平均滿足比例（相場頁的敘事用）；本期還沒有紀錄時看上一期。 */
+const citySatAvg=()=>{const Q=G.supplyQuarter||{};return Q.n>0?Q.sat/Q.n:(Number.isFinite(G.citySatLast)?G.citySatLast:null)};
+/** 滿足比例的等級：3 充足、2 大致夠用、1 有些吃緊、0 缺貨嚴重。 */
+const citySatTier=v=>{const O=ODDS.cityPopulation;return v>=O.hi?3:v>=O.mid?2:v>=O.lo?1:0};
+/** 每九旬（與例會同一期）依全城需求被滿足的比例調整人口（DESIGN_NOTES 第二百四十八節；原本看玩家自己的穩定供貨旬數，第九十一節）。
+ *  穩定／不穩定旬數照舊累計，只給壓力等系統用。 */
 function populationTick(log){
   if(!TURNRP)return;
   const O=ODDS.cityPopulation,Q=G.supplyQuarter||(G.supplyQuarter={stable:0,unstable:0,turns:0});
   if(TURNRP.supplyStable)Q.stable++;else Q.unstable++;
   Q.turns++;
+  {const v=citySatNow();if(v!==null){Q.sat=(Q.sat||0)+v;Q.n=(Q.n||0)+1}}
   if(!isMeetingTurn())return;                     // 與例會同一期：例會旬開始時結算上一期
-  const stable=Q.stable,unstable=Q.unstable;
-  let rate,result;
-  if(stable===Q.turns){rate=O.all;result=NEWS('pop.allStable')}
-  else if(stable>unstable){rate=O.majority;result=NEWS('pop.moreStable')}
-  else if(stable===0){rate=-O.all;result=NEWS('pop.allUnstable')}
-  else{rate=-O.majority;result=NEWS('pop.moreUnstable')}
+  if(!(Q.n>0)){G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};return}   // 舊存檔剛改版、這一期沒有滿足比例的紀錄：這次不調整
+  const avg=Q.sat/Q.n,tier=citySatTier(avg),rate=[-O.all,-O.majority,O.majority,O.all][tier];
+  const result=NEWS(['pop.allUnstable','pop.moreUnstable','pop.moreStable','pop.allStable'][tier]);
   const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(homeCity());
   G.cityPopulation=Math.max(O.min,Math.round(before*(1+rate)));
-  G.supplyQuarter={stable:0,unstable:0,turns:0};
-  TURNRP.population={before,after:G.cityPopulation,stable,unstable,rate};
-  const t=NEWS('city.population',{stable,unstable,result,before:fmt(before),after:fmt(G.cityPopulation),rate:(rate>0?'+':'')+(rate*100).toFixed(1)+'%'});
+  G.citySatLast=avg;
+  G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};
+  TURNRP.population={before,after:G.cityPopulation,sat:avg,tier,rate};
+  const t=NEWS('city.population',{result,before:fmt(before),after:fmt(G.cityPopulation),rate:(rate>0?'+':'')+(rate*100).toFixed(1)+'%'});
   pushNews(t);log.push(t);
 }
 
@@ -706,9 +717,11 @@ function populationTick(log){
 function advanceTurn(){
   syncPeaks();
   homeEventsVoid();                               // 上一旬「回府時」沒輪到的事件作廢（07zx_homeevt.js）
-  const log=[],s0=G.silver;sickTurnFire(log);stressTurnStart();   // 壓力：沒用完的行動點數、自然恢復、家人、現款為負（07zzi_stress.js）      // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
-                         // 旬初現款                       // s0：本旬開頭的現款，供『每旬盈餘』計算
+  const log=[],s0=G.silver;                       // s0：本旬開頭的現款，供『每旬盈餘』計算
+  sickTurnFire(log);                              // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
+  stressTurnStart();                              // 壓力：沒用完的行動點數、自然恢復、家人、現款為負（07zzi_stress.js）
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
+  kakeDeliver(log);                               // 定約掛賣：自動出貨之前由番頭交貨（07zzm_kake.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
@@ -725,11 +738,12 @@ function advanceTurn(){
   receiveOrders(log);
   consignTick(log);                               // 官船／官荷捎帶到貨（07zz_regfavor.js）
   evalCartel(log);
-  meetingTick(log);                               // 例會旬：上一期違約金分配、建立本期例會（方針由投票決定）；例會前一旬提醒
+  meetingTick(log);                               // 例會旬：建立本期例會（方針由投票決定）；例會前一旬提醒
   populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
   msTick(log);
   refreshMarket();
-  guildTick(log);                                 // 公會：查同業超賣、期滿分配違約金
+  guildTick(log);                                 // 公會：查同業超賣（違約金併入本期）
+  meetingPayout(log);                             // 例會旬：上一期違約金平分給守約者，排在查獲之後（07yb_meeting.js）
   invUpkeep(log);
   holdTick(log);
   shipsTick(log);
@@ -745,6 +759,7 @@ function advanceTurn(){
   randomEvent(log);
   cityTick(log);
   daimyoTick(log);                                // 大名行列過境：當旬一開始就上旬報（07zzc_daimyo.js）
+  tripEvTick(log);                                // 大相撲開場、手藝人送貨、贓貨被找上門（07zzl_tripev2.js）
   unloadTick(log);                                // 國中物卸留：卸留月開始與結束（07zz_regfavor4.js）
   kokushoTick(log);                               // 國商助成：回扣進私房錢（07zz_regfavor4.js）
   syncPrices();                                   // 事件只影響本旬收市；公開牌價維持上旬收市，不在旬中重算
@@ -761,15 +776,17 @@ function advanceTurn(){
   roninTick(log);                                 // 浪人頭上門要錢（07zw_ronin.js）
   xgoodsTick(log);
   skimTick(log,s0);
-  friendsTick(log);
-  escortTick(log);
-  gmTick(log);
-  f8Tick(log);
-  bzTick(log);                                    // 商人番付：季末最後一旬發行（07zzf_banzuke.js）                                    // 株札暫扣、專賣株期滿（07zze_favor8.js）                                    // 公會長：同業公會長離城或過世接任、任內知名度、報告提醒、任內事件（07yc_gm.js）                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
+  friendsTick(log);                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
+  escortTick(log);                                // 答應同行卻沒去拜訪、引見的牽連（07zzb_escort.js）
+  gmTick(log);                                    // 公會長：同業公會長離城或過世接任、任內知名度、報告提醒、任內事件（07yc_gm.js）
+  f8Tick(log);                                    // 株札暫扣、專賣株期滿（07zze_favor8.js）
+  outTick(log);                                   // 外城友人：出遊訪友、來訪、注文（07zzn_outfriend.js）
+  kakeTick(log);                                  // 定約掛賣：解鎖、收帳、標記、主動上門、旬初自動填貨（07zzm_kake.js）
+  bzTick(log);                                    // 商人番付：季末最後一旬發行（07zzf_banzuke.js）
   roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）
-  driftTick(log);
-  stressTick(log);                                // 壓力：節慶、供貨不穩、失火；依狀態壓低本旬行動點數（07zzi_stress.js）                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）                               // 人情往來、朋友借東西、寄倉、旅商換貨、供不供出（07zz_friends.js）
-  if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.net=G.silver-s0-ps+cw+cb;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
+  driftTick(log);                                 // 另謀高就：本城沒見過面的人才離城或被同業聘走（07zz_enlist.js）
+  stressTick(log);                                // 壓力：節慶、供貨不穩、失火；依狀態壓低本旬行動點數（07zzi_stress.js）
+  if(TURNRP){const ps=Object.values(TURNRP.publicSpend||{}).reduce((a,v)=>a+v,0),ci=G.carryIn||{},cw=ci.windfall||0,cb=ci.branch||0,ck=ci.kake||0;G.carryIn={};TURNRP.windfall=(TURNRP.windfall||0)+cw;TURNRP.branch=cb;TURNRP.kakeDep=ck;TURNRP.net=G.silver-s0-ps+cw+cb+ck;TURNRP.skim=G.lastSkim||0;TURNRP.date=dateStr()}
   G.report=TURNRP;
   injuryTick(log);
   G.life.peak=Math.max(G.life.peak,G.silver);

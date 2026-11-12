@@ -75,7 +75,7 @@ function gmInstall(k,other,elect){
   let join='';
   if(k==='me'){
     if(elect){addFame(ODDS.gm.fameWin,'major');rivalsHere().forEach(n=>{const r=G.rel[n.cid];if(r&&r.bond)setAff(r,clamp(r.aff+ODDS.gm.rivalAff,0,100))})}
-    if(!guildMember()){const C=G.cartel,amt=costOf('guildBond');payPublic('cost:guildBond',amt);C.state='pledged';C.bond=amt;C.pot=0;join=NEWS('gm.join',{a:fmt(amt)})}   // 當選者一定在協議內
+    if(!guildMember()){const C=G.cartel,amt=costOf('guildBond');payPublic('cost:guildBond',amt);C.state='pledged';C.bond=amt;join=NEWS('gm.join',{a:fmt(amt)})}   // 當選者一定在協議內
     sfx.fanfare();
   }
   return NEWS(elect?'gm.elected':'gm.succeed',{n:gmName(k)})+join;

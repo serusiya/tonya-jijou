@@ -329,7 +329,7 @@ const MSG_TXT={
   'cost.shortSilver':'現款不足，「{n}」需 {a} 兩',
   'cost.shortGold':'私房錢不足，「{n}」需 {a} 兩（可按上方「＋」補充）',
   /* —— 往來實錄：官場 —— */
-  'log.inspection':'中央巡按突查，因黑帳牽連，彼此交情受損。',
+  'log.inspection':'中央巡按突查，因與你往來受牽連，彼此交情受損。',
   'log.fall':'受你牽連遭上司申斥，好感 -{d}。',
   'log.scapegoat':'為求自保，把罪責推到你頭上。',
   'promise.extort':'「{n}」胃口漸大，暗示三旬內需進獻現款 {a} 兩',
@@ -361,6 +361,7 @@ const MSG_TXT={
   'log.reconcile':'經{n}出面說和，不再記恨。',
   'log.favor':'請託「{f}」：{m}好感 -{d}。',
   'favor.affTail':'（好感 -{d}）',
+  'favor.heatTail':'（風聲 +{h}）',
   'log.transferOut':'奉官府調令離開本城，調往{c}。',
   'log.transferIn':'自{c}調來本城，接掌{p}。',
   'log.moveOut':'離開本城宅邸，遷往{c}。',

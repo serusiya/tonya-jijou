@@ -15,12 +15,13 @@ function promiseLines(cid){
 /** 【人物卡】未結識→請引薦/毛遂自薦；已結識→備禮拜訪表單（禮物＋請託＋什麼都不說）、承諾、請當介紹人。ctx 表示出現的處所。 */
 function personBlock(cid,ctx){
   if(npc(cid)&&npc(cid).role==='oiran')return oiranBlock(cid,ctx);
-  const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos;autoIntro(cid);
+  const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos,out=ctx==='out';if(!out)autoIntro(cid);   // out：外城出遊面板的外城友人卡（07zzn_outfriend.js）
   /* 知名度不足（含介紹人 +1 階）而見不到的人：半透明、不可點選 */
   const away=awayNow(n),lockNeed=meetTierNeed(cid),snub=snubbed(cid),locked=away||snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
-  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?UT('ppl.h',{a:tourNext(n)}):snub?UT('ppl.h.2'):locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?UT('ppl.h.3'):UT('ppl.h.4'))+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='f'?UT('ppl.h.5'):'')+' '+(isEnemy(c.id)?UT('ppl.h.6'):'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+(empRole(cid)?'<span class="tag red">'+rankName(empRole(cid))+'</span>':'');
+  let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?UT('ppl.h',{a:tourNext(n)}):snub?UT('ppl.h.2'):locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?UT('ppl.h.3'):UT('ppl.h.4'))+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='f'?UT('ppl.h.5'):'')+' '+(isEnemy(c.id)?UT('ppl.h.6'):'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+kakeTag(cid)+(empRole(cid)?'<span class="tag red">'+rankName(empRole(cid))+'</span>':'');
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
+  if(out)h+=outWhereLine(cid);                       // 外城友人：住在哪個地區、哪座城
   h+='<div class="text-brief muted" style="margin:2px 0">'+esc(c.family_summary.slice(0,46))+'……</div>';
   if(isOff)h+=escortTag(cid);                        // 同行朋友等著被引見（07zzb_escort.js）
   if(!r.bond&&foreignReg(n)){
@@ -33,7 +34,10 @@ function personBlock(cid,ctx){
     const via=!!(G.introId&&introOf(G.introId));
     h+='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap"><button class="pixel-btn btn-sm btn-gold" data-act="meet" data-cid="'+cid+'">'+(via?UT('ppl.personBlock.2',{a:coinHtml('silver',introFee(cid))}):UT('ppl.personBlock.3',{a:costBtn('selfIntro')}))+'</button>'+(r.topKnown?'':'<button class="pixel-btn btn-sm" data-act="scout" data-cid="'+cid+'">'+UT('btn.scoutFull',{c:coinHtml('silver',scoutCost(cid))})+'</button>')+'</div>';
   }else if(isEnemy(cid)){
-    h+=UT('ppl.personBlock.4');
+    h+=out?UT('of.enemy'):UT('ppl.personBlock.4');   // 外城友人成仇：只寫已成仇，不給指令
+  }else if(out){
+    h+=UT('ppl.personBlock.5',{a:affCls(r.aff)})+'">'+affWord(r.aff)+'</span> <span class="tag">'+esc(r.bond.label)+'</span></span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
+    h+=outRowHtml(cid);                              // 外城友人：寄信、作客（不列性向與軟肋）
   }else{
     h+=UT('ppl.personBlock.5',{a:affCls(r.aff)})+'">'+affWord(r.aff)+'</span> <span class="tag">'+esc(r.bond.label)+'</span></span><div style="width:90px">'+bar(r.aff,100,'gold')+'</div></div>';
     if(r.topKnown){const pv=G.introId?introPower(G.introId,cid):null;h+=UT('ppl.personBlock.7',{a:top3Txt(cid)})+'</b>'+(pv?UT('ppl.personBlock.6',{a:pv.cp.cls})+'">'+pv.cp.label+'</span>':'')+'</div>'}
@@ -248,6 +252,7 @@ function renderNotes(){
     if(f==='emp')return !q||x.c.name.includes(q)||(empRole(x.id)?rankName(empRole(x.id)):'').includes(q);
     if(q&&!(x.c.name.includes(q)||(x.n&&(ROLE_LABEL[x.n.role]||'').includes(q))))return false;
     const role=x.n?x.n.role:roleOf(x.c);
+    if(f==='out')return isOutFriend(x.id);            // 外城友人（07zzn_outfriend.js）
     if(f==='all')return true;if(f==='other')return !['official','rival','manager','guest','broker','smuggler','oiran'].includes(role);return role===f;
   }).sort((a,b)=>b.r.aff-a.r.aff);
   const overdue=G.known.filter(noteSeen).some(id=>R(id).promises.some(p=>!p.done&&G.turn>p.due));
@@ -257,7 +262,7 @@ function renderNotes(){
   if(overdue)h+=UT('ppl.renderNotes.2');
   const apps=f==='emp'?G.emps.filter(e=>!e.cid&&(!q||e.name.includes(q)||rankName(e.rank).includes(q))):[];
   const appH=apps.map(e=>'<div class="card emp-card"><div class="row"><div><b>'+esc(e.name)+'</b> <span class="tag red">'+UT('ppl.appH',{a:rankName(e.rank),b:e.wage,c:G.turn-e.since,d:ratingStars(e.stats)})+'</div></div>').join('');
-  h+='<div style="margin-top:4px">'+(list.slice(0,40).map(x=>noteCard(x)).join('')+appH||'<div class="notice">'+(f==='emp'?UT('ppl.renderNotes.3'):UT('ppl.renderNotes.4'))+'</div>')+'</div></div>';
+  h+='<div style="margin-top:4px">'+(noteListHtml(list,f)+appH||'<div class="notice">'+(f==='emp'?UT('ppl.renderNotes.3'):UT('ppl.renderNotes.4'))+'</div>')+'</div></div>';
   $('#view-notes').innerHTML=h;
 }
 /** 筆記人物卡：出身、往來實錄、外人風評、印象與備註。 */
@@ -330,6 +335,7 @@ function renderEstate(){
   let h=UT('ppl.h.15',{a:esc(G.me.name)})+'</span></div>';
   h+=UT('ppl.renderEstate',{a:esc(G.firm),b:esc(homeCity().name)});
   h+=UT('ppl.renderEstate.4',{a:fmt(netWorth()),b:fmt(G.lastCost||0),c:G.heat>6?UT('ppl.renderEstate.2'):G.heat>3?UT('ppl.renderEstate.3'):UT('ppl.h.9')})+'</b></div></div>';
+  h+=dealCard();                                     // 商行往來：還沒了結的帳、約與差事（07zzo_dealings.js）
   // 宴會
   h+=banquetCard();
   // 介紹人

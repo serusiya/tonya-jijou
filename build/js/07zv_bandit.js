@@ -36,7 +36,7 @@ function banditBribeReq(){
 function banditBribeDo(cid){
   const r=R(cid);if(!banditHome())return UT('bandit.bribe.none');
   if(!afford('banditBribe'))return shortMsg('banditBribe');
-  spend('banditBribe');addHeat(ODDS.bandit.bribeHeat);G.banditPass=G.turn;
+  spend('banditBribe');G.banditPass=G.turn;
   setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,UT('bandit.bribe.log',{a:REQ_AFF.normal}));
   return UT('bandit.bribe.ok.'+G.bandit.type,{a:nameOf(cid),b:REQ_AFF.normal});
 }

@@ -7,6 +7,7 @@
 function doTurn(n){
   if(!G||G.ended||FX.busy)return;
   if(voyQGuard(n))return;                         // 出運清單還有人沒出發：先提醒（07i_voyage.js）
+  if(kakeGuard(n))return;                         // 定約掛賣本旬的貨還沒填滿：先確認（07zzm_kake.js）
   /* 推進前先回到主畫面：關掉開著的面板與說明視窗，旬報才不會被擋住 */
   try{UI.s.outGo=null;if(UI.s.sheet)UI.closeSheet();if(typeof ENC==='undefined'||!ENC)$('#info-bd').classList.add('hidden');if(UI.s.tab!=='home')UI.go('home')}catch(e){}
   const before=G.silver,head=G.news[0];          // head：推進前最新的一則瓦版，用來找出這段期間新出的消息

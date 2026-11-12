@@ -27,19 +27,25 @@ function newMeeting(){
 }
 /** 舊存檔或讀檔時正好是例會旬而還沒有例會資料：補建（不分配違約金）。 */
 function meetEnsure(){if(G&&isMeetingTurn()&&!(G.guild&&G.guild.mt===G.turn))newMeeting()}
-/** 例會旬開始（日期前進後）：上一期的違約金分配、建立本期例會；例會前一旬提醒。 */
+/** 例會旬開始（日期前進後）：建立本期例會；例會前一旬提醒。上一期違約金的分配改在 meetingPayout（guildTick 之後）。 */
 function meetingTick(log){
   const C=G.cartel;guildEnsure();
   if(isMeetingTurn()){
-    if(C.bond>0){                                   // 上一期期滿：大盤把作廢的訂約金交給公會，平分給守約者（你＋本期沒被抓的同業）
-      const rv=rivalsHere(),ok=rv.filter(n=>!msOf(n).caught).length+1,pot=C.pot||0,amt=costOf('guildBond');
-      if(pot>0){const sh=Math.round(pot/ok);G.silver+=sh;if(TURNRP)TURNRP.guildDiv=(TURNRP.guildDiv||0)+sh;const t=NEWS('guild.div',{k:Math.round(pot/amt),n:ok,sh:fmt(sh)});pushNews(t);log.push(t);sfx.coin()}
-    }
-    C.pot=0;rivalsHere().forEach(n=>{msOf(n).caught=false});
     gmPeriodEnd(log);                              // 公會長：本期沒向御金奉行報告就罰款（07yc_gm.js）
     newMeeting();
     const t=NEWS('meet.today');pushNews(t);log.push(t);
   }else{const d=dateAfter(1);if(isMeetingDate(d.month,d.cycle)){const t=NEWS('meet.soon');pushNews(t);log.push(t)}}
+}
+/** 例會旬：上一期期滿，大盤把作廢的訂約金交給公會，平分給守約者（你＋上一期沒被抓的同業）。
+ *  排在 guildTick 之後：例會旬旬報裡查獲的超賣是上一旬的事，算上一期，當旬一起分（DESIGN_NOTES 第二百四十五節）。分完才清空，新的一期從 0 起算。 */
+function meetingPayout(log){
+  if(!isMeetingTurn())return;
+  const C=G.cartel;guildEnsure();
+  if(C.bond>0){
+    const rv=rivalsHere(),ok=rv.filter(n=>!msOf(n).caught).length+1,pot=C.pot||0,amt=costOf('guildBond');
+    if(pot>0){const sh=Math.round(pot/ok);G.silver+=sh;if(TURNRP)TURNRP.guildDiv=(TURNRP.guildDiv||0)+sh;const t=NEWS('guild.div',{k:Math.round(pot/amt),n:ok,sh:fmt(sh)});pushNews(t);log.push(t);sfx.coin()}
+  }
+  C.pot=0;rivalsHere().forEach(n=>{msOf(n).caught=false});
 }
 /** 新方針立即生效：重算本旬本業貨的同業供給與市價。 */
 function meetResupply(){ownComms().forEach(c=>{const m=G.mk[c.name];m.so=rivalSupply(c,m,false)});syncPrices()}

@@ -258,3 +258,10 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .chev.on>i{background:var(--gold);color:#1a1612}
 .chev.done>i{background:#f4ece1;color:#6b6256}
 .chev.todo>i{background:#cfc7b4;color:#8a8170}
+
+/* 定約掛賣缺貨：推進一旬按鈕的紅點（06_ui.js 的 UI.render） */
+#b-next.kgap,.loc.home-next.kgap{position:relative}
+.loc.home-next.kgap #home-next-ap{color:#b3261e;font-weight:bold}
+/* 外城出遊面板：寺社溫泉與外城友人之間的分隔線（07zzn_outfriend.js 的 tripFriendCard） */
+.trip-sep{display:flex;align-items:center;gap:6px;margin:12px 0 4px;font-weight:bold}
+.trip-sep::before,.trip-sep::after{content:'';flex:1;border-top:2px solid #8a7a5c}

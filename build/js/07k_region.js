@@ -120,7 +120,8 @@ function applyFavor(cid,n,r,f){
   setAff(r,Math.max(0,r.aff-REQ_AFF.apply));
   const k=officialKind(n),msg=TX(k==='greedy'?'apply.greedyEnough':'apply.plain');
   appsList().push(A);logRel(cid,UT('reg.applyFavor',{a:f.name,b:REQ_AFF.apply}));
-  return {ok:true,status:'done',msg:UT('reg.applyFavor.2',{a:MSG('applyFavor.3',{msg}),b:REQ_AFF.apply})};
+  const fh=favorHeat(f.k);                                       // 受理時就加風聲，不等審理結果
+  return {ok:true,status:'done',msg:UT('reg.applyFavor.2',{a:MSG('applyFavor.3',{msg}),b:REQ_AFF.apply})+heatTail(fh)};
 }
 function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};

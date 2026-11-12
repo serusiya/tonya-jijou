@@ -60,9 +60,9 @@ function stressTick(log){
 {const _b=battleEnd;battleEnd=function(){
   const B=BT;if(B&&!B.done&&!B.mode){const win=B.dmg>=B.hp;if(!win&&B.round>=3&&B.hits===0)addStress('snub',ST().snub);else if(!win)addStress('lose',ST().lose)}
   return _b.apply(this,arguments)}}
-/** 暗殺、放火、栽贓、打壓：真的做了（風聲重罪加三）才算。 */
+/** 栽贓、打壓：真的做了（風聲重罪加三）才算。暗殺、放火不加風聲，壓力直接寫在 07m_loyalty.js。 */
 const stressDirty=f=>function(){const h=G.heat||0,r=f.apply(this,arguments);if((G.heat||0)>=h+3)addStress('dirty',ST().dirty);return r};
-ACT.assassinate=stressDirty(ACT.assassinate);ACT.arson=stressDirty(ACT.arson);startScheme=stressDirty(startScheme);
+startScheme=stressDirty(startScheme);
 /** 搜查、罰銀、遠島、查貨、打毀：沿用扣知名度的鍵。 */
 {const _l=loseFame;loseFame=function(key){const v=ST().fameKeys[key];if(v)addStress('blow',v);return _l.apply(this,arguments)}}
 {const _f=ACT.banquet;ACT.banquet=function(){const t=G.banquetT;const r=_f.apply(this,arguments);if(G.banquetT===G.turn&&t!==G.turn)addStress('banquet',-ST().banquet);return r}}
@@ -121,7 +121,7 @@ SHEETS.trip=()=>{
       +(b?'<div class="tiny" style="color:#b3392b;margin-top:3px">'+UT(b)+'</div>':'')
       +'<div style="margin-top:5px"><button class="pixel-btn btn-sm btn-gold" data-act="tripGo" data-k="'+k+'" '+(b?'disabled':'')+'>'+UT('btn.tripGo.'+k)+'</button></div></div>';
   });
-  h+='<div class="card" style="opacity:.6"><b>'+UT('trip.friend')+'</b><div class="tiny muted" style="margin:3px 0">'+UT('trip.friend.d')+'</div><div class="tiny" style="color:#b3392b">'+UT('trip.friend.none')+'</div></div>';
+  h+=tripFriendCard();                              // 外城友人：出遊訪友（07zzn_outfriend.js）
   return {title:UT('trip.title'),html:h};
 };
 /** 香油錢拉霸（私房錢，每格 5 兩，最多 ODDS.trip.giftMax）。 */

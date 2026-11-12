@@ -7,7 +7,7 @@ const voyMishap=(mode,robbed)=>mode==='land'?'voy.log.wreckLand':robbed?'voy.log
  * - 到了目的地，買什麼由船長視本事決定（只能買該地出產的貨）：
  *   80% 買本業能賣的貨（入倉；當地產好幾樣本業貨時，多半偏重其中一兩樣）；20% 買便宜、但非本業的「跨行貨」（也入倉，須請座客商人代售）。
  *   目的地沒有本業貨時：80% 空手而回（只扣雜費），20% 改買跨行貨。
- *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫，風聲 +0.2 × 危險度）。
+ *   唐物藥種另有「夾帶」：主要採買之外，每趟 20% 機率順帶一項違禁品 3～5 單位（從委託金扣、入密庫；不加風聲，第二百三十六節）。
  * - 數量與價格視船長商才；海難／山賊會損失七成貨。詳情寫進歸航那一旬的旬報「船隻歸航」。 */
 const MODE_ICON={sea:'⛵',land:'🐎'};
 const MODE_RANK={sea:'captain',land:'courier'};
@@ -161,7 +161,7 @@ function resolveVoyage(s,log){
   }
   if(carry){                                            // 唐物藥種：夾帶唐船私貨
     const {it,q,cost}=carry,got=Math.round(q*keep);refund-=cost;
-    contra()[it.k]=(contra()[it.k]||0)+got;addHeat(ODDS.voyageKind.carryHeat*it.danger);E.items.push({n:it.name,q,unit:q?cost/q:0,cost,lost:q-got});
+    contra()[it.k]=(contra()[it.k]||0)+got;E.items.push({n:it.name,q,unit:q?cost/q:0,cost,lost:q-got});
     L.push(NEWS('kind.6',{mode:NM('crew',mode),name:it.name,q,cost:fmt(cost),got:(wreck?UT('voy.resolveVoyage.9',{a:wn,b:got}):'')}));
   }
   refund=Math.max(0,refund);G.silver+=refund+income;

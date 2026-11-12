@@ -9,7 +9,7 @@ const ODDS={
   bz:{name:'商人番付與花邊八卦（07zzf_banzuke.js）',top:10,guests:[6,8],
     rv:{init:[1.5,4],g0:0.025,share:0.3,noise:0.03,min:0.4,max:15,heir:0.8,ev:{fire:-0.15,theft:-0.05,wreck:-0.08,caught:-0.1,susp:-0.06,haul:0.05,lot:-0.02,gm:0.02}},
     gs:{init:[0.5,3],min:0.2,max:10,fame:0.6,fameDrift:4,dealFame:[1,2],
-      trip:[{k:'big',w:10,r:[0.2,0.4]},{k:'good',w:25,r:[0.05,0.15]},{k:'flat',w:30,r:[-0.03,0.03]},{k:'loss',w:25,r:[-0.15,-0.05]},{k:'rob',w:10,r:[-0.4,-0.2]}]},
+      trip:[{k:'big',w:12,r:[0.2,0.4]},{k:'good',w:36,r:[0.05,0.15]},{k:'flat',w:26,r:[-0.03,0.03]},{k:'loss',w:19,r:[-0.15,-0.05]},{k:'rob',w:7,r:[-0.4,-0.2]}]},
     gap:[0.9,0.6],gossip:[3,4],falseP:0.3,keep:4,heatGossip:3,flowerGossip:600,topicTurns:9,sayP:0.3},   // 身代以玩家開局現款為基準的倍數；rv 同業、gs 旅商（每季行商結果）；gap：和上一位（或榜尾）相比，只差一步／還差一截的比例；falseP：八卦是假的比例
   f8:{name:'0.8 先行請託（07zze_favor8.js）',fearTurns:3,fraud:{sea:[3500,4500],land:[2500,3500]},fraudRest:3,fraudHeat:1.5,suspCost:3000,suspTurns:3,suspAff:30,suspHeat:1,mono:{mono5:{cost:5000,turns:3},mono6:{cost:10000,turns:9}},monoBuyX:2,kesshoGold:1000,kesshoMin:3,newTown:{cost:6000,p:[0.4,0.7,1],pop:0.05,cd:12},lossRate:0.5,lossCap:800,theftBack:[0.2,0.3]},
   gm:{name:'問屋公會長（07yc_gm.js）',fameWin:5,famePerTurn:0.1,rivalAff:3,voteAff:5,bribeVar:0.1,canvassX:3,canvassComp:[0.5,1,1.5,2],canvassShare:2,fineX:1.2,evP:0.5,arbFav:10,arbHurt:20,arbAff:5,arbCost:[500,1500],levy:[3000,8000],levyFame:5,levyAff:40},   // canvassComp：投票人與對手相容（格格不入、相談甚歡、意氣相投、一見如故）的心防係數；canvassShare：對手市佔每多一成，心防 +20%
@@ -45,7 +45,7 @@ const ODDS={
   guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持為各自穩定供應量九成、減供為七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7},
   meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議訂約金一期的旬數（自動續押，期滿分配違約金）',turns:9},
-  cityPopulation:{name:'城市人口每九旬依穩定供貨調整（全穩定 ±2%；多數穩定或不穩定 ±0.6%）',turns:9,all:0.02,majority:0.006,min:1000},
+  cityPopulation:{name:'城市人口每九旬依全城需求被滿足的比例調整（平常需求，不含節慶、大名行列、大相撲、夫人捧場與奢侈品冷熱；同業與你的出貨合計，每項以需求為上限、按基準價加權，九旬平均）：hi 以上 +all、mid 以上 +majority、lo 以上 −majority、lo 以下 −all',turns:9,all:0.02,majority:0.006,hi:0.80,mid:0.72,lo:0.62,min:1000},
   newProd:{name:'每年一月上旬，隨機城市新增一項本業貨產地',p:0.10},
   buyout:{name:'大口買付：五區各自每季隨機一個月；首年略過第一季',quarters:[[1,3],[4,6],[7,9],[10,12]],firstYearSkip:1},
   /* —— 人際·員工·家族 —— */
@@ -59,13 +59,17 @@ const ODDS={
   death:{name:'主角死亡（每年新年擲一次；rollAge 歲起才擲，startAge 歲起每年遞增）',rollAge:40,startAge:45,perYear:0.022,base:0.003},
   /* —— 出門·路遇·仇人 —— */
   ambushDefend:{name:'遇襲時保鏢戰力≥此值必定退敵，否則以 (戰力/此值)² 為退敵率',power:70},
-  ambush:{name:'出門遇襲',base:0.005,perHeat:0.002,heatCap:8,perFame:0.0001,min:0.005,max:0.03,perEnemy:0.03},
+  ambush:{name:'出門遇襲',base:0.005,perFame:0.0001,min:0.005,max:0.03,perEnemy:0.03},
   encounter:{name:'路遇求助的人',p:0.10,known:0.5},
   enemyFire:{name:'每位仇人增加的失火機率',p:0.02},
   enemyThief:{name:'每位仇人增加的盜賊機率',p:0.02},
   /* —— 官府 —— */
   imperial:{name:'欽差突查：風聲高於此值才會被罰款',heat:4},
   calm:{name:'巡見使口添：一般風聲不增加的旬數（重罪照加）',turns:9},
+  out:{name:'外城友人（07zzn_outfriend.js）：牽線機率與起始好感、順道問候好感；寄信的送信費、好感增量、最多加到；作客與來訪的好感門檻；來訪機率、好感、減壓；作客的好感、減壓、經友人引見的機率、每旬路費（私房錢）、沒有大番頭時每旬短少的現款比例；注文的好感門檻、每旬出現機率、加價範圍（好感門檻～100）、幾旬內要出發、交齊加好感、失約扣好感；遠國奉行引薦的起始好感',meetP:0.25,meetAff:20,greetAff:5,letterFee:50,letterGain:[4,8],letterCap:60,visitAff:60,comeP:0.03,comeAff:3,comeRelief:5,tripAff:10,tripRelief:10,tripMeetP:0.3,tripGold:20,awayLoss:0.02,chumonAff:40,chumonP:0.10,chumonUp:[0.1,0.3],chumonTurns:6,chumonDone:5,chumonFail:20,introAff:40},
+  kake:{name:'定約掛賣（07zzm_kake.js）：解鎖市佔、請託好感、主動上門的好感與機率、每旬標記人數、合約旬數、每張合約佔有效總資產、三個方案的數量與價格倍率、手付比例、不超過旅商身代的比例、每旬不超過單項庫存上限的比例、大單門檻（台詞用）；貸倒機率、番頭商才每幾點減多少、災情年倍數、旅商不在時的貸倒機率、貸倒扣好感；拖一季的機率（好感 60 時）與旬數；失約扣好感',unlock:0.10,aff:60,selfAff:100,selfP:0.03,marks:[3,5],turns:9,frac:1/9,plans:[{k:'lo',q:1.2,p:0.9},{k:'mid',q:1,p:0.95},{k:'hi',q:0.8,p:1}],dep:0.2,worthCap:0.3,capHalf:0.5,bigTotal:5000,bad:0.05,skillPer:20,skillCut:0.01,disasterX:2,goneBad:0.5,badAff:20,late:0.10,lateTurns:9,failAff:30},
+  evil:{name:'惡德（07zzl_tripev2.js；目前只累計）：闕所、暗殺、放火、栽贓、打壓；失手或事敗的倍率',kessho:5,assassin:3,arson:3,frame:2,suppress:2,failMul:0.5},
+  heat:{name:'風聲來源（只算與官員的往來與勾結）：拜訪官員出過價（visit 一般與清官、visitGreedy 貪官）、寄信給貪官、一般請託開口、賣捌口利、吉原夜宴有役人入席；own＝勾結類請託各有自己的風聲、不另加；none＝不加風聲的請託（壓風聲與正當申報）',visit:0.1,visitGreedy:0.15,favor:0.1,sellAid:0.5,feast:0.5,own:['sellAid','rconsignSea','rconsignLand','rkokusho','suspend','rwreck','rrobbed'],none:['hush','rvisit','fireAid','cargoAid','theftAid']},
   inspect:{name:'町奉行查貨（每旬）',base:0.30,perFame:0.25,min:0.05,max:0.30},
   regionRevoke:{name:'風聲≥5 時，巡見使吊銷許可（每旬）',p:0.03,heat:5},
   /* —— 走私 —— */
@@ -76,7 +80,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽力影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
-  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、每危險度風聲',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryHeat:0.2},
+  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5},
   originSupply:{name:'每城、每項貨、每月固定的產地供貨指數；分類產量與同月同城後續商隊會折減可供量',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06,production:{staple:1.15,normal:0.85,luxury:0.35},repeat:{staple:0.8,normal:0.6,luxury:0.4}},
   voyageMix:{name:'多項本業貨的委託採買分配：少數均衡，多數偏重或集中於一項',balanced:0.10,biased:0.60,biasedMin:0.60,biasedMax:0.75,focusMin:0.75,focusMax:0.90,supplyPow:1.5,pricePow:2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
@@ -89,7 +93,7 @@ const ODDS={
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
   fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
-  fameLoss:{name:'醜聞扣知名度',staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
+  fameLoss:{name:'醜聞扣知名度',kakeFail:1,staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
   assInvestigate:{name:'命案後官府追查',base:0.12,perHeat:0.03,perRank:0.04,min:0.15,max:0.6},
@@ -116,10 +120,12 @@ const ODDS={
   ,branch:{name:'暖簾分（07zy_branch.js）：大番頭年資、累計意外之財門檻、調貨機率、給滿次數、送回金額、回絕次數、送錢機率與金額',tenure:36,wind:10000,visitP:0.1,times:10,repayMin:8000,repayMax:12000,refuse:3,payP:0.05,payMin:3000,payMax:5000}
   ,ronin:{name:'浪人頭（07zw_ronin.js）：最多結識人數、結識機率（指名、夜宴、遇襲）、結識好感、要錢次數門檻、各階金額（浪人、一～三階）、每升一階機率倍率',maxKnown:3,nominate:0.1,feast:0.15,ambush:0.3,aff:10,times:10,amt:[50,100,200,400],decay:0.75}
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
-  ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,bribeHeat:0.5,quellFame:3}
+  ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,quellFame:3}
+  ,shun:{name:'不在協議時（沒參加或違約被查獲後）：仲買人銷貨的牌價成數（平常 0.7）、旅商人代售價再打的折扣（07x_dealers.js）',broker:0.5,xsell:0.7}
+  ,rivalLot:{name:'同業調貨（07x_dealers.js）：每次的數量範圍、金額上限範圍（取兩者較少的那個）',qty:[30,50],cap:[3000,4000]}
   ,regConsign:{name:'官船捎帶／官荷捎帶（07zz_regfavor.js）：第二貴貨的機率、到貨旬數、風聲；sea／land 約值與付款',second:0.2,turns:3,heat:0.2,sea:{value:3000,pay:2000},land:{value:1500,pay:1000}}
   ,honjin:{name:'本陣御用達（07zz_regfavor.js）：每旬約值、旬數、市價加成、失約扣好感',value:500,turns:3,markup:1.2,failAff:30}
-  ,letter:{name:'外地遠國奉行所寄信（07zz_letters.js）：送信費、好感增量、最多加到',fee:100,gainMin:4,gainMax:8,cap:60,heat:0.2}
+  ,letter:{name:'外地遠國奉行所寄信（07zz_letters.js）：送信費、好感增量、最多加到、寄給貪官的風聲（其餘官員不加）',fee:100,gainMin:4,gainMax:8,cap:60,heat:0.1}
   ,favor80:{name:'人情往來與朋友事件（07zz_friends.js）：朋友門檻、慰問與慶功宴好感、朋友來慰問人數與好感',aff:80,gainMin:4,gainMax:8,visitMax:3,visitGainMin:1,visitGainMax:3}
   ,lend:{name:'朋友來借東西（07zz_friends.js）：閒置連續旬數、冷卻、婉拒扣好感、違禁品機率（一般／闇商人）、借倉旬數與佔倉比例、寄放費率、借人旬數與酬勞、答應加好感',idleTurns:3,cd:12,refuseAff:10,contra:0.05,contraSmug:0.3,lodgeMin:3,lodgeMax:5,lodgeShareMin:0.3,lodgeShareMax:0.5,lodgeFeeRate:0.08,lodgeFeeMin:50,crewMin:2,crewMax:4,feeSea:[150,300],feeLand:[100,200],okAff:5,crewAff:5,hurtMin:2,hurtMax:4,bustInspect:0.6,betrayAff:40}
   ,stash:{name:'向朋友借倉庫（07zz_friends.js）：放不下時發生的機率、冷卻、保管費率、寄放旬數、過期代賣價、朋友家出事的損失比例',p:0.5,cd:12,feeRate:0.1,turns:3,sellRate:0.7,fireLoss:0.5,theftLoss:0.3}
@@ -131,7 +137,7 @@ const ODDS={
   ,kokusho:{name:'國商助成（07zz_regfavor4.js）：出資、旬數、每旬回扣、風聲',pay:5000,turns:10,min:430,max:470,heat:0.5}
   ,daimyo:{name:'大名行列過境（07zzc_daimyo.js）：當旬本業貨需求倍率',mult:2}
   ,stress:{name:'壓力（07zzi_stress.js）：疲憊／心力交瘁門檻、病倒門檻、病癒後壓力；每用一點行動、拒見、交涉失利、不善言辭、暗殺放火栽贓打壓、供貨不穩、失火、現款為負；自然恢復、每點沒用完的行動、夫人與子女在家、宴會、夜宴、指名、節慶、忘年會、闔家同遊；疲憊以上進出貨拉霸手抖的機率（疲憊、心力交瘁）與偏離幅度（拉霸全長的比例、最少一格）；心力交瘁後幾歲起、每年壽數判定加多少；扣知名度事件對應的壓力',tiers:[40,70],sick:90,after:60,ap:1,refuse:3,lose:2,snub:5,dirty:8,unstable:2,fire:6,debt:3,natural:2,idle:1,family:1,banquet:5,feast:5,nominate:2,fest:5,party:15,famwalk:10,oldAge:45,shakeP:[0.3,0.6],shakeFrac:0.02,oldDeath:0.02,fameKeys:{raid1:5,raid2:8,raid3:10,riot:8,inspect:5,arrest:8,tributeFail:3}}
-  ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5,pill:{p:0.08,turns:3,lv:[{price:10,good:0.5},{price:50,good:0.75},{price:100,good:1}]},sansuke:{p:0.15,ask:[50,100,500],back:2},tea:{gift:1000,hi:[60,75],greed:[15,35],betray:[10,25],aff:60},bless:{p:0.05,heat:1},season:{onsenWinter:2,templeAutumn:1,templeSpringAff:2}}   // pill 賣藥郎：出現機率、藥效旬數、三級價錢與真藥機率；sansuke 三助投資：開口機率、三次開口金額、還錢倍數；tea 三獻茶：本城寺社累計香油錢門檻、能力偏高區間、貪欲與背叛區間、起始好感；bless 祈福：機率、風聲減幾點；season 季節小景：冬溫泉多減壓、秋寺社多減壓、春寺社同行好感多加（07zzk_tripev.js）   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
+  ,trip:{name:'外城出遊（07zzi_stress.js）：寺社（行動、減壓、求籤機率——籤只是氣氛）；香油錢上限、每格、每多少兩多減一點壓力、最多多減、捐到多少加知名度、加多少、溫泉（行動、減壓）；寺社、溫泉都是每旬一次；香油錢加知名度算小事，知名度到門檻後不再加',temple:{ap:1,relief:3,omen:0.5},giftMax:100,giftStep:5,giftPer:10,giftReliefMax:2,giftFameAt:100,giftFame:1,onsen:{ap:3,relief:8},compP:0.2,compNo:3,compAff:{temple:5,onsen:10},compRelief:1,batherAff:5,pill:{p:0.08,turns:3,lv:[{price:10,good:0.5},{price:50,good:0.75},{price:100,good:1}]},sansuke:{p:0.15,ask:[50,100,500],back:2},tea:{gift:1000,hi:[60,75],greed:[15,35],betray:[10,25],aff:60},bless:{p:0.05,heat:1},season:{onsenWinter:2,templeAutumn:1,templeSpringAff:2},sumo:{p:0.10,gold:500,after:3,mult:2,fame:2},artisan:{p:0.05,amt:[500,1000],step:50,turns:9,val:[150,250],failP:0.2},rush:{p:0.05,qty:[20,40],minQty:5,price:0.4,blackP:0.3,foundP:0.5,within:6,fine:0.5,bribeX:5,heat:0.5},komon:{p:0.03,clean:2,guiltyAt:20,guilty:[5,10]}}   // 第二批奇遇（07zzl_tripev2.js）：sumo 贊助大相撲（機率、私房錢、幾旬後開場、需求倍數、知名度）；artisan 落魄的手藝人（機率、借款範圍與級距、送貨旬數、每旬貨值、中途出事機率）；rush 急商（機率、數量、最少數量、牌價成數、贓貨機率、被找上門機率、幾旬內、罰銀佔貨值、打點是查貨賄賂的幾倍、打點的風聲）；komon 擦身而過（機率、清白減壓、心虛門檻、心虛加壓）   // pill 賣藥郎：出現機率、藥效旬數、三級價錢與真藥機率；sansuke 三助投資：開口機率、三次開口金額、還錢倍數；tea 三獻茶：本城寺社累計香油錢門檻、能力偏高區間、貪欲與背叛區間、起始好感；bless 祈福：機率、風聲減幾點；season 季節小景：冬溫泉多減壓、秋寺社多減壓、春寺社同行好感多加（07zzk_tripev.js）   // compP 有人要求同行的機率；compNo 婉拒扣好感；compAff 同行好感；compRelief 有人作伴多減的壓力；batherAff 溫泉碰到的人好感
   ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}

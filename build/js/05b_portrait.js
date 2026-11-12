@@ -112,6 +112,9 @@ function ptDraw(o){
     // 賣藥郎：背上的木藥箱從右肩後露出，一條揹帶斜過胸前。
     R(33,22,12,17,outline);R(34,23,10,15,'#7a5530');H(34,43,27,'#5c3e22');H(34,43,32,'#5c3e22');R(37,24,4,2,'#c9a64a');
     for(let i=0;i<9;i++)R(12+i*2,46-i,3,1,'#d9d0ba');
+  }else if(dress==='elder'){
+    // 老隱居：外罩袖無羽織，胸前垂著繫繩。
+    V(8,37,47,'#3b3547',3);V(37,37,47,'#3b3547',3);R(22,41,4,2,'#c9a64a');V(23,43,46,'#c9a64a');V(24,43,46,'#a8873a');
   }else if(dress==='sansuke'){
     // 三助：藍半纏捲袖，襷掛交叉，手拭搭在肩上。
     for(let i=0;i<10;i++){R(10+i*2,37+i,3,1,'#c9b37a');R(36-i*2,37+i,3,1,'#c9b37a')}
@@ -213,6 +216,9 @@ function ptDraw(o){
   if(age>=63){H(18,21,13,sk.lo);H(27,30,13,sk.lo);R(19,31,2,1,sk.lo);R(27,31,2,1,sk.lo)}
   const beard=!woman&&(dress==='captain'||dress==='samurai'||o.role==='smuggler')&&age>28&&rg()>.34;
   if(beard){H(20,27,32,hair);R(18,30,2,2,hair);R(28,30,2,2,hair);H(21,26,33,hairHi)}
+  if(dress==='elder'){   // 老隱居：頭戴宗匠頭巾，白鬚垂到胸前
+    H(15,32,4,'#3b3547');H(13,34,5,'#4a4358',5);H(14,33,6,'#5b5368',2);R(13,9,22,1,'#3b3547');
+    R(17,30,2,3,'#ebe7dd');R(29,30,2,3,'#ebe7dd');H(19,28,32,'#ebe7dd');H(20,27,33,'#ebe7dd');H(21,26,34,'#dcd7ca');H(22,25,35,'#dcd7ca');H(23,24,36,'#cbc5b6')}
 
   R(16,16,2,2,sk.hi);R(15,19,1,3,sk.hi);R(0,0,48,1,ptShade(bg,-42));R(0,47,48,1,ptShade(bg,-42));
   return cv.toDataURL('image/png');
@@ -224,9 +230,9 @@ function ptShade(hex,amt){
   return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 
-/** 名冊以外的人物（寺社的和尚、巫女、小沙彌，溫泉的三助，行商的賣藥郎）：kind＝monk／miko／sansuke／peddler／novice（小沙彌沿用和尚衣著），seed 固定外貌。 */
+/** 名冊以外的人物（寺社的和尚、巫女、小沙彌，溫泉的三助，行商的賣藥郎）：kind＝monk／miko／sansuke／peddler／novice（小沙彌沿用和尚衣著）／artisan 手藝人／hawker 趕路的商人／elder 老隱居，seed 固定外貌。 */
 function portraitFigure(kind,seed,px){
-  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'},peddler:{gender:'m',age:44,cloth:'#4b5563'},novice:{gender:'m',age:12,cloth:'#2f2c2c',dress:'monk',kesa:'#6f6a5a'}}[kind];
+  const F={monk:{gender:'m',age:58,cloth:'#2f2c2c'},miko:{gender:'f',age:19,cloth:'#f2efe6'},sansuke:{gender:'m',age:36,cloth:'#3f5f7a'},peddler:{gender:'m',age:44,cloth:'#4b5563'},novice:{gender:'m',age:12,cloth:'#2f2c2c',dress:'monk',kesa:'#6f6a5a'},artisan:{gender:'m',age:41,cloth:'#6b5a45',dress:'courier'},hawker:{gender:'m',age:37,cloth:'#5d4a3a',dress:'plain'},elder:{gender:'m',age:70,cloth:'#5b5368'}}[kind];
   const key='edo3|fig|'+kind+'|'+seed;
   const o=Object.assign({seed:kind+seed,role:'guest',dress:kind,st:{diplomacy_charm:70}},F);
   return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+(px||48)+'" height="'+(px||48)+'" alt="" aria-hidden="true">';

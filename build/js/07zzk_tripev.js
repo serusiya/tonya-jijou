@@ -2,7 +2,7 @@
 /* ★檔案總覽：出遊奇遇與季節小景（DESIGN_NOTES 第二百二十六～二百三十一節）
  * - 一趟出遊最多碰到一件奇遇，依序判定，碰到一件就停（tripEnc）：
  *   1 三助還錢（溫泉，上一趟交了 50／100 兩必定）→ 2 三獻茶（寺社，本城寺社累計香油錢達門檻，一局一次）
- *   → 3 三助開口（溫泉）→ 4 賣藥郎（寺社、溫泉）→ 5 祈福（寺社，風聲 −1）。
+ *   → 3 三助開口（溫泉）→ 第二批奇遇（07zzl_tripev2.js）→ 4 賣藥郎（寺社、溫泉）→ 5 祈福（寺社，風聲 −1）。
  * - 不算奇遇：三助換人時新某助的那句話、季節小景（tripSeason）。
  * - 有選項的奇遇是結果視窗裡的一張卡（#trip-enc），按鈕當場換成結果；直接關掉視窗＝保守選項（不買、婉拒、留在寺裡）。
  * - 賣藥郎的藥效掛在 addStress 的「增加」那一頭：真藥擋掉、假藥加倍；減少照常。
@@ -39,6 +39,7 @@ function tripEnc(k){
   }
   if(k==='temple'&&!G.teaBoy&&((G.templeGift||{})[G.cityId]||0)>=O.tea.gift){E.kind='tea';G.teaBoy=true;return E}
   if(k==='onsen'&&!E.swap){const S=SSK(),a=O.sansuke.ask[S.step];if(chance(O.sansuke.p)&&(G.gold||0)>=a){E.kind='ask';E.amt=a;return E}}
+  if(tripEnc2(k,E))return E;                         // 第二批奇遇：大相撲、手藝人、急商、擦身而過（07zzl_tripev2.js）
   if(!pillOn()&&chance(O.pill.p)&&(G.gold||0)>=pillPrice()){E.kind='pill';E.lv=pillLv();E.amt=pillPrice();return E}
   if(k==='temple'&&(G.heat||0)>0&&chance(O.bless.p)){E.kind='bless';return E}
   return E;

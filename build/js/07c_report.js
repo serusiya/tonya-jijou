@@ -5,7 +5,7 @@
 
 /** 把一或多旬的報告彙整成 {rev, ship[], costs{}, skim, fame, net, other}。 */
 function mergeReports(reps){
-  const T={guildDiv:0,windfall:0,branch:0,honjin:0,buy:{},voy:[],market:[],goods:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
+  const T={guildDiv:0,windfall:0,branch:0,honjin:0,kakeDep:0,kakeFin:0,buy:{},voy:[],market:[],goods:[],rev:0,ship:{},cost:{wages:0,guards:0,wh:0,fam:0,interest:0,hold:0},publicSpend:{},skim:0,fame:0,net:0,short:[],squeeze:[]};
   reps.forEach(r=>{
     if(!r)return;
     (r.voy||[]).forEach(v=>T.voy.push(v));
@@ -13,7 +13,7 @@ function mergeReports(reps){
     (r.ship||[]).forEach(x=>{const o=rs[x.n]||(rs[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     (r.market||[]).forEach(x=>{const m=Object.assign({date},x),s=rs[x.n]||{q:0,rev:0},b=(r.buy&&r.buy[x.n])||{q:0,cost:0};T.market.push(m);T.goods.push(Object.assign({sq:s.q,rev:s.rev,bq:b.q,cost:b.cost},m))});
     Object.keys(rs).concat(Object.keys(r.buy||{})).filter((n,i,a)=>a.indexOf(n)===i&&!(r.market||[]).some(x=>x.n===n)).forEach(n=>{const s=rs[n]||{q:0,rev:0},b=(r.buy&&r.buy[n])||{q:0,cost:0};T.goods.push({date,n,sq:s.q,rev:s.rev,bq:b.q,cost:b.cost})});
-    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;
+    T.rev+=r.rev||0;T.guildDiv+=r.guildDiv||0;T.windfall+=r.windfall||0;T.branch+=r.branch||0;T.honjin+=r.honjin||0;T.kakeDep+=r.kakeDep||0;T.kakeFin+=r.kakeFin||0;
     Object.entries(r.buy||{}).forEach(([k,x])=>{const o=T.buy[k]||(T.buy[k]={q:0,cost:0});o.q+=x.q;o.cost+=x.cost});T.skim+=r.skim||0;T.fame+=r.fame||0;if(r.fameGate)T.fameGate=true;T.net+=r.net||0;
     (r.ship||[]).forEach(x=>{const o=T.ship[x.n]||(T.ship[x.n]={q:0,rev:0});o.q+=x.q;o.rev+=x.rev});
     Object.keys(T.cost).forEach(k=>T.cost[k]+=(r.cost&&r.cost[k])||0);
@@ -55,11 +55,11 @@ function showTurnReport(reps,logs,n,kind){
   const exp=costs.reduce((a,x)=>a+x[2],0);
   const voyBack=T.voy.reduce((a,v)=>a+(v.back||0),0);         // 委託採買歸來退回的委託金餘額
   const buyTotal=Object.values(T.buy).reduce((a,x)=>a+x.cost,0);                 // 大盤進貨（推進時下單）
-  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin;      // 其餘雜項：員工私吞、罰款、事件等
-  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
+  const other=T.net-(T.rev-exp-publicSpendTotal-T.skim-buyTotal)-voyBack-T.guildDiv-T.windfall-T.branch-T.honjin-T.kakeDep-T.kakeFin;      // 其餘雜項：員工私吞、罰款、事件等
+  const inc=T.rev+voyBack+T.guildDiv+T.windfall+T.branch+T.honjin+T.kakeDep+T.kakeFin+Math.max(0,other),outl=exp+publicSpendTotal+buyTotal+T.skim+Math.max(0,-other);
   const tot=Math.max(1,inc+outl),pi=Math.round(inc/tot*100);
   if(!kind&&G&&!G.ended)recRep(T.net,inc,outl,n);       // 商號紀錄（07zzg_record.js）；重開舊旬報同一旬不重記
-  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
+  const max=Math.max(1,voyBack,T.guildDiv,T.windfall,T.branch,T.honjin,T.kakeDep,T.kakeFin,...costs.map(x=>x[2]),...publicSpend.map(x=>x[1]),T.skim,Math.abs(other));
   let h='<div class="rp">';
   h+='<div class="rp-hero '+(T.net>=0?'up':'down')+'"><div class="rp-date">'+(n>1?UT('rep.showTurnReport',{a:n}):kind==='open'?UT('rep.showTurnReport.2'):kind==='recent'?UT('rep.showTurnReport.3'):'')+dateStr()+'</div><div class="rp-net">'+UT('rep.showTurnReport.4',{a:T.net>0?'▲ ':T.net<0?'▼ ':'',b:sgn(T.net),c:fmt(G.silver)});
   h+=raidCard();
@@ -70,6 +70,8 @@ function showTurnReport(reps,logs,n,kind){
   if(T.windfall>0)h+=repRow('💰',UT('rep.showTurnReport.9'),T.windfall,max,'in');
   if(T.branch>0)h+=repRow('🏮',UT('rep.branch'),T.branch,max,'in');
   if(T.honjin>0)h+=repRow('🏯',UT('rep.honjin'),T.honjin,max,'in');
+  if(T.kakeDep>0)h+=repRow('📦',UT('rep.kakeDep'),T.kakeDep,max,'in');
+  if(T.kakeFin>0)h+=repRow('📦',UT('rep.kakeFin'),T.kakeFin,max,'in');
   if(other>0)h+=repRow('✨',UT('rep.showTurnReport.10'),other,max,'in');
   h+=UT('rep.showTurnReport.12',{a:costs.map(x=>repRow(x[0],x[1],x[2],max,'out')).join('')||UT('rep.showTurnReport.11')});
   if(publicSpend.length)h+=UT('rep.showTurnReport.13',{a:publicSpend.map(x=>repRow('💴',esc(spendLabel(x[0])),x[1],max,'out')).join('')});

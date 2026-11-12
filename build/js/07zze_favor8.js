@@ -12,7 +12,7 @@
  *  - 闕所（遠國奉行所六階 巡見使，好感 100 特殊請託，本地；第二十九節）：私房錢 1,000 兩，挑一家同業永久除名（不補人）；
  *    本城同業至少三家才出現；訂約金作廢併入本期違約金；他是公會長時由另一位候選人接任。
  *  - 新町取立（普請方五階 普請奉行；第二十九節、第 205 節）：公款 6,000 兩，走申請審理；成功率第一次 40%、第二次 70%、第三次一定成功；
- *    成功時本城人口 +5%、寫進城史；審理完成後冷卻 12 旬，冷卻期間季度人口因出貨不穩而減少的幅度減半。
+ *    成功時本城人口 +5%、寫進城史；審理完成後冷卻 12 旬，冷卻期間季度人口因城裡缺貨而減少的幅度減半。
  *  - 三階的災損申請（第 206 節）：火難御救（普請方三階）、荷損御賑（勘定方三階）、盜難御賑（吟味方三階）；
  *    只能在事件發生的當旬申請；損失貨值的五成、最多 800 兩（盜難御賑改為追回贓貨，貨值最多 800 兩）。
  *  數值 ODDS.f8；文字 fav.*、f8.*（01e、01f、01g）。
@@ -134,7 +134,7 @@ function kesshoDo(cid,tcid){
   const t=npc(tcid);if(!t||t.role!=='rival'||t.cityId!==G.cityId)return;
   G.gold-=F8().kesshoGold;
   const C=G.cartel;if(C&&C.bond>0)C.pot=(C.pot||0)+costOf('guildBond');      // 他的訂約金作廢，併入本期違約金
-  t.cityId=null;t.kessho=true;
+  t.cityId=null;t.kessho=true;evilAdd('kessho',tcid);   // 惡德（07zzl_tripev2.js）
   logRel(tcid,UT('f8.log.kessho'));
   let msg=NEWS('f8.kesshoNews',{n:nameOf(tcid)});
   if(G.gm&&G.gm.cid===tcid)msg+=gmSucceed(tcid);
@@ -173,7 +173,7 @@ const newTownCool=()=>NT().cd>=G.turn;
   logRel(A.cid,UT('reg.appGrant',{a:A.name}));
   pushNews(t);log.push(t);
 }}
-/** 季度人口：新町取立冷卻期間，因出貨不穩而減少的幅度減半。 */
+/** 季度人口：新町取立冷卻期間，因城裡缺貨而減少的幅度減半。 */
 {const _pt=populationTick;populationTick=function(log){
   const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:null;
   _pt.apply(this,arguments);

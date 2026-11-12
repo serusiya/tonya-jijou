@@ -32,7 +32,7 @@ function letterRowHtml(cid){
   const can=reqList(cid).length>0;
   return h+'<div style="margin-top:4px"><button class="pixel-btn btn-sm btn-gold" data-act="letterReq" data-cid="'+cid+'" '+(can?'':'disabled')+'>'+UT('btn.letterReq',{c:coinHtml('silver',amt)})+'</button></div>'+(can?'':UT('letter.noReq'));
 }
-const letterPay=(cid,amt)=>{payPublic('spend.letter|'+cid,amt);addHeat(ODDS.letter.heat);G.letterT=G.turn};
+const letterPay=(cid,amt)=>{payPublic('spend.letter|'+cid,amt);if(officialKind(npc(cid))==='greedy')addHeat(ODDS.letter.heat);G.letterT=G.turn};
 const letterDone=(m,ok)=>{toast(m,Math.max(3200,m.length*120));if(ok)sfx.gift();else sfx.bad();UI.render();refreshSheet()};
 /** 初次問候信：比照毛遂自薦，可能被退信。 */
 ACT.letterMeet=el=>{

@@ -57,7 +57,7 @@ function bzDeal(cid,gain,name){
 
 /* ---------- 身代與名望 ---------- */
 /** 身代的基準：本行業開局現款。 */
-const bzBase=()=>{const t=START_TIERS.find(x=>x.key===G.sysKey);return (t&&t.silver)||10000};
+const bzBase=()=>{const t=START_TIERS[G.startTier||0];return (t&&t.silver)||10000};   // 本局開局資源等級的開局現款
 const bzRand=a=>a[0]+rnd()*(a[1]-a[0]);
 function bzInit(n){
   if(n.bzw===undefined){

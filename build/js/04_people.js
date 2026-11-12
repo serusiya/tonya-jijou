@@ -168,6 +168,10 @@ function favorList(cid){const n=npc(cid);return n&&n.pos?(FAVORS[n.pos.court]||[
 const HUSH_CUT=rank=>Math.max(3,Math.min(5,rank-1));
 /** 借款種類的顯示名（舊存檔直接存中文名稱，原樣顯示）。 */
 const debtKindName=k=>UI_TXT['fav.'+k]!==undefined?UT('fav.'+k):k;
+/** 請託開口時加的風聲：一般請託 ODDS.heat.favor；勾結類（own）各有自己的風聲、壓風聲與正當申報（none）不加。回傳實際增量。 */
+function favorHeat(key){const H=ODDS.heat;return (H.own.includes(key)||H.none.includes(key))?0:addHeat(H.favor)}
+/** 風聲增量的提示尾巴（沒有增加時為空）。 */
+const heatTail=h=>h>0?MSG('favor.heatTail',{h:fmt1(h)}):'';
 /** 執行請託（只在拜訪打勝、好感 ≥60 時出現）：看官階、冷卻與是否已辦妥；不另收錢。辦成後好感：一般 −10、許可 −20（申請受理時扣）、減罪狀 −30。 */
 function doFavor(cid,key,arg){
   const n=npc(cid),r=R(cid),f=resolveFavor(FAVORS[n.pos.court].find(x=>x.k===key),n);
@@ -186,14 +190,15 @@ function doFavor(cid,key,arg){
   let msg='';
   if(REG_FAVOR[key]){msg=REG_FAVOR[key](n,arg)}
   else if(key==='smallLoan'){const amt=750,back=Math.round(amt*1.1);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+6,amt:back,cid:n.cid,kind:'smallLoan'});msg=MSG('favor.smallLoan',{a:fmt(amt),b:fmt(back)})}
-  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;addHeat(0.5);msg=MSG('favor.sellAid',{n:L.c.short,q:L.q})}
+  else if(key==='sellAid'){const L=xLot();G.xinv=G.xinv||{};G.xinv[L.c.name]=(G.xinv[L.c.name]||0)+L.q;addHeat(ODDS.heat.sellAid);msg=MSG('favor.sellAid',{n:L.c.short,q:L.q})}
   else if(key==='loan'){const amt=3000*(n.pos.rank-1),back=Math.round(amt*1.15);G.silver+=amt;G.debts=G.debts||[];G.debts.push({due:G.turn+9,amt:back,cid:n.cid,kind:'loan'});msg=MSG('favor.loan',{a:fmt(amt),b:fmt(back)})}
   else if(key==='blind'){G.flags.blind=12;msg=MSG('favor.blind')}
   else if(key==='lessen'){G.lessen=1;msg=MSG('favor.lessen')}
   else if(key==='reconcile'){const t=arg&&G.rel[arg];if(t){t.peak=t.aff;delete t.enemyT;delete t.enemyAff;logRel(arg,MSG('log.reconcile',{n:nameOf(cid)}))}msg=MSG('favor.reconcile',{n:arg?nameOf(arg):UT('misc.unknown')})}
   else if(key==='hush'){const cut=HUSH_CUT(n.pos.rank);G.heat=Math.max(0,(G.heat||0)-cut);msg=TX('favor.hush'+Math.min(6,Math.max(4,n.pos.rank)))}
+  const fh=favorHeat(key);                                       // 求官員辦事會留下痕跡（勾結類另計）
   logRel(cid,MSG('log.favor',{f:f.name,m:msg,d:drop}));
-  return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg+MSG('favor.affTail',{d:drop})};
+  return {ok:true,status:'done',msg:TX('favor.accept')+' '+msg+MSG('favor.affTail',{d:drop})+heatTail(fh)};
 }
 /* ---------- 風評（真假參半）---------- */
 /** 外人風評：真假參半，附可信度星數。傳聞文字在 01d_lines.js 的 LINES.rumor（依性格、軟肋、能力代號）。 */
@@ -320,9 +325,10 @@ function empTick(log){
     const s=statsOfEmp(e);
     const K_=ODDS.skim,p=clamp((s.greed_index*K_.greed+s.betrayal_risk*K_.betray-s.integrity_loyalty*K_.loyal)/100,0,K_.cap)*RANK_SKIM[e.rank]*skimMul(e)*guardF(e);   // 好感、自家栽培、收斂、記恨等倍率見 07zs_staffcare.js
     if(chance(p)){
-      const amt=Math.round(Math.max(0,(TURNRP&&TURNRP.rev)||0)*(0.005+rnd()*0.015)+(RANK_SKIM_BASE[e.rank]||3));
+      const amt=Math.round(Math.max(0,((TURNRP&&TURNRP.rev)||0)+(e.kakeIn||0))*(0.005+rnd()*0.015)+(RANK_SKIM_BASE[e.rank]||3));   // 番頭經手的掛賣入帳也算（07zzm_kake.js）
       e.skim+=amt;G.silver-=amt;
     }
+    if(e.kakeIn)e.kakeIn=0;
     if((e.rank==='chief'||e.rank==='banto')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*fleeMul(e)))){
       const take=Math.round(Math.max(0,G.silver)*0.3);G.silver-=take;rm.push(e);
       const t=NEWS('empTick.1',{rank:rankName(e.rank),name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();

@@ -87,10 +87,11 @@ ACT.assassinate=el=>{
   if((G.exile||0)>0){toast(MSG('assassinate.1'));return}
   if(!afford('assassin')){toast(shortMsg('assassin'));return}
   if(!spendAP())return;
-  spend('assassin');addHeat(3,true);
+  spend('assassin');addStress('dirty',ODDS.stress.dirty);   // 不加風聲（日後由惡德值處理）；虧心事的壓力直接掛在這裡
   const p=assChance(e,n),name=nameOf(cid),rank=assRank(n),log=[];
   playFx('walk',MSG('assassinate.fx'),MSG('assassinate.fxTitle'),()=>{
     if(chance(p)){
+      evilAdd('assassin',cid);                    // 惡德（07zzl_tripev2.js）
       G.slain=G.slain||[];G.slain.push(cid);G.life.assassinated=(G.life.assassinated||0)+1;
       if(n.role==='official'&&n.pos){const rep=replaceOfficial(n);if(rep)addKnown(rep)}
       noteRivalSlain(n);                          // 同業遭害：旬末由私生子繼承（07y_guild.js）
@@ -107,7 +108,7 @@ ACT.assassinate=el=>{
       }
       toast(msg,5200);
     }else{
-      G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
+      G.emps=G.emps.filter(x=>x!==e);evilAdd('assassin',cid,true);
       const r=R(cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(cid,UT('loyal.assassinate.2'));
       sfx.bad();toast(MSG('assassinate.4',{name:e.name,name2:name}),5200);
     }
@@ -127,10 +128,11 @@ ACT.arson=el=>{
   const rv=rivalsHere().filter(n=>alive(n.cid));if(!rv.length){toast(MSG('arson.noRival'));return}
   if(!afford('arson')){toast(shortMsg('arson'));return}
   if(!spendAP())return;
-  spend('arson');addHeat(3,true);
+  spend('arson');addStress('dirty',ODDS.stress.dirty);
   const tg=pick(rv),p=arsonChance(e),name=nameOf(tg.cid),log=[];
   playFx('walk',MSG('arson.fx',{rank:rankName(e.rank)}),MSG('arson.fxTitle'),()=>{
     if(chance(p)){
+      evilAdd('arson',tg.cid);
       const m=msOf(tg);m.stock=Math.min(m.stock,0.2);m.ev=0.6;m.evT=4;G.share=marketShares();
       G.life.arsons=(G.life.arsons||0)+1;logRel(tg.cid,UT('loyal.arson'));
       pushNews(NEWS('arson.1',{name}));sfx.bad();
@@ -144,7 +146,7 @@ ACT.arson=el=>{
       }
       toast(msg,5200);
     }else{
-      G.emps=G.emps.filter(x=>x!==e);addHeat(2,true);
+      G.emps=G.emps.filter(x=>x!==e);evilAdd('arson',tg.cid,true);
       const r=R(tg.cid);setAff(r,0);r.peak=Math.max(r.peak||0,40);logRel(tg.cid,UT('loyal.arson.2'));
       sfx.bad();toast(MSG('arson.fail',{rank:rankName(e.rank),name:e.name,target:name}),5200);
     }

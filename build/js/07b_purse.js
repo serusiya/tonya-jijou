@@ -35,7 +35,7 @@ ACT.skim=()=>{
   if(amt<1){toast(MSG('skim.1'));return}
   if(G.silver<amt){toast(MSG('skim.1'));return}
   if(!spendAP())return;
-  G.silver-=amt;G.gold+=amt;addHeat(0.2);G.life.skimmed=(G.life.skimmed||0)+amt;
+  G.silver-=amt;G.gold+=amt;G.life.skimmed=(G.life.skimmed||0)+amt;
   sfx.coin();toast(MSG('skim.2',{amt}));
   UI.render();refreshSheet();
 };
@@ -71,8 +71,8 @@ function injuredBlock(){
 function injuryTick(log){
   if((G.injured||0)>0){G.injured--;if(G.injured===0){const sick=G.injKind==='sick';G.injKind=null;log.push(NEWS(sick?'injuryTick.sick':'injuryTick.1'));consoleNote(sick?'healSick':'heal')}}   // 傷癒後朋友上門慰問（下一旬，07zz_friends.js）
 }
-/** 遇襲機率：基本 0.5%～3%（風聲、知名度越高越危險），另加每位仇人 +3%。 */
-function ambushChance(){const A_=ODDS.ambush;return clamp(A_.base+A_.perHeat*Math.min(G.heat||0,A_.heatCap)+A_.perFame*(G.fame||0),A_.min,A_.max)+ENEMY_AMBUSH*enemyCount()}   // 每位仇人 +3%
+/** 遇襲機率：基本 0.5%～3%（知名度越高越危險），另加每位仇人 +3%。 */
+function ambushChance(){const A_=ODDS.ambush;return clamp(A_.base+A_.perFame*(G.fame||0),A_.min,A_.max)+ENEMY_AMBUSH*enemyCount()}   // 每位仇人 +3%
 /** 戰力＝保鏢的膽識（audacity_courage）。 */
 const guardPower=e=>statsOfEmp(e).audacity_courage;
 /**

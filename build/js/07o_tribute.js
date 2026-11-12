@@ -1,7 +1,8 @@
 /* ======================= 上貢：四階以上財務官員（好感 100）=======================
  *  好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。官員開口要一批本業貨：限期內自己備妥庫存，數量取協議配額的數倍（合理可達）。
  *  到期若庫存足夠，自動上貢＝賣出，作價市價 × 倍數，並增加知名度與市佔率；
- *  備不齊則失約：交情、知名度受損。同時只能有一筆上貢。 */
+ *  備不齊則失約：交情、知名度受損。同時只能有一筆上貢。
+ *  共用定約掛賣的合約格式：相場「📦 合約」卡上一列，可以先填貨保留（G.tribute.filled），到期前一旬推進前缺貨會提醒（07zzm_kake.js 的 pactExtras，第二百五十一節）。 */
 const tributeOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(n&&n.role==='official'&&n.pos&&n.pos.court==='finance'&&n.pos.rank>=SPECIAL_RANK&&alive(cid)&&r&&r.bond&&r.aff>=100&&!isEnemy(cid))};
 /** 人物卡上的上貢進度（答應過這位官員時才顯示）。 */
 function tributeStatus(cid){
@@ -15,7 +16,8 @@ function startTribute(cid){
   const cs=tradeComms();if(!cs.length){toast(MSG('tribute.noGoods'));return}
   const A=ODDS.tribute,c=pick(cs),qty=Math.max(A.min,Math.min(Math.round(quotaOf(c.name)*A.quotaMult),itemCap(c.name)));
   G.tribute={cid,name:c.name,qty,due:G.turn+A.turns};
-  toast(MSG('tribute.start',{off:nameOf(cid),turns:A.turns,item:c.short,qty,mul:A.priceMul}),5200);
+  const fh=addHeat(ODDS.heat.favor);                             // 上貢：官員高價收你的貨，算一般請託的風聲
+  toast(MSG('tribute.start',{off:nameOf(cid),turns:A.turns,item:c.short,qty,mul:A.priceMul})+heatTail(fh),5200);
   UI.render();refreshSheet();
 }
 /** 每旬結算：到期則自動上貢或失約。 */

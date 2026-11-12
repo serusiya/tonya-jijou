@@ -79,10 +79,10 @@ function btMult(cid,giftKey){
 }
 /** 交情（初見時的性向相容）帶來的額外好感 0～5。 */
 const btBondBonus=r=>{const m=r.bond?r.bond.mult:1;return m>=3?5:m>=2?4:m>=1?2:0};
-/** 禮物下拉選項（已證實的軟肋標 ⭐）。 */
+/** 禮物下拉選項（已證實的軟肋標 ⭐，並設為預設選項）。 */
 function giftOptions(cid){
   const r=R(cid),w=CH(cid).weakness;
-  return GIFTS.map(g=>'<option value="'+g.k+'">'+g.icon+' '+g.name+(r.verified&&g.weak.includes(w)?' ⭐':'')+'</option>').join('');
+  return GIFTS.map(g=>{const hit=r.verified&&g.weak.includes(w);return '<option value="'+g.k+'"'+(hit?' selected':'')+'>'+g.icon+' '+g.name+(hit?' ⭐':'')+'</option>'}).join('');
 }
 /** 人物卡的拜訪區塊（已結識者）。 */
 function visitRowHtml(cid){
@@ -144,7 +144,7 @@ function battleHit(amt,tier){
   const B=BT,n=npc(B.cid),hit=tier!==undefined&&tier===B.expect;
   if(hit)B.hits++;
   payPublic('spend.bribe|'+B.cid,amt);B.spent+=amt;B.round++;B.dmg+=amt*B.mult*(hit?BT_HIT_X:1);sfx.coin();
-  if(n&&n.pos&&!B.heat){B.heat=true;addHeat(officialKind(n)==='greedy'?0.3:0.2);G.life.gold+=1}
+  if(n&&n.pos&&!B.heat){B.heat=true;if(B.mode!=='report')addHeat(officialKind(n)==='greedy'?ODDS.heat.visitGreedy:ODDS.heat.visit);G.life.gold+=1}   // 風聲：拜訪官員出過價，一場一次；貪官較多；公會長報告是公務，不加
   B.line=btLine(B.cid,B.dmg/B.hp);
 }
 ACT.btEnd=()=>{if(BT&&!BT.done)battleEnd()};

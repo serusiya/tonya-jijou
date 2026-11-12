@@ -2,7 +2,7 @@
 /* ======================= 聯合採購與出貨協議的訂約金與違約金分配 =======================
  *  - 參加協議（表態遵守或簽暗約）要付訂約金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，訂約金由開局贈送。
  *  - 參加協議者向大盤進貨享聯合採購價（市價九三折）；未參加者照市價（03_market.js 的 unitBuyCost）。
- *  - 自動續押：訂約金一直押在公會；一期＝兩次例會之間（3、6、9、12 月上旬），例會旬開始時把上一期沒收的違約金平分給守約者（你＋本期沒被抓的同業；meetingTick，07yb_meeting.js）。
+ *  - 自動續押：訂約金一直押在公會；一期＝兩次例會之間（3、6、9、12 月上旬），例會旬查完同業超賣之後，把上一期沒收的違約金平分給守約者（你＋上一期沒被抓的同業；meetingPayout，07yb_meeting.js）。例會旬旬報裡的查獲算上一期。
  *  - 你被查獲超量（evalCartel）或退出協議：訂約金作廢，立場回到未參加；要重新加入協議須在例會時再押一次。
  *  - 同業：每家每旬 5% 超賣一項本業貨（ODDS.rivalShip.overRival，rivalSupply 擲骰），查獲規則與你守約時相同；被抓者訂約金作廢、三旬內市佔下降。
  *  - 狀態：G.cartel.bond（押著的金額，0＝沒押）、pot（本期沒收的違約金）；同業的違約紀錄在 msOf(n).ovDec/ovItem/ovMul/caught。
@@ -22,8 +22,7 @@ function guildEnsure(){
 function guildJoin(){
   const C=G.cartel,amt=costOf('guildBond');
   spend('guildBond');
-  C.bond=amt;C.pot=0;
-  rivalsHere().forEach(n=>{msOf(n).caught=false});
+  C.bond=amt;                                       // 違約金與同業的被抓記號只在例會旬分配時清（meetingPayout），入會不清
 }
 /** 訂約金作廢（被查獲或退出協議）。 */
 function guildForfeit(){const C=G.cartel,a=C.bond||0;C.bond=0;C.pot=0;return a}
@@ -52,7 +51,7 @@ function guildTick(log){
     if(C.bond>0)C.pot=(C.pot||0)+amt;
     const t=NEWS('guild.rivalCaught',{n:nameOf(n.cid),item:COMM_MAP[m.ovItem].short});pushNews(t);log.push(t);
   });
-  // 期滿分配違約金改在例會旬開始時（meetingTick，07yb_meeting.js）
+  // 期滿分配違約金在 meetingPayout（07yb_meeting.js），advanceTurn 排在這之後
 }
 /** 公會面板上的訂約金卡。 */
 function guildBondCard(){

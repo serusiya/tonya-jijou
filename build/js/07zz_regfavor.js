@@ -4,6 +4,7 @@
  *  - 官船捎帶（湊番所役，本店是港口城）／官荷捎帶（關所番頭，本店不是港口城；水陸要衝兩位都有）：
  *     能買賣的本業貨裡，八成是最貴的那項、兩成是第二貴的；同一位官員同一旬開出的貨與數量固定。
  *     官船約值 3,000 兩付 2,000 兩；官荷減半。三旬後入倉，不會遇難；放不下的直接損失。風聲 +0.2。
+ *  - 本陣御用達與上貢共用定約掛賣的合約格式：相場「📦 合約」卡、保留與填貨、推進前缺貨提醒（07zzm_kake.js 的 pactExtras，第二百五十一節）。
  *  - 本陣御用達（宿場問屋場役）：隨機一項能買賣的本業貨，每旬約值 500 兩的數量；接下後連續三旬，
  *     推進時（自動出貨之前）從庫存送出，照當旬市價加兩成入帳；不算本城出貨。送不足＝失約：有多少送多少，好感 −30、知名度 −1，合約結束。
  *  數值 ODDS.regConsign、ODDS.honjin；文字 rfav.*（01e、01f、01g）。狀態 G.consign（在途）、G.honjin（合約）、G.regOffer（本旬開價）。 */
@@ -61,8 +62,8 @@ REG_FAVOR.rconsignSea=consignFavor('sea');
 REG_FAVOR.rconsignLand=consignFavor('land');
 REG_FAVOR.rhonjin=n=>{
   const o=regOffer(n,'honjin'),c=COMM_MAP[o.name];
-  G.honjin={cid:n.cid,name:o.name,qty:o.qty,left:ODDS.honjin.turns,start:G.turn};
-  delete G.regOffer[n.cid+'|honjin'];
+  G.honjin={cid:n.cid,name:o.name,qty:o.qty,left:ODDS.honjin.turns,start:G.turn,filled:0};
+  delete G.regOffer[n.cid+'|honjin'];kakeFill();   // 立約當旬就要交：先從倉裡備貨（合約卡可再按填貨）
   return MSG('rfav.honjin',{g:c.short,q:o.qty,t:ODDS.honjin.turns});
 };
 /** 每旬（訂單到貨之後）：捎帶的貨到了就入倉。 */
@@ -82,8 +83,9 @@ function consignTick(log){
 function honjinTick(log){
   const H=G.honjin;if(!H||G.turn<H.start)return 0;
   const c=COMM_MAP[H.name];if(!c){G.honjin=null;return 0}
-  const have=G.inv[H.name]||0,q=Math.min(have,H.qty),amt=Math.round(q*marketQuote(H.name)*ODDS.honjin.markup);
-  stockTake(H.name,q,false);G.silver+=amt;
+  const T=G.tribute,tribHeld=T&&T.name===H.name?(T.filled||0):0;   // 上貢先交（合約共用格式，第二百五十一節）：它保留的貨本陣不能動
+  const have=Math.max(0,(G.inv[H.name]||0)-tribHeld),q=Math.min(have,H.qty),amt=Math.round(q*marketQuote(H.name)*ODDS.honjin.markup);
+  stockTake(H.name,q,false);G.silver+=amt;H.filled=0;
   let t;
   if(q<H.qty){
     const r=G.rel[H.cid];if(r&&alive(H.cid)){setAff(r,Math.max(0,r.aff-ODDS.honjin.failAff));logRel(H.cid,UT('rfav.log.fail',{d:ODDS.honjin.failAff}))}

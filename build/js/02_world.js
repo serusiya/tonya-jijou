@@ -210,7 +210,9 @@ function newGame(sysKey,regionPref,startTier=0){
   G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
   const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
-  let cs=ALL_CITIES.filter(c=>c.population>=60000&&!producesOwn(c)&&(!regionPref||regionPref==='rand'||c.region_id===regionPref));
+  const picked=regionPref&&regionPref!=='rand',regOK=c=>picked?c.region_id===regionPref:c.region_id!=='reg_central';   // 隨機開局不落在京畿圈（日後要完成帝都獻上才能遷入）
+  let cs=ALL_CITIES.filter(c=>c.population>=60000&&!producesOwn(c)&&regOK(c));
+  if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c)&&(picked||c.region_id!=='reg_central'));
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c));
   {const sc=cs.filter(canSea);if(sc.length)cs=sc}   // 所有流派都在港口開局（委託採買的海運要港口）
   G.cityId=pick(cs).id;
