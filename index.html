@@ -916,6 +916,7 @@ const ODDS={
   ,ronin:{name:'浪人頭（07zw_ronin.js）：最多結識人數、結識機率（指名、夜宴、遇襲）、結識好感、要錢次數門檻、各階金額（浪人、一～三階）、每升一階機率倍率',maxKnown:3,nominate:0.1,feast:0.15,ambush:0.3,aff:10,times:10,amt:[50,100,200,400],decay:0.75}
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
   ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,quellFame:3}
+  ,komonRumor:{name:'木戶黃門年度傳聞（07zzj_komon.js）：惡德值到 region 傳聞落在本地區、到 near 落在本城附近（離本城最近的 nearN 座城之一）',region:10,near:20,nearN:3}
   ,shun:{name:'不在協議時（沒參加或違約被查獲後）：仲買人銷貨的牌價成數（平常 0.7）、旅商人代售價再打的折扣（07x_dealers.js）',broker:0.5,xsell:0.7}
   ,rivalLot:{name:'同業調貨（07x_dealers.js）：每次的數量範圍、金額上限範圍（取兩者較少的那個）',qty:[30,50],cap:[3000,4000]}
   ,regConsign:{name:'官船捎帶／官荷捎帶（07zz_regfavor.js）：第二貴貨的機率、到貨旬數、風聲；sea／land 約值與付款',second:0.2,turns:3,heat:0.2,sea:{value:3000,pay:2000},land:{value:1500,pay:1000}}
@@ -1252,7 +1253,8 @@ const LINES={
     weak:{gambling:'據說一見骰子就走不動路',faith:'極信神佛方術，凡事要看卜',courtesan:'對吉原某位名妓念念不忘',children:'一提到孩子，什麼都好說',seafear:'一聽到出海就臉色發白',pity:'見不得人受苦，常出手周濟',henpecked:'在家裡說了不算，全聽夫人的',grudge:'睚眥必報，一句話記十年',art:'愛收字畫，見到名跡便挪不開眼',wine:'無酒不歡，尤愛灘之美酒',vanity:'愛面子，最吃誇獎和名聲',antique:'迷戀古物奇珍，一擲千金'},
     stat:{commerce_skill:'生意手腕出眾，帳目精明',integrity_loyalty:'重義守信，口碑極佳',greed_index:'對錢財格外上心',audacity_courage:'膽大敢闖，敢冒風險',diplomacy_charm:'長袖善舞，人緣極好',betrayal_risk:'向來不甘人下，難以收服'},
     official:{real:'收禮最看重的是「心意」而不是數目',fake:['清廉得很，從不收任何禮物','只認黃金，其他一概不理']},
-    src:{trait:'同業議論',weak:'茶屋閒話',stat:'市井傳聞',official:'官府風聞'}
+    komon:'聽說曾被木戶黃門當眾訓斥過，如今規矩多了',
+    src:{trait:'同業議論',weak:'茶屋閒話',stat:'市井傳聞',official:'官府風聞',komon:'街談巷議'}
   },
   /* —— 訃告：故人評語（依好感高低）—— */
   eulogy:{
@@ -3419,6 +3421,7 @@ const UI_TXT={
   'stress.pill.good':'服了金剛丸，渾身是勁，藥效還有 {a} 旬。',
   'stress.pill.bad':'服了金剛丸，心浮氣躁，藥效還有 {a} 旬。',
   'staff.tagTea':'<span class="tag gold">寺中奉茶</span>',
+  'bz.g.komon':'聽說【{c}】的「{a}」被一位帶著兩名隨從的老隱居當眾揭了底，如今閉門不出。',
   'bz.g.meScam':'聽說「{a}」的老闆在湯屋被搓澡的騙走了五百兩，還四處打聽那人的下落。',
   'mk.daimyo':'大名行列過境，需求大增',
   'mk.wifeFans':'夫人娘家街坊捧場，需求較旺',
@@ -4537,6 +4540,8 @@ const NEWS_TXT={
   "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
   "drift.leave":"👥【另謀高就】「{n}」離開本城，往【{c}】謀生去了。",
   "fr.bust.auto":"🚨【出事】{m}",
+  "komon.rumor":"🍵【傳聞】聽說木戶黃門大人微服到了【{c}】，當眾揭穿惡德商人「{m}」的勾當，闔城稱快。",
+  "komon.rumor.near":"🍵【傳聞】聽說木戶黃門大人一行就在本城附近的驛站【{c}】，懲戒了惡德商人「{m}」。有人說，老人家還在這一帶走動。",
   "daimyo.pass":"🏯【大名行列】某藩大名行列今日過境本城，宿場人馬雜沓，城中買氣大旺。",
   "escort.skip":"🚶【同行】「{f}」陪你去了奉行所，卻沒見到「{o}」大人，悻悻而回。",
   "escort.risk":"🚨【牽連】「{f}」走「{o}」大人的門路行賄被查，供出當初是你引見的，風聲上升。"
@@ -4566,7 +4571,7 @@ const NEWS_CAT={
   market:["sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  trouble:["komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["rush.bust","inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
@@ -4592,6 +4597,8 @@ const CHANGELOG=[
     '問屋公會設定更新：沒參加協議或違約被抓的期間，同業不肯調貨，仲買人、旅商人收你的貨也會壓價。',
     '城市人口設定更新：人口改看全城日常的貨夠不夠用（奢侈品不算），不再只看你一家的供貨；你還不能買賣的貨，同業會照全城的需要出貨；協議減供時城裡容易吃緊，相場頁的市佔卡下會寫這一季城裡的貨夠不夠。',
     '相場頁的掛賣卡改為「合約」卡：本陣御用達與上貢也列在這裡，可以先備貨保留，要交之前缺貨會提醒。',
+    '災難設定更新：春天鬧疫病、夏天颳颱風、秋天鬧凶作、冬天起大火，各在自己的季節才會發生，次數比以前少。',
+    '新增傳聞：每年會聽說木戶黃門大人在某處懲戒了惡德商人；壞事做得越多，傳聞離你越近。',
     '外城友人設定更新：寄信與作客改到「外城出遊」辦，下方照地區列出所有外城友人；成了仇人就不再往來，出門作客期間也不寄信。',
     '修改背景資料'
   ]},
@@ -5324,14 +5331,15 @@ function pushNews(t){const k=newsKey(t);if(typeof yearLogAdd==='function')yearLo
 /* ---------- 隨機事件 ---------- */
 /** 對符合條件的物品事件倍率相乘（0.5～3.2）。 */
 function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.mk[n].ev=clamp(G.mk[n].ev*mult,0.5,3.2)})}
-/** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。 */
+/** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。
+ *  四種災難只在對應季節：春疫病、夏颱風、秋凶作、冬大火，不限次數（第二百五十二節）。 */
 const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
-  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
+  {w:ODDS.eventW.fire,seasons:['winter'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
+  {w:ODDS.eventW.famine,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
   {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
-  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
-  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
+  {w:ODDS.eventW.typhoon,seasons:['summer'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
+  {w:ODDS.eventW.plague,seasons:['spring'],f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
   {w:ODDS.eventW.military,seasons:ALL_SEASONS,f(){setEv(c=>commTag(c,'military'),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
   {w:ODDS.eventW.sword,seasons:ALL_SEASONS,f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
   {w:ODDS.eventW.flower,seasons:ALL_SEASONS,f(){return NEWS('setEv.7')}},
@@ -5658,11 +5666,7 @@ function cityTick(){
     if(y===G.year&&!G.histDone[key]){
       const mon=1+Math.floor(seeded(key)()*12);
       if(mon===G.month&&G.cycle===1){
-        G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));
-        const fx=h.fx||[];                           // 城史事件的類型（資料檔 fx：fire 火災、plague 疫病、famine 饑荒）
-        if(fx.includes('fire')){setEv(c=>commTag(c,'fire'),1.6);markDisaster('fire')}
-        if(fx.includes('plague')){setEv(c=>c.sys==='medicine',1.6);markDisaster('plague')}
-        if(fx.includes('famine')){setEv(c=>commTag(c,'rice'),1.4);markDisaster('famine')}
+        G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));   // 城史只出新聞：不漲價、不算災情（帶災難標記的城史都在開局以前，第一百五十三、二百五十二節）
       }
     }
   });
@@ -5717,7 +5721,7 @@ function advanceTurn(){
   snapMarket();                                   // 日期前進前，記下本旬的收市價、需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
-  if(newYear){buyoutEnsure();daimyoPlan()}          // 新年重抽五區各自的四個大口買付月；排定今年的大名行列（07zzc_daimyo.js）
+  if(newYear){buyoutEnsure();daimyoPlan();komonPlan()}          // 新年重抽五區各自的四個大口買付月；排定今年的大名行列（07zzc_daimyo.js）
   G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};G.voyQueue=[];   // 出運清單只在本旬有效
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
@@ -5747,6 +5751,7 @@ function advanceTurn(){
   randomEvent(log);
   cityTick(log);
   daimyoTick(log);                                // 大名行列過境：當旬一開始就上旬報（07zzc_daimyo.js）
+  komonTick(log);                                 // 木戶黃門的年度傳聞（07zzj_komon.js）
   tripEvTick(log);                                // 大相撲開場、手藝人送貨、贓貨被找上門（07zzl_tripev2.js）
   unloadTick(log);                                // 國中物卸留：卸留月開始與結束（07zz_regfavor4.js）
   kokushoTick(log);                               // 國商助成：回扣進私房錢（07zz_regfavor4.js）
@@ -12837,7 +12842,7 @@ ACT.sevIgnore=()=>{const m=sevResolve(false);UI.hideInfo();if(m)toast(m,4200);UI
 
 'use strict';
 /* ======================= 災情救濟請託（第一百四十九節） =======================
- *  大火、凶作、颱風、疫病（含城史記載的大火、大疫、饑荒）發生的那一旬，記為「本城災情」（G.disaster），主畫面右上角提醒。
+ *  大火（冬）、凶作（秋）、颱風（夏）、疫病（春）發生的那一旬，記為「本城災情」（G.disaster），主畫面右上角提醒（城史不算，第二百五十二節）。
  *  只有事件當旬，三系三階以上、交情 60 以上的官員，請託清單會各多一項救濟；同一場災情每系只能辦一次。期間外請託清單不出現，但職位說明會列出（說明開頭寫「災情當旬」）。
  *   行政：御救小屋合辦（現款 800 兩，大型施粥）／財務：緊急御免（兩旬內大盤進貨上限加倍、漲價的貨照災前價格進）／司法：普請御用（官府高價收購本業貨）。
  *  數值在 01c_odds.js 的 ODDS.relief；花費 COSTS.reliefSoup。 */
@@ -15240,6 +15245,57 @@ document.addEventListener('change',e=>{
   A.timers.push(setTimeout(shakeFinish,70+path.length*90+40));
   SHAKE_ANIM=A;
 },true);
+
+'use strict';
+/* ★檔案總覽：木戶黃門（DESIGN_NOTES 第二百三十二、二百五十二節）
+ * - 目前只做年度傳聞：每年一次，「傳聞木戶黃門大人在某城懲戒了惡德商人某某」。地點依你的惡德值（G.evil.v）靠近：
+ *   0～9 別的地區；10～19 本地區的另一座城；20 以上離本城最近的三座城之一（寫成本城附近的驛站）。
+ * - 被懲戒的是那座城一位你不認識的同業，只是敘事、不改他的數值；他的外人風評多一句（rumorsOf），下一期番付八卦寫一則。
+ * - 排程：新年結算時（或這一年還沒排、開局、舊存檔時）從今年剩下的旬裡隨機挑一旬，避開例會旬、本城節慶與大名行列（G.komonR{y,m,c,done}）。
+ * - 每季判定、宣判演出、懲罰尚未實作。數值 ODDS.komonRumor；文字 komon.*（01g 新聞、01e 八卦）、台詞 LINES.rumor.komon。 */
+/** 今年的傳聞旬（還沒排就排）。 */
+function komonPlan(){
+  if(G.komonR&&G.komonR.y===G.year)return;
+  const f=homeCity().special_festival,D=G.daimyo&&G.daimyo.y===G.year?G.daimyo:null,L=[];
+  for(let m=G.month;m<=12;m++)for(let c=1;c<=3;c++){
+    if(m===G.month&&c<=G.cycle)continue;                        // 從下一旬起
+    if(isMeetingDate(m,c)||(f&&f.month===m&&f.cycle===c)||(D&&D.m===m&&D.c===c))continue;
+    L.push([m,c]);
+  }
+  const p=L.length?pick(L):null;
+  G.komonR=p?{y:G.year,m:p[0],c:p[1],done:false}:{y:G.year,done:true};
+}
+/** 找一座城與一位被懲戒的同業。回傳 {ct,cid,near} 或 null。 */
+function komonPick(){
+  const O=ODDS.komonRumor,v=(G.evil&&G.evil.v)||0,home=homeCity();
+  const ok=n=>alive(n.cid)&&!n.hired&&!G.known.includes(n.cid)&&!(G.rel[n.cid]&&(G.rel[n.cid].bond||G.rel[n.cid].met));
+  const cands=ct=>cityNpcs(ct.id,'rival').filter(ok);
+  let cities,near=false;
+  const others=CITIES.filter(ct=>ct.id!==home.id);
+  if(v>=O.near){const S=others.slice().sort((a,b)=>distKm(a,home)-distKm(b,home));cities=shuffle(S.slice(0,O.nearN)).concat(S.slice(O.nearN));near=true}   // 最近的幾座城輪流，不老是同一座
+  else if(v>=O.region)cities=shuffle(others.filter(ct=>ct.region_id===home.region_id));
+  else cities=shuffle(others.filter(ct=>ct.region_id!==home.region_id));
+  for(const ct of cities){const L=cands(ct);if(L.length)return {ct,cid:pick(L).cid,near}}
+  return null;
+}
+/** 每旬（日期前進之後）：到了傳聞旬就上旬報與瓦版。 */
+function komonTick(log){
+  komonPlan();
+  const K=G.komonR;if(!K||K.done||K.m!==G.month||K.c!==G.cycle)return;
+  K.done=true;
+  const P=komonPick();if(!P)return;
+  (G.komonHit=G.komonHit||[]).push(P.cid);if(G.komonHit.length>30)G.komonHit.shift();
+  G.komonBz={cid:P.cid,city:P.ct.name,t:G.turn};
+  const t=NEWS(P.near?'komon.rumor.near':'komon.rumor',{c:P.ct.name,m:nameOf(P.cid)});pushNews(t);log.push(t);
+}
+/** 外人風評：被傳聞點名過的同業多一句。 */
+{const _r=rumorsOf;rumorsOf=function(cid){const out=_r.apply(this,arguments);
+  if(G&&G.komonHit&&G.komonHit.includes(cid))out.push({txt:LINES.rumor.komon,src:LINES.rumor.src.komon,cred:1,truth:true});
+  return out}}
+/** 番付八卦：這一期有傳聞，就寫一則。 */
+{const _g=bzGossip;bzGossip=function(){const out=_g.apply(this,arguments),L=bzLast(),B=G.komonBz;
+  if(B&&B.t>(L?L.turn:-1)&&npc(B.cid)&&!out.some(g=>g.key==='komon')){if(out.length>=BZ().gossip[1])out.pop();out.push({key:'komon',about:[B.cid],truth:true,c:B.city})}
+  return out}}
 
 'use strict';
 /* ★檔案總覽：出遊奇遇與季節小景（DESIGN_NOTES 第二百二十六～二百三十一節）
