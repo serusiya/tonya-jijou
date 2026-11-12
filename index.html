@@ -731,7 +731,6 @@ const COSTS={
   shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
-  guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},
   guildBond:{name:'協議訂約金（付給大盤，退出或違約作廢）',cur:'silver',amt:1000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},
@@ -806,7 +805,7 @@ const ODDS={
     gs:{init:[0.5,3],min:0.2,max:10,fame:0.6,fameDrift:4,dealFame:[1,2],
       trip:[{k:'big',w:12,r:[0.2,0.4]},{k:'good',w:36,r:[0.05,0.15]},{k:'flat',w:26,r:[-0.03,0.03]},{k:'loss',w:19,r:[-0.15,-0.05]},{k:'rob',w:7,r:[-0.4,-0.2]}]},
     gap:[0.9,0.6],gossip:[3,4],falseP:0.3,keep:4,heatGossip:3,flowerGossip:600,topicTurns:9,sayP:0.3},   // 身代以玩家開局現款為基準的倍數；rv 同業、gs 旅商（每季行商結果）；gap：和上一位（或榜尾）相比，只差一步／還差一截的比例；falseP：八卦是假的比例
-  f8:{name:'0.8 先行請託（07zze_favor8.js）',fearTurns:3,fraud:{sea:[3500,4500],land:[2500,3500]},fraudRest:3,fraudHeat:1.5,suspCost:3000,suspTurns:3,suspAff:30,suspHeat:1,mono:{mono5:{cost:5000,turns:3},mono6:{cost:10000,turns:9}},monoBuyX:2,kesshoGold:1000,kesshoMin:3,newTown:{cost:6000,p:[0.4,0.7,1],pop:0.08,cd:12},lossRate:0.5,lossCap:800,theftBack:[0.2,0.3]},
+  f8:{name:'0.8 先行請託（07zze_favor8.js）',fearTurns:3,fraud:{sea:[3500,4500],land:[2500,3500]},fraudRest:3,fraudHeat:1.5,suspCost:3000,suspTurns:3,suspAff:30,suspHeat:1,mono:{mono5:{cost:5000,turns:3},mono6:{cost:10000,turns:9}},monoBuyX:2,kesshoGold:1000,kesshoMin:3,newTown:{cost:6000,p:[0.4,0.7,1],pop:0.08,cd:12,cost6:10000,pop6:0.16,floor6:80},lossRate:0.5,lossCap:800,theftBack:[0.2,0.3]},
   gm:{name:'問屋公會長（07yc_gm.js）',fameWin:5,famePerTurn:0.1,rivalAff:3,voteAff:5,bribeVar:0.1,canvassX:3,canvassComp:[0.5,1,1.5,2],canvassShare:2,fineX:1.2,evP:0.5,arbFav:10,arbHurt:20,arbAff:5,arbCost:[500,1500],levy:[3000,8000],levyFame:5,levyAff:40},   // canvassComp：投票人與對手相容（格格不入、相談甚歡、意氣相投、一見如故）的心防係數；canvassShare：對手市佔每多一成，心防 +20%
   sick:{name:'病倒（07zzd_sick.js）',flower:{nom:3,turns:2},stress:{turns:3}},   // stress：壓力到 90 病倒，靜養三旬（07zzi_stress.js）   // 吉原同一旬指名第 nom 位花魁後病倒，之後 turns 個完整的旬不能出門
   marketFloor:{name:'大盤牌價地板（固定基準價倍數）；收市價低於地板時，下一旬牌價與收市價脫鉤',staple:1.50,normal:1.20,luxury:1.05},
@@ -836,7 +835,6 @@ const ODDS={
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
-  cartelSecret:{name:'暗約偷跑被告發',base:0.12,slope:0.18,max:0.8},
   guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持為各自穩定供應量九成、減供為七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7},
   meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議訂約金一期的旬數（自動續押，期滿分配違約金）',turns:9},
@@ -888,7 +886,7 @@ const ODDS={
   gossipMet:{name:'聊天：偏向說已認識者的流言',p:0.6},
   /* —— 醜聞扣知名度（直接扣，不打折）—— */
   fame:{name:'知名度：上限、階級門檻、加分遞減；私房錢滿 goldTier 兩再加一階（只加一階）；gate 以上小事件不加、中事件三分之一、大事件照原值',gate:125,midCut:1/3,cap:200,tiers:[30,80,150],goldTier:2000,damp:130,floor:0.25},
-  fameLoss:{name:'醜聞扣知名度',kakeFail:1,staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
+  fameLoss:{name:'醜聞扣知名度',kakeFail:1,staffEv:1,inspect:6,scapegoat:3,cartelPledged:4,cartelSecret:5,yamiCaught:5,urgeRefuse:3,kyusaiFail:2,riot:8,raid1:2,raid2:6,raid3:12,region:3,arrest:6,flowerPer200:0.5,raidRival:2,disown:2,tributeFail:1,gmFall:10,gmLevy:5},
   /* —— 暗殺 —— */
   assassin:{name:'暗殺成功率',base:0.45,courageDiv:250,commerceDiv:400,perRank:0.06,min:0.12,max:0.85},
   assInvestigate:{name:'命案後官府追查',base:0.12,perHeat:0.03,perRank:0.04,min:0.15,max:0.6},
@@ -916,6 +914,8 @@ const ODDS={
   ,ronin:{name:'浪人頭（07zw_ronin.js）：最多結識人數、結識機率（指名、夜宴、遇襲）、結識好感、要錢次數門檻、各階金額（浪人、一～三階）、每升一階機率倍率',maxKnown:3,nominate:0.1,feast:0.15,ambush:0.3,aff:10,times:10,amt:[50,100,200,400],decay:0.75}
   ,smugMeet:{name:'結識闇商人（07g_smuggle.js）：指名花魁偶遇、包場夜宴混入的機率，結識時的好感',nominate:0.1,feast:0.15,aff:10}
   ,bandit:{name:'海賊山賊猖獗（07zv_bandit.js）',turns:3,quellFame:3}
+  ,urge:{name:'官府督促（07zzq_urge.js）：連續幾季人口減少、市佔門檻；御救販售的份量倍數、旬數、失約與交滿的好感、交滿的知名度；推給同業的好感、推託的官員好感；闇商代出的成數、被看穿機率（基本、每超出配額一倍、上限）、罰現款比例、看穿與交不足時闇商人好感、不肯再接的旬數',streak:3,share:0.15,mult:3,turns:9,failAff:20,doneAff:10,fame:[3,5],pushAff:40,refuseAff:30,yamiCut:0.9,detect:{base:0.06,slope:0.09,max:0.4},fine:0.06,yamiAff:30,yamiShortAff:10,ban:36}
+  ,works:{name:'大工程（07zzp_works.js）：外港開闢（船奉行五階）與國產取立（遠國奉行六階）的公款、成功率依次數、失敗冷卻旬數、外港的知名度、國產取立的知名度下限',port:{cost:15000,fame:10},kokusan:{cost:30000,floor:165},p:[0.4,0.7,1],cd:12}
   ,extortReport:{name:'告發索賄的官員（04_people.js 的 reportExtort）：風聲減幾點；撤職下獄的機率（一到四階、五六階）',heat:2,fall:0.2,fallHi:0.1}
   ,komonRumor:{name:'木戶黃門年度傳聞（07zzj_komon.js）：惡德值到 region 傳聞落在本地區、到 near 落在本城附近（離本城最近的 nearN 座城之一）',region:10,near:20,nearN:3}
   ,shun:{name:'不在協議時（沒參加或違約被查獲後）：仲買人銷貨的牌價成數（平常 0.7）、旅商人代售價再打的折扣（07x_dealers.js）',broker:0.5,xsell:0.7}
@@ -1442,6 +1442,11 @@ const LINES={
     reportOpen:['公會長來了。把這期的菓子折送進來吧。這是公務，話沒說完就走，要以失職論處。'],
     reportOk:['嗯，公會的心意本官收到了。回去吧。','很好，公會長辦事妥當。'],
     reportFail:['話都說不清楚，這事本官只能照規矩辦了。','公會長如此敷衍，本官也只好秉公處理。']
+  },
+  /* 官府督促（07zzq_urge.js） */
+  urge:{
+    say:['城中連月缺貨，百姓怨聲載道。公會的協議，不可罔顧城中需要。','米鹽柴炭樣樣吃緊，公會還在限量？本官要看到城裡的貨夠用。','再這樣缺下去，人都要搬走了。公會得拿出辦法來。'],
+    yamiPitch:['「官府催得緊，公會又盯著配額……貴號多出來的貨，交給我從後巷放出去，誰也查不到你頭上。」','「城裡缺貨，有貨就有銀子。配額以外的，我替你悄悄脫手。」']
   },
   /* 不在協議時，仲買人、旅商人收你的貨壓價（07x_dealers.js 的 shunLine） */
   shun:{
@@ -2439,7 +2444,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.5':'📊 相場買賣',
   'wiki.WIKI_GUIDE.6':'每旬相場掛出固定牌價，進貨照牌價算；出貨要等全城都出完貨、收市價揭曉後才結算，這個收市價就是下一旬的牌價。全城出貨越多，價格越低，壓價的影響還會留上一陣子：必需品退得快，奢侈品退得慢。所以分批出貨，比一次倒完划算。相場每旬肯批給你的貨不多，光靠相場進出大約只是打平，真正的利潤在商路。本業最貴的兩樣貨，要先向勘定方取得「商株御免」才能買賣。城裡的貨夠用，人口會慢慢增加；全城長期缺貨，人就會流失——協議減供時城裡容易吃緊。市佔要靠實際出貨撐著，囤貨不賣，老主顧也會跑掉。生意做出一點名堂以後，城裡的旅商人會替作坊來談「定約掛賣」：先立約收手付，連著九旬每旬交一批貨，價錢說定就不改，交完才收掛金。這些貨不算本城出貨，不受配額限制，也不壓行情；只是要派番頭經手，交不出貨就是失約，掛金也可能收不回來。',
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
-  'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態守約、暗中偷跑或退出，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但得把菓子折的得標金向御金奉行報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
+  'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但得把菓子折的得標金向御金奉行報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
   'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨，要等人回來才知道。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
@@ -2793,6 +2798,14 @@ const UI_TXT={
   'fav.mono6.d':'付 10,000 兩：九旬內本城只有你能賣這項貨，進貨上限加倍；全城的需求都要靠你供應，須事先囤貨。',
   'fav.newTown':'新町取立',
   'fav.newTown.d':'付 6,000 兩申請開立新町，審理後若獲准，本城人口增加。頭一回未必成，再三申請必成。',
+  'fav.rport2':'外港開闢',
+  'fav.rport2.d':'付 15,000 兩，替這個地區一座沒有海運的城開闢外港，從此船隻也能進出。頭一回未必成，再三申請必成；每個地區一次。',
+  'fav.rkokusan':'國產取立',
+  'fav.rkokusan.d':'付 30,000 兩，在這個地區扶植一處你本業貨的新產地，委託採買去那裡能以產地價買到；你的名聲也從此不墜。頭一回未必成，再三申請必成；每個地區一次。',
+  'works.portPick':'挑一座要開闢外港的城（受理時付 {a} 兩，審理完成才知道成不成）：',
+  'works.kokuPick':'挑一樣要在【{r}】扶植的貨（受理時付 {a} 兩；哪一座城由官府決定）：',
+  'fav.newTown6':'新町取立（城代家老）',
+  'fav.newTown6.d':'付 10,000 兩申請大規模開立新町，審理後若獲准，本城人口大增，你的名聲也從此不墜。頭一回未必成，再三申請必成。',
   'fav.rwreck':'破船賑',
   'fav.rwreck.d':'叫一位閒著的船長假裝落水，當場領撫恤銀；他得避三旬風頭。一年一次，風聲大增。',
   'fav.rrobbed':'盜難賑',
@@ -2816,6 +2829,7 @@ const UI_TXT={
   'spend.f8Susp':'辦案堂費',
   'spend.f8Mono':'專賣株',
   'spend.f8NewTown':'新町取立',
+  'spend.works':'大工程（外港開闢、國產取立）',
   'gm.step':'改選',
   'gm.next':'<button class="pixel-btn btn-gold" style="width:100%;margin-top:8px" data-act="meetStep">改選已畢，進行協議立場 ▶</button>',
   'gm.el.first':'開業這一年頭一回改選公會長：候選人是本城市佔最高的兩家。本城每一家問屋都能投票，不看有沒有參加協議。',
@@ -3524,6 +3538,38 @@ const UI_TXT={
   'btn.kakeSkip':'照樣推進',
   'kake.card.t':'📦 合約',
   'pact.self':'本店',
+  'pact.kyusai.sub':'御救販售·還剩 {l} 旬',
+  'pact.yami.sub':'闇商代出·還剩 {l} 旬（貨款進私房錢）',
+  'fav.kyusai':'御救販售',
+  'fav.kyusai.d':'督促期間：官府要你替城裡補上缺貨。上一期缺的每樣貨，九旬內每旬照數交出，官府照當旬牌價付現款；交滿有賞，交不足失約。',
+  'urge.tag':'官府督促',
+  'urge.waitElect':'先改選公會長，再由公會長處理。',
+  'urge.notGm':'這件事交給公會長「{n}」處理。你若見得到這位大人，這個月也可以登門請託「御救販售」；督促期間，相熟的闇商人也肯替你把貨放出去。',
+  'urge.gmNote':'你是公會長，這件事得由你處理：',
+  'urge.btn.take':'接下御救販售',
+  'urge.btn.busy':'手上已有御救販售',
+  'urge.btn.none':'上一期沒有缺貨可補',
+  'urge.pushHead':'推給一位同業（他好感 −{d}，從此結仇）：',
+  'urge.btn.push':'推給他',
+  'urge.pushConfirm':'推給「{n}」，他好感 −{d}，一定記恨你。確定嗎？',
+  'urge.btn.pushOk':'確定推給他',
+  'urge.btn.cancel':'再想想',
+  'urge.btn.refuse':'推託不辦（官員好感 −{d}、知名度 −{f}）',
+  'urge.res.take':'你接下了御救販售：{a}（每旬）。',
+  'urge.res.push':'你把差事推給了「{n}」。',
+  'urge.res.refuse':'你推託不辦，官員拂袖而去。',
+  'urge.bond':'公會督促時結識',
+  'urge.log.push':'你把官府的督促差事推給他，他從此記恨。',
+  'urge.log.refuse':'你推託官府的督促，他很不高興。',
+  'urge.log.kyusaiFail':'御救販售交不足，失約。',
+  'urge.log.kyusaiDone':'御救販售交滿，他很滿意。',
+  'urge.yamiReq':'代出',
+  'urge.yamiReq.d':'他把你協議配額以外的貨，私下放到市面：每旬 {a}，到官府不再督促為止（最長九旬）。照牌價九折算，錢進私房錢；被同業看穿就算違約。',
+  'urge.log.yami':'託他私下代出貨物（好感 -{a}）。',
+  'urge.log.yamiCaught':'代出的事被同業看穿，連累了他。',
+  'urge.log.yamiShort':'代出的貨沒備齊，他白跑一趟。',
+  'urge.yamiOk':'「{n}」答應下旬起每旬替你私下代出 {a}（好感 -{d}）。',
+  'urge.yamiNone':'眼下沒有可以代出的貨。',
   'pact.honjin.sub':'本陣御用達·還剩 {l} 旬',
   'pact.trib.sub':'上貢·{t} 旬後交，一次交清',
   'pact.trib.subNow':'上貢·這旬推進就交，一次交清',
@@ -4009,6 +4055,9 @@ const MSG_TXT={
   'log.inspection':'中央巡按突查，因與你往來受牽連，彼此交情受損。',
   'log.fall':'受你牽連遭上司申斥，好感 -{d}。',
   'log.scapegoat':'為求自保，把罪責推到你頭上。',
+  'urge.kyusaiNone':'眼下沒有可以接的御救販售。',
+  'urge.kyusaiOk':'接下御救販售：下旬起每旬交出 {a}，共 {t} 旬，官府照當旬牌價付現款。',
+  'works.noPick':'得先挑好要辦的對象。',
   'extort.report.none':'這筆索賄已經了結了。',
   'extort.report.fallMsg':'你告發「{n}」索賄，查有實據，他撤職下獄。官場風聲 −{h}；他從此恨你入骨。',
   'extort.report.stayMsg':'你告發「{n}」索賄，查無實據，他照常理事。官場風聲 −{h}；他從此恨你入骨。',
@@ -4553,6 +4602,26 @@ const NEWS_TXT={
   "fr.bust.swap":"🚨【出事】官差在倉裡翻出旅商「{n}」換來的貨夾帶的{g} × {q}。",
   "drift.leave":"👥【另謀高就】「{n}」離開本城，往【{c}】謀生去了。",
   "fr.bust.auto":"🚨【出事】{m}",
+  "urge.start":"⚖️【官府督促】城中連月缺貨，巡察使「{n}」到公會例會督促，責成公會設法滿足城中需要。",
+  "urge.end":"⚖️【官府督促】城中貨源漸足，官府不再過問。",
+  "urge.push":"⚖️【官府督促】公會長把督促的差事推給「{n}」，他只得增加出貨。",
+  "urge.refuse":"⚖️【官府督促】公會長推託不辦，巡察使拂袖而去。",
+  "urge.kyusaiGive":"🏛️【御救販售】交出 {g}，官府付 {a} 兩（還有 {l} 旬）。",
+  "urge.kyusaiDone":"🏛️【御救販售】交出 {g}，官府付 {a} 兩；九旬交滿，「{n}」大人嘉許有功，知名度 +{f}。",
+  "urge.kyusaiFail":"🏛️【御救販售】這旬只交出 {g}（官府付 {a} 兩），交不足，差事失約。",
+  "urge.yamiGive":"🌙【代出】「{n}」私下放出 {g}，私房錢 +{a} 兩（還有 {l} 旬）。",
+  "urge.yamiDone":"🌙【代出】「{n}」私下放出 {g}，私房錢 +{a} 兩；代出到此為止。",
+  "urge.yamiShort":"🌙【代出】這旬只備出 {g}，「{n}」嫌麻煩，不再替你代出（私房錢 +{a} 兩）。",
+  "urge.yamiStop":"🌙【代出】官府不再督促（或你已不在協議裡），「{n}」收手不再代出。",
+  "urge.yamiCaught":"⚖️【違約】同業看穿「{n}」替你私下放貨，判你違約：訂約金 {b} 兩作廢、聯合斷貨三旬，另罰現款 {f} 兩（這旬私房錢 +{g} 兩）。",
+  "works.portOk":"⚓【外港開闢】【{r}】的「{c}」外港落成，從此船隻也能進出。知名度 +{g}。",
+  "works.portFail":"⚓【外港開闢】【{r}】的外港工程沒有成功，款項不退。",
+  "works.portVoid":"⚓【外港開闢】【{r}】那座城已經通了海運，工程作罷。",
+  "works.portHist":"{f}出資開闢外港，從此船隻也能進出",
+  "works.kokuOk":"🌱【國產取立】官府在【{r}】的「{c}」扶植「{g}」，新產地成立。",
+  "works.kokuFail":"🌱【國產取立】【{r}】的國產取立沒有成功，款項不退。",
+  "works.kokuVoid":"🌱【國產取立】【{r}】已經沒有能扶植的城，工程作罷。",
+  "works.kokuHist":"{f}出資扶植「{g}」，成為新產地",
   "extort.report.fall":"⚖️【告發】{f}告發「{n}」大人索賄，查有實據，「{n}」撤職下獄，官場為之側目。",
   "extort.report.stay":"⚖️【告發】{f}告發「{n}」大人索賄，查無實據，「{n}」照常理事，聽說記恨在心。",
   "komon.rumor":"🍵【傳聞】聽說木戶黃門大人微服到了【{c}】，當眾揭穿惡德商人「{m}」的勾當，闔城稱快。",
@@ -4585,8 +4654,8 @@ const NEWS_CAT={
   firm:["of.meet","kake.unlock","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
-  trouble:["komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
+  official:["urge.start","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  trouble:["urge.kyusaiFail","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
 const NEWS_HIDE=["rush.bust","inspectTick.1","inspectResolve.2","xgoodsTick.1","xgoodsTick.2","fr.lend.news","fr.swap.news"];
@@ -4617,6 +4686,9 @@ const CHANGELOG=[
     '新增告發：官員暗示索賄時，可以不給錢、告發他，官場風聲減輕，但從此結仇；查有實據的話，他會撤職下獄。',
     '公會長選舉設定更新：拉票改成同業名單，想找誰拉票自己挑，拉夠過半就可以開票；沒去拉的人照樣投對手。',
     '請託設定更新：新町取立成功時，城裡人口增加得更多。',
+    '新增請託：城代家老的新町取立（人口大增，名聲從此不墜）、船奉行的外港開闢（讓一座城通海運）、遠國奉行的國產取立（扶植本業貨的新產地）；五街道通行狀、朱印狀、地區通商特許狀不再發給，已拿到的照樣有效。',
+    '新增官府督促：城裡人口連月減少、你的生意又做得大時，巡察使會到例會督促。見得到他就能接下「御救販售」替城裡補貨；公會長可以自己接、推給同業或推託。督促期間，相熟的闇商人也肯替你把配額以外的貨私下放出去，錢進私房錢，被看穿就算違約。',
+    '問屋公會設定更新：取消暗約，協議只有參加與退出；舊存檔的暗約改為參加。',
     '外城友人設定更新：寄信與作客改到「外城出遊」辦，下方照地區列出所有外城友人；成了仇人就不再往來，出門作客期間也不寄信。',
     '修改背景資料'
   ]},
@@ -5218,6 +5290,7 @@ function rivalSupply(c,m,first){
     // 「維持」時仍不超過配額，但大多數同業會趨近足額出貨；「減供」沿用原本的均勻波動。
     let f=normal?1-(1-R.lo)*Math.pow(rnd(),R.normalPow):R.lo+rnd()*(R.hi-R.lo);
     f*=clamp(r.stock/0.9,0.5,normal?1:1.3);if(r.raided)f*=0.4;
+    if(own&&urgeForced(r.cid))f=1/Math.max(0.01,policySupplyRatio());   // 公會長推給他的督促差事：照自己的穩定供貨線足量出貨（07zzq_urge.js）
     let mul=0;
     if(c.sys===G.sysKey)mul=rivalOverMul(r,c,first);                       // 本業：每家每旬 5% 挑一項超賣（違反協議配額，見 07y_guild.js）
     else if(!first&&!r.raided&&roll('rivalShip',R.overP))mul=R.mulMin+rnd()*(R.mulMax-R.mulMin);   // 非本業（打毀指標用的主食）：照舊逐項擲
@@ -5287,7 +5360,7 @@ function settleSaleQuote(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
+const buyLimit=name=>{const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return kyusaiBonus(name)+Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -5425,7 +5498,7 @@ function thieves(){
 }
 
 /* ---------- 株仲間卡特爾 ---------- */
-/** 每旬結算公會：誓言守配額卻超量→斷貨；暗約偷跑→可能被查抄；遵守率隨行為變動。 */
+/** 每旬結算公會：誓言守配額卻超量→斷貨；遵守率隨行為變動。暗約已取消（第二百五十六節；偷跑改由督促期的闇商代出，07zzq_urge.js）。 */
 function evalCartel(log){
   const C=G.cartel;let over=0,shippedAny=false;
   ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const q=quotaOf(c.name),x=q>0?Math.max(0,(m.shipped-q)/q):(m.shipped>0?1:0);over=Math.max(over,x)});
@@ -5437,15 +5510,6 @@ function evalCartel(log){
         const t=NEWS('evalCartel.1',{bond:lost?NEWS('cartel.bondLost',{a:fmt(lost)}):''});pushNews(t);log.push(t);
       }else C.comp=Math.max(30,C.comp-3);
     }else if(shippedAny){C.comp=Math.min(90,C.comp+2);G.life.pledges++;addFame(0.1)}
-  }else if(C.state==='secret'){
-    if(over>0){
-      C.cheated++;G.life.cheats++;
-      if(chance(Math.min(ODDS.cartelSecret.max,ODDS.cartelSecret.base+ODDS.cartelSecret.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');caughtAdd('me');const lost=guildForfeit();
-        let fine=0;if(G.flags.exempt<=0){fine=Math.round(Math.max(0,G.silver)*0.06);G.silver-=fine}
-        const t=NEWS('evalCartel.2',{fine:(lost?NEWS('cartel.bondLost',{a:fmt(lost)}):'')+(fine?NEWS('cartel.fine',{a:fmt(fine)}):NEWS('cartel.noFine'))});pushNews(t);log.push(t);sfx.bad();
-      }else C.comp=Math.max(30,C.comp-2);
-    }
   }else{C.comp+= (60-C.comp)*0.1}
   C.comp=Math.round(C.comp*10)/10;
   if(C.sanction>0)C.sanction--;
@@ -5709,6 +5773,7 @@ function populationTick(log){
   if(TURNRP.supplyStable)Q.stable++;else Q.unstable++;
   Q.turns++;
   {const v=citySatNow();if(v!==null){Q.sat=(Q.sat||0)+v;Q.n=(Q.n||0)+1}}
+  {Q.gap=Q.gap||{};ownComms().forEach(c=>{if(c.luxury)return;const S=G.mk[c.name]&&G.mk[c.name].snap;if(!S||!(S.dn>0))return;Q.gap[c.name]=(Q.gap[c.name]||0)+Math.max(0,S.dn-(S.so||0)-(S.my||0))})}   // 各項貨每旬的缺口（官府督促的御救販售用）
   if(!isMeetingTurn())return;                     // 與例會同一期：例會旬開始時結算上一期
   if(!(Q.n>0)){G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};return}   // 舊存檔剛改版、這一期沒有滿足比例的紀錄：這次不調整
   const avg=Q.sat/Q.n,tier=citySatTier(avg),rate=[-O.all,-O.majority,O.majority,O.all][tier];
@@ -5716,6 +5781,8 @@ function populationTick(log){
   const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(homeCity());
   G.cityPopulation=Math.max(O.min,Math.round(before*(1+rate)));
   G.citySatLast=avg;
+  G.lastGap={};Object.entries(Q.gap||{}).forEach(([k,v])=>{G.lastGap[k]=v/Q.n});   // 上一期各項貨每旬平均缺口
+  G.popDown=rate<0?(G.popDown||0)+1:0;            // 連續減少的季數（官府督促，第二百五十六節）
   G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};
   TURNRP.population={before,after:G.cityPopulation,sat:avg,tier,rate};
   const t=NEWS('city.population',{result,before:fmt(before),after:fmt(G.cityPopulation),rate:(rate>0?'+':'')+(rate*100).toFixed(1)+'%'});
@@ -5733,6 +5800,8 @@ function advanceTurn(){
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
   kakeDeliver(log);                               // 定約掛賣：自動出貨之前由番頭交貨（07zzm_kake.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
+  kyusaiDeliver(log);                             // 御救販售：官府的差事（07zzq_urge.js）
+  yamiDeliver(log);                               // 闇商代出（07zzq_urge.js）
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
   autoBuy(log);
@@ -5750,6 +5819,7 @@ function advanceTurn(){
   evalCartel(log);
   meetingTick(log);                               // 例會旬：建立本期例會（方針由投票決定）；例會前一旬提醒
   populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
+  urgeTick(log);                                  // 官府督促：連續三季人口減少、市佔一成五以上（07zzq_urge.js）
   msTick(log);
   refreshMarket();
   guildTick(log);                                 // 公會：查同業超賣（違約金併入本期）
@@ -5987,7 +6057,7 @@ function doFavor(cid,key,arg){
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
   if(f.relief)return doRelief(cid,n,r,f);
   if(f.bandit)return doBanditFavor(cid,n,r,f);                  // 討伐海賊／山賊（07zv_bandit.js）                      // 災情救濟（07zu_relief.js）
-  if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
+  if(f.apply)return applyFavor(cid,n,r,f,arg);                  // 許可、權利類：走申請審理流程（見 07k）；arg＝先挑好的對象（外港開闢的城、國產取立的貨）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   {const ck=regFavorCheck(f,n);if(ck)return {ok:true,status:'held',msg:ck}}   // 遠國奉行所三階新請託（07zz_regfavor.js）
@@ -8110,9 +8180,8 @@ ACT.cartel=el=>{
   UI.s.quitArm=false;
   const joining=s!=='none'&&!(guildMember()&&C.bond>0);
   if(joining&&!afford('guildBond')){toast(shortMsg('guildBond'));return}
-  if(s==='secret'&&!afford('guildSecret')){toast(shortMsg('guildSecret'));return}
+  if(s==='secret')return;                          // 暗約已取消（第二百五十六節）
   if(!C.paid){if(!spendAP())return;C.paid=true}
-  if(s==='secret')spend('guildSecret');
   let note='';
   if(joining){guildJoin();note=MSG('cartel.join',{c:fmt(costOf('guildBond'))})}
   if(s==='none'){const lost=guildForfeit();if(lost)note=MSG('cartel.lose',{c:fmt(lost)})}
@@ -8500,7 +8569,7 @@ function enterSave(o){if(!o)return;musicWant('market');G=o;LASTREP=G.lastRep||nu
 /* =====================================================================
  * 07b_purse.js — 現款／私房錢、保鏢遇襲
  *  - 現款 = G.silver：貨款、賄賂、拜訪、薪資皆用現款。
- *  - 私房錢 = G.gold：花街、走私（暗約偷跑）專用。
+ *  - 私房錢 = G.gold：花街、走私、出遊專用；督促期的闇商代出貨款也進這裡（07zzq_urge.js）。
  *  - 私房錢來源：①從商號帳上挪用（每次最多 50 兩，扣 1 行動點數）②每旬盈餘抽成（0～3%）。
  *  - 撥回現款：每旬一次、扣 1 行動點數、一次 100 兩（PURSE_BACK）。好感 100 的大番頭另可大筆轉帳（07m_loyalty.js）。
  *  - 私房錢滿 2000 兩，名望多一階（fameTier）。
@@ -9765,6 +9834,8 @@ function permitSummary(){
   return {sea:s,land:l};
 }
 /* ---------- 請託項目 ---------- */
+/* 五街道通行狀（rroad）、朱印狀（rshuin）、地區通商特許狀（rcharter）已刪除（第一百四十二、二百五十六節）：不能再請託；
+ * 舊存檔已取得的效果照樣保留（regionHeld、permitsOf 照讀），審理中的照樣發給（REG_FAVOR 保留處理函式）。 */
 const REG_FAVORS=[
   {k:'rpass',apply:true,name:UT('reg.REG_FAVORS'),rank:3,once:true,pos:['reg_01'],desc:UT('reg.REG_FAVORS.2')},
   {k:'rport',apply:true,name:UT('reg.REG_FAVORS.3'),rank:3,once:true,pos:['reg_02'],desc:UT('reg.REG_FAVORS.4')},
@@ -9772,9 +9843,6 @@ const REG_FAVORS=[
   {k:'rcheap',name:UT('reg.REG_FAVORS.7'),rank:4,cd:12,pos:['reg_04'],desc:UT('reg.REG_FAVORS.8')},
   {k:'rescort',name:UT('reg.REG_FAVORS.9'),rank:4,cd:12,pos:['reg_05'],desc:UT('reg.REG_FAVORS.10')},
   {k:'rtax',name:UT('reg.REG_FAVORS.11'),rank:4,cd:12,pos:['reg_06'],desc:UT('reg.REG_FAVORS.12')},
-  {k:'rroad',apply:true,name:UT('reg.REG_FAVORS.13'),rank:5,once:true,pos:['reg_07'],desc:UT('reg.REG_FAVORS.14')},
-  {k:'rshuin',apply:true,name:UT('reg.REG_FAVORS.15'),rank:5,once:true,pos:['reg_08'],desc:UT('reg.REG_FAVORS.16')},
-  {k:'rcharter',apply:true,name:UT('reg.REG_FAVORS.17'),rank:6,once:true,pos:['reg_09'],desc:UT('reg.REG_FAVORS.18')},
   {k:'rvisit',name:UT('reg.REG_FAVORS.19'),rank:6,cd:12,pos:['reg_10'],desc:UT('reg.REG_FAVORS.20')}
 ];
 FAVORS.region=REG_FAVORS;
@@ -9840,11 +9908,11 @@ function officialKind(n){
 function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;const d=officialKind(n)==='greedy'?3:6;return foreignReg(n)?d*2:d}   // 外地遠國奉行所：審理旬數加倍   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return UT('reg.appName',{a:f.name,b:nameOf(n.cid)})}
-function applyFavor(cid,n,r,f){
+function applyFavor(cid,n,r,f,arg){
   if(favorDone(f,n))return {ok:true,status:'held',msg:MSG(f.lic?'doFavor.licHeld':'doFavor.3')};
   if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
   if(appsList().some(a=>a.key===f.k&&a.cid===cid))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
-  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n)};
+  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n),arg:arg===undefined?null:arg};
   setAff(r,Math.max(0,r.aff-REQ_AFF.apply));
   const k=officialKind(n),msg=TX(k==='greedy'?'apply.greedyEnough':'apply.plain');
   appsList().push(A);logRel(cid,UT('reg.applyFavor',{a:f.name,b:REQ_AFF.apply}));
@@ -9855,7 +9923,7 @@ function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
   let msg;
   msg=grantFavorApp(A);
-  if(msg===null)msg=REG_FAVOR[A.key](n);
+  if(msg===null)msg=REG_FAVOR[A.key](n,A.arg);
   logRel(A.cid,UT('reg.appGrant',{a:A.name}));
   const t=NEWS('appGrant.1',{name:A.name,msg});pushNews(t);log.push(t);sfx.fanfare();
 }
@@ -11973,6 +12041,7 @@ function meetAuction(myBid){
 /** 推進一旬、出貨之前：本旬例會若還沒走完，照規則自動決議（你沒有票、不能出價）。 */
 function meetingAuto(log){
   const M=meetNow();if(!M||M.done)return;
+  urgeAuto(M,log);                                 // 官府督促：你是公會長卻沒處理＝推託（07zzq_urge.js）
   if(M.el&&!M.el.done)gmElectAuto(M);              // 公會長選舉（07yc_gm.js）
   if(!M.voted){const T=meetVote(null);const t=NEWS('meet.autoVote',{p:policyName(T.policy),n:T.n,r:T.r,tie:T.tie?UT('gmeet.t'):''});pushNews(t);log.push(t)}
   if(!M.res){meetAuction(0);if(M.lotNews)log.push(M.lotNews)}
@@ -12042,9 +12111,9 @@ SHEETS.guild=()=>{
   if(cur===0&&M.el){const X=gmElectHtml(M);info=X.info;act=X.act}
   else if(cur===1){
     const st=C.state==='pledged'?UT('gmeet.st.4'):C.state==='secret'?UT('gmeet.st.5'):UT('gmeet.st.6');
-    const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
+    const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond');   // 暗約已取消（第二百五十六節）
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
-    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
+    act='<button class="pixel-btn btn-green" style="width:100%" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
   }else if(cur===2){
     info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
       :UT('gmeet.guild.6');
@@ -12075,7 +12144,7 @@ SHEETS.guild=()=>{
     if(guildMember())info+=UT('gmeet.guild.29',{a:own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+UT('gmeet.guild.28',{a:quotaOf(c.name)})).join('')})+'</div>';
     act=UT('gmeet.guild.30');
   }
-  h+=info+meetTalkHtml(cur)+act;
+  h+=urgeMeetCard(M)+info+meetTalkHtml(cur)+act;   // 官府督促（07zzq_urge.js，第二百五十六節）
   return {title:UT('gmeet.guild.31'),html:h};
 };
 ACT.meetStep=()=>{const M=meetNow();if(!M)return;UI.s.quitArm=false;M.step=Math.min(4,M.step+1);refreshSheet();UI.render()};
@@ -12680,7 +12749,8 @@ function migrateSave(){
   }
   if(G.gmDue===undefined)G.gmDue=null;
   if(!G.gmOut)G.gmOut={};
-  if(!G.cityRoutes)G.cityRoutes={};                  // 後天開通的海運（外港開闢）
+  if(!G.cityRoutes)G.cityRoutes={};
+  if(G.cartel&&G.cartel.state==='secret')G.cartel.state='pledged';   // 暗約已取消（第二百五十六節）：改為參加，訂約金保留                  // 後天開通的海運（外港開闢）
   if(!G.openedRoads)G.openedRoads=[];                // 開闢的道路（地區 id）
   if(!G.debts)G.debts=[];
   if(!G.guild)G.guild={};                            // 公會例會（07yb_meeting.js）；舊存檔的一期與季度人口在下一次例會時結算
@@ -14317,7 +14387,7 @@ const seaFearNote=()=>'<div class="notice">'+UT('f8.fearNote',{n:seaFearLeft()})
 {const _sh=SHEETS.smuggle;SHEETS.smuggle=function(){const o=_sh.apply(this,arguments);if(seaFear())o.html=seaFearNote()+o.html;return o}}
 
 /* ---------- 請託登記 ---------- */
-const F8_ADM=[{k:'fireAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('fire')},{k:'newTown',apply:true,rank:5,exactRank:true}];
+const F8_ADM=[{k:'fireAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('fire')},{k:'newTown',apply:true,rank:5,exactRank:true},{k:'newTown6',apply:true,rank:6,exactRank:true}];   // 新町取立：五階（小）與六階（城代家老）算同一件，共用次數與冷卻
 const F8_FIN=[{k:'cargoAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('cargo')},{k:'mono5',rank:5,exactRank:true,cd:3,avail:()=>!monoNow()&&tradeComms().length>0},{k:'mono6',rank:6,exactRank:true,cd:3,avail:()=>!monoNow()&&tradeComms().length>0}];
 const F8_JUD=[{k:'theftAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('theft')},{k:'suspend',rank:5,exactRank:true,cd:12,avail:()=>suspTargets().length>0}];
 F8_ADM.forEach(f=>FAVORS.administration.push(favorText(f)));F8_FIN.forEach(f=>FAVORS.finance.push(favorText(f)));F8_JUD.forEach(f=>FAVORS.judiciary.push(favorText(f)));
@@ -14430,25 +14500,29 @@ function kesshoDo(cid,tcid){
 /* ---------- 六、新町取立 ---------- */
 const NT=()=>G.newTown||(G.newTown={tries:0,cd:-1});
 const newTownCool=()=>NT().cd>=G.turn;
-{const _fd=favorDone;favorDone=function(f,n){if(f&&f.k==='newTown')return newTownCool();return _fd.apply(this,arguments)}}
+const NT_KEYS=['newTown','newTown6'];
+const ntCost=k=>k==='newTown6'?F8().newTown.cost6:F8().newTown.cost;
+/** 五、六階的新町取立算同一件：任一件在審理中，另一件也不出現。 */
+const ntPending=()=>(G.apps||[]).some(a=>a.state==='wait'&&NT_KEYS.includes(a.key));
+{const _fd=favorDone;favorDone=function(f,n){if(f&&NT_KEYS.includes(f.k))return newTownCool()||ntPending();return _fd.apply(this,arguments)}}
 {const _af=applyFavor;applyFavor=function(cid,n,r,f){
-  if(f&&f.k==='newTown'){
+  if(f&&NT_KEYS.includes(f.k)){
     if(newTownCool())return {ok:true,status:'held',msg:MSG('f8.ntCool',{n:NT().cd-G.turn+1})};
-    if(!favorPending(f)&&!(G.apps||[]).some(a=>a.key===f.k&&a.cid===cid)){
-      if(G.silver<F8().newTown.cost)return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(F8().newTown.cost)})};
-      payPublic('spend.f8NewTown',F8().newTown.cost);
-    }
+    if(ntPending())return {ok:true,status:'held',msg:MSG('applyFavor.1')};
+    if(G.silver<ntCost(f.k))return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(ntCost(f.k))})};
+    payPublic('spend.f8NewTown',ntCost(f.k));
   }
   return _af.apply(this,arguments);
 }}
 {const _ag=appGrant;appGrant=function(A,log){
-  if(A.key!=='newTown')return _ag.apply(this,arguments);
-  const N=NT(),p=F8().newTown.p[Math.min(N.tries,F8().newTown.p.length-1)],ok=rnd()<p;
+  if(!NT_KEYS.includes(A.key))return _ag.apply(this,arguments);
+  const six=A.key==='newTown6',N=NT(),p=F8().newTown.p[Math.min(N.tries,F8().newTown.p.length-1)],ok=rnd()<p;
   N.cd=G.turn+F8().newTown.cd-1;
   let t;
   if(ok){
-    const ct=homeCity(),before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(ct),after=Math.round(before*(1+F8().newTown.pop));
+    const ct=homeCity(),before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(ct),after=Math.round(before*(1+(six?F8().newTown.pop6:F8().newTown.pop)));
     G.cityPopulation=after;N.tries=0;
+    if(six)raiseFameFloor(F8().newTown.floor6);   // 城代家老的新町：知名度至少到 80，從此不低於 80
     G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('f8.ntHist',{f:G.firm||gmName('me'),a:fmt(before),b:fmt(after)})});
     Object.entries(G.mk).forEach(([nm,m])=>{m.D=cityD(ct,COMM_MAP[nm])});   // 人口增加後立即重算需求（穩定供貨線、配額、進貨上限、庫存上限都跟著變）
     t=NEWS('f8.ntOk',{a:fmt(before),b:fmt(after)});sfx.fanfare();
@@ -15650,12 +15724,15 @@ const kakeMarked=cid=>!!(G.kakeMarks&&G.kakeMarks.t===G.turn&&G.kakeMarks.ids.in
 /** 這位旅商人手上有沒有合約。 */
 const kakeWith=cid=>!!(G&&G.kake&&G.kake.some(c=>c.cid===cid));
 /** 掛賣以外、共用合約格式的約定（第二百五十一節）：上貢、本陣御用達。依交貨先後排（掛賣最先，再上貢、本陣）。
- *  回傳 [{kind,ref,cid,name,qty,due}]：ref 是原本的存檔物件（保留量記在 ref.filled）；due＝這次推進就要交。
+ *  回傳 [{kind,ref,cid,name,qty,due,left}]：ref 是原本的存檔物件（保留量記在 ref.filled）；due＝這次推進就要交。
+ *  第二百五十六節起再加御救販售、闇商代出（每項貨一列），排在本陣之後。
  *  上貢在推進後的年度結算前交（upkeep），所以到期前一旬就算「這次要交」；本陣御用達在自動出貨之前交。 */
 function pactExtras(){
   const L=[];if(!G)return L;
   const T=G.tribute;if(T&&COMM_MAP[T.name])L.push({kind:'tribute',ref:T,cid:T.cid,name:T.name,qty:T.qty,due:G.turn+1>=T.due});
-  const H=G.honjin;if(H&&COMM_MAP[H.name])L.push({kind:'honjin',ref:H,cid:H.cid,name:H.name,qty:H.qty,due:G.turn>=H.start});
+  const H=G.honjin;if(H&&COMM_MAP[H.name])L.push({kind:'honjin',ref:H,cid:H.cid,name:H.name,qty:H.qty,due:G.turn>=H.start,left:H.left});
+  const K=G.kyusai;if(K&&K.items)K.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'kyusai',ref:it,cid:K.cid,name:it.name,qty:it.qty,due:G.turn>=K.start,left:K.left})});   // 御救販售（07zzq_urge.js）
+  const Y=G.yami;if(Y&&Y.items)Y.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'yami',ref:it,cid:Y.cid,name:it.name,qty:it.qty,due:G.turn>=Y.start,left:Y.left})});   // 闇商代出
   return L;
 }
 /** 所有合約，依交貨先後：掛賣（早簽的在前）→ 上貢 → 本陣御用達。每筆 {kind,ref,cid,name,qty,due}，保留量在 ref.filled。 */
@@ -15853,7 +15930,7 @@ function kakeCard(){
   h+=X.map(p=>{const f=p.ref.filled||0,lack=p.due?p.qty-f:0;if(lack>0)gap++;if(!p.due&&p.kind==='tribute'&&f<p.qty)early++;
     let right,sub;
     if(p.kind==='tribute'){const t=Math.max(0,p.ref.due-G.turn);right=f>=p.qty?UT('pact.trib.full',{q:p.qty}):lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('pact.trib.prep',{f,q:p.qty});sub=UT(t<=1?'pact.trib.subNow':'pact.trib.sub',{t})}
-    else{right=p.due?(lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('kake.row.full',{q:p.qty})):UT('kake.row.next',{q:p.qty});sub=UT('pact.honjin.sub',{l:p.ref.left})}
+    else{right=p.due?(lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('kake.row.full',{q:p.qty})):UT('kake.row.next',{q:p.qty});sub=UT('pact.'+p.kind+'.sub',{l:p.left})}
     return row(p.cid,p.name,right,lack,sub,UT('pact.self'))}).join('');
   const can=gap||early;
   h+='<div style="margin-top:6px"><button class="pixel-btn btn-sm btn-gold" data-act="kakeFill" '+(can?'':'disabled')+'>'+UT(can?'btn.kakeFill':'btn.kakeFilled')+'</button></div>';
@@ -16217,6 +16294,256 @@ function dealHtml(){
   return G_.map(([k,L])=>'<div class="card"><b class="small">'+UT('deal2.g.'+k)+'</b>'+L.map(x=>'<div class="row tiny" style="margin-top:3px;align-items:flex-start"><span>'+esc(x.t)+'</span><b style="white-space:nowrap;margin-left:8px">'+esc(x.s)+'</b></div>').join('')+'</div>').join('')+'<div class="tiny muted" style="margin-top:4px">'+UT('deal2.foot')+'</div>';
 }
 ACT.dealings=()=>{UI.showInfo(UT('deal2.title'),dealHtml());sfx.tap()};
+
+'use strict';
+/* ★檔案總覽：遠國奉行所的大工程（DESIGN_NOTES 第二十九、二百零五、二百五十六節）
+ * - 外港開闢（五階 船奉行，rport2）：公款 15,000 兩。從那位船奉行所屬地區裡，挑一座還沒有海運的城（西道、南海各城本來都算港口，不會出現），
+ *   成功後那座城永久多了海運（G.cityRoutes[城].sea），陸路保留；地圖、商路、百科照 canSea 自動跟著變。知名度 +10（大事件）。每個地區一次。
+ * - 國產取立（六階 遠國奉行，rkokusan）：公款 30,000 兩。先挑一樣有交易許可的本業貨；審理通過時，在那個地區隨機一座到得了的城（不含本城、已產這樣貨的城）
+ *   新增這項物產（G.devProd，src:'kokusan'），委託採買去那裡能以產地價買到。知名度至少 165，並永久以 165 為最低值。每個地區一次。
+ * - 共通：走申請審理（受理時付公款、好感 −20、風聲 +0.1；外地審理加倍）；審理完成時依同一地區同一項工程的次數判定：第一次 40%、第二次 70%、第三次一定成功。
+ *   失敗款項不退、冷卻 12 旬；成功後寫進城史。狀態 G.works{port:{地區:城},kokusan:{地區:{city,name}},tries:{鍵:次數},cd:{鍵:旬}}。
+ * - 數值 ODDS.works；文字 fav.rport2*、fav.rkokusan*、works.*（01e）；新聞 works.*（01g）。 */
+const WK=()=>ODDS.works;
+const works=()=>G.works||(G.works={port:{},kokusan:{},tries:{},cd:{}});
+const wkKey=(k,rid)=>k+':'+rid;
+const wkCool=(k,rid)=>(works().cd[wkKey(k,rid)]||-1)>=G.turn;
+/** 外港開闢的候選城：那個地區、本局啟用、還沒有海運的城。 */
+const portCands=rid=>CITIES.filter(ct=>ct.region_id===rid&&!canSea(ct));
+/** 國產取立：那個地區裡到得了的城（不含本城；港口對港口走海運，或同地區陸路兩旬內）。 */
+function kokuCities(rid){const home=homeCity();return CITIES.filter(ct=>ct.region_id===rid&&ct.id!==home.id&&((canSea(home)&&canSea(ct))||canLand(home,ct)))}
+/** 國產取立能選的貨：有交易許可的本業貨，而且地區裡還有到得了、還不產它的城。 */
+const kokuGoods=rid=>tradeComms().filter(c=>kokuCities(rid).some(ct=>!cityProds(ct).includes(c.name)));
+REG_FAVORS.push(
+  {k:'rport2',apply:true,rank:5,pos:['reg_08'],avail:n=>{const rid=regOfNpc(n);return !works().port[rid]&&!wkCool('port',rid)&&portCands(rid).length>0}},
+  {k:'rkokusan',apply:true,rank:6,pos:['reg_09'],avail:n=>{const rid=regOfNpc(n);return !works().kokusan[rid]&&!wkCool('kokusan',rid)&&kokuGoods(rid).length>0}}
+);
+REG_FAVORS.filter(f=>f.k==='rport2'||f.k==='rkokusan').forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
+/* ---------- 先挑對象 ---------- */
+FAVOR_PICK.rport2=cid=>{
+  const rid=regOfNpc(npc(cid));
+  return portraitHtml(cid,56)+'<div class="notice tiny">'+UT('works.portPick',{a:fmt(WK().port.cost)})+'</div>'+portCands(rid).map(ct=>pickRow(cid,'rport2',ct.id,esc(ct.name)+' <span class="tiny muted">'+esc(ct.location_type||'')+'</span>')).join('');
+};
+FAVOR_PICK.rkokusan=cid=>{
+  const rid=regOfNpc(npc(cid));
+  return portraitHtml(cid,56)+'<div class="notice tiny">'+UT('works.kokuPick',{a:fmt(WK().kokusan.cost),r:REG_NAME(rid)})+'</div>'+kokuGoods(rid).map(c=>pickRow(cid,'rkokusan',c.name,esc(c.short))).join('');
+};
+/* ---------- 受理：付公款 ---------- */
+{const _af=applyFavor;applyFavor=function(cid,n,r,f,arg){
+  if(f&&(f.k==='rport2'||f.k==='rkokusan')){
+    const cost=f.k==='rport2'?WK().port.cost:WK().kokusan.cost,rid=regOfNpc(n);
+    if(!arg)return {ok:true,status:'held',msg:MSG('works.noPick')};
+    if(f.k==='rport2'&&!portCands(rid).some(ct=>ct.id===arg))return {ok:true,status:'held',msg:MSG('works.noPick')};
+    if(f.k==='rkokusan'&&!kokuGoods(rid).some(c=>c.name===arg))return {ok:true,status:'held',msg:MSG('works.noPick')};
+    if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
+    if(G.silver<cost)return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(cost)})};
+    payPublic('spend.works',cost);
+  }
+  return _af.apply(this,arguments);
+}}
+/* ---------- 審理完成：依次數判定 ---------- */
+{const _ag=appGrant;appGrant=function(A,log){
+  if(A.key!=='rport2'&&A.key!=='rkokusan')return _ag.apply(this,arguments);
+  const W=works(),port=A.key==='rport2',n=npc(A.cid),rid=n?regOfNpc(n):(CITY(A.cityId)||{}).region_id,k=wkKey(port?'port':'kokusan',rid);
+  const tries=W.tries[k]||0,ok=rnd()<WK().p[Math.min(tries,WK().p.length-1)];
+  let t;
+  if(!ok){W.tries[k]=tries+1;W.cd[k]=G.turn+WK().cd-1;t=NEWS(port?'works.portFail':'works.kokuFail',{r:REG_NAME(rid)});sfx.bad()}
+  else if(port){
+    const ct=CITY(A.arg);
+    if(!ct||canSea(ct)){t=NEWS('works.portVoid',{r:REG_NAME(rid)})}
+    else{
+      G.cityRoutes=G.cityRoutes||{};G.cityRoutes[ct.id]=Object.assign(G.cityRoutes[ct.id]||{},{sea:true});W.port[rid]=ct.id;delete W.tries[k];
+      const f=addFame(WK().port.fame,'major');
+      G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('works.portHist',{f:G.firm})});
+      t=NEWS('works.portOk',{c:ct.name,r:REG_NAME(rid),g:fmt1(f)});sfx.fanfare();
+    }
+  }else{
+    const c=COMM_MAP[A.arg],L=kokuCities(rid).filter(ct=>!cityProds(ct).includes(A.arg));
+    if(!c||!L.length){t=NEWS('works.kokuVoid',{r:REG_NAME(rid)})}
+    else{
+      const ct=pick(L);G.devProd=G.devProd||[];G.devProd.push({cityId:ct.id,name:c.name,year:G.year,src:'kokusan'});W.kokusan[rid]={city:ct.id,name:c.name};delete W.tries[k];
+      raiseFameFloor(WK().kokusan.floor);
+      G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('works.kokuHist',{f:G.firm,g:c.short})});
+      t=NEWS('works.kokuOk',{c:ct.name,r:REG_NAME(rid),g:c.short});sfx.fanfare();
+    }
+  }
+  logRel(A.cid,UT('reg.appGrant',{a:A.name}));
+  pushNews(t);log.push(t);
+}}
+
+'use strict';
+/* ★檔案總覽：官府督促、御救販售、闇商代出（DESIGN_NOTES 第二百五十、二百五十六節）
+ * - 官府督促：季度人口連續三季減少（G.popDown），而且那場例會時你的市佔在一成五以上，例會當月在城的吟味方六階（欽按巡察使）到會督促，進入督促期（G.urge）。
+ *   哪一季人口沒有減少，那場例會就撤回督促；闇商代出隨之停止，御救販售照常做完。
+ * - 公會長特權：你是公會長時，例會視窗裡三選一——接下御救販售、推給一位同業（比照御用金：他好感 −40 成仇，這一期照穩定供貨線足量出貨）、推託（官員好感 −30、知名度 −3）。
+ *   沒處理就推進＝推託。你不是公會長時，公會長自己處理（不模擬），不會派給你。
+ * - c 御救販售（G.kyusai）：拜訪那位六階官員請託，或公會長在例會上接。上一期有缺口的每項本業貨（不含奢侈品、要有交易許可），
+ *   每旬數量＝上一期每旬平均缺口 × 市佔 × 3（最多補滿缺口、至少 1），九旬，立約時固定。官府照當旬牌價付現款。合約裡的貨這一期大盤進貨上限加上每旬要交的量。
+ * - b 闇商代出（G.yami）：督促期間拜訪好感 60 以上的闇商人請託（要參加協議）。每項有缺口的本業貨，每旬「穩定供貨線 − 協議配額」（至少 1），到督促結束（最長九旬）。
+ *   照當旬牌價九折付私房錢；每旬交貨時擲一次被同業看穿（原暗約的一半），看穿＝違約。
+ * - 兩種合約都用定約掛賣的合約格式（07zzm_kake.js 的 pactExtras），交貨順序：掛賣 → 上貢 → 本陣 → 御救販售 → 闇商代出 → 一般出貨。
+ *   交出的貨都算進全城供應（加進本旬同業供給 m.so，壓行情、算滿足比例），不算你的出貨。
+ * - 數值 ODDS.urge；文字 urge.*、pact.kyusai.*、pact.yami.*（01e）、urge.*（01f／01g）；台詞 LINES.urge。 */
+const UG=()=>ODDS.urge;
+/** 督促期間（還在督促）。 */
+const urgeOn=()=>!!(G&&G.urge);
+/** 例會當月在城的吟味方六階。 */
+function urgeOfficial(){
+  return Object.values(G.world.npcs).find(n=>n.pos&&n.pos.court==='judiciary'&&n.pos.rank===6&&n.cityId===G.cityId&&alive(n.cid)&&!jailed(n)&&tourHere(n))||null;
+}
+/** 公會長推給同業的督促差事：這一期他照穩定供貨線足量出貨。 */
+const urgeForced=cid=>!!(G&&G.urge&&G.urge.forced&&G.urge.forced.cid===cid&&G.urge.forced.until>=G.turn);
+/** 每次推進、季度人口結算之後（只在例會旬）：開始或撤回督促。 */
+function urgeTick(log){
+  if(!isMeetingTurn()||!TURNRP||!TURNRP.population)return;
+  const P=TURNRP.population,put=t=>{pushNews(t);log.push(t)};
+  if(G.urge){
+    if(P.rate>=0){
+      const Y=G.yami;G.urge=null;
+      if(Y){G.yami=null;put(NEWS('urge.yamiStop',{n:nameOf(Y.cid)}))}
+      put(NEWS('urge.end'));return;
+    }
+  }else{
+    const n=urgeOfficial(),sh=(G.share&&G.share.me)||0;
+    if(!((G.popDown||0)>=UG().streak&&sh>=UG().share&&n))return;
+    G.urge={cid:n.cid,start:G.turn};
+    put(NEWS('urge.start',{n:nameOf(n.cid)}));
+  }
+  const n=npc(G.urge.cid);if(!n||!alive(n.cid)){const m=urgeOfficial();if(m)G.urge.cid=m.cid}
+  const M=meetNow();if(M&&!G.kyusai)M.urge={cid:G.urge.cid,done:false};   // 手上還有御救販售時，官員這次不再交代
+}
+/** 例會視窗裡的督促卡（例會旬有督促時才出現）。 */
+function urgeMeetCard(M){
+  if(!M||!M.urge)return '';
+  const U=M.urge,cid=U.cid;if(!npc(cid))return '';
+  let h='<div class="card warn" style="display:flow-root">'+portraitHtml(cid,48)+'<b>'+esc(nameOf(cid))+'</b> <span class="tag red">'+UT('urge.tag')+'</span><div class="small" style="margin-top:3px">「'+esc(TX('urge.say'))+'」</div>';
+  if(!gmIsMe()){
+    h+='<div class="tiny muted" style="margin-top:4px">'+UT(M.el&&!M.el.done?'urge.waitElect':'urge.notGm',{n:esc(gmName(gmCid()||''))})+'</div>';
+    return h+'</div>';
+  }
+  if(M.el&&!M.el.done)return h+'<div class="tiny muted" style="margin-top:4px">'+UT('urge.waitElect')+'</div></div>';
+  if(U.done)return h+'<div class="tiny" style="margin-top:4px">'+esc(U.res||'')+'</div></div>';
+  const O=kyusaiOffer(),can=O&&!G.kyusai;
+  h+='<div class="tiny" style="margin-top:4px">'+UT('urge.gmNote')+'</div>';
+  h+='<button class="pixel-btn btn-sm btn-gold" style="width:100%;margin-top:4px" data-act="urgeTake" '+(can?'':'disabled')+'>'+UT(can?'urge.btn.take':G.kyusai?'urge.btn.busy':'urge.btn.none')+'</button>';
+  if(can)h+='<div class="tiny muted" style="margin-top:2px">'+esc(kyusaiItemsTxt(O))+'</div>';
+  const R_=rivalsHere().filter(n=>alive(n.cid)&&!isEnemy(n.cid));
+  if(U.arm){
+    const t=npc(U.arm);
+    h+='<div class="notice tiny" style="margin-top:4px">'+UT('urge.pushConfirm',{n:esc(nameOf(U.arm)),d:UG().pushAff})+'</div><div class="grid2"><button class="pixel-btn btn-sm btn-red" data-act="urgePushOk">'+UT('urge.btn.pushOk')+'</button><button class="pixel-btn btn-sm" data-act="urgePushCancel">'+UT('urge.btn.cancel')+'</button></div>';
+  }else if(R_.length){
+    h+='<div class="tiny" style="margin-top:6px">'+UT('urge.pushHead',{d:UG().pushAff})+'</div>'+R_.map(n=>'<div class="row small" style="margin-top:3px"><span>'+esc(nameOf(n.cid))+' <span class="tag">'+affWord(R(n.cid).aff)+'</span></span><button class="pixel-btn btn-sm" data-act="urgePush" data-cid="'+n.cid+'">'+UT('urge.btn.push')+'</button></div>').join('');
+  }
+  h+='<button class="pixel-btn btn-sm" style="width:100%;margin-top:6px" data-act="urgeRefuse">'+UT('urge.btn.refuse',{d:UG().refuseAff,f:ODDS.fameLoss.urgeRefuse})+'</button>';
+  return h+'</div>';
+}
+const urgeM=()=>{const M=meetNow();return M&&M.urge&&!M.urge.done&&gmIsMe()?M:null};
+ACT.urgeTake=()=>{const M=urgeM();if(!M||G.kyusai)return;const O=kyusaiOffer();if(!O)return;kyusaiStart(M.urge.cid,O);M.urge.done=true;M.urge.res=UT('urge.res.take',{a:kyusaiItemsTxt(O)});sfx.coin();refreshSheet();UI.render()};
+ACT.urgePush=el=>{const M=urgeM();if(!M)return;M.urge.arm=el.dataset.cid;refreshSheet()};
+ACT.urgePushCancel=()=>{const M=urgeM();if(!M)return;M.urge.arm=null;refreshSheet()};
+ACT.urgePushOk=()=>{
+  const M=urgeM();if(!M||!M.urge.arm)return;const cid=M.urge.arm,r=R(cid);
+  if(!r.bond){r.bond={mult:1,label:UT('urge.bond'),introId:null};r.met=true;r.seen=true;addKnown(cid)}
+  r.peak=Math.max(r.peak||0,r.aff);setAff(r,Math.max(0,r.aff-UG().pushAff));r.peak=Math.max(r.peak,r.aff+ENEMY_GAP);logRel(cid,UT('urge.log.push'));   // 比照御用金攤派：一定成仇
+  G.urge.forced={cid,until:G.turn+turnsToMeeting(1,false)-1};
+  M.urge.done=true;M.urge.res=UT('urge.res.push',{n:nameOf(cid)});
+  pushNews(NEWS('urge.push',{n:nameOf(cid)}));sfx.bad();refreshSheet();UI.render();
+};
+function urgeRefuseDo(){
+  const M=meetNow();if(!M||!M.urge||M.urge.done)return;
+  const r=G.rel[M.urge.cid];if(r){setAff(r,Math.max(0,r.aff-UG().refuseAff));logRel(M.urge.cid,UT('urge.log.refuse'))}
+  loseFame('urgeRefuse');M.urge.done=true;M.urge.res=UT('urge.res.refuse');
+  pushNews(NEWS('urge.refuse'));
+}
+ACT.urgeRefuse=()=>{if(!urgeM())return;urgeRefuseDo();sfx.bad();refreshSheet();UI.render()};
+/** 例會沒走完就推進：你是公會長卻沒處理督促＝推託。 */
+function urgeAuto(M,log){if(M&&M.urge&&!M.urge.done&&gmIsMe()){urgeRefuseDo();if(log)log.push(NEWS('urge.refuse'))}}
+
+/* ---------- c 御救販售 ---------- */
+/** 開價：上一期有缺口的每項本業貨（不含奢侈品、要有交易許可）。回傳 [{name,qty}] 或 null。 */
+function kyusaiOffer(){
+  const gap=G.lastGap||{},sh=(G.share&&G.share.me)||0;
+  const L=tradeComms().filter(c=>!c.luxury&&(gap[c.name]||0)>0).map(c=>{const g=gap[c.name];return {name:c.name,qty:Math.max(1,Math.min(Math.round(g),Math.round(g*sh*UG().mult)))}});
+  return L.length?L:null;
+}
+const kyusaiItemsTxt=L=>L.map(x=>COMM_MAP[x.name].short+' × '+x.qty).join(UT('ppl.pt.2'));
+function kyusaiStart(cid,O){G.kyusai={cid,items:O.map(x=>({name:x.name,qty:x.qty,filled:0})),left:UG().turns,start:G.turn+1}}
+/** 合約裡的貨，這一期大盤進貨上限加上每旬要交的量（03_market.js 的 buyLimit）。 */
+function kyusaiBonus(name){const K=G&&G.kyusai;if(!K)return 0;const it=K.items.find(x=>x.name===name);return it?it.qty:0}
+/** 從倉裡交貨：上貢保留的貨不動（上貢比較晚交、但比較優先）。回傳交出的數量。 */
+function pactTake(name,qty){
+  const T=G.tribute,held=T&&T.name===name?(T.filled||0):0;
+  const q=Math.min(qty,Math.max(0,(G.inv[name]||0)-held));
+  if(q>0)stockTake(name,q,false);
+  const m=G.mk[name];if(m&&q>0)m.so=(m.so||0)+q;           // 貨流進城裡：算進本旬全城供給（壓行情、算滿足比例），不算你的出貨
+  return q;
+}
+/** 拜訪請託：督促期間、那位六階官員、還沒有合約、上一期有缺口。 */
+FAVORS.judiciary.push(favorText({k:'kyusai',rank:6,exactRank:true,avail:n=>urgeOn()&&!G.kyusai&&G.urge.cid===n.cid&&!!kyusaiOffer()}));
+REG_FAVOR.kyusai=n=>{const O=kyusaiOffer();if(!O||G.kyusai)return MSG('urge.kyusaiNone');kyusaiStart(n.cid,O);return MSG('urge.kyusaiOk',{a:kyusaiItemsTxt(O),t:UG().turns})};
+/** 每次推進（自動出貨之前）：交出這一旬的御救販售。 */
+function kyusaiDeliver(log){
+  const K=G.kyusai;if(!K||G.turn<K.start)return;
+  let amt=0,short=false;const parts=[];
+  K.items.forEach(it=>{const q=pactTake(it.name,it.qty);it.filled=0;amt+=Math.round(q*marketQuote(it.name));parts.push(COMM_MAP[it.name].short+' × '+q);if(q<it.qty)short=true});
+  G.silver+=amt;
+  const put=t=>{pushNews(t);log.push(t)},who=nameOf(K.cid);
+  if(short){
+    const r=G.rel[K.cid];if(r&&alive(K.cid)){setAff(r,Math.max(0,r.aff-UG().failAff));logRel(K.cid,UT('urge.log.kyusaiFail'))}
+    loseFame('kyusaiFail');G.kyusai=null;sfx.bad();put(NEWS('urge.kyusaiFail',{g:parts.join(UT('ppl.pt.2')),a:fmt(amt)}));return;
+  }
+  K.left--;
+  if(K.left>0){put(NEWS('urge.kyusaiGive',{g:parts.join(UT('ppl.pt.2')),a:fmt(amt),l:K.left}));return}
+  G.kyusai=null;
+  const r=G.rel[K.cid];if(r&&alive(K.cid)){setAff(r,clamp(r.aff+UG().doneAff,0,100));logRel(K.cid,UT('urge.log.kyusaiDone'))}
+  const f=addFame(rint(UG().fame[0],UG().fame[1]),'mid');sfx.fanfare();
+  put(NEWS('urge.kyusaiDone',{g:parts.join(UT('ppl.pt.2')),a:fmt(amt),f:fmt1(f),n:who}));
+}
+
+/* ---------- b 闇商代出 ---------- */
+/** 開價：每項有缺口的本業貨，每旬「穩定供貨線 − 協議配額」（至少 1）。 */
+function yamiOffer(){
+  const gap=G.lastGap||{};
+  const L=tradeComms().filter(c=>!c.luxury&&(gap[c.name]||0)>0).map(c=>({name:c.name,qty:Math.max(1,supplyLine(c.name)-quotaOf(c.name))}));
+  return L.length?L:null;
+}
+const yamiBanned=cid=>!!(G.yamiBan&&G.yamiBan[cid]>G.turn);
+{const _d=dealerReqs;dealerReqs=function(cid){
+  const L=_d.apply(this,arguments),n=npc(cid);
+  if(n&&n.role==='smuggler'&&dealReady(cid)&&urgeOn()&&guildMember()&&!G.yami&&!yamiBanned(cid)){const O=yamiOffer();if(O)L.unshift({k:'yami',name:UT('urge.yamiReq'),desc:TX('urge.yamiPitch')+UT('urge.yamiReq.d',{a:kyusaiItemsTxt(O)})})}
+  return L;
+}}
+{const _do=dealerDo;dealerDo=function(cid,k){
+  if(k!=='yami')return _do.apply(this,arguments);
+  const r=R(cid),O=yamiOffer();if(!O||G.yami||!urgeOn()||!guildMember())return UT('urge.yamiNone');
+  G.yami={cid,items:O.map(x=>({name:x.name,qty:x.qty,filled:0})),left:UG().turns,start:G.turn+1};
+  setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;logRel(cid,UT('urge.log.yami',{a:REQ_AFF.normal}));
+  return UT('urge.yamiOk',{n:nameOf(cid),a:kyusaiItemsTxt(O),d:REQ_AFF.normal});
+}}
+/** 每次推進（御救販售之後、自動出貨之前）：交出這一旬的闇商代出，貨款進私房錢；擲一次被看穿。 */
+function yamiDeliver(log){
+  const Y=G.yami;if(!Y||G.turn<Y.start)return;
+  const put=t=>{pushNews(t);log.push(t)},who=nameOf(Y.cid);
+  if(!urgeOn()||!guildMember()){G.yami=null;put(NEWS('urge.yamiStop',{n:who}));return}
+  let gold=0,short=false,q0=0,qq=0;const parts=[];
+  Y.items.forEach(it=>{const q=pactTake(it.name,it.qty);it.filled=0;gold+=Math.round(q*marketQuote(it.name)*UG().yamiCut);q0+=q;qq+=Math.max(1,quotaOf(it.name));parts.push(COMM_MAP[it.name].short+' × '+q);if(q<it.qty)short=true});
+  G.gold=(G.gold||0)+gold;
+  const D=UG().detect,over=q0/qq,caught=q0>0&&chance(Math.min(D.max,D.base+D.slope*over));
+  if(caught){
+    const C=G.cartel;C.sanction=3;C.state='none';loseFame('yamiCaught');caughtAdd('me');const lost=guildForfeit();
+    const fine=Math.round(Math.max(0,G.silver)*UG().fine);G.silver-=fine;
+    const r=G.rel[Y.cid];if(r){setAff(r,Math.max(0,r.aff-UG().yamiAff));logRel(Y.cid,UT('urge.log.yamiCaught'))}
+    (G.yamiBan=G.yamiBan||{})[Y.cid]=G.turn+UG().ban;G.yami=null;sfx.bad();
+    put(NEWS('urge.yamiCaught',{n:who,g:fmt(gold),b:lost?fmt(lost):'0',f:fmt(fine)}));return;
+  }
+  if(short){
+    const r=G.rel[Y.cid];if(r){setAff(r,Math.max(0,r.aff-UG().yamiShortAff));logRel(Y.cid,UT('urge.log.yamiShort'))}
+    G.yami=null;put(NEWS('urge.yamiShort',{n:who,g:parts.join(UT('ppl.pt.2')),a:fmt(gold)}));return;
+  }
+  Y.left--;
+  put(NEWS(Y.left>0?'urge.yamiGive':'urge.yamiDone',{n:who,g:parts.join(UT('ppl.pt.2')),a:fmt(gold),l:Y.left}));
+  if(Y.left<=0)G.yami=null;
+}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
