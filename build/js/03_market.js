@@ -9,7 +9,7 @@
 /* ======================= 03 市場：以量控價、株仲間、打毀、損耗、商路、旬推進 ======================= */
 /** 打毀指標：白米與粗鹽（資料檔標籤 riot）。 */
 const STAPLE_KEYS=COMM.filter(c=>commTag(c,'riot')).map(c=>c.name);
-/** 節慶期間需求 ×4 的物品（資料檔標籤 fest：菜籽油、芝麻油、鯨油、棉布、錦緞）。 */
+/** 節慶相關貨物，節慶當旬需求兩倍半（資料檔標籤 fest：菜籽油、芝麻油、鯨油、棉布、錦緞；ODDS.fest.hot）。 */
 const festHot=c=>commTag(c,'fest');
 
 /** 主角駐節城市。 */
@@ -205,6 +205,7 @@ function rivalSupply(c,m,first){
     // 「維持」時仍不超過配額，但大多數同業會趨近足額出貨；「減供」沿用原本的均勻波動。
     let f=normal?1-(1-R.lo)*Math.pow(rnd(),R.normalPow):R.lo+rnd()*(R.hi-R.lo);
     f*=clamp(r.stock/0.9,0.5,normal?1:1.3);if(r.raided)f*=0.4;
+    if(own&&urgeForced(r.cid))f=1/Math.max(0.01,policySupplyRatio());   // 公會長推給他的督促差事：照自己的穩定供貨線足量出貨（07zzq_urge.js）
     let mul=0;
     if(c.sys===G.sysKey)mul=rivalOverMul(r,c,first);                       // 本業：每家每旬 5% 挑一項超賣（違反協議配額，見 07y_guild.js）
     else if(!first&&!r.raided&&roll('rivalShip',R.overP))mul=R.mulMin+rnd()*(R.mulMax-R.mulMin);   // 非本業（打毀指標用的主食）：照舊逐項擲
@@ -274,7 +275,7 @@ function settleSaleQuote(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
+const buyLimit=name=>{const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return kyusaiBonus(name)+Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -336,14 +337,15 @@ function pushNews(t){const k=newsKey(t);if(typeof yearLogAdd==='function')yearLo
 /* ---------- 隨機事件 ---------- */
 /** 對符合條件的物品事件倍率相乘（0.5～3.2）。 */
 function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.mk[n].ev=clamp(G.mk[n].ev*mult,0.5,3.2)})}
-/** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。 */
+/** 隨機事件表：w 權重、seasons 適用季節、f() 執行並回傳新聞文字。新增事件在此加一筆。
+ *  四種災難只在對應季節：春疫病、夏颱風、秋凶作、冬大火，不限次數（第二百五十二節）。 */
 const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['winter','spring'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
-  {w:ODDS.eventW.famine,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
+  {w:ODDS.eventW.fire,seasons:['winter'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
+  {w:ODDS.eventW.famine,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
   {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
-  {w:ODDS.eventW.typhoon,seasons:['summer','autumn'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
-  {w:ODDS.eventW.plague,seasons:ALL_SEASONS,f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
+  {w:ODDS.eventW.typhoon,seasons:['summer'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
+  {w:ODDS.eventW.plague,seasons:['spring'],f(){setEv(c=>c.sys==='medicine',1.5+rnd()*0.5);markDisaster('plague');return NEWS('setEv.5')}},
   {w:ODDS.eventW.military,seasons:ALL_SEASONS,f(){setEv(c=>commTag(c,'military'),1.4+rnd()*0.4);return NEWS('setEv.10')}},   // 軍需：銅、鐵、硫磺
   {w:ODDS.eventW.sword,seasons:ALL_SEASONS,f(){setEv(c=>c.luxury,1.25);return NEWS('setEv.6')}},
   {w:ODDS.eventW.flower,seasons:ALL_SEASONS,f(){return NEWS('setEv.7')}},
@@ -411,7 +413,7 @@ function thieves(){
 }
 
 /* ---------- 株仲間卡特爾 ---------- */
-/** 每旬結算公會：誓言守配額卻超量→斷貨；暗約偷跑→可能被查抄；遵守率隨行為變動。 */
+/** 每旬結算公會：誓言守配額卻超量→斷貨；遵守率隨行為變動。暗約已取消（第二百五十六節；偷跑改由督促期的闇商代出，07zzq_urge.js）。 */
 function evalCartel(log){
   const C=G.cartel;let over=0,shippedAny=false;
   ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const q=quotaOf(c.name),x=q>0?Math.max(0,(m.shipped-q)/q):(m.shipped>0?1:0);over=Math.max(over,x)});
@@ -423,15 +425,6 @@ function evalCartel(log){
         const t=NEWS('evalCartel.1',{bond:lost?NEWS('cartel.bondLost',{a:fmt(lost)}):''});pushNews(t);log.push(t);
       }else C.comp=Math.max(30,C.comp-3);
     }else if(shippedAny){C.comp=Math.min(90,C.comp+2);G.life.pledges++;addFame(0.1)}
-  }else if(C.state==='secret'){
-    if(over>0){
-      C.cheated++;G.life.cheats++;
-      if(chance(Math.min(ODDS.cartelSecret.max,ODDS.cartelSecret.base+ODDS.cartelSecret.slope*over))){
-        C.sanction=3;C.state='none';C.comp=Math.max(30,C.comp-10);loseFame('cartelSecret');caughtAdd('me');const lost=guildForfeit();
-        let fine=0;if(G.flags.exempt<=0){fine=Math.round(Math.max(0,G.silver)*0.06);G.silver-=fine}
-        const t=NEWS('evalCartel.2',{fine:(lost?NEWS('cartel.bondLost',{a:fmt(lost)}):'')+(fine?NEWS('cartel.fine',{a:fmt(fine)}):NEWS('cartel.noFine'))});pushNews(t);log.push(t);sfx.bad();
-      }else C.comp=Math.max(30,C.comp-2);
-    }
   }else{C.comp+= (60-C.comp)*0.1}
   C.comp=Math.round(C.comp*10)/10;
   if(C.sanction>0)C.sanction--;
@@ -628,7 +621,7 @@ const CAP_LAND={heavy:30,normal:50,light:80},CAP_SEA={heavy:120,normal:150,light
 /** 貨物重量等級：奢侈品輕巧、必需品與礦木笨重、其餘一般。 */
 function weightClass(name){const c=COMM_MAP[name];if(c.luxury)return 'light';if(c.staple||c.sys==='mining'||c.sys==='timber')return 'heavy';return 'normal'}
 /** 某物品某運輸方式的單趟運量上限。 */
-function capOf(name,mode){const w=weightClass(name);return (mode==='sea'?CAP_SEA:CAP_LAND)[w]}
+function capOf(name,mode){const w=weightClass(name);return mode==='sea'?CAP_SEA[w]:CAP_LAND[w]*roadMult()}   // 開闢道路：本地區陸運運量加倍，產地可買量跟著加倍（07zzp_works.js）
 /** 運輸許可：海運需該地區的進港泊位許可、陸路需本地區的關所通行手形（遠國奉行所核發）。 */
 const permitOf=(mode,ct)=>mode==='sea'?(ct?seaPermitFor(ct):anySea()):landPermit();
 /** 船長/飛腳的膽識與商才換算成遇險率倍數（0.7～1.3）。 */
@@ -670,17 +663,12 @@ function cityTick(){
     if(y===G.year&&!G.histDone[key]){
       const mon=1+Math.floor(seeded(key)()*12);
       if(mon===G.month&&G.cycle===1){
-        G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));
-        const fx=h.fx||[];                           // 城史事件的類型（資料檔 fx：fire 火災、plague 疫病、famine 饑荒）
-        if(fx.includes('fire')){setEv(c=>commTag(c,'fire'),1.6);markDisaster('fire')}
-        if(fx.includes('plague')){setEv(c=>c.sys==='medicine',1.6);markDisaster('plague')}
-        if(fx.includes('famine')){setEv(c=>commTag(c,'rice'),1.4);markDisaster('famine')}
+        G.histDone[key]=1;pushNews(NEWS('cityTick.2',{name:city.name,title:h.title}));   // 城史只出新聞：不漲價、不算災情（帶災難標記的城史都在開局以前，第一百五十三、二百五十二節）
       }
     }
   });
 }
 
-/** 每期（例會旬開始時結算上一期）依穩定供貨旬數調整本城人口：全穩定 ±2%，其餘依多數 ±0.6%。 */
 /** 本旬全城需求被滿足的比例（本業貨，不含奢侈品；同業＋你的出貨，每項以平常需求為上限，按基準價加權）。沒有資料時回傳 null。 */
 function citySatNow(){
   let d=0,s=0;
@@ -699,6 +687,7 @@ function populationTick(log){
   if(TURNRP.supplyStable)Q.stable++;else Q.unstable++;
   Q.turns++;
   {const v=citySatNow();if(v!==null){Q.sat=(Q.sat||0)+v;Q.n=(Q.n||0)+1}}
+  {Q.gap=Q.gap||{};ownComms().forEach(c=>{if(c.luxury)return;const S=G.mk[c.name]&&G.mk[c.name].snap;if(!S||!(S.dn>0))return;Q.gap[c.name]=(Q.gap[c.name]||0)+Math.max(0,S.dn-(S.so||0)-(S.my||0))})}   // 各項貨每旬的缺口（官府督促的御救販售用）
   if(!isMeetingTurn())return;                     // 與例會同一期：例會旬開始時結算上一期
   if(!(Q.n>0)){G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};return}   // 舊存檔剛改版、這一期沒有滿足比例的紀錄：這次不調整
   const avg=Q.sat/Q.n,tier=citySatTier(avg),rate=[-O.all,-O.majority,O.majority,O.all][tier];
@@ -706,6 +695,8 @@ function populationTick(log){
   const before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(homeCity());
   G.cityPopulation=Math.max(O.min,Math.round(before*(1+rate)));
   G.citySatLast=avg;
+  G.lastGap={};Object.entries(Q.gap||{}).forEach(([k,v])=>{G.lastGap[k]=v/Q.n});   // 上一期各項貨每旬平均缺口
+  G.popDown=rate<0?(G.popDown||0)+1:0;            // 連續減少的季數（官府督促，第二百五十六節）
   G.supplyQuarter={stable:0,unstable:0,turns:0,sat:0,n:0};
   TURNRP.population={before,after:G.cityPopulation,sat:avg,tier,rate};
   const t=NEWS('city.population',{result,before:fmt(before),after:fmt(G.cityPopulation),rate:(rate>0?'+':'')+(rate*100).toFixed(1)+'%'});
@@ -721,15 +712,18 @@ function advanceTurn(){
   sickTurnFire(log);                              // 病倒：沒離開場景就推進，這一旬一開始就倒下（07zzd_sick.js）
   stressTurnStart();                              // 壓力：沒用完的行動點數、自然恢復、家人、現款為負（07zzi_stress.js）
   meetingAuto(log);                               // 本旬例會沒出席或沒走完：出貨之前照規則自動決議（07yb_meeting.js）
+  komonJudge(log);                                // 例會旬：木戶黃門宣判（惡德值＝每季機率），當場查抄（07zzj_komon.js）
   kakeDeliver(log);                               // 定約掛賣：自動出貨之前由番頭交貨（07zzm_kake.js）
   const hj=honjinTick(log);                       // 本陣御用達：自動出貨之前先送貨（07zz_regfavor.js）
+  kyusaiDeliver(log);                             // 御救販售：官府的差事（07zzq_urge.js）
+  yamiDeliver(log);                               // 闇商代出（07zzq_urge.js）
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
   autoBuy(log);
   snapMarket();                                   // 日期前進前，記下本旬的收市價、需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
   if(G.cycle>3){G.cycle=1;G.month++;if(G.month>12){G.month=1;G.year++;newYear=true}}
-  if(newYear){buyoutEnsure();daimyoPlan()}          // 新年重抽五區各自的四個大口買付月；排定今年的大名行列（07zzc_daimyo.js）
+  if(newYear){buyoutEnsure();daimyoPlan();komonPlan()}          // 新年重抽五區各自的四個大口買付月；排定今年的大名行列（07zzc_daimyo.js）
   G.lastRev=0;G.ap=AP_MAX;G.errandUsed=0;G.bought={};G.voyQueue=[];   // 出運清單只在本旬有效
   if((G.exile||0)>0)G.exile--;if((G.exile||0)>0)G.ap=0;        // 遠島：這旬起算剩餘旬數，期間沒有行動點數
   G.raidNote=null;
@@ -740,6 +734,7 @@ function advanceTurn(){
   evalCartel(log);
   meetingTick(log);                               // 例會旬：建立本期例會（方針由投票決定）；例會前一旬提醒
   populationTick(log);                            // 九旬供貨表現改變人口；後續市場刷新立即依新人口重算需求
+  urgeTick(log);                                  // 官府督促：連續三季人口減少、市佔一成五以上（07zzq_urge.js）
   msTick(log);
   refreshMarket();
   guildTick(log);                                 // 公會：查同業超賣（違約金併入本期）
@@ -759,6 +754,7 @@ function advanceTurn(){
   randomEvent(log);
   cityTick(log);
   daimyoTick(log);                                // 大名行列過境：當旬一開始就上旬報（07zzc_daimyo.js）
+  komonTick(log);                                 // 木戶黃門的年度傳聞（07zzj_komon.js）
   tripEvTick(log);                                // 大相撲開場、手藝人送貨、贓貨被找上門（07zzl_tripev2.js）
   unloadTick(log);                                // 國中物卸留：卸留月開始與結束（07zz_regfavor4.js）
   kokushoTick(log);                               // 國商助成：回扣進私房錢（07zz_regfavor4.js）
@@ -781,6 +777,7 @@ function advanceTurn(){
   gmTick(log);                                    // 公會長：同業公會長離城或過世接任、任內知名度、報告提醒、任內事件（07yc_gm.js）
   f8Tick(log);                                    // 株札暫扣、專賣株期滿（07zze_favor8.js）
   outTick(log);                                   // 外城友人：出遊訪友、來訪、注文（07zzn_outfriend.js）
+  moveTick(log);                                  // 遷居籌備：友人出事或逾期，約定作廢（07zzr_move.js）
   kakeTick(log);                                  // 定約掛賣：解鎖、收帳、標記、主動上門、旬初自動填貨（07zzm_kake.js）
   bzTick(log);                                    // 商人番付：季末最後一旬發行（07zzf_banzuke.js）
   roleShiftTick();                                // 職業調整：每季補足仲買人、旅商人、差配人的基本數（07zz_enlist.js）

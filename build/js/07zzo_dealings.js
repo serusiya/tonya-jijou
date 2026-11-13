@@ -3,15 +3,15 @@
  * - 把眼下還沒了結的帳、約與差事列在一處：錢銀往來、合約與訂貨、在途的人與貨、官府的事、人情往來。
  * - 只是資訊，沒有操作；要處理仍到原本的地方（相場、商路、現款走勢、奉行所）。
  * - dealGroups()：回傳 [[組名鍵,[{t,s}]]]（t＝內容、s＝還剩多久）；dealCard()：私宅頁的摘要卡；ACT.dealings：點開完整清單。
- * - 日後做遷居時，啟程前要了結的項目從這裡挑（第二百四十節第五段）。文字 deal2.*（01e）。 */
+ * - 遷居的啟程事項清單從這裡挑（07zzr_move.js 的 moveItems；對官員的承諾、公會長的得標金不擋啟程）。文字 deal2.*（01e）。 */
 function dealGroups(){
   const D=(k,v)=>UT('deal2.'+k,v),left=n=>D(n>0?'left':'now',{n}),g=n=>COMM_MAP[n]?COMM_MAP[n].short:n,who=c=>c&&CH(c)?nameOf(c):D('someone');
   const money=[],pact=[],road=[],gov=[],folk=[];
   // 錢銀往來
   (G.debts||[]).filter(d=>!d.paid).forEach(d=>money.push({t:d.cid&&CH(d.cid)?D('debt',{n:nameOf(d.cid),k:d.kind?debtKindName(d.kind):D('loan'),a:fmt(d.amt)}):D('debtOld',{a:fmt(d.amt)}),s:left(d.due-G.turn)}));
-  (G.kakeRecv||[]).forEach(r=>money.push({t:D(r.sure?'recvSure':r.late?'recvLate':'recv',{n:who(r.cid),a:fmt(Math.abs(r.amt))}),s:left(r.due-G.turn)}));
+  (G.kakeRecv||[]).forEach((r,i)=>money.push({t:D(r.sure?'recvSure':r.late?'recvLate':'recv',{n:who(r.cid),a:fmt(Math.abs(r.amt))}),s:left(r.due-G.turn),k:r.late?'kakeGive':'',i}));   // k、i：遷居清單裡可以就地放棄（07zzr_move.js）
   if(G.kokusho)money.push({t:D('kokusho',{n:who(G.kokusho.cid)}),s:left(G.kokusho.left)});
-  if(G.gmDue&&!G.gmDue.done&&!G.gmDue.exempt&&gmIsMe())money.push({t:D('gmDue',{a:fmt(G.gmDue.amt)}),s:D('gmDueS')});
+  if(G.gmDue&&!G.gmDue.done&&!G.gmDue.exempt&&gmIsMe())money.push({t:D('gmDue',{a:fmt(G.gmDue.amt)}),s:D('gmDueS'),k:'gmDue'});
   // 合約與訂貨
   (G.kake||[]).forEach(c=>pact.push({t:D('kake',{n:who(c.cid),g:g(c.name),q:c.qty}),s:left(c.left)}));
   (G.chumon||[]).forEach(o=>pact.push({t:D('chumon',{n:who(o.cid),c:CITY(o.city)?CITY(o.city).name:'',g:g(o.name),q:o.qty}),s:o.sent?D('onRoad'):D('goBy',{n:Math.max(0,o.until-G.turn+1)})}));
@@ -26,7 +26,7 @@ function dealGroups(){
   if(G.artisan)road.push({t:D('artisan',{g:g(G.artisan.name)}),s:left(G.artisan.left)});
   // 官府的事
   (G.apps||[]).forEach(a=>gov.push({t:D('app',{f:a.name}),s:left(a.left)}));
-  Object.keys(G.rel||{}).forEach(c=>(G.rel[c].promises||[]).filter(p=>!p.done).forEach(p=>gov.push({t:D('promise',{n:who(c)}),s:p.due>=G.turn?left(p.due-G.turn):D('overdue')})));
+  Object.keys(G.rel||{}).forEach(c=>(G.rel[c].promises||[]).filter(p=>!p.done).forEach(p=>gov.push({t:D('promise',{n:who(c)}),s:p.due>=G.turn?left(p.due-G.turn):D('overdue'),k:'promise'})));
   // 人情往來
   if(G.lodge)folk.push({t:D('lodge',{n:who(G.lodge.cid),q:G.lodge.q}),s:left(G.lodge.until-G.turn)});
   if(G.stash)folk.push({t:D('stash',{n:who(G.stash.cid),q:(G.stash.items||[]).reduce((a,x)=>a+(x.q||0),0)}),s:left(G.stash.until-G.turn)});

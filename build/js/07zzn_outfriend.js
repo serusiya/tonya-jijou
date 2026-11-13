@@ -1,9 +1,10 @@
 'use strict';
-/* ★檔案總覽：外城友人（DESIGN_NOTES 第二百四十、二百四十一節；遷居尚未實作）
+/* ★檔案總覽：外城友人（DESIGN_NOTES 第二百四十、二百四十一節；遷居在 07zzr_move.js）
  * - 外城友人＝住在別座城、由船長或飛腳牽線（或遠國奉行引薦、作客時經友人引見）結識的商人（旅商人、仲買人、差配人、同業）。
  *   記在交情紀錄 r.out；人數不限。每位船長、飛腳在一座城只認識一位（e.ofCity[城]＝人物代號），再去改為順道問候。
  * - 結識與問候：包在 resolveVoyage 外層——那一趟有買到貨（本業貨或他行貨）才有機會牽線；已有相熟的人就順道問候，那趟買價便宜一成。
- * - 寄信（ACT.ofLetter）：每旬一封（G.ofLetterT），和外地官員的信分開算；好感最多加到 60。
+ * - 寄信（ACT.ofLetter）：每封扣 1 點行動，同一人一旬一封（r.ltrT，與外地官員共用 07zz_letters.js 的 letterUsed／letterSpend）；好感最多加到 60。
+ * - 探聽買付（ACT.ofIntel）：好感 60 以上的友人，寄信改為寫信探聽他那個地區本年度下一次的大口買付；照寄信扣行動、付送信費與禮金，不扣好感（第二百六十七節）。
  * - 來訪：好感 60 以上的友人偶爾來訪（旬報後的來訪事件 ofCome），一旬最多一位。
  * - 出遊訪友（ACT.ofTrip）：本旬約定、下一旬動身，離家 1～4 旬（G.away{cid,start,len,until}）；離家期間沒有行動點數，店務照遠島的做法（06_ui.js 的 awayMode）。
  * - 注文：好感 40 以上的友人來信訂貨（回府時事件 chumon），接下後六旬內由船長或飛腳整批送去（商路頁 chumonCard、ACT.cmGo），貨款現銀帶回；
@@ -43,12 +44,11 @@ function outMake(cid,label,aff,via){
 /* ---------- 寄信 ---------- */
 SPEND_ARG['spend.ofLetter']=a=>nameOf(a);
 const ofLetterCost=cid=>OF().letterFee+btTiers(cid)[1];
-const ofLetterUsed=()=>G.ofLetterT===G.turn;
-/** 寄信不能寄的原因（空字串＝可以寄）：作客期間（約好到回來）、本旬已寄、交情已到書信的上限、成仇。 */
+/** 寄信不能寄的原因（空字串＝可以寄）：作客期間（約好到回來）、本旬已寄給他、交情已到書信的上限、成仇。 */
 function ofLetterBlock(cid){
   if(isEnemy(cid))return 'of.letter.enemy';
   if(G.away)return 'of.letter.away';
-  if(ofLetterUsed())return 'of.letter.used';
+  if(letterUsed(cid))return 'of.letter.used';
   if(R(cid).aff>=OF().letterCap)return 'of.letter.full';
   return '';
 }
@@ -57,10 +57,33 @@ ACT.ofLetter=el=>{
   {const b=ofLetterBlock(cid);if(b){toast(UT(b));return}}
   if(r.aff>=O.letterCap){toast(UT('of.letter.full'));return}
   const amt=ofLetterCost(cid);if(G.silver<amt){toast(UT('of.letter.short',{a:fmt(amt)}));return}
-  payPublic('spend.ofLetter|'+cid,amt);G.ofLetterT=G.turn;
+  if(!letterSpend(cid))return;
+  payPublic('spend.ofLetter|'+cid,amt);
   const gain=Math.max(0,Math.min(rint(O.letterGain[0],O.letterGain[1]),O.letterCap-r.aff));
   setAff(r,clamp(r.aff+gain,0,100));logRel(cid,UT('of.log.letter',{a:fmt(amt),g:gain}));
   toast(UT('of.letter.sent',{n:nameOf(cid),a:fmt(amt),g:gain}),4200);sfx.gift();UI.render();refreshSheet();
+};
+/* ---------- 探聽買付（好感 60 以上，取代寄信；第二百六十七節） ---------- */
+/** 探聽不了的原因（空字串＝可以探聽）。 */
+function ofIntelBlock(cid){
+  if(isEnemy(cid))return 'of.letter.enemy';
+  if(G.away)return 'of.letter.away';
+  if(letterUsed(cid))return 'of.letter.used';
+  const I=buyoutNextOf(outCity(cid).region_id);
+  if(!I)return 'of.intel.none';
+  if(I.known)return 'of.intel.known';
+  return '';
+}
+ACT.ofIntel=el=>{
+  const cid=el.dataset.cid;if(!isOutFriend(cid)||R(cid).aff<OF().letterCap)return;
+  const rid=outCity(cid).region_id,b=ofIntelBlock(cid);
+  if(b){const I=buyoutNextOf(rid);toast(UT(b,{r:REG_NAME(rid),m:I?buyoutMonth(I.m):''}));return}
+  const amt=ofLetterCost(cid);if(G.silver<amt){toast(UT('of.letter.short',{a:fmt(amt)}));return}
+  const I=buyoutIntelFor(rid);if(!I)return;
+  if(!letterSpend(cid))return;
+  payPublic('spend.ofLetter|'+cid,amt);buyoutDiscover(I.y,I.rid,I.m);
+  logRel(cid,UT('of.log.intel',{a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m)}));
+  toast(UT('of.intel.ok',{n:nameOf(cid),a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m)}),6000);sfx.gift();UI.render();refreshSheet();
 };
 /* ---------- 出遊訪友 ---------- */
 /** 離家作客中（這一旬人不在店裡）。 */
@@ -93,7 +116,6 @@ function tripFriendCard(){
   const A=G.away,all=outFriends();
   let h='<div class="trip-sep"><span>'+UT('trip.friend')+'</span></div><div class="tiny muted" style="margin:0 0 4px">'+UT('trip.friend.d')+'</div>';
   if(A&&npc(A.cid))h+='<div class="notice tiny" style="color:#27407a">'+UT(visitAway()?'trip.friend.gone':'trip.friend.away',{n:esc(nameOf(A.cid)),c:outCity(A.cid).name,t:visitAway()?A.until-G.turn+1:A.len})+UT('trip.friend.stop')+'</div>';
-  else if(ofLetterUsed())h+='<div class="tiny muted" style="margin-bottom:4px">'+UT('trip.friend.sent')+'</div>';
   if(!all.length)return h+'<div class="tiny" style="color:#b3392b">'+UT('trip.friend.none')+'</div>';
   const regs=REG_LIST.filter(rg=>all.some(c=>outCity(c).region_id===rg.id));
   let tab=UI.s.ofTab||'all';if(tab!=='all'&&!regs.some(rg=>rg.id===tab))tab=UI.s.ofTab='all';
@@ -104,12 +126,15 @@ function tripFriendCard(){
 ACT.ofTab=el=>{UI.s.ofTab=el.dataset.k;refreshSheet()};
 /** 人物卡上的住處一行。 */
 const outWhereLine=cid=>'<div class="tiny" style="color:#27407a;margin-top:2px">'+UT('of.card.where',{r:REG_NAME(outCity(cid).region_id),c:outCity(cid).name})+'</div>';
-/** 外城友人卡的指令列：寄信、作客；下面一行說明為什麼按不了。 */
+/** 外城友人卡的指令列：寄信（好感 60 以上改為探聽買付）、作客；下面一行說明為什麼按不了。 */
 function outRowHtml(cid){
-  const O=OF(),r=R(cid),lb=ofLetterBlock(cid),tb=ofTripBlock(cid);
-  const lt=lb==='of.letter.used'?UT('btn.ofLetterUsed'):lb==='of.letter.full'?UT('btn.ofLetterFull'):lb==='of.letter.away'?UT('btn.ofLetterAway'):UT('btn.ofLetter',{c:coinHtml('silver',ofLetterCost(cid))});
-  let h='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:5px"><button class="pixel-btn btn-sm" data-act="ofLetter" data-cid="'+cid+'" '+(lb?'disabled':'')+'>'+lt+'</button>'
+  const O=OF(),r=R(cid),tb=ofTripBlock(cid),intel=r.aff>=O.letterCap;
+  const lb=intel?ofIntelBlock(cid):ofLetterBlock(cid),coin=coinHtml('silver',ofLetterCost(cid));
+  const lt=lb==='of.letter.used'?UT('btn.ofLetterUsed'):lb==='of.letter.away'?UT('btn.ofLetterAway'):lb==='of.letter.enemy'?UT('btn.ofLetterEnemy'):intel?(lb?UT('btn.ofIntelOff'):UT('btn.ofIntel',{c:coin})):UT('btn.ofLetter',{c:coin});
+  let h='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:5px"><button class="pixel-btn btn-sm" data-act="'+(intel?'ofIntel':'ofLetter')+'" data-cid="'+cid+'" '+(lb?'disabled':'')+'>'+lt+'</button>'
     +'<button class="pixel-btn btn-sm btn-gold" data-act="ofTrip" data-cid="'+cid+'" '+(tb?'disabled':'')+'>'+UT('btn.ofTrip',{n:ofTripLen(cid),c:coinHtml('gold',ofTripCost(cid))})+'</button></div>';
+  if(intel&&(lb==='of.intel.none'||lb==='of.intel.known')){const I=buyoutNextOf(outCity(cid).region_id);h+='<div class="tiny muted" style="margin-top:2px">'+UT(lb,{r:REG_NAME(outCity(cid).region_id),m:I?buyoutMonth(I.m):''})+'</div>'}
+  else if(intel&&!lb)h+='<div class="tiny muted" style="margin-top:2px">'+UT('of.intel.hint',{r:REG_NAME(outCity(cid).region_id)})+'</div>';
   if(tb&&tb!=='of.trip.busy')h+='<div class="tiny muted" style="margin-top:2px">'+UT(tb==='of.trip.need'?'of.card.low':tb,{a:fmt(ofTripCost(cid))})+'</div>';
   return h;
 }
@@ -278,3 +303,26 @@ function noteListHtml(list,f){
   }
   return h.replace(/<\/div>$/,add+'</div>');
 }}
+/* ---------- 淡忘：兩年沒往來，從外城友人名單刪除，變回完全的陌生人（DESIGN_NOTES 第二百六十四節） ----------
+ * - r.ofT＝最後一次往來的旬：結識（outMake）與任何記進往來紀錄的事（寄信、作客、來訪、注文、順道問候……）都會更新。
+ * - 滿一年半人物卡標「久未聯絡」；滿兩年刪除交情資料（好感 0、往來紀錄、交情來歷），仇人也一樣；船長、飛腳在那座城牽過線的紀錄一併清掉。
+ * - 不淡忘：約定遷居的友人、注文還沒送完、正在他家作客。舊存檔沒有 r.ofT：第一次檢查時從那一旬起算。數值 ODDS.outFriend.forget／forgetWarn。 */
+{const _om=outMake;outMake=function(cid){const r=_om.apply(this,arguments);R(cid).ofT=G.turn;return r}}
+{const _lr=logRel;logRel=function(cid){const r=_lr.apply(this,arguments);if(G&&G.rel[cid]&&isOutFriend(cid))G.rel[cid].ofT=G.turn;return r}}
+const ofIdle=cid=>{const r=G.rel[cid];if(r.ofT===undefined)r.ofT=G.turn;return G.turn-r.ofT};
+const ofKeep=cid=>(G.move&&G.move.cid===cid)||chumonList().some(o=>o.cid===cid)||(G.away&&G.away.cid===cid);
+function ofForgetTick(log){
+  const O=OF();let n=0;
+  outFriends().forEach(cid=>{
+    if(ofKeep(cid)){G.rel[cid].ofT=G.turn;return}
+    if(ofIdle(cid)<O.forget)return;
+    delete G.rel[cid];G.known=G.known.filter(c=>c!==cid);
+    (G.emps||[]).forEach(e=>{if(e.ofCity)Object.keys(e.ofCity).forEach(k=>{if(e.ofCity[k]===cid)delete e.ofCity[k]})});
+    n++;
+  });
+  if(n){const t=NEWS('of.forget');pushNews(t);log.push(t)}
+}
+{const _ot=outTick;outTick=function(log){const r=_ot.apply(this,arguments);ofForgetTick(log);return r}}
+/** 人物卡：久未聯絡的提醒。 */
+{const _o=outRowHtml;outRowHtml=function(cid){const h=_o.apply(this,arguments),d=G.rel[cid]?ofIdle(cid):0,O=OF();
+  return (d>=O.forgetWarn&&!ofKeep(cid)?'<div class="tiny" style="color:#b3392b;margin-top:3px">'+UT('of.card.idle',{n:Math.max(1,O.forget-d)})+'</div>':'')+h}}

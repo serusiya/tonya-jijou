@@ -5,7 +5,7 @@
  * - 贊助大相撲：私房錢贊助，三旬後開場，那一旬所有貨物需求兩倍（sumoMult，03_market.js 的 demandEff）；只有需求，沒有節慶的其他效果。
  * - 落魄的手藝人：借他現款，之後九旬每旬送一批本業一般品（tripEvTick）；約兩成中途出事，只送到一半。
  * - 漏夜倒貨的急商：牌價四成買一批本業貨；三成是贓貨，六旬內五成被官差找上門（來訪事件 rushBust：打點或認罰）。
- * - 擦身而過：老隱居依惡德值給三種反應。惡德（G.evil）這裡只累計，不判定、不懲罰（木戶黃門尚未實作）。
+ * - 擦身而過：老隱居依惡德值給三種反應。惡德（G.evil）這裡只累計；判定與懲罰在 07zzj_komon.js。
  * - 存檔：G.tripY、G.sumo{turn,rem}、G.artisan{name,left,sent,stop,unit}、G.rushLot、G.rushBust、G.evil{v,log,met}，用到時才建立。
  * - 數值 ODDS.trip.sumo／artisan／rush／komon、ODDS.evil；台詞 LINES.trip.sumo／artisan／rush／komon；文字 trip.*、rush.*（01e）、新聞 sumo.*、artisan.*、rush.*（01g）。 */
 /* ---------- 惡德：只累計 ---------- */

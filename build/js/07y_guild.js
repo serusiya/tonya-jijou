@@ -1,6 +1,6 @@
 'use strict';
 /* ======================= 聯合採購與出貨協議的訂約金與違約金分配 =======================
- *  - 參加協議（表態遵守或簽暗約）要付訂約金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，訂約金由開局贈送。
+ *  - 參加協議要付訂約金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，訂約金由開局贈送。
  *  - 參加協議者向大盤進貨享聯合採購價（市價九三折）；未參加者照市價（03_market.js 的 unitBuyCost）。
  *  - 自動續押：訂約金一直押在公會；一期＝兩次例會之間（3、6、9、12 月上旬），例會旬查完同業超賣之後，把上一期沒收的違約金平分給守約者（你＋上一期沒被抓的同業；meetingPayout，07yb_meeting.js）。例會旬旬報裡的查獲算上一期。
  *  - 你被查獲超量（evalCartel）或退出協議：訂約金作廢，立場回到未參加；要重新加入協議須在例會時再押一次。
@@ -10,7 +10,7 @@
 /** 本期供給方針；缺值時視為「減供」。 */
 const cartelPolicy=()=>G.cartel&&G.cartel.policy==='normal'?'normal':'restrict';
 const guildPolicyName=()=>cartelPolicy()==='normal'?UT('guild.guildPolicyName'):UT('guild.guildPolicyName.2');
-/** 是否已參加聯合採購與出貨協議（表態遵守或暗約）。 */
+/** 是否已參加聯合採購與出貨協議（暗約已取消，第二百五十六節）。 */
 const guildMember=()=>G.cartel.state==='pledged'||G.cartel.state==='secret';
 /** 舊存檔補欄位：已參加協議而沒有訂約金紀錄的，視為已押。 */
 function guildEnsure(){

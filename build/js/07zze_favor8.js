@@ -34,7 +34,7 @@ const seaFearNote=()=>'<div class="notice">'+UT('f8.fearNote',{n:seaFearLeft()})
 {const _sh=SHEETS.smuggle;SHEETS.smuggle=function(){const o=_sh.apply(this,arguments);if(seaFear())o.html=seaFearNote()+o.html;return o}}
 
 /* ---------- 請託登記 ---------- */
-const F8_ADM=[{k:'fireAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('fire')},{k:'newTown',apply:true,rank:5,exactRank:true}];
+const F8_ADM=[{k:'fireAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('fire')},{k:'newTown',apply:true,rank:5,exactRank:true},{k:'newTown6',apply:true,rank:6,exactRank:true}];   // 新町取立：五階（小）與六階（城代家老）算同一件，共用次數與冷卻
 const F8_FIN=[{k:'cargoAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('cargo')},{k:'mono5',rank:5,exactRank:true,cd:3,avail:()=>!monoNow()&&tradeComms().length>0},{k:'mono6',rank:6,exactRank:true,cd:3,avail:()=>!monoNow()&&tradeComms().length>0}];
 const F8_JUD=[{k:'theftAid',rank:3,exactRank:true,cd:12,avail:()=>lossOpen('theft')},{k:'suspend',rank:5,exactRank:true,cd:12,avail:()=>suspTargets().length>0}];
 F8_ADM.forEach(f=>FAVORS.administration.push(favorText(f)));F8_FIN.forEach(f=>FAVORS.finance.push(favorText(f)));F8_JUD.forEach(f=>FAVORS.judiciary.push(favorText(f)));
@@ -147,25 +147,29 @@ function kesshoDo(cid,tcid){
 /* ---------- 六、新町取立 ---------- */
 const NT=()=>G.newTown||(G.newTown={tries:0,cd:-1});
 const newTownCool=()=>NT().cd>=G.turn;
-{const _fd=favorDone;favorDone=function(f,n){if(f&&f.k==='newTown')return newTownCool();return _fd.apply(this,arguments)}}
+const NT_KEYS=['newTown','newTown6'];
+const ntCost=k=>k==='newTown6'?F8().newTown.cost6:F8().newTown.cost;
+/** 五、六階的新町取立算同一件：任一件在審理中，另一件也不出現。 */
+const ntPending=()=>(G.apps||[]).some(a=>a.state==='wait'&&NT_KEYS.includes(a.key));
+{const _fd=favorDone;favorDone=function(f,n){if(f&&NT_KEYS.includes(f.k))return newTownCool()||ntPending();return _fd.apply(this,arguments)}}
 {const _af=applyFavor;applyFavor=function(cid,n,r,f){
-  if(f&&f.k==='newTown'){
+  if(f&&NT_KEYS.includes(f.k)){
     if(newTownCool())return {ok:true,status:'held',msg:MSG('f8.ntCool',{n:NT().cd-G.turn+1})};
-    if(!favorPending(f)&&!(G.apps||[]).some(a=>a.key===f.k&&a.cid===cid)){
-      if(G.silver<F8().newTown.cost)return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(F8().newTown.cost)})};
-      payPublic('spend.f8NewTown',F8().newTown.cost);
-    }
+    if(ntPending())return {ok:true,status:'held',msg:MSG('applyFavor.1')};
+    if(G.silver<ntCost(f.k))return {ok:true,status:'held',msg:MSG('f8.short',{a:fmt(ntCost(f.k))})};
+    payPublic('spend.f8NewTown',ntCost(f.k));
   }
   return _af.apply(this,arguments);
 }}
 {const _ag=appGrant;appGrant=function(A,log){
-  if(A.key!=='newTown')return _ag.apply(this,arguments);
-  const N=NT(),p=F8().newTown.p[Math.min(N.tries,F8().newTown.p.length-1)],ok=rnd()<p;
+  if(!NT_KEYS.includes(A.key))return _ag.apply(this,arguments);
+  const six=A.key==='newTown6',N=NT(),p=F8().newTown.p[Math.min(N.tries,F8().newTown.p.length-1)],ok=rnd()<p;
   N.cd=G.turn+F8().newTown.cd-1;
   let t;
   if(ok){
-    const ct=homeCity(),before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(ct),after=Math.round(before*(1+F8().newTown.pop));
+    const ct=homeCity(),before=Number.isFinite(G.cityPopulation)?G.cityPopulation:cityPop(ct),after=Math.round(before*(1+(six?F8().newTown.pop6:F8().newTown.pop)));
     G.cityPopulation=after;N.tries=0;
+    if(six)raiseFameFloor(F8().newTown.floor6);   // 城代家老的新町：知名度至少到 80，從此不低於 80
     G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('f8.ntHist',{f:G.firm||gmName('me'),a:fmt(before),b:fmt(after)})});
     Object.entries(G.mk).forEach(([nm,m])=>{m.D=cityD(ct,COMM_MAP[nm])});   // 人口增加後立即重算需求（穩定供貨線、配額、進貨上限、庫存上限都跟著變）
     t=NEWS('f8.ntOk',{a:fmt(before),b:fmt(after)});sfx.fanfare();

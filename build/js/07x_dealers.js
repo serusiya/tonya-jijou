@@ -19,7 +19,7 @@ function xsellQuote(cid,name,q,noise){
 }
 /** 本旬黑市行情的文字（相對基準）。 */
 function smugMood(k){const f=(G.smugP&&G.smugP[k])||1;return f>=1.15?UT('deal.smugMood'):f<=0.92?UT('deal.smugMood.2'):UT('deal.smugMood.3')}
-/** 不在協議裡（沒參加，或違約被查獲後還沒重新加入）：同業不肯調貨，仲買人、旅商人收貨壓價（第二百四十七節）。暗約仍算在協議裡。 */
+/** 不在協議裡（沒參加，或違約被查獲後還沒重新加入）：同業不肯調貨，仲買人、旅商人收貨壓價（第二百四十七節）。 */
 const guildShunned=()=>!guildMember();
 /** 被排擠時那句話：同一人同一旬固定一句（不耗遊戲亂數）。role：broker／guest。 */
 function shunLine(cid,role){const L=Ls('shun.'+role);return L[Math.floor(seeded('shun'+cid+'_'+G.turn)()*L.length)]}

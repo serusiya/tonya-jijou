@@ -1,7 +1,7 @@
 'use strict';
 /* ======================= 大口買付 =======================
  * 五個地區各自於每季抽一個月；第一年從夏季起，只抽後三季。
- * 排程不主動公開。玩家可由仲買人探聽本地下一次買付風聲，或在委託採買返航時得知。
+ * 排程不主動公開。玩家可由仲買人探聽本地下一次買付風聲、寫信請好感 60 以上的外城友人探聽他那個地區的下一次（07zzn_outfriend.js），或在委託採買返航時得知。
  * 是否受影響以出發年月為準；只影響委託採買的本業貨。 */
 const buyoutRegions=()=>[...new Set(ALL_CITIES.map(c=>c.region_id))];
 /** 確保本年度排程存在；跨年時各區完全獨立重抽。 */
@@ -34,10 +34,13 @@ function buyoutDiscover(y,rid,m){
   const B=buyoutEnsure();if(!B||B.y!==y||!buyoutActive(rid,y,m))return false;
   B.known[rid]=B.known[rid]||{};const fresh=!B.known[rid][m];B.known[rid][m]=1;return fresh;
 }
-/** 仲買人只說玩家所在地區、本年度「下一次」買付；已知的下一次尚未過去時不能連問。 */
-function buyoutIntelNext(){
-  const B=buyoutEnsure(),rid=homeCity().region_id;
-  if(!B||B.y!==G.year)return null;
-  const m=(B.months[rid]||[]).find(x=>x>=G.month);if(!m||buyoutKnown(rid,G.year,m))return null;
-  return {rid,m,y:G.year};
+/** 某地區本年度「下一次」買付（含本月）：{rid,m,y,known}；今年已經沒有時回傳 null。 */
+function buyoutNextOf(rid){
+  const B=buyoutEnsure();if(!B||B.y!==G.year)return null;
+  const m=(B.months[rid]||[]).find(x=>x>=G.month);if(!m)return null;
+  return {rid,m,y:G.year,known:buyoutKnown(rid,G.year,m)};
 }
+/** 某地區還能探聽的下一次買付；已知的下一次尚未過去時不能連問。 */
+function buyoutIntelFor(rid){const I=buyoutNextOf(rid);return I&&!I.known?I:null}
+/** 仲買人只說玩家所在地區、本年度「下一次」買付。 */
+function buyoutIntelNext(){return buyoutIntelFor(homeCity().region_id)}

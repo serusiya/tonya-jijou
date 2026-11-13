@@ -49,7 +49,8 @@ function migrateSave(){
   }
   if(G.gmDue===undefined)G.gmDue=null;
   if(!G.gmOut)G.gmOut={};
-  if(!G.cityRoutes)G.cityRoutes={};                  // 後天開通的海運（外港開闢）
+  if(!G.cityRoutes)G.cityRoutes={};
+  if(G.cartel&&G.cartel.state==='secret')G.cartel.state='pledged';   // 暗約已取消（第二百五十六節）：改為參加，訂約金保留                  // 後天開通的海運（外港開闢）
   if(!G.openedRoads)G.openedRoads=[];                // 開闢的道路（地區 id）
   if(!G.debts)G.debts=[];
   if(!G.guild)G.guild={};                            // 公會例會（07yb_meeting.js）；舊存檔的一期與季度人口在下一次例會時結算

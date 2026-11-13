@@ -2,7 +2,7 @@
 /* ======================= 問屋公會例會：公會長選舉、供給投票、菓子折拍賣 =======================
  *  - 例會固定在 3、6、9、12 月上旬（每季第一旬；02b_calendar.js 的 isMeetingTurn）；一期＝九旬；開局那一旬（3 月上旬）就是第一次例會。主畫面在例會旬出現整列按鈕，
  *    扣 1 行動、照常擲遇襲與路遇；整場例會只扣進場那 1 點。關掉視窗後可再按按鈕繼續，不再扣行動。
- *  - 流程：（3 月）公會長選舉 step 0（07yc_gm.js）→ ① 協議立場（加入、暗約、退出只能在這裡辦；公會長不能退出）→ ② 供給投票 → ③ 菓子折拍賣 → ④ 本期總結。
+ *  - 流程：（3 月）公會長選舉 step 0（07yc_gm.js）→ ① 協議立場（加入、退出只能在這裡辦；公會長不能退出）→ ② 供給投票 → ③ 菓子折拍賣 → ④ 本期總結。
  *  - 決議當旬生效：投票後立即以新方針重算本旬同業供給。沒出席（或沒走完）時，推進那一旬、出貨之前自動決議：
  *    同業各自 60% 投減供；你沒有票、不能出價。
  *  - 投票：只有參加協議的會員；你一票；你出席時每位同業跟你投一樣的機率＝80%×好感÷100，否則投另一方。平手由公會長裁決（你在場自己選、你缺席維持上期、同業公會長一律減供；沒有公會長維持上期）。
@@ -116,6 +116,7 @@ function meetAuction(myBid){
 /** 推進一旬、出貨之前：本旬例會若還沒走完，照規則自動決議（你沒有票、不能出價）。 */
 function meetingAuto(log){
   const M=meetNow();if(!M||M.done)return;
+  urgeAuto(M,log);                                 // 官府督促：你是公會長卻沒處理＝推託（07zzq_urge.js）
   if(M.el&&!M.el.done)gmElectAuto(M);              // 公會長選舉（07yc_gm.js）
   if(!M.voted){const T=meetVote(null);const t=NEWS('meet.autoVote',{p:policyName(T.policy),n:T.n,r:T.r,tie:T.tie?UT('gmeet.t'):''});pushNews(t);log.push(t)}
   if(!M.res){meetAuction(0);if(M.lotNews)log.push(M.lotNews)}
@@ -185,9 +186,9 @@ SHEETS.guild=()=>{
   if(cur===0&&M.el){const X=gmElectHtml(M);info=X.info;act=X.act}
   else if(cur===1){
     const st=C.state==='pledged'?UT('gmeet.st.4'):C.state==='secret'?UT('gmeet.st.5'):UT('gmeet.st.6');
-    const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond'),gc=costBtn('guildSecret');
+    const mem=guildMember()&&C.bond>0,bc=costBtn('guildBond');   // 暗約已取消（第二百五十六節）
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
-    act='<div class="grid2"><button class="pixel-btn btn-green" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button><button class="pixel-btn btn-red" data-act="cartel" data-s="secret" '+(C.state==='secret'?'disabled':'')+'>'+(mem?UT('btn.cartel2',{c:gc}):UT('btn.cartel2Join',{c:bc,g:gc}))+'</button></div>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
+    act='<button class="pixel-btn btn-green" style="width:100%" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
   }else if(cur===2){
     info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
       :UT('gmeet.guild.6');
@@ -218,7 +219,7 @@ SHEETS.guild=()=>{
     if(guildMember())info+=UT('gmeet.guild.29',{a:own.map(c=>'<div class="row tiny" style="margin-top:2px"><span>'+esc(c.short)+'</span><b>'+UT('gmeet.guild.28',{a:quotaOf(c.name)})).join('')})+'</div>';
     act=UT('gmeet.guild.30');
   }
-  h+=info+meetTalkHtml(cur)+act;
+  h+=urgeMeetCard(M)+info+meetTalkHtml(cur)+act;   // 官府督促（07zzq_urge.js，第二百五十六節）
   return {title:UT('gmeet.guild.31'),html:h};
 };
 ACT.meetStep=()=>{const M=meetNow();if(!M)return;UI.s.quitArm=false;M.step=Math.min(4,M.step+1);refreshSheet();UI.render()};

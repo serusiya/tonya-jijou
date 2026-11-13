@@ -265,3 +265,23 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 /* 外城出遊面板：寺社溫泉與外城友人之間的分隔線（07zzn_outfriend.js 的 tripFriendCard） */
 .trip-sep{display:flex;align-items:center;gap:6px;margin:12px 0 4px;font-weight:bold}
 .trip-sep::before,.trip-sep::after{content:'';flex:1;border-top:2px solid #8a7a5c}
+/* 木戶黃門宣判：全畫面捲動漫畫（07zzj_komon.js） */
+#komon{position:fixed;inset:0;z-index:9000;background:#0b0a10;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#komon .km-stage{position:relative;width:min(100vw,520px);height:70%;overflow:hidden}   /* 故事區居中、佔七成高，上下各留一成五黑邊 */
+#komon .km-img{display:block;width:100%;height:auto;transition:transform .9s ease-in-out;will-change:transform;image-rendering:auto}
+#komon .km-cap{position:absolute;left:0;right:0;bottom:0;background:#120f17;border-top:2px solid #c9a24a;color:#f3e9d2;padding:12px 14px 16px;overflow-y:auto;transition:top .9s ease-in-out;box-sizing:border-box}
+#komon .km-txt{transition:opacity .25s;font-size:15px;line-height:1.75}
+#komon .km-txt p{margin:0 0 8px}
+#komon .km-txt b{color:#ffd98a;font-weight:normal}
+#komon .km-list{margin:0 0 8px;padding-left:2px}
+#komon .km-btn{display:block;width:100%;margin-top:6px;transition:opacity .25s;position:sticky;bottom:0;box-shadow:0 8px 0 #120f17,0 -8px 12px #120f17}   /* 字多要捲動時，按鈕固定在說明框底部 */
+@media (prefers-reduced-motion:reduce){#komon .km-img,#komon .km-cap{transition:none}}
+/* 遷居（07zzr_move.js）：外城友人卡的遷居區塊、私宅最下方的籌備卡與整行大按鈕 */
+.mv-box{margin-top:6px;padding:6px 8px;border:2px dashed #b8892f;background:#fbf3df}
+.mv-wrap{padding:0 10px 14px}
+.mv-est{border-color:#b8892f}
+.pixel-btn.mv-go{display:block;width:100%;margin-top:8px;padding:10px 8px;font-size:16px}
+/* 開局標題「問屋事情」漸層流動（第二百六十二節）：主題金色為主，夾暖白流光、一點朱紅 */
+#start h1 .ttl-flow{background:linear-gradient(90deg,var(--gold2),var(--gold),var(--paper),var(--gold2),var(--red),var(--gold),var(--gold2));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:ttlFlow 3s linear infinite}
+@keyframes ttlFlow{from{background-position:200% 0}to{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){#start h1 .ttl-flow{animation:none}}

@@ -247,11 +247,26 @@ function gmCanvassHp(v,opp){
   const A=ODDS.gm,coef=A.canvassComp[compat(v,opp).matches],d=Math.max(0,gmShare(opp)-gmShare('me'));
   return {hp:Math.round(btHp(v)*A.canvassX*coef*(1+A.canvassShare*d)),coef};
 }
-/** 你是候選人：跳過仇人（直接投對方），全部問完就開票。 */
-function gmCanvassNext(E){
+/** 你是候選人：開票。沒拉票、拉票失敗、仇人都投對方（第二百五十四節）。 */
+function gmCanvassClose(E){
   const opp=E.cands.find(k=>k!=='me');
-  while(E.idx<E.voters.length&&isEnemy(E.voters[E.idx])){E.votes[E.voters[E.idx]]=opp;E.idx++}
-  if(E.idx>=E.voters.length&&!E.done)gmTally(E);
+  E.voters.forEach(v=>{if(!E.votes[v])E.votes[v]=opp});
+  if(!E.done)gmTally(E);
+}
+/** 拉票列表上方的戰況：你幾票、對方幾票、還有幾人沒拉、過半要幾票。 */
+function gmCanvassTally(E){
+  const n=E.voters.length,me=E.voters.filter(v=>E.votes[v]==='me').length,left=E.voters.filter(v=>!E.votes[v]&&!isEnemy(v)).length;
+  return UT('gm.el.tally',{a:me,b:n-me-left,c:left,d:Math.floor(n/2)+1});
+}
+/** 人物卡上的拉票列（personBlock 的 gm 模式呼叫）。 */
+function gmCanvassRow(cid){
+  const M=meetNow(),E=M&&M.el;if(!E)return '';
+  const v=E.votes[cid];
+  if(v)return '<div class="tiny" style="margin-top:4px;color:'+(v==='me'?'#2f6b3a':'#b3261e')+'">'+UT(v==='me'?'gm.el.stYes':'gm.el.stNo')+'</div>';
+  const friend=R(cid).aff>=FRIEND_AFF;
+  return '<div class="tiny muted" style="margin-top:4px">'+UT('gm.el.stNone')+'</div>'
+    +(friend?'<div class="tiny muted" style="margin-top:2px">'+UT('gm.el.noGift')+'</div>':'<div class="row" style="gap:4px;margin-top:2px"><span class="tiny">'+UT('gm.el.gift')+'</span><select class="gift-sel" style="flex:1">'+giftOptions(cid)+'</select></div>')
+    +'<button class="pixel-btn btn-sm btn-gold" style="width:100%;margin-top:4px" data-act="gmCanvass" data-cid="'+cid+'">'+UT('gm.el.canvassBtn')+'</button>';
 }
 function gmElectHtml(M){
   const E=M.el,[A,B]=E.cands;let info='',act='';
@@ -269,11 +284,10 @@ function gmElectHtml(M){
     act='<div class="tiny muted">'+UT('gm.el.voteNote',{d:ODDS.gm.voteAff})+'</div><div class="grid2">'+E.cands.map(k=>'<button class="pixel-btn btn-gold" data-act="gmVote" data-k="'+k+'">'+UT('gm.el.voteBtn',{n:esc(gmName(k))})+'</button>').join('')+'</div><button class="pixel-btn" style="width:100%;margin-top:4px" data-act="gmVote" data-k="none">'+UT('gm.el.abstain')+'</button>';
     return {info,act};
   }
-  gmCanvassNext(E);if(E.done)return gmElectHtml(M);
-  const v=E.voters[E.idx],r=R(v),friend=r.aff>=FRIEND_AFF;
-  act='<div class="notice tiny">'+UT('gm.el.canvassNote',{i:E.idx+1,n:E.voters.length})+'</div><div class="card" style="display:flow-root">'+portraitHtml(v,48)+'<b>'+esc(nameOf(v))+'</b> <span class="tag gray">'+UT('gmeet.meetTalkHtml.2')+'</span>'
-    +(friend?'<div class="tiny muted" style="margin-top:3px">'+UT('gm.el.noGift')+'</div>':'<div class="small" style="margin-top:3px">'+UT('gm.el.gift')+' <select id="gm-gift">'+giftOptions(v)+'</select></div>')
-    +'<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="gmCanvass">'+UT('gm.el.canvassBtn')+'</button></div>';
+  E.voters.forEach(v=>{if(!isEnemy(v))gmMeet(v,'gm.bondLabel')});   // 例會上同業都在座：拉票名單上的人都算見過面
+  act='<div class="notice tiny">'+UT('gm.el.canvassNote')+'</div><div class="card small" style="text-align:center"><b>'+gmCanvassTally(E)+'</b></div>'
+    +E.voters.map(v=>personBlock(v,'gm')).join('')
+    +'<button class="pixel-btn btn-red" style="width:100%;margin-top:6px" data-act="gmTallyNow">'+UT('gm.el.tallyBtn')+'</button>';
   return {info,act};
 }
 /** 例會沒出席或沒走完：你是候選人而沒出席＝市佔較高者當選；拉票到一半，剩下的人投對方；你不是候選人＝同業照相容投、你沒有票。 */
@@ -281,8 +295,8 @@ function gmElectAuto(M){
   const E=M.el;if(!E||E.done)return;
   if(E.cands.includes('me')){
     const opp=E.cands.find(k=>k!=='me');
-    if(!M.att||!Object.keys(E.votes).length){E.absent=true;gmElectFinish(E,gmShare('me')>gmShare(opp)?'me':opp);return}
-    E.voters.forEach(v=>{if(!E.votes[v])E.votes[v]=opp});gmTally(E);return;
+    if(!M.att){E.absent=true;gmElectFinish(E,gmShare('me')>gmShare(opp)?'me':opp);return}
+    gmCanvassClose(E);return;                       // 出席了但沒按開票：沒拉到的人投對方
   }
   const [A,B]=E.cands;E.voters.forEach(v=>{E.votes[v]=gmRivalPick(v,A,B)});gmTally(E);
 }
@@ -294,10 +308,13 @@ ACT.gmVote=el=>{
     [[k,d],[o,-d]].forEach(([c,x])=>{const r=R(c);setAff(r,clamp(r.aff+x,0,100));logRel(c,UT(x>0?'gm.log.voteFor':'gm.log.voteAgainst'))})}
   gmTally(E);sfx.step();refreshSheet();UI.render();
 };
-ACT.gmCanvass=()=>{
+/** 開票（你是候選人時，拉夠了就按）。 */
+ACT.gmTallyNow=()=>{const M=meetNow(),E=M&&M.el;if(!E||E.done||!E.cands.includes('me'))return;gmCanvassClose(E);sfx.step();refreshSheet();UI.render()};
+ACT.gmCanvass=el=>{
   const M=meetNow(),E=M&&M.el;if(!E||E.done)return;
-  const v=E.voters[E.idx];if(!v)return;
-  const opp=E.cands.find(k=>k!=='me'),sel=document.getElementById('gm-gift'),gift=sel?sel.value:null,c=gmCanvassHp(v,opp);
+  const v=el.dataset.cid;if(!v||!E.voters.includes(v)||E.votes[v]||isEnemy(v))return;
+  const card=el.closest('.card'),sel=card&&card.querySelector('.gift-sel');
+  const opp=E.cands.find(k=>k!=='me'),gift=sel?sel.value:null,c=gmCanvassHp(v,opp);
   gmMeet(v,'gm.bondLabel');
   battleStart(v,gift);
   BT.mode='canvass';BT.opp=opp;BT.hp=c.hp;
@@ -313,7 +330,7 @@ function gmBattleEnd(){
   let msg;
   if(B.mode==='canvass'){
     const M=meetNow(),E=M&&M.el;
-    if(E&&!E.done){E.votes[cid]=win?'me':B.opp;E.idx++;gmCanvassNext(E)}
+    if(E&&!E.done)E.votes[cid]=win?'me':B.opp;     // 打完回到列表；開票由玩家按
     logRel(cid,UT(win?'gm.log.canvassWin':'gm.log.canvassLose',{a:B.spent}));
     msg=(win?TX('gm.canvassWin'):TX('gm.canvassLose',{o:gmName(B.opp)}))+UT('gm.gain',{g:gain});
   }else{

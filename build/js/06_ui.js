@@ -340,7 +340,7 @@ function autoShip(log){
     const q=planOf(c.name);let shipped=0;
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
     /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
-       已參加協議（守約或暗約）、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未參加協議）＝出貨不足 */
+       已參加協議、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未參加協議）＝出貨不足 */
     const line=supplyLine(c.name);if(line>0)judged++;
     if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未參加協議沒有配額約束，一律算出貨不足
   });

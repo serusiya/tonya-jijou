@@ -33,7 +33,6 @@ const COSTS={
   shipBuild:{name:'造船費（聘船長時）',cur:'silver',amt:600,per:'聘後的船長數'},
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
-  guildSecret:{name:'簽暗約偷跑',cur:'gold',amt:30},
   guildBond:{name:'協議訂約金（付給大盤，退出或違約作廢）',cur:'silver',amt:1000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},

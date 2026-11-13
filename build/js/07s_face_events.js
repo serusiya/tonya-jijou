@@ -23,7 +23,9 @@ function faceEventCard(e){
   if(e.type==='windfall'){
     line=UT('face.faceEventCard.2',{a:fmt(e.amt)});effect=UT('face.faceEventCard.3',{a:fmt(e.amt)});
   }else if(e.type==='extort'){
+    if(!(R(e.cid).promises||[]).some(p=>!p.done&&p.kind==='tribute'&&p.by==='official'))return null;   // 已經付了或告發了
     line=UT('face.faceEventCard.4',{a:fmt(e.amt)});effect=UT('face.faceEventCard.5');
+    buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="faceNext">'+UT('btn.extortOk')+'</button><button class="pixel-btn btn-sm btn-red" data-act="reportExtort" data-cid="'+e.cid+'" data-face="1">'+UT('btn.reportExtort')+'</button></div>';
   }else if(e.type==='inspect'){
     const I=G.inspect;if(!I||I.cid!==e.cid||I.turn!==e.turn)return null;
     const rk=npc(e.cid).pos?npc(e.cid).pos.rank:1;

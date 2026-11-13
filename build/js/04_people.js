@@ -179,7 +179,7 @@ function doFavor(cid,key,arg){
   if(n.pos.rank<f.rank||(f.exactRank&&n.pos.rank!==f.rank))return {ok:true,status:'refused',msg:TX('favor.outOfRank')};
   if(f.relief)return doRelief(cid,n,r,f);
   if(f.bandit)return doBanditFavor(cid,n,r,f);                  // 討伐海賊／山賊（07zv_bandit.js）                      // 災情救濟（07zu_relief.js）
-  if(f.apply)return applyFavor(cid,n,r,f);                      // 許可、權利類：走申請審理流程（見 07k）
+  if(f.apply)return applyFavor(cid,n,r,f,arg);                  // 許可、權利類：走申請審理流程（見 07k）；arg＝先挑好的對象（外港開闢的城、國產取立的貨）
   r.cd=r.cd||{};if(r.cd[key]&&G.turn<r.cd[key])return {ok:true,status:'held',msg:MSG('doFavor.2',{key:(r.cd[key]-G.turn)})};
   if(f.once&&regionHeld(key,n))return {ok:true,status:'held',msg:MSG('doFavor.3')};
   {const ck=regFavorCheck(f,n);if(ck)return {ok:true,status:'held',msg:ck}}   // 遠國奉行所三階新請託（07zz_regfavor.js）
@@ -266,6 +266,23 @@ function peopleTick(log){
   (G.debts||[]).forEach(d=>{if(!d.paid&&!d.warned&&d.due-G.turn===2){d.warned=true;const t=NEWS('peopleTick.due',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   (G.debts||[]).forEach(d=>{if(!d.paid&&G.turn>=d.due){d.paid=true;G.silver-=d.amt;const t=NEWS('peopleTick.2',{d:fmt(d.amt)});pushNews(t);log.push(t)}});
   if(G.debts)G.debts=G.debts.filter(d=>!d.paid);
+}
+/** 告發索賄（第二百五十三節）：不付錢、承諾作廢；風聲 −2；他好感歸零、成仇；一到四階兩成、五六階一成撤職下獄（離開官署，空缺照常遞補；人不在了照樣是仇人）。回傳訊息。 */
+function reportExtort(cid){
+  const r=R(cid),n=npc(cid),i=r.promises.findIndex(p=>!p.done&&p.kind==='tribute'&&p.by==='official');
+  if(i<0||!n||!n.pos)return MSG('extort.report.none');
+  const O=ODDS.extortReport,p=r.promises[i],nm=nameOf(cid);p.done=true;p.reported=true;
+  const cut=Math.min(O.heat,G.heat||0);G.heat=Math.max(0,(G.heat||0)-O.heat);
+  setAff(r,0);r.peak=Math.max(r.peak||0,ENEMY_GAP);logRel(cid,UT('extort.log.report'));
+  const fall=chance(n.pos.rank>=5?O.fallHi:O.fall);
+  if(fall){
+    const rep=replaceOfficial(n);if(rep)addKnown(rep);delete G.world.npcs[cid];
+    G.intros=G.intros.filter(x=>x.cid!==cid);if(G.introId===cid)G.introId=G.intros[0]?G.intros[0].cid:null;
+    logRel(cid,UT('extort.log.fall'));
+  }
+  const t=NEWS(fall?'extort.report.fall':'extort.report.stay',{n:nm,f:G.firm});pushNews(t);
+  sfx[fall?'fanfare':'bad']();
+  return MSG(fall?'extort.report.fallMsg':'extort.report.stayMsg',{n:nm,h:Math.round(cut*10)/10});
 }
 /** 兌現承諾。 */
 function payPromise(cid,idx){

@@ -37,6 +37,8 @@ function permitSummary(){
   return {sea:s,land:l};
 }
 /* ---------- 請託項目 ---------- */
+/* 五街道通行狀（rroad）、朱印狀（rshuin）、地區通商特許狀（rcharter）已刪除（第一百四十二、二百五十六節）：不能再請託；
+ * 舊存檔已取得的效果照樣保留（regionHeld、permitsOf 照讀），審理中的照樣發給（REG_FAVOR 保留處理函式）。 */
 const REG_FAVORS=[
   {k:'rpass',apply:true,name:UT('reg.REG_FAVORS'),rank:3,once:true,pos:['reg_01'],desc:UT('reg.REG_FAVORS.2')},
   {k:'rport',apply:true,name:UT('reg.REG_FAVORS.3'),rank:3,once:true,pos:['reg_02'],desc:UT('reg.REG_FAVORS.4')},
@@ -44,9 +46,6 @@ const REG_FAVORS=[
   {k:'rcheap',name:UT('reg.REG_FAVORS.7'),rank:4,cd:12,pos:['reg_04'],desc:UT('reg.REG_FAVORS.8')},
   {k:'rescort',name:UT('reg.REG_FAVORS.9'),rank:4,cd:12,pos:['reg_05'],desc:UT('reg.REG_FAVORS.10')},
   {k:'rtax',name:UT('reg.REG_FAVORS.11'),rank:4,cd:12,pos:['reg_06'],desc:UT('reg.REG_FAVORS.12')},
-  {k:'rroad',apply:true,name:UT('reg.REG_FAVORS.13'),rank:5,once:true,pos:['reg_07'],desc:UT('reg.REG_FAVORS.14')},
-  {k:'rshuin',apply:true,name:UT('reg.REG_FAVORS.15'),rank:5,once:true,pos:['reg_08'],desc:UT('reg.REG_FAVORS.16')},
-  {k:'rcharter',apply:true,name:UT('reg.REG_FAVORS.17'),rank:6,once:true,pos:['reg_09'],desc:UT('reg.REG_FAVORS.18')},
   {k:'rvisit',name:UT('reg.REG_FAVORS.19'),rank:6,cd:12,pos:['reg_10'],desc:UT('reg.REG_FAVORS.20')}
 ];
 FAVORS.region=REG_FAVORS;
@@ -92,7 +91,7 @@ SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   let h=UT('reg.h',{a:appsCard()});
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?UT('reg.regional'):'')+'</span>').join('')+'</div>';
-  if(rid!==home.region_id)h+=UT('letter.note')+(letterUsed()?UT('letter.usedNote'):'');   // 外地只能寄信（07zz_letters.js）
+  if(rid!==home.region_id)h+=UT('letter.note');   // 外地只能寄信（07zz_letters.js）
   h+=regLicCard();
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
   h+='<div style="margin:4px 0"><button class="pixel-btn btn-sm" data-act="posList">'+UT('btn.posList2')+'</button></div>';
@@ -112,11 +111,11 @@ function officialKind(n){
 function appDuration(n){if(n.pos&&n.pos.rank===1)return 1;const d=officialKind(n)==='greedy'?3:6;return foreignReg(n)?d*2:d}   // 外地遠國奉行所：審理旬數加倍   // 一階官員核發的申請一旬完成
 function appsList(){return G.apps||(G.apps=[])}
 function appName(f,n){return UT('reg.appName',{a:f.name,b:nameOf(n.cid)})}
-function applyFavor(cid,n,r,f){
+function applyFavor(cid,n,r,f,arg){
   if(favorDone(f,n))return {ok:true,status:'held',msg:MSG(f.lic?'doFavor.licHeld':'doFavor.3')};
   if(favorPending(f))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
   if(appsList().some(a=>a.key===f.k&&a.cid===cid))return {ok:true,status:'held',msg:MSG('applyFavor.1')};
-  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n)};
+  const A={id:G.turn+'_'+Math.floor(rnd()*1e5),key:f.k,cid,cityId:n.cityId,name:f.name,start:G.turn,rank:n.pos.rank,lic:f.lic,trade:f.trade,state:'wait',left:appDuration(n),arg:arg===undefined?null:arg};
   setAff(r,Math.max(0,r.aff-REQ_AFF.apply));
   const k=officialKind(n),msg=TX(k==='greedy'?'apply.greedyEnough':'apply.plain');
   appsList().push(A);logRel(cid,UT('reg.applyFavor',{a:f.name,b:REQ_AFF.apply}));
@@ -127,7 +126,7 @@ function appGrant(A,log){
   const n=npc(A.cid)||{cid:A.cid,cityId:A.cityId};
   let msg;
   msg=grantFavorApp(A);
-  if(msg===null)msg=REG_FAVOR[A.key](n);
+  if(msg===null)msg=REG_FAVOR[A.key](n,A.arg);
   logRel(A.cid,UT('reg.appGrant',{a:A.name}));
   const t=NEWS('appGrant.1',{name:A.name,msg});pushNews(t);log.push(t);sfx.fanfare();
 }

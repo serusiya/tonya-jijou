@@ -53,6 +53,9 @@ function rankLabel(n){return RANK_INFO[n.pos.rank].title}
 
 /* ---------- 抽樣：千人固定名冊，每局隨機抽 600~700 人 ---------- */
 /** 【每局抽樣】從開局在世的名冊中抽 600～700 人（不足 700 時以合格名冊數為上限）：先排好駐節地三系官署（每一系統一～六階各一人，五、六階巡迴）、花街、經理、同行等，其餘依出身地區隨機散布到各城。 */
+/** 開局本城的各身分人數（官署另計）：[身分, 人數, 最低年齡, 最高年齡]；旅商人數另抽（ODDS.bz.guests）。遷居到新城補人也照這張表（07zzr_move.js）。 */
+const HOME_ROLES=[['oiran',8],['manager',4,22,62],['rival',4,28],['smuggler',2],['broker',2,25],['guest',0,28],['guard',2]];
+const homeRoleN=role=>role==='guest'?rint(ODDS.bz.guests[0],ODDS.bz.guests[1]):((HOME_ROLES.find(x=>x[0]===role)||[])[1]||0);
 function genWorld(homeId){
   const home=CITY(homeId);
   const pool=CHARS.filter(c=>c.birth_year<=0&&c.death_year>=2);   // 開局當下在世
@@ -73,14 +76,8 @@ function genWorld(homeId){
     add(o,homeId,{role:'official',pos:{court,rank,posId:p.id}});
   });
   addRegionOfficials(W,used,pool);                 // 五個地區各 10 位地區官員（遠國奉行所）
-  take('oiran',8).forEach(c=>add(c,homeId,{role:'oiran'}));
-  take('manager',4,c=>age0(c)>=22&&age0(c)<=62).forEach(c=>add(c,homeId,{role:'manager'}));
-  take('rival',4,c=>age0(c)>=28).forEach(c=>add(c,homeId,{role:'rival'}));
-  take('smuggler',2).forEach(c=>add(c,homeId,{role:'smuggler'}));
-  take('broker',2,c=>age0(c)>=25).forEach(c=>add(c,homeId,{role:'broker'}));
-  const gN=rint(ODDS.bz.guests[0],ODDS.bz.guests[1]);   // 本城旅商人數（番付熱鬧，DESIGN_NOTES 第二百十一節）
-  take('guest',gN,c=>age0(c)>=28).forEach(c=>add(c,homeId,{role:'guest'}));
-  take('guard',2).forEach(c=>add(c,homeId,{role:'guard'}));
+  const gN=homeRoleN('guest');                     // 本城旅商人數（番付熱鬧，DESIGN_NOTES 第二百十一節）
+  HOME_ROLES.forEach(([role,n,lo,hi])=>take(role,role==='guest'?gN:n,c=>age0(c)>=(lo||0)&&age0(c)<=(hi||999)).forEach(c=>add(c,homeId,{role})));
   // 其餘：隨機抽樣至 600~700 人；若在世名冊不足 700 人，以上限人數為準
   const target=rint(Math.min(600,pool.length),Math.min(700,pool.length));W.sampleSize=target;
   const byRegion={};CITIES.forEach(ct=>{(byRegion[ct.region_id]=byRegion[ct.region_id]||[]).push(ct)});

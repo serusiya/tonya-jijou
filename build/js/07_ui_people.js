@@ -10,14 +10,14 @@ const SHEETS={};
 /** 人物未兌現承諾的顯示與兌現按鈕。 */
 function promiseLines(cid){
   const r=R(cid);
-  return r.promises.map((p,i)=>p.done?'':'<div class="card warn tiny" style="margin:3px 0"><div class="row"><span>⏰ '+UT('ppl.promiseLines.3',{a:esc(p.text),b:p.due,c:G.turn>p.due?UT('ppl.promiseLines'):UT('ppl.promiseLines.2',{a:p.due-G.turn})})+'</span><button class="pixel-btn btn-sm btn-gold" data-act="pay" data-cid="'+cid+'" data-i="'+i+'">'+UT('btn.pay')+'</button></div></div>').join('');
+  return r.promises.map((p,i)=>p.done?'':'<div class="card warn tiny" style="margin:3px 0"><div class="row"><span>⏰ '+UT('ppl.promiseLines.3',{a:esc(p.text),b:p.due,c:G.turn>p.due?UT('ppl.promiseLines'):UT('ppl.promiseLines.2',{a:p.due-G.turn})})+'</span><span style="white-space:nowrap"><button class="pixel-btn btn-sm btn-gold" data-act="pay" data-cid="'+cid+'" data-i="'+i+'">'+UT('btn.pay')+'</button>'+(p.kind==='tribute'&&p.by==='official'?' <button class="pixel-btn btn-sm btn-red" data-act="reportExtort" data-cid="'+cid+'">'+UT('btn.reportExtort')+'</button>':'')+'</span></div></div>').join('');   // 官員索賄：可以告發（第二百五十三節）
 }
 /** 【人物卡】未結識→請引薦/毛遂自薦；已結識→備禮拜訪表單（禮物＋請託＋什麼都不說）、承諾、請當介紹人。ctx 表示出現的處所。 */
 function personBlock(cid,ctx){
   if(npc(cid)&&npc(cid).role==='oiran')return oiranBlock(cid,ctx);
   const c=CH(cid),n=npc(cid),r=R(cid),isOff=n&&n.pos,out=ctx==='out';if(!out)autoIntro(cid);   // out：外城出遊面板的外城友人卡（07zzn_outfriend.js）
   /* 知名度不足（含介紹人 +1 階）而見不到的人：半透明、不可點選 */
-  const away=awayNow(n),lockNeed=meetTierNeed(cid),snub=snubbed(cid),locked=away||snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0);
+  const gm=ctx==='gm',away=!gm&&awayNow(n),lockNeed=meetTierNeed(cid),snub=!gm&&snubbed(cid),locked=!gm&&(away||snub||!r.bond&&lockNeed>fameTier()+((G.introId&&introOf(G.introId))?1:0));   // gm：公會長選舉的拉票名單（例會上同業都在座，不看門檻）
   let h='<div class="card'+(locked?' locked':'')+'" data-cid="'+cid+'">'+portraitBtn(cid,56)+(away?UT('ppl.h',{a:tourNext(n)}):snub?UT('ppl.h.2'):locked?'<div class="tiny" style="color:#b3261e">🔒 '+(isOff?UT('ppl.h.3'):UT('ppl.h.4'))+'</div>':'')+'<div class="row"><div><b>'+esc(c.name)+'</b>'+(c.gender==='f'?UT('ppl.h.5'):'')+' '+(isEnemy(c.id)?UT('ppl.h.6'):'')+'<span class="tag gray">'+(ROLE_LABEL[n?n.role:roleOf(c)]||'')+'</span>'+kakeTag(cid)+(empRole(cid)?'<span class="tag red">'+rankName(empRole(cid))+'</span>':'');
   if(isOff)h+='<span class="tag '+COURTS[n.pos.court].cls+'">'+COURTS[n.pos.court].name+'</span><span class="tag clk" data-act="posInfo" data-id="'+n.pos.posId+'">'+esc(posTitle(n))+' ⓘ</span><span class="tag gold">'+esc(rankLabel(n).split(/[\u30FB\u00B7]/)[0])+'</span>';
   h+='</div></div>';
@@ -44,6 +44,7 @@ function personBlock(cid,ctx){
     else h+=UT('ppl.personBlock.8',{a:cid})+'">'+UT('btn.scout',{c:coinHtml('silver',scoutCost(cid))})+'</button></div>';
     if(r.verified)h+=UT('ppl.personBlock.9',{a:esc(weakName(c.weakness))})+'</b></div>';
     else h+=UT('ppl.personBlock.10');
+    if(gm){h+=gmCanvassRow(cid);return h+'</div>'}   // 拉票名單：只有拉票列（07yc_gm.js）
     h+=foreignReg(n)?letterRowHtml(cid):visitRowHtml(cid);   // 外地遠國奉行所官員：書信往來（07zz_letters.js）
     h+=promiseLines(cid)+tributeStatus(cid);
     const ithr=G.intros.length?55:40,canIntro=canBeIntro(cid);if(ctx==='res'&&canIntro&&r.aff>=ithr&&!introOf(cid)&&G.intros.length<4)h+='<div style="margin-top:5px"><button class="pixel-btn btn-sm btn-green" data-act="makeIntro" data-cid="'+cid+'">'+UT('btn.makeIntro')+'</button></div>';else if(ctx==='res'&&canIntro&&!introOf(cid)&&G.intros.length<4)h+=UT('ppl.personBlock.11',{a:ithr});
@@ -95,6 +96,8 @@ ACT.visit=el=>{
 /** 探聽性向。 */
 ACT.scout=el=>rr(scout(el.dataset.cid));
 /** 兌現承諾。 */
+/** 告發索賄的官員（人物卡上的承諾、索賄的來訪卡）。不扣行動點數。 */
+ACT.reportExtort=el=>{const msg=reportExtort(el.dataset.cid);toast(msg,5200);if(el.dataset.face)UI.hideInfo();UI.render();refreshSheet()};
 ACT.pay=el=>{const cid=el.dataset.cid,i=+el.dataset.i;autoIntro(cid);if(isEnemy(cid)){toast(MSG('meet.1'));return}if(!spendVisitAP())return;visitFx({cid,outcome:'ok',kind:'favor',prop:'gold'},()=>{const a0=R(cid).aff;const r=payPromise(cid,i);errandTrim(cid,a0,r);rr(r)})};
 /** 請對方當介紹人（需好感門檻）。 */
 ACT.makeIntro=el=>{
@@ -156,7 +159,7 @@ SHEETS.yamen=()=>{
     +(offs.map(n=>personBlock(n.cid,'yamen')).join('')||UT('ppl.yamen.3'))};
 };
 ACT.yamenTab=el=>{UI.s.yamenTab=el.dataset.k;refreshSheet()};
-/** 聯合採購與出貨協議表態（遵守/暗約/退出）。 */
+/** 聯合採購與出貨協議表態（參加/退出；暗約已取消）。 */
 ACT.cartel=el=>{
   const s=el.dataset.s,C=G.cartel;guildEnsure();
   if(s===C.state){toast(MSG('cartel.same'));return}
@@ -164,9 +167,8 @@ ACT.cartel=el=>{
   UI.s.quitArm=false;
   const joining=s!=='none'&&!(guildMember()&&C.bond>0);
   if(joining&&!afford('guildBond')){toast(shortMsg('guildBond'));return}
-  if(s==='secret'&&!afford('guildSecret')){toast(shortMsg('guildSecret'));return}
+  if(s==='secret')return;                          // 暗約已取消（第二百五十六節）
   if(!C.paid){if(!spendAP())return;C.paid=true}
-  if(s==='secret')spend('guildSecret');
   let note='';
   if(joining){guildJoin();note=MSG('cartel.join',{c:fmt(costOf('guildBond'))})}
   if(s==='none'){const lost=guildForfeit();if(lost)note=MSG('cartel.lose',{c:fmt(lost)})}

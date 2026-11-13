@@ -17,12 +17,15 @@ const kakeMarked=cid=>!!(G.kakeMarks&&G.kakeMarks.t===G.turn&&G.kakeMarks.ids.in
 /** 這位旅商人手上有沒有合約。 */
 const kakeWith=cid=>!!(G&&G.kake&&G.kake.some(c=>c.cid===cid));
 /** 掛賣以外、共用合約格式的約定（第二百五十一節）：上貢、本陣御用達。依交貨先後排（掛賣最先，再上貢、本陣）。
- *  回傳 [{kind,ref,cid,name,qty,due}]：ref 是原本的存檔物件（保留量記在 ref.filled）；due＝這次推進就要交。
+ *  回傳 [{kind,ref,cid,name,qty,due,left}]：ref 是原本的存檔物件（保留量記在 ref.filled）；due＝這次推進就要交。
+ *  第二百五十六節起再加御救販售、闇商代出（每項貨一列），排在本陣之後。
  *  上貢在推進後的年度結算前交（upkeep），所以到期前一旬就算「這次要交」；本陣御用達在自動出貨之前交。 */
 function pactExtras(){
   const L=[];if(!G)return L;
   const T=G.tribute;if(T&&COMM_MAP[T.name])L.push({kind:'tribute',ref:T,cid:T.cid,name:T.name,qty:T.qty,due:G.turn+1>=T.due});
-  const H=G.honjin;if(H&&COMM_MAP[H.name])L.push({kind:'honjin',ref:H,cid:H.cid,name:H.name,qty:H.qty,due:G.turn>=H.start});
+  const H=G.honjin;if(H&&COMM_MAP[H.name])L.push({kind:'honjin',ref:H,cid:H.cid,name:H.name,qty:H.qty,due:G.turn>=H.start,left:H.left});
+  const K=G.kyusai;if(K&&K.items)K.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'kyusai',ref:it,cid:K.cid,name:it.name,qty:it.qty,due:G.turn>=K.start,left:K.left})});   // 御救販售（07zzq_urge.js）
+  const Y=G.yami;if(Y&&Y.items)Y.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'yami',ref:it,cid:Y.cid,name:it.name,qty:it.qty,due:G.turn>=Y.start,left:Y.left})});   // 闇商代出
   return L;
 }
 /** 所有合約，依交貨先後：掛賣（早簽的在前）→ 上貢 → 本陣御用達。每筆 {kind,ref,cid,name,qty,due}，保留量在 ref.filled。 */
@@ -220,7 +223,7 @@ function kakeCard(){
   h+=X.map(p=>{const f=p.ref.filled||0,lack=p.due?p.qty-f:0;if(lack>0)gap++;if(!p.due&&p.kind==='tribute'&&f<p.qty)early++;
     let right,sub;
     if(p.kind==='tribute'){const t=Math.max(0,p.ref.due-G.turn);right=f>=p.qty?UT('pact.trib.full',{q:p.qty}):lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('pact.trib.prep',{f,q:p.qty});sub=UT(t<=1?'pact.trib.subNow':'pact.trib.sub',{t})}
-    else{right=p.due?(lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('kake.row.full',{q:p.qty})):UT('kake.row.next',{q:p.qty});sub=UT('pact.honjin.sub',{l:p.ref.left})}
+    else{right=p.due?(lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('kake.row.full',{q:p.qty})):UT('kake.row.next',{q:p.qty});sub=UT('pact.'+p.kind+'.sub',{l:p.left})}
     return row(p.cid,p.name,right,lack,sub,UT('pact.self'))}).join('');
   const can=gap||early;
   h+='<div style="margin-top:6px"><button class="pixel-btn btn-sm btn-gold" data-act="kakeFill" '+(can?'':'disabled')+'>'+UT(can?'btn.kakeFill':'btn.kakeFilled')+'</button></div>';
