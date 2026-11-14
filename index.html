@@ -298,6 +298,10 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 @keyframes ttlFlow{from{background-position:200% 0}to{background-position:0 0}}
 @media (prefers-reduced-motion:reduce){#start h1 .ttl-flow{animation:none}}
 
+/* 開業指引：要按的東西閃金框（07zzw_guide.js） */
+.guide-glow{outline:3px solid #e5a93b;outline-offset:2px;animation:guideGlow 1.1s ease-in-out infinite}
+@keyframes guideGlow{0%,100%{outline-color:#e5a93b}50%{outline-color:rgba(229,169,59,.25)}}
+
 </style>
 </head>
 <body>
@@ -2218,6 +2222,12 @@ const UI_TXT={
   'ppl.showStart.2':'<div class="notice tiny" style="margin-bottom:8px">偵測到舊版存檔，v{a} 起已不相容，已清除。請重新開局。</div>',
   'ppl.showStart.3':'<div class="hr-title" style="color:#e5a93b">① 選擇問屋流派（決定這一生的生存策略）</div>',
   'ppl.showStart.4':'{a}：{b}',
+  'guide.title':'🏮 開業指引（{s}／{n}）',
+  'guide.1':'今天正好是問屋公會的例會。先去露個臉，表態、投票，看看同業的臉色。',
+  'guide.2':'例會散了。回相場看看這一旬的貨：出貨照配額排好了，進貨還空著。',
+  'guide.3':'不知道該進多少，先按「照配額」；想多賣少賣，再拉上面的拉霸。',
+  'guide.4':'安排好了，就按「推進一旬」。',
+  'btn.guideSkip':'不用帶了',
   'diff.ratio.easy':'105%',
   'diff.ratio.normal':'100%',
   'diff.ratio.hard':'90%',
@@ -4973,6 +4983,7 @@ const CHANGELOG=[
     '損耗設定更新：鮮魚改稱醃魚，損耗大減；醃魚、米麥與油的損耗隨月份起伏，入夏易壞、冬天耐放，其他貨四季一樣。',
     '開局設定更新：東海道的紅林、北境的星澤改為商港，不再出產漁貨；魚屋開局會平均落在西道、南海、東海道、北境。',
     '開局可選難度：簡易、一般、困難，差在協議「維持」時的配額寬緊；困難就是原本的規則，舊存檔照困難繼續。',
+    '新增開業指引：開局時帶你先去例會、再到相場安排進出貨，推進第一旬後結束，也可以隨時略過。',
     '修改背景資料'
   ]},
   {date:'2026年11月13日',items:[
@@ -5347,6 +5358,7 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
   G.trade=startTrade(sysKey,tier);                // 第六、七等級開局送第二貴貨物的交易許可
+  G.guide={s:1};                                  // 開業指引（07zzw_guide.js）
   if(sysKey==='mining')G.kakeOn=true;             // 礦產開局就能談掛賣（第二百七十八節）
   initMarket();
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
@@ -13155,6 +13167,7 @@ function migrateSave(){
   Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
+  if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
   if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）
   if(!G.caughtLog)G.caughtLog={};
@@ -17741,6 +17754,52 @@ ACT.govTake=()=>{
 {const _x=pactExtras;pactExtras=function(){const L=_x.apply(this,arguments);if(G&&G.gov)govOrders().forEach(o=>{if(!COMM_MAP[o.name])return;
   if(o.kind==='govS')L.push({kind:'govS',ref:o,cid:o.cid,name:o.name,qty:o.qty,due:G.turn+1>=o.start,left:o.left});
   else L.push({kind:'govW',ref:o,cid:o.cid,name:o.name,qty:o.qty,due:G.turn+1>=o.due})});return L}}
+
+'use strict';
+/* ★檔案總覽：開業指引（DESIGN_NOTES 第二百八十三節）
+ * - 每一世開局帶一次，只到第一次推進：① 出席例會 → ② 回相場 → ③ 按「照配額」或動進出貨拉霸 → ④ 按「推進一旬」。
+ * - 狀態 G.guide={s:1～4}；結束（推進、按「不用帶了」）設為 null。舊存檔沒有就是 null，不帶。
+ * - 玩家沒照順序走也行：在 ① 或 ② 進相場就跳到 ③；沒去例會就推進，例會照規則自動決議，指引照樣結束。
+ * - 主畫面與相場頂端一張小卡；要按的東西加閃動金框（.guide-glow），② 時底部「相場」亮紅點。
+ * - 文字 guide.*、btn.guideSkip（01e）；樣式 .guide-glow（style.css）。 */
+const guideOn=()=>!!(G&&G.guide&&!G.ended);
+/** 依目前狀態把步驟往前推（只進不退）。 */
+function guideSync(){
+  if(!guideOn())return;
+  const g=G.guide;
+  if(g.s===1){const M=meetNow();if(!M||M.done||(M.att&&!UI.s.sheet))g.s=2}
+  if(g.s<=2&&UI.s.tab==='market')g.s=3;
+}
+/** 第 n 步的小卡。 */
+function guideCard(){
+  const s=G.guide.s;
+  return '<div class="notice" id="guide-card" style="margin:6px 0;border-color:#e5a93b"><div class="row"><b class="small">'+UT('guide.title',{s,n:4})+'</b><span class="tiny" style="text-decoration:underline;cursor:pointer" data-act="guideSkip">'+UT('btn.guideSkip')+'</span></div><div class="small" style="margin-top:3px">'+UT('guide.'+s)+'</div></div>';
+}
+/** 重繪後套上指引：小卡、閃框、紅點。 */
+function guideApply(){
+  $$('.guide-glow').forEach(e=>e.classList.remove('guide-glow'));
+  {const old=$('#guide-card');if(old)old.remove()}
+  if(!guideOn())return;
+  guideSync();
+  const s=G.guide.s,tab=UI.s.tab;
+  if(tab==='home'){const tip=$('#home-tip');if(tip){tip.classList.add('hidden');tip.insertAdjacentHTML('beforebegin',guideCard())}}
+  else if(tab==='market'&&s>=3){const v=$('#view-market');if(v)v.insertAdjacentHTML('afterbegin',guideCard())}
+  const glow=el=>{if(el)el.classList.add('guide-glow')};
+  if(s===1)glow($('#guild-meet .loc')||$('#guild-meet button'));
+  if(s===2){const b=$('#bottom button[data-tab="market"]');glow(b);if(b&&!b.querySelector('.nav-dot')){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}}
+  if(s===3)glow($('[data-act="planQuota"]'));
+  if(s===4)$$('#b-next,.home-next').forEach(glow);
+}
+{const _r=UI.render;UI.render=function(){const r=_r.apply(this,arguments);try{guideApply()}catch(e){}return r}}
+{const _c=UI.closeSheet;UI.closeSheet=function(){const r=_c.apply(this,arguments);if(guideOn())UI.render();return r}}
+/** 按「照配額」或動過進出貨拉霸：到第 4 步。 */
+const guideTouched=()=>{if(guideOn()&&G.guide.s<4){G.guide.s=4;guideApply()}};
+{const _q=ACT.planQuota;ACT.planQuota=function(){if(guideOn()&&G.guide.s<4)G.guide.s=4;return _q.apply(this,arguments)}}
+document.addEventListener('change',e=>{   // 拉霸放開、兩側加減鈕都會觸發 change
+  if(e.target&&(e.target.id==='slider-ship'||e.target.id==='slider-buy'))guideTouched()});
+ACT.guideSkip=()=>{if(G)G.guide=null;UI.render();sfx.tap()};
+/** 第一次推進：指引結束。 */
+{const _a=advanceTurn;advanceTurn=function(){if(G&&G.guide)G.guide=null;return _a.apply(this,arguments)}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
