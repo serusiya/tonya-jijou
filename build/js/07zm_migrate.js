@@ -32,13 +32,50 @@ function migrateKeys(){
   (G.debts||[]).forEach(d=>fix(d,'kind',L.debt));
   Object.values(G.rel||{}).forEach(r=>(r.promises||[]).forEach(p=>fix(p,'by',L.by)));
 }
+/** 舊存檔的必需品件數與單價換成新單位（一件是原本的 ODDS.staple.unit 倍）：件數 ÷ f、單價 × f；只換一次（G.stapleUnit）。 */
+function migrateStapleUnit(){
+  const to=ODDS.staple.unit,from=G.stapleUnit||1;if(from===to)return;
+  const f=to/from,S=new Set(COMM.filter(c=>c.staple).map(c=>c.name)),isS=n=>S.has(n);
+  const q=v=>Number.isFinite(v)?Math.round(v/f):v,qc=v=>Number.isFinite(v)?(v>0?Math.max(1,Math.round(v/f)):0):v,qf=v=>Number.isFinite(v)?v/f:v,p=v=>Number.isFinite(v)?+(v*f).toFixed(2):v;
+  const each=(o,fn)=>{if(o)Object.keys(o).forEach(n=>{if(isS(n))fn(n)})};
+  each(G.inv,n=>G.inv[n]=q(G.inv[n]));each(G.xinv,n=>G.xinv[n]=q(G.xinv[n]));
+  each(G.stockSource,n=>{const s=G.stockSource[n];s.known=qf(s.known);s.dapan=qf(s.dapan)});
+  each(G.avgCost,n=>G.avgCost[n]=p(G.avgCost[n]));
+  each(G.lastGap,n=>G.lastGap[n]=qf(G.lastGap[n]));
+  if(G.supplyQuarter&&G.supplyQuarter.gap)each(G.supplyQuarter.gap,n=>G.supplyQuarter.gap[n]=qf(G.supplyQuarter.gap[n]));
+  if(G.staple&&G.staple.h)each(G.staple.h,n=>G.staple.h[n]=G.staple.h[n].map(p));
+  each(G.mk,n=>{const m=G.mk[n];
+    ['quote','quoteBase','quoteRelief','price','lastClose','prevQuote','close','closeBase','closeRelief'].forEach(k=>{if(m[k]!=null)m[k]=p(m[k])});
+    m.hist=(m.hist||[]).map(p);['D','so','shipped','depTotal','depKnown','depDapan'].forEach(k=>m[k]=qf(m[k]));
+    (m.past||[]).forEach(x=>['d','d0','so','my'].forEach(k=>x[k]=qf(x[k])));
+    if(m.snap)['d','d0','dn','so','my'].forEach(k=>m.snap[k]=qf(m.snap[k]));
+    (m.depPast||[]).forEach(x=>['total','known','dapan'].forEach(k=>x[k]=qf(x[k])));
+  });
+  (G.orders||[]).forEach(o=>{if(isS(o.name)){o.qty=qc(o.qty);o.unit=p(o.unit)}});
+  (G.kake||[]).forEach(k=>{if(isS(k.name)){k.qty=qc(k.qty);k.filled=q(k.filled);k.unit=p(k.unit)}});
+  [G.honjin,G.tribute,G.consign&&null].forEach(x=>{if(x&&isS(x.name)){x.qty=qc(x.qty);if(x.filled!=null)x.filled=q(x.filled)}});
+  (G.consign||[]).forEach(x=>{if(isS(x.name))x.qty=qc(x.qty)});
+  [G.kyusai,G.yami].forEach(x=>{if(x&&x.items)x.items.forEach(i=>{if(isS(i.name)){i.qty=qc(i.qty);i.filled=q(i.filled)}})});
+  (G.chumon||[]).forEach(o=>{if(isS(o.name)){o.qty=qc(o.qty);o.unit=p(o.unit)}});
+  (G.ships||[]).forEach(s=>{if(s.out&&isS(s.out.name)){s.out.q=qc(s.out.q);if(s.out.unit)s.out.unit=p(s.out.unit)}});
+  if(G.lodge&&isS(G.lodge.name))G.lodge.q=qc(G.lodge.q);
+  if(G.stash&&G.stash.items)G.stash.items.forEach(x=>{if(isS(x.name)){x.q=qc(x.q);if(x.unit)x.unit=p(x.unit)}});
+  if(G.ujob&&isS(G.ujob.name)){G.ujob.qty=qc(G.ujob.qty);G.ujob.done=q(G.ujob.done)}
+  if(G.rushLot&&isS(G.rushLot.name))G.rushLot.q=qc(G.rushLot.q);
+  if(G.artisan&&isS(G.artisan.name)&&G.artisan.unit)G.artisan.unit=p(G.artisan.unit);
+  G.plan={};G.buyPlan={};G.sold={};G.rvLot=null;
+  G.stapleUnit=to;
+}
 function migrateSave(){
   if(!G)return;
   migrateKeys();                                    // 0.7 以前：中文鍵換成代號
+  migrateStapleUnit();                              // 必需品換成新的遊戲單位（第二百七十四節）
   G.flags=G.flags||{};
   Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
+  if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
+  if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）
   if(!G.caughtLog)G.caughtLog={};
   if(!G.rec)recOf();                                 // 商號紀錄（旬報、番付、走勢）；舊存檔從現存的番付補起                    // 違約查獲的公開紀錄（公會長候選人用）

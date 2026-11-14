@@ -34,7 +34,7 @@ function doRelief(cid,n,r,f){
     spend('reliefSoup');
     const fm=addFame(R_.soupFame,'major');G.heat=Math.max(0,(G.heat||0)-R_.soupHeat);
     Object.keys(G.mk).forEach(k=>{if(COMM_MAP[k].staple)G.mk[k].ev=Math.max(1,G.mk[k].ev*R_.soupStaple)});
-    syncPrices();G.staple.streak=0;G.staple.idx=Math.max(...STAPLE_KEYS.map(stapleIndex));
+    syncPrices();G.staple.streak=0;G.staple.idx=Math.max(...STAPLE_KEYS.map(riotLevel));
     setAff(r,clamp(r.aff+R_.soupAff,0,100));
     msg=MSG('relief.soup',{f:fm});pushNews(NEWS('relief.soup',{n:nameOf(cid)}));
   }else if(f.k==='reliefImport'){

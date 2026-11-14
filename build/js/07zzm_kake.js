@@ -10,6 +10,8 @@
  * - 每旬 kakeTick（advanceTurn 的 f8Tick 之後）：解鎖、番頭異動、收帳、標記、主動上門、自動填貨。
  * - 數值 ODDS.kake；台詞 LINES.kake；文字 kake.*（01e）、新聞 kake.*（01g）。 */
 const KK=()=>ODDS.kake;
+/** 礦產的掛賣比較大：每張約總資產五分之一、不超過旅商身代六成（第二百七十八節）。 */
+const kakeK=k=>{const K=KK();return G&&G.sysKey==='mining'&&K.mining&&K.mining[k]!=null?K.mining[k]:K[k]};
 const kakeList=()=>G.kake||(G.kake=[]);
 const kakeRecvList=()=>G.kakeRecv||(G.kakeRecv=[]);
 const kakeOn=()=>!!(G&&G.kakeOn);
@@ -44,7 +46,7 @@ function kakeAssets(){return Math.max(0,bzWorth('me')-kakeList().reduce((s,c)=>s
 function kakeOffer(cid){
   const K=KK(),cs=kakeItems(),n=npc(cid);if(!cs.length||!n)return null;
   const c=cs[Math.floor(seeded('kake|'+cid+'|'+G.turn)()*cs.length)],quote=marketQuote(c.name);
-  const cap=Math.max(1,Math.floor(itemCap(c.name)*K.capHalf)),worth=bzInit(n).bzw*K.worthCap,base=kakeAssets()*K.frac;
+  const cap=Math.max(1,Math.floor(itemCap(c.name)*K.capHalf)),worth=bzInit(n).bzw*kakeK('worthCap'),base=kakeAssets()*kakeK('frac');
   const plans=[];let prev=Infinity;
   for(const P of K.plans){
     const unit=Math.max(0.1,Math.round(quote*P.p*10)/10);
@@ -118,11 +120,13 @@ function kakeSync(){
     for(let i=L.length-1;i>=0&&over>0;i--){const p=L[i];if(p.name!==n)continue;const d=Math.min(p.ref.filled||0,over);p.ref.filled=(p.ref.filled||0)-d;over-=d}});   // 從交貨順序最後的扣起
 }
 function kakeDue(c){return c.start<=G.turn}
+/** 一次交清、可以提早填貨的合約：上貢、貴人訂貨、軍需注文。 */
+const pactOnce=p=>p.kind==='tribute'||p.kind==='patron'||p.kind==='govW';
 /** 把倉裡的貨填進要交的合約（照交貨先後）；回傳填了幾單位。
  *  自動（旬初）只填這次推進就要交的；手動按「填貨」時，上貢不到期也先填（一次交清，可以提早備）。 */
 function kakeFill(manual){
   kakeSync();let n=0;
-  pactAll().filter(p=>p.due||(manual&&p.kind==='tribute')).forEach(p=>{const d=Math.min(p.qty-(p.ref.filled||0),Math.floor(kakeFree(p.name)));if(d>0){p.ref.filled=(p.ref.filled||0)+d;n+=d}});
+  pactAll().filter(p=>p.due||(manual&&pactOnce(p))).forEach(p=>{const d=Math.min(p.qty-(p.ref.filled||0),Math.floor(kakeFree(p.name)));if(d>0){p.ref.filled=(p.ref.filled||0)+d;n+=d}});
   return n;
 }
 /** 這次推進就要交、還沒備齊的合約（推進前提醒、紅點用）：回傳 [{kind,cid,name,qty,filled}]。 */
@@ -160,6 +164,7 @@ function kakeTick(log){
   const K=KK(),put=t=>{pushNews(t);log.push(t)};
   if(disasterNow())G.kakeDisY=G.year;
   // 解鎖：市佔第一次超過一成
+  if(!G.kakeOn&&G.sysKey==='mining'){G.kakeOn=true;put(NEWS('kake.unlockMine'))}   // 礦產開局就解鎖（舊存檔在這裡補）
   if(!G.kakeOn&&G.share&&G.share.me>K.unlock){G.kakeOn=true;put(NEWS('kake.unlock'))}
   // 番頭異動：轉給空閒的番頭，沒人可接就失約
   kakeList().slice().forEach(c=>{
@@ -220,9 +225,9 @@ function kakeCard(){
   const row=(cid,name,right,lack,sub,who)=>'<div style="margin-top:5px;padding-top:4px;border-top:1px dashed #b5a98f"><div class="row small" data-act="focus" data-n="'+esc(name)+'" style="cursor:pointer"><span><b>'+esc(nameOf(cid))+'</b>·'+esc(COMM_MAP[name].short)+'</span><b'+(lack>0?' style="color:#b3261e"':'')+'>'+right+'</b></div><div class="row tiny muted"><span>'+sub+'</span><span>'+who+'</span></div></div>';
   h+=L.map(c=>{const e=(G.emps||[]).find(x=>x.id===c.banto),due=kakeDue(c),lack=due?c.qty-(c.filled||0):0;if(lack>0)gap++;
     return row(c.cid,c.name,due?(lack>0?UT('kake.row.lack',{f:c.filled||0,q:c.qty,n:lack}):UT('kake.row.full',{q:c.qty})):UT('kake.row.next',{q:c.qty}),lack,UT('kake.row.sub',{u:fmt1(c.unit),l:c.left}),UT('kake.row.banto',{b:esc(e?e.name:'')}))}).join('');
-  h+=X.map(p=>{const f=p.ref.filled||0,lack=p.due?p.qty-f:0;if(lack>0)gap++;if(!p.due&&p.kind==='tribute'&&f<p.qty)early++;
+  h+=X.map(p=>{const f=p.ref.filled||0,lack=p.due?p.qty-f:0;if(lack>0)gap++;if(!p.due&&pactOnce(p)&&f<p.qty)early++;
     let right,sub;
-    if(p.kind==='tribute'){const t=Math.max(0,p.ref.due-G.turn);right=f>=p.qty?UT('pact.trib.full',{q:p.qty}):lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('pact.trib.prep',{f,q:p.qty});sub=UT(t<=1?'pact.trib.subNow':'pact.trib.sub',{t})}
+    if(pactOnce(p)){const t=Math.max(0,p.ref.due-G.turn);right=f>=p.qty?UT('pact.trib.full',{q:p.qty}):lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('pact.trib.prep',{f,q:p.qty});sub=p.kind==='tribute'?UT(t<=1?'pact.trib.subNow':'pact.trib.sub',{t}):UT(t<=1?'pact.'+p.kind+'.subNow':'pact.'+p.kind+'.sub',{t,u:fmt1(p.ref.unit)})}
     else{right=p.due?(lack>0?UT('kake.row.lack',{f,q:p.qty,n:lack}):UT('kake.row.full',{q:p.qty})):UT('kake.row.next',{q:p.qty});sub=UT('pact.'+p.kind+'.sub',{l:p.left})}
     return row(p.cid,p.name,right,lack,sub,UT('pact.self'))}).join('');
   const can=gap||early;

@@ -1,5 +1,5 @@
 /* ======================= 雇員好感：零用錢、保鏢暗殺、手代番頭放火、船長走私 =======================
- *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5，滿 100 後不能再給；每人每旬只能給一次。
+ *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5；每人每旬只能給一次。好感 80 以上改靠閒聊，特殊指令要閒聊後才出現（07zzs_staffchat.js 覆寫 empAffHtml、ACT.allow）。
  *  - 保鏢好感 100：出現「暗殺」指令，只能對仇人或本城同業下手；名單不列成功率與職位。
  *  - 船長好感 100：才肯出海走私（走私入口才會出現）。船長、飛腳只列在河岸碼頭。
  *  - 大番頭好感 100：可替你做帳，公款 500 兩轉私房錢、或私房錢 1000 兩轉公款；每次好感 −20，他私吞 5～10%（記入私吞帳，查帳可追回）。不加風聲。 */
@@ -48,7 +48,7 @@ function dockCrewHtml(){
     if(!cs.length)return h+'<div class="notice tiny">'+none+'</div>'+(rk==='captain'?smuggleButton():'');
     return h+(rk==='captain'?smuggleButton():'')+cs.map(e=>{
       const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
-      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+UT('loyal.block',{a:portraitEmp(e,56),b:rankName(rk),c:esc(e.name)})+'</b> '+UT('loyal.block.2',{a:busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>',b:e.wage,c:staffTenure(e)})+'</div>'+UT('loyal.block.3',{a:staffTags(e),b:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e,'dock')+'<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">'+auditBtns(e)+'<button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
+      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+UT('loyal.block',{a:portraitEmp(e,56),b:rankName(rk),c:esc(e.name)})+'</b> '+UT('loyal.block.2',{a:busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>',b:e.wage,c:staffTenure(e)})+'</div>'+UT('loyal.block.3',{a:staffTags(e),b:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e,'dock')+'<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">'+auditBtns(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
     }).join('');
   };
   return block('captain','⚓',UT('loyal.dockCrewHtml'),UT('loyal.dockCrewHtml.2'),UT('loyal.dockCrewHtml.3'))+block('courier','🐎',UT('loyal.dockCrewHtml.4'),UT('loyal.dockCrewHtml.5'),UT('loyal.dockCrewHtml.6'));

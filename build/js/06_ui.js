@@ -121,7 +121,7 @@ function renderMarket(){
   UI.s.ship=planOf(name);
   const buy=unitBuyCost(name),mkt=marketQuote(name);
   let h='<div class="pixel-box" style="padding:8px">';
-  h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone'):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
+  h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone',{r:UT('diff.ratio.'+diffNow())}):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
   h+=(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
@@ -157,10 +157,10 @@ function shareCard(){
 }
 /** 市佔卡底下一行：這一期城裡的貨夠不夠（敘事，不顯示比例；第二百四十八節）。 */
 function citySatLine(){const v=citySatAvg();if(v===null)return '';const t=citySatTier(v);return '<div class="tiny" style="margin-top:3px;color:'+(t>=2?'#2f6b3a':'#b3392b')+'">'+UT('mk.citySat.'+t)+'</div>'}
-/** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（夏季主食損耗較多）。 */
+/** 下旬開頭的預估庫存：賣出後加上本旬預定進貨，再扣預估損耗（易腐貨照下一旬的月份起伏）。 */
 function nextStock(name,ship,buy){
-  const c=COMM_MAP[name],n=Math.max(0,kakeFree(name)-ship)+buy;
-  return Math.max(0,n-Math.round(n*c.decay*(c.staple&&season()==='summer'?1.6:1)));
+  const c=COMM_MAP[name],n=Math.max(0,kakeFree(name)-ship)+buy,m=G.cycle===3?G.month%12+1:G.month;
+  return Math.max(0,n-Math.round(n*decayNow(c,m)));
 }
 /** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
 function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
@@ -170,7 +170,8 @@ function tradeCard(name){
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
-  h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
+  h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'></div>','slider-ship',have<1||ship<=0,have<1||ship>=have);
+  h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';   // 超出協議配額的提醒（shipBarSync）
   h+='<div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
@@ -202,10 +203,20 @@ function refreshTrade(){
   {const mc=$('#m-close');if(mc)mc.textContent=closeRangeTxt(name,UI.s.ship)}
   const ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
   if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
-  const bq=buyPlanOf(name);if(sb)sb.value=bq;
+  const bq=buyPlanOf(name);if(sb){sb.value=bq;rangeFill(sb)}
   $('#q-q').textContent=UT('mk.units',{n:ship});$('#q-price').textContent=UT('mk.liang',{a:fmt1(q.price)});$('#q-rev').textContent=UT('mk.liang',{a:fmt(q.revenue)});
   $('#b-q').textContent=UT('mk.units',{n:bq});$('#b-cost').textContent=UT('mk.liang',{a:fmt(Math.round(unitBuyCost(name)*bq))});
   const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
+  shipBarSync();
+}
+/** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
+function shipBarSync(){
+  const el=$('#slider-ship'),bar=$('#q-over-bar'),tip=$('#q-over');if(!el)return;
+  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,q=guildMember()?quotaOf(UI.s.focus):Infinity,pc=x=>clamp(x/max*100,0,100);
+  const vp=pc(v),a=Math.min(vp,q===Infinity?100:pc(q)),over=q!==Infinity&&v>q;
+  el.style.background='linear-gradient(to right,var(--red) 0 '+rangeAt(a)+',transparent '+rangeAt(a)+' '+rangeAt(vp)+','+RANGE_BG+' '+rangeAt(vp)+' 100%)';
+  if(bar){bar.style.left=rangeAt(a);bar.style.width='calc((100% - '+RANGE_THUMB+'px) * '+((vp-a)/100).toFixed(4)+')';bar.style.display=over?'block':'none'}
+  {const t=over?UT('mk.trade.over',{n:v-q}):'';if(tip&&tip.textContent!==t)tip.textContent=t}   // 內容沒變就不寫，免得觸發拉霸上色的監看（rangeFillAll）
 }
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
@@ -269,6 +280,7 @@ function renderRoutes(){
   if(G.ships.length){h+='<div class="small bold">'+UT('rt.outTitle')+'</div>'+G.ships.map(s=>'<div class="card"><div class="row"><b class="small">'+UT(s.mode==='land'?'rt.outLand':'rt.outSea',{n:esc(s.captName)})+'</b><span class="tag '+(s.eta<=1?'green':'gray')+'">'+UT('rt.left',{n:s.eta})+'</span></div><div class="tiny muted">'+(s.out?UT('rt.outSubOut',{c:esc(CITY(s.origId).name),g:COMM_MAP[s.out.name].short,q:s.out.q,b:fmt(s.budget)}):UT('rt.outSub',{c:esc(CITY(s.origId).name),b:fmt(s.budget),w:NM('crew',s.mode==='land'?'land':'sea')}))+'</div></div>').join('')}
   else h+='<div class="notice">'+UT('rt.noneOut')+'</div>';
   h+='<hr class="sep"><div class="small bold">'+UT('rt.entrust')+'</div><div style="margin:4px 0">'+['sea','land'].map(m=>'<span class="pill '+(R_.mode===m?'on':'')+'" data-act="rMode" data-m="'+m+'">'+UT(m==='sea'?'opt.modeSea':'opt.modeLand')+'</span>').join('')+'</div>';
+  h+=voyCapCard(R_.mode==='land'?'land':'sea');    // 本業貨一趟能運多少（07i_voyage.js）
   h+=ujobCard();                                   // 卸留請負的外運（07zz_regfavor4.js）
   h+=chumonCard();                                 // 外城友人的注文（07zzn_outfriend.js）
   h+=voyagePanel();
@@ -314,8 +326,8 @@ ACT.posList=()=>{
 ACT.commInfo=el=>{
   const n=el.dataset.n,c=COMM_MAP[n],i=COMM_INFO[n];if(!c||!i)return;
   UI.showInfo(UT('ci.title',{n:c.short}),'<div class="small"><span class="tag">'+NM('kind',c.kind)+'</span> <span class="tag gray">'+esc(i.origin_type)+'</span>'+(c.flam?' <span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div>'
-   +ik(UT('ci.sys'),i.system_name)+ik(UT('ci.sysDesc'),i.system_desc)+ik(UT('ci.full'),i.name)+ik(UT('ci.unit'),i.unit)+'<div class="ik">'+UT('ci.base')+'</div><div class="iv">'+UT('ci.baseVal',{p:fmt1(c.base),d:(c.decay*100).toFixed(1)})+'</div>'
-   +ik(UT('ci.regions'),(i.primary_regions||[]).join(NAMES_SEP))+ik(UT('ci.season'),i.seasonal_traits)+ik(UT('ci.vol'),i.price_volatility)+ik(UT('ci.demand'),i.demand_strata)+ik(UT('ci.decay'),i.decay_rate)+ik(UT('ci.contra'),i.contraband_status)+ik(UT('ci.cartel'),i.cartel_potential));
+   +ik(UT('ci.sys'),i.system_name)+ik(UT('ci.sysDesc'),i.system_desc)+ik(UT('ci.full'),i.name)+ik(UT('ci.unit'),i.unit)+'<div class="ik">'+UT('ci.base')+'</div><div class="iv">'+UT('ci.baseVal',{p:fmt1(c.base),d:(decayNow(c)*100).toFixed(1)})+(ODDS.spoil.amp[n]?UT('ci.spoilSeason'):'')+'</div>'
+   +ik(UT('ci.cap'),UT('ci.capVal',{w:NM('weight',weightClass(n)),s:capOf(n,'sea'),l:capOf(n,'land')}))+ik(UT('ci.regions'),(i.primary_regions||[]).join(NAMES_SEP))+ik(UT('ci.season'),i.seasonal_traits)+ik(UT('ci.vol'),i.price_volatility)+ik(UT('ci.demand'),i.demand_strata)+ik(UT('ci.decay'),i.decay_rate)+ik(UT('ci.contra'),i.contraband_status)+ik(UT('ci.cartel'),i.cartel_potential));
 };
 /** 物品旁的『ⓘ說明』按鈕。 */
 const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">'+UT('ci.btn')+'</span>';
@@ -341,7 +353,7 @@ function autoShip(log){
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
     /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
        已參加協議、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未參加協議）＝出貨不足 */
-    const line=supplyLine(c.name);if(line>0)judged++;
+    const line=c.luxury?0:supplyLine(c.name);if(line>0)judged++;   // 奢侈品不計入穩定供貨的判定（第二百七十五節）
     if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未參加協議沒有配額約束，一律算出貨不足
   });
   /* 穩定供貨：全部商品出貨量達穩定供貨線 → 知名度 +1～3；有商品未達 → -1～3 */
@@ -392,9 +404,22 @@ function snapVal(el){
   const v=+el.value,sn=+(el.dataset.snap||0),pv=+(el.dataset.prev||0);
   return sn&&v>0&&v<sn?(pv>=sn?0:sn):v;
 }
+/* ---------- 拉霸的統一樣式（第二百九十節）：細圓角軌道、紅色圓鈕；拉到的部分紅色、其餘淺色（出貨拉霸另有配額色，見 shipBarSync） ---------- */
+const RANGE_THUMB=18,RANGE_BG='#ddd5c4';
+/** 軌道上第 x%（0～100）的位置，照拉霸鈕中心換算。 */
+const rangeAt=x=>'calc('+(RANGE_THUMB/2)+'px + (100% - '+RANGE_THUMB+'px) * '+(x/100).toFixed(4)+')';
+/** 依目前數值重畫一支拉霸的填色。 */
+function rangeFill(el){
+  if(!el||el.type!=='range')return;if(el.id==='slider-ship'){shipBarSync();return}
+  const lo=+el.min||0,hi=+el.max||100,p=hi>lo?clamp((+el.value-lo)/(hi-lo)*100,0,100):0,c=el.disabled?'#b9b2a6':'var(--red)';
+  el.style.background='linear-gradient(to right,'+c+' 0 '+rangeAt(p)+','+RANGE_BG+' '+rangeAt(p)+' 100%)';
+}
+const rangeFillAll=()=>document.querySelectorAll('input[type=range]').forEach(rangeFill);
+/** 畫面重繪、面板與說明視窗打開時，新出現的拉霸也上色。 */
+{let pend=false;new MutationObserver(()=>{if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;rangeFillAll()})}).observe(document.documentElement,{childList:true,subtree:true})}
 /** 拉動時即時更新旁邊的數字（data-lbl＝顯示元素 id；data-unit＝含 # 的單位格式）。 */
 function rangeLabel(el){
   const id=el.dataset.lbl;if(!id)return;const t=document.getElementById(id);if(!t)return;
   const v=snapVal(el),u=el.dataset.unit;t.textContent=u?u.replace('#',fmt(v)):String(v);
 }
-document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target)}});
+document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target);rangeFill(e.target)}});

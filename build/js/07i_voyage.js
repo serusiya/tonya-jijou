@@ -206,6 +206,10 @@ function voyagePanel(){
   h+=UT('voy.voyagePanel.19',{a:UT('btn.vAdd')})+'</button></div>';
   return h;
 }
+/** 本業貨一趟能運多少（運量說明，第二百七十一節）：依海運或陸運列出每項本業貨的輕重與件數。 */
+function voyCapCard(mode){
+  return '<div class="card tiny" style="margin:4px 0"><b class="small">'+UT('rt.capT.'+mode)+'</b><div class="row" style="flex-wrap:wrap;gap:4px 10px;justify-content:flex-start;margin-top:2px">'+ownComms().map(c=>'<span>'+UT('rt.capRow',{n:esc(c.short),w:NM('weight',weightClass(c.name)),q:capOf(c.name,mode)})+'</span>').join('')+'</div></div>';
+}
 /** 採買日誌：時間（遭難時紅字）、人名與去處、貨物表（貨名、數量、總價；遭難時數量下方紅字損失）、花費與退回。
  *  舊紀錄沒有分項資料，照原文完整列出。 */
 function voyLogEntry(v){

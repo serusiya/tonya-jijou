@@ -188,7 +188,7 @@
  {
   "id": "prod_0205",
   "name": "近海鮮魚與桶裝醃魚",
-  "short_name": "鮮魚",
+  "short_name": "醃魚",
   "system": "水產與海鹽系統 (Marine & Salt System)",
   "origin_type": "海洋",
   "base_price": 70,
@@ -202,7 +202,7 @@
    "staple",
    "typhoon"
   ],
-  "decay": 0.2
+  "decay": 0.075
  },
  {
   "id": "prod_0206",

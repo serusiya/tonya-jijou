@@ -16,6 +16,8 @@ function dealGroups(){
   (G.kake||[]).forEach(c=>pact.push({t:D('kake',{n:who(c.cid),g:g(c.name),q:c.qty}),s:left(c.left)}));
   (G.chumon||[]).forEach(o=>pact.push({t:D('chumon',{n:who(o.cid),c:CITY(o.city)?CITY(o.city).name:'',g:g(o.name),q:o.qty}),s:o.sent?D('onRoad'):D('goBy',{n:Math.max(0,o.until-G.turn+1)})}));
   if(G.honjin)pact.push({t:D('honjin',{g:g(G.honjin.name),q:G.honjin.qty}),s:left(G.honjin.left)});
+  ((G.patron&&G.patron.orders)||[]).forEach(o=>pact.push({t:D('patron',{n:who(o.cid),g:g(o.name),q:o.qty}),s:left(o.due-G.turn)}));   // 貴人訂貨（07zzu_patron.js）
+  ((G.gov&&G.gov.orders)||[]).forEach(o=>pact.push(o.kind==='govW'?{t:D('govW',{n:who(o.cid),g:g(o.name),q:o.qty}),s:left(o.due-G.turn)}:{t:D('govS',{n:who(o.cid),g:g(o.name),q:o.qty}),s:left(o.left)}));   // 官府注文（07zzv_govorder.js）
   if(G.tribute)pact.push({t:D('tribute',{n:who(G.tribute.cid),g:g(G.tribute.name),q:G.tribute.qty}),s:left(G.tribute.due-G.turn)});
   if(G.ujob)pact.push({t:D('ujob',{c:CITY(G.ujob.city)?CITY(G.ujob.city).name:'',g:g(G.ujob.name),d:G.ujob.done,q:G.ujob.qty}),s:D('goBy',{n:Math.max(0,G.ujob.until-G.turn+1)})});
   if(G.mono&&G.mono.until>=G.turn)pact.push({t:D('mono',{g:g(G.mono.name)}),s:left(G.mono.until-G.turn+1)});

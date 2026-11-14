@@ -7,7 +7,7 @@
  *  - 掛點：行動點數（spendAP）、拜訪拒見（visitRoll）、交涉失利與不善言辭（battleEnd）、暗殺放火栽贓打壓、
  *    搜查罰銀遠島與打毀（loseFame 的鍵）、失火（G.life.fires）、供貨不穩（G.supplyQuarter.unstable）、現款為負；
  *    宴會、吉原夜宴、指名、節慶、忘年會、節慶闔家同遊；每旬自然恢復、沒用完的行動點數、夫人子女在家。
- *  - 外城出遊（主畫面河岸藏下方）：寺社參拜、溫泉、外城友人（外城友人系統尚未做，先顯示未開放）。
+ *  - 外城出遊（主畫面河岸藏下方）：寺社參拜、溫泉、外城友人（寄信、探聽買付、作客，07zzn_outfriend.js）。
  *  數值 ODDS.stress、ODDS.trip；費用 COSTS.temple／onsen；文字 stress.*、trip.*（01e）、stress.*、trip.*（01f、01g）。
  * ===================================================================== */
 const ST=()=>ODDS.stress;
@@ -253,7 +253,7 @@ document.addEventListener('change',e=>{
   // 滑塊彈動：反方向一下、再越過目標一下，最後停在 nv（只改畫面，不寫計畫）
   const dir=Math.sign(nv-v)||1,path=[clamp(v-dir*unit,lo,hi),clamp(nv+dir*unit,lo,hi),clamp(v+Math.round((nv-v)/2),lo,hi)],A={id:el.id,nv,row,timers:[]};
   if(row){row.classList.remove('shaking');void row.offsetWidth;row.classList.add('shaking')}
-  path.forEach((x,k)=>A.timers.push(setTimeout(()=>{const e2=document.getElementById(A.id);if(e2)e2.value=x},70+k*90)));
+  path.forEach((x,k)=>A.timers.push(setTimeout(()=>{const e2=document.getElementById(A.id);if(e2){e2.value=x;rangeFill(e2)}},70+k*90)));
   A.timers.push(setTimeout(shakeFinish,70+path.length*90+40));
   SHAKE_ANIM=A;
 },true);

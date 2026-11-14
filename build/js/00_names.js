@@ -28,6 +28,8 @@ const NAMES={
   courtShort:{administration:'普',finance:'勘',judiciary:'吟',region:'域'},
   /* 物品種類 */
   kind:{staple:'必需品',luxury:'奢侈品',normal:'一般品'},
+  weight:{heavy:'笨重',normal:'一般',light:'輕巧'},
+  diff:{easy:'簡易',normal:'一般',hard:'困難'},
   /* 性向相容四級 */
   compat:[
     {label:'格格不入',desc:'志趣相悖，需花三倍力氣才能破冰。'},
@@ -43,8 +45,8 @@ const NAMES={
   sys:{
     timber:{family:'三河',name:'材木問屋',firm:'三河屋',style:'豪賭型',tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
     grain:{family:'鴻池',name:'米問屋',firm:'鴻池屋',style:'政治壓力型',tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
-    marine:{family:'紀伊國',name:'魚鹽問屋',firm:'紀伊國屋',style:'高損耗快周轉',tip:'鮮魚損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
-    mining:{family:'住友',name:'金物鐵石問屋',firm:'住友屋',style:'重貨高價型',tip:'金銀單價極高，礦錠沉重難運；逢軍需，銅鐵硫磺大漲。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
+    marine:{family:'紀伊國',name:'魚鹽問屋',firm:'紀伊國屋',style:'高損耗快周轉',tip:'醃魚怕熱，入夏損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
+    mining:{family:'住友',name:'金物鐵石問屋',firm:'住友屋',style:'重貨高價型',tip:'金銀單價極高，礦錠沉重難運；靠作坊與官府的訂單吃飯，逢軍需，藩裡會來找你。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
     textile:{family:'越後',name:'木棉生絲問屋',firm:'越後屋',style:'守成經營型',tip:'產地稀少，靠協議與相場穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
     medicine:{family:'大和',name:'唐物藥種問屋',firm:'大和屋',style:'走私型',tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的商株御免；私房錢稍多。'},
     luxury:{family:'京',name:'陶磁雅玩問屋',firm:'京屋',style:'公關型',tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'}

@@ -9,12 +9,13 @@
  *    同業投票人：比較與兩位候選人的性向相容，投較高者；相同投市佔較高者。開票平手：現任連任，否則市佔較高者。
  *  - 當選：一定在協議內（不在就自動加入、照付訂約金，現款可扣成負數）；你當選時知名度 +5、結識的同業好感 +3，任內每旬 +0.1，名望視同四階。
  *  - 任內：供給投票平手由公會長裁決（你在場自己選；你缺席維持上期；同業公會長一律減供）；公會長不能退出協議、不參加菓子折競標。
- *    你當公會長時，菓子折得標金進你的現款，本期內要趁御金奉行來城（2、5、8、11 月）向他報告（必須打穿，或打滿三回合且至少猜中一次）；
- *    沒報告、中途告辭或被嫌不善言辭：罰得標金 × 1.2。御金奉行空缺或在牢裡時免罰。散會時與報告月上旬各提醒一次。
+ *    你當公會長時，菓子折得標金進你的現款，要分三份送進去：本期內趁三系六階（城代家老、御金奉行、御目付）各自來城的那個月，
+ *    一一前去報告（必須打穿，或打滿三回合且至少猜中一次；第二百七十節）。每少報告一位（含中途告辭、被嫌不善言辭）罰得標金四成，
+ *    那位官員空缺或在牢裡時那一份免罰。散會時提醒一次，每位來城那個月上旬還沒報告再各提醒一次。
  *  - 下台：你被查獲違約即下台（知名度另扣 10，沒報告的得標金當場罰）；同業公會長過世或離城；都由上次選舉的另一位候選人接任。
  *    同業公會長任內不超賣。
  *  - 任內事件（只在你當公會長時）：每期例會後第二個月上旬約五成，同業糾紛仲裁或御用金攤派擇一。
- *  狀態：G.gm={cid:'me'|cid,other,year}、G.gmDue={amt,mt,done,exempt,shown}、G.gmOut{年:true}、G.gmEvT、G.gmArb、G.gmLevy；
+ *  狀態：G.gm={cid:'me'|cid,other,year}、G.gmDue={amt,mt,done,shown,parts:{三系:{done,ok,exempt}}}（done＝三份都了結）、G.gmOut{年:true}、G.gmEvT、G.gmArb、G.gmLevy；
  *        本次選舉在例會資料 M.el。數值 ODDS.gm；文字 gm.*（01e、01f、01g）、LINES.gm（01d）。
  * ===================================================================== */
 const GM_LOG=[];                                   // 旬中發生、要寫進旬報的公會長消息（gmTick 時併入）
@@ -25,8 +26,21 @@ const gmName=k=>k==='me'?UT('gmeet.me',{a:G.me.family}):nameOf(k);
 function gmMeet(cid,label){const r=R(cid);if(!r.bond){r.bond={mult:1,label:UT(label),introId:null};r.met=true;r.seen=true;addKnown(cid)}return r}
 /** 市佔率（'me' 或同業 cid）。 */
 function gmShare(k){const S=G.share||(G.share=marketShares());return k==='me'?(S.me||0):(((S.rows||[]).find(r=>r.cid===k)||{}).share||0)}
-/** 本城的御金奉行（財務六階；在世、不在牢裡）。 */
-const gmOfficial=()=>Object.values(G.world.npcs).find(n=>n.pos&&n.pos.court==='finance'&&n.pos.rank===6&&n.cityId===G.cityId&&alive(n.cid)&&!jailed(n))||null;
+/** 本城某系的六階官員（在世、不在牢裡）；預設財務（御金奉行）。 */
+const gmOfficial=(court)=>Object.values(G.world.npcs).find(n=>n.pos&&n.pos.court===(court||'finance')&&n.pos.rank===6&&n.cityId===G.cityId&&alive(n.cid)&&!jailed(n))||null;
+/** 菓子折要報告的三系（報告順序照本期來城的先後排）。 */
+const GM_COURTS=['administration','finance','judiciary'];
+/** 待報告得標金的三份；舊存檔（只有御金奉行一份）補成只剩財務一份。 */
+function gmParts(D){
+  if(!D)return null;
+  if(!D.parts){D.parts={};GM_COURTS.forEach(k=>D.parts[k]={done:k!=='finance'||!!D.done,ok:k!=='finance',exempt:k==='finance'?!!D.exempt:false,old:true})}
+  return D.parts;
+}
+const gmPartsLeft=D=>{const P=gmParts(D);return P?GM_COURTS.filter(k=>!P[k].done):[]};
+/** 某系六階在本期的哪個月來城（例會月起算三個月內）。 */
+function gmCourtMonth(court,mt){const ms=3+3*Math.floor(((G.month-3+12)%12)/3);/* 本期的例會月 */for(let i=0;i<3;i++){const m=(ms-1+i)%12+1;if(((m-TOUR_MONTH[court])%3+3)%3===0)return m}return ms}
+/** 三份都了結時標記整筆完成。 */
+function gmDueSync(D){if(D&&!gmPartsLeft(D).length)D.done=true}
 /** 你在大盤依賴度制裁中（第一百八十六節，尚未實作時一律為否）。 */
 const gmBarred=()=>typeof dapanSanctioned==='function'&&!!dapanSanctioned();
 /** 候選資格的分數：去年被查獲次數；你去年任何一期不在協議內，多算一次。 */
@@ -46,7 +60,7 @@ function gmElectSetup(){
   const c=pool.slice().sort(first?((a,b)=>sh(b)-sh(a)):((a,b)=>gmScore(a)-gmScore(b)||sh(b)-sh(a))).slice(0,2);
   const E={cands:c,votes:{},done:false,winner:null,idx:0,bribe:{},first,myVote:null};
   E.voters=rivalsHere().filter(n=>alive(n.cid)&&!c.includes(n.cid)).map(n=>n.cid);
-  if(c.length===1){E.single=true;gmElectFinish(E,c[0]);return E}
+  if(c.length===1){E.single=true;if(c[0]!=='me')gmElectFinish(E,c[0]);return E}   // 只剩你一位：要到會才當選（第二百七十七節）
   if(!c.includes('me'))c.forEach(k=>{if(isEnemy(k))return;E.bribe[k]={amt:gmBribeAmt(),st:null};queueFaceEvent({type:'gmBribe',cid:k,turn:G.turn})});   // 仇人不來
   return E;
 }
@@ -100,11 +114,16 @@ function gmFall(){
 }
 /** 還沒報告的得標金：當場罰款（罰過或免罰回傳空字串）。 */
 function gmFineNow(){
-  const D=G.gmDue;if(!D||D.done)return '';D.done=true;
-  if(D.exempt||!gmOfficial())return NEWS('gm.exempt');
-  const f=Math.round(D.amt*ODDS.gm.fineX);payPublic('spend.gmFine',f);
-  return NEWS('gm.fine',{a:fmt(f)});
+  const D=G.gmDue;if(!D||D.done)return '';
+  const P=gmParts(D),left=gmPartsLeft(D);let f=0,ex=0;
+  left.forEach(k=>{P[k].done=true;if(P[k].exempt||!gmOfficial(k)){P[k].exempt=true;ex++}else f+=gmPartFine(D,k)});
+  D.done=true;
+  if(!f)return ex?NEWS('gm.exempt'):'';
+  payPublic('spend.gmFine',f);
+  return NEWS('gm.fine',{a:fmt(f),n:left.length-ex});
 }
+/** 一份沒報告的罰款：得標金 × 1.2 ÷ 3（舊存檔只有一份時照整筆 1.2 倍）。 */
+const gmPartFine=(D,k)=>Math.round(D.amt*ODDS.gm.fineX*(gmParts(D)[k].old?1:1/GM_COURTS.length))
 /** 一期結束（例會旬開始、建立新例會之前）：本期沒報告就罰款。 */
 function gmPeriodEnd(log){
   const D=G.gmDue;if(!D)return;
@@ -114,13 +133,20 @@ function gmPeriodEnd(log){
 /** 菓子折開標後：你是公會長時，得標金進你的現款，記下待報告。 */
 function gmLotPaid(M,res){
   if(!gmIsMe()||!res||!res.who||res.who==='me'||!(res.price>0))return;
-  G.silver+=res.price;G.gmDue={amt:res.price,mt:M.mt,done:false,exempt:false,shown:false};
-  const t=NEWS('gm.lotIn',{a:fmt(res.price),m:gmReportMonth()});pushNews(t);GM_LOG.push(t);
+  G.silver+=res.price;G.gmDue={amt:res.price,mt:M.mt,done:false,shown:false,parts:{}};
+  GM_COURTS.forEach(k=>G.gmDue.parts[k]={done:false,ok:false,exempt:false});
+  const t=NEWS('gm.lotIn',{a:fmt(res.price),list:gmPlanTxt(G.gmDue)});pushNews(t);GM_LOG.push(t);
 }
-/** 本期的報告月（例會月＋2：5、8、11、2 月）。 */
+/** 本期的報告月（例會月＋2：5、8、11、2 月；舊說法，只剩御金奉行那一份用）。 */
 const gmReportMonth=()=>{const start=3+3*Math.floor(((G.month-3+12)%12)/3);return (start+2-1)%12+1};
+/** 三份的時程文字：「3 月御目付、4 月城代家老、5 月御金奉行」，已報告的標出。 */
+function gmPlanTxt(D){
+  const P=gmParts(D);
+  return GM_COURTS.filter(k=>!P[k].old||k==='finance').map(k=>({k,m:gmCourtMonth(k,D.mt)})).sort((a,b)=>((a.m-3+12)%12)-((b.m-3+12)%12))
+    .map(x=>UT(P[x.k].done?(P[x.k].ok?'gm.plan.ok':'gm.plan.miss'):'gm.plan.todo',{m:x.m,t:UT('gm.title.'+x.k)})).join(NAMES_SEP);
+}
 /** 提醒視窗內容。 */
-const gmRemindHtml=()=>UT('gm.remind.body',{a:fmt(G.gmDue.amt),m:gmReportMonth()});
+const gmRemindHtml=()=>UT('gm.remind.body',{a:fmt(G.gmDue.amt),list:gmPlanTxt(G.gmDue)});
 
 /* ---------- 名望視同四階、頂欄 ---------- */
 {const _f=fameTier;fameTier=function(){return gmIsMe()?4:_f()}}
@@ -139,10 +165,15 @@ function gmTick(log){
   if(g&&g!=='me'){const n=npc(g);if(!n||!alive(g)||n.cityId!==G.cityId){const t=NEWS('gm.vacant',{n:nameOf(g)})+gmSucceed(g);pushNews(t);log.push(t)}}   // 同業公會長過世或離城
   if(gmIsMe())addFame(ODDS.gm.famePerTurn);
   const D=G.gmDue;
-  if(gmIsMe()&&D&&!D.done&&G.cycle===1&&G.month===gmReportMonth()){         // 報告月上旬
-    const off=gmOfficial();
-    if(!off){D.exempt=true;const t=NEWS('gm.noOfficial');pushNews(t);log.push(t)}
-    else queueFaceEvent({type:'gmRemind',cid:off.cid,turn:G.turn});
+  if(gmIsMe()&&D&&!D.done&&G.cycle===1){         // 三系六階各自來城那個月的上旬：還沒報告就提醒
+    const P=gmParts(D);
+    gmPartsLeft(D).forEach(k=>{
+      if(gmCourtMonth(k,D.mt)!==G.month||P[k].exempt)return;
+      const off=gmOfficial(k);
+      if(!off){P[k].exempt=true;P[k].done=true;const t=NEWS('gm.noOfficial',{t:UT('gm.title.'+k)});pushNews(t);log.push(t)}
+      else queueFaceEvent({type:'gmRemind',cid:off.cid,turn:G.turn});
+    });
+    gmDueSync(D);
   }
   if(G.gmArb&&G.gmArb.turn<G.turn)G.gmArb=null;                              // 糾紛沒處理：作罷
   if(G.gmLevy&&G.gmLevy.turn<G.turn){const L=G.gmLevy;G.gmLevy=null;payPublic('spend.gmLevy',L.amt);const t=NEWS('gm.levy.auto',{a:fmt(L.amt)});pushNews(t);log.push(t)}   // 攤派沒決定：幕府催繳，自己出
@@ -274,6 +305,7 @@ function gmElectHtml(M){
   info='<div class="notice tiny">'+(E.first?UT('gm.el.first'):UT('gm.el.rule'))+'</div>';
   if(!E.first)info+='<div class="card tiny">'+UT('gm.el.caughtHead')+rowsAll.map(k=>'<div class="row"><span>'+esc(gmName(k))+'</span><span>'+UT('gm.el.caught',{n:gmScore(k)})+'</span></div>').join('')+'</div>';
   info+='<div class="card"><b class="small">'+UT('gm.el.cands')+'</b>'+E.cands.map(k=>'<div class="row small" style="margin-top:3px"><span>'+(k==='me'?'':portraitHtml(k,32))+esc(gmName(k))+'</span><span class="tiny muted">'+UT('gm.el.share',{p:(gmShare(k)*100).toFixed(1)})+'</span></div>').join('')+'</div>';
+  if(E.single&&!E.done&&M.att)gmElectFinish(E,E.cands[0]);
   if(E.single){act='<div class="notice">'+UT('gm.el.single',{n:esc(gmName(E.winner))})+'</div>'+UT('gm.next');return {info,act}}
   if(E.done){
     const L=Object.keys(E.votes).map(v=>'<div class="row tiny"><span>'+esc(gmName(v))+'</span><span>'+UT('gm.el.voteFor',{n:esc(gmName(E.votes[v]))})+'</span></div>').join('');
@@ -295,7 +327,8 @@ function gmElectAuto(M){
   const E=M.el;if(!E||E.done)return;
   if(E.cands.includes('me')){
     const opp=E.cands.find(k=>k!=='me');
-    if(!M.att){E.absent=true;gmElectFinish(E,gmShare('me')>gmShare(opp)?'me':opp);return}
+    if(!M.att&&!opp){E.absent=true;E.done=true;const inc=gmCid();if(inc){const t=NEWS('gm.stay',{n:gmName(inc)});pushNews(t);GM_LOG.push(t)}return}   // 沒到會不能當選；只剩你一位時現任續任（第二百七十七節）
+    if(!M.att){E.absent=true;gmElectFinish(E,opp);return}   // 沒到會不能當選，由另一位當選
     gmCanvassClose(E);return;                       // 出席了但沒按開票：沒拉到的人投對方
   }
   const [A,B]=E.cands;E.voters.forEach(v=>{E.votes[v]=gmRivalPick(v,A,B)});gmTally(E);
@@ -334,10 +367,11 @@ function gmBattleEnd(){
     logRel(cid,UT(win?'gm.log.canvassWin':'gm.log.canvassLose',{a:B.spent}));
     msg=(win?TX('gm.canvassWin'):TX('gm.canvassLose',{o:gmName(B.opp)}))+UT('gm.gain',{g:gain});
   }else{
-    const D=G.gmDue,pass=win||(B.round>=3&&B.hits>0);
-    if(D&&!D.done){D.done=true;
-      if(pass){msg=TX('gm.reportOk');const t=NEWS('gm.reported',{a:fmt(D.amt)});pushNews(t);GM_LOG.push(t)}
-      else{const f=Math.round(D.amt*ODDS.gm.fineX);payPublic('spend.gmFine',f);msg=TX('gm.reportFail')+MSG('gm.fined',{a:fmt(f)});const t=NEWS('gm.fine',{a:fmt(f)});pushNews(t);GM_LOG.push(t)}
+    const D=G.gmDue,pass=win||(B.round>=3&&B.hits>0),k=B.court||'finance',P=gmParts(D);
+    if(D&&!D.done&&P&&P[k]&&!P[k].done){P[k].done=true;P[k].ok=pass;
+      const t0=UT('gm.title.'+k),left=gmPartsLeft(D).length;gmDueSync(D);
+      if(pass){msg=TX('gm.reportOk');const t=NEWS(left?'gm.reportedPart':'gm.reported',{a:fmt(D.amt),t:t0,n:left});pushNews(t);GM_LOG.push(t)}
+      else{const f=gmPartFine(D,k);payPublic('spend.gmFine',f);msg=TX('gm.reportFail')+MSG('gm.fined',{a:fmt(f)});const t=NEWS('gm.finePart',{a:fmt(f),t:t0});pushNews(t);GM_LOG.push(t)}
     }
     logRel(cid,UT(pass?'gm.log.reportOk':'gm.log.reportFail',{a:B.spent}));
   }
@@ -346,20 +380,22 @@ function gmBattleEnd(){
 }
 {const _be=battleEnd;battleEnd=function(){if(BT&&!BT.done&&BT.mode){gmBattleEnd();return}return _be.apply(this,arguments)}}
 
-/* ---------- 向御金奉行報告 ---------- */
+/* ---------- 向三系六階報告 ---------- */
+/** 這位官員是哪一系還沒報告的六階（不是就回傳 null）。 */
+const gmReportCourt=cid=>{const D=G.gmDue;if(!gmIsMe()||!D||D.done)return null;const P=gmParts(D),n=npc(cid);if(!n||!n.pos||n.pos.rank!==6)return null;const k=n.pos.court;if(!P[k]||P[k].done||P[k].exempt)return null;const off=gmOfficial(k);return off&&off.cid===cid?k:null};
 /** 這位官員是不是本期要報告的對象，而且這個月在城裡。 */
-const gmReportTarget=cid=>{const D=G.gmDue,off=gmOfficial();return !!(gmIsMe()&&D&&!D.done&&!D.exempt&&off&&off.cid===cid&&tourHere(off))};
+const gmReportTarget=cid=>{const k=gmReportCourt(cid);return !!(k&&tourHere(npc(cid)))};
 {const _pb=personBlock;personBlock=function(cid,ctx){
   const h=_pb.apply(this,arguments);
   if(!gmReportTarget(cid))return h;
-  return '<div class="card warn"><b class="small">'+UT('gm.report.tag')+'</b><div class="tiny" style="margin:3px 0">'+UT('gm.report.note',{a:fmt(G.gmDue.amt)})+'</div><button class="pixel-btn btn-sm btn-gold" data-act="gmReport" data-cid="'+cid+'">'+UT('gm.report.btn')+'</button></div>'+h;
+  return '<div class="card warn"><b class="small">'+UT('gm.report.tag')+'</b><div class="tiny" style="margin:3px 0">'+UT('gm.report.note',{a:fmt(G.gmDue.amt),n:gmPartsLeft(G.gmDue).length})+'</div><button class="pixel-btn btn-sm btn-gold" data-act="gmReport" data-cid="'+cid+'">'+UT('gm.report.btn')+'</button></div>'+h;
 }}
 ACT.gmReport=el=>{
   const cid=el.dataset.cid;if(!gmReportTarget(cid))return;
   if(apLeft()<=0){toast(MSG('go.2'));return}
   if(!spendAP())return;
   battleStart(cid,null);
-  BT.mode='report';BT.mult=1;BT.open=TX('gm.reportOpen');
+  BT.mode='report';BT.court=gmReportCourt(cid);BT.mult=1;BT.open=TX('gm.reportOpen');
   battleShow();
 };
 

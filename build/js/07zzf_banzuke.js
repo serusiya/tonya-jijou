@@ -86,16 +86,18 @@ function bzPool(){
 /** 季末結算：同業依市佔與事件、旅商依行商結果與向你收貨的利潤，增減身代；旅商名望漂移。 */
 function bzGrow(){
   const keys=bzPool().filter(k=>k!=='me'),rv=rivalsHere().filter(n=>alive(n.cid)),avg=1/Math.max(1,rv.length+1),B=bzBase();
+  const me=Math.max(1,bzWorth('me')),C=BZ().chase;
+  const chase=w=>me>w&&w>0?Math.min(C.cap,C.k*Math.log2(me/w)):0;   // 追趕：你比他有錢，他每季多長一些（第二百七十六節）
   keys.forEach(k=>{
     const n=bzInit(npc(k)),E=(G.bzEv||{})[k]||{};
     if(n.role==='rival'){
-      const P=BZ().rv;let g=P.g0+P.share*(gmShare(k)-avg)+(rnd()*2-1)*P.noise;
+      const P=BZ().rv;let g=P.g0+P.share*(gmShare(k)-avg)+(rnd()*2-1)*P.noise+chase(n.bzw);
       Object.keys(E).forEach(ev=>{g+=(P.ev[ev]||0)*E[ev]});
       n.bzw=Math.round(clamp(n.bzw*(1+g),B*P.min,B*P.max));
     }else{
       const P=BZ().gs,T=P.trip,tot=T.reduce((s,t)=>s+t.w,0);let r=rnd()*tot,t=T[0];
       for(const x of T){r-=x.w;if(r<=0){t=x;break}}
-      n.bzTrip=t.k;n.bzw=Math.round(clamp(n.bzw*(1+bzRand(t.r))+(n.bzPend||0),B*P.min,B*P.max));n.bzPend=0;
+      n.bzTrip=t.k;n.bzw=Math.round(clamp(n.bzw*(1+bzRand(t.r)+chase(n.bzw))+(n.bzPend||0),B*P.min,B*P.max));n.bzPend=0;
       n.bzf=clamp(n.bzf+(rnd()*2-1)*P.fameDrift,5,ODDS.fame.cap*0.95);
     }
   });

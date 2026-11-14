@@ -188,10 +188,10 @@ function pickActiveCities(homeId,own){
   return [...chosen];
 }
 /** 建立新局：行業決定本業，資源等級決定現款、員工等起步加成，再初始化世界與市場。 */
-function newGame(sysKey,regionPref,startTier=0){
+function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   const S=SYS_BY_KEY[sysKey],tier=clamp(Math.floor(Number(startTier)||0),0,START_TIERS.length-1),T=START_TIERS[tier];
   G={ver:GAME_VER,rs:(Math.random()*4294967296)>>>0,year:0,month:3,cycle:1,turn:0,
-    sysKey,startTier:tier,firm:UT('me.firm',{firm:S.firm,sys:S.name}),
+    sysKey,startTier:tier,diff:ODDS.guildPolicy.diffNormal[diff]?diff:'normal',firm:UT('me.firm',{firm:S.firm,sys:S.name}),
     me:{family:S.family,given:'',name:'',birthYear:-20,gen:1},
     silver:T.silver,gold:T.gold,
     wh:{n:1,cap:200},guards:0,lic:{wh:0,ship:0,horse:0,guard:0,staff:0},trade:[],lessen:0,
@@ -202,7 +202,7 @@ function newGame(sysKey,regionPref,startTier=0){
     family:{spouse:null,kids:[],married:false,birthBonus:0},wifeEv:null,wifeFans:null,wifeGone:null,stress:0,stressCur:[],stressPrev:[],
     news:[],ticker:[],life:{gifts:0,gold:0,cheats:0,charity:0,fires:0,riots:0,peak:0,contracts:0,pledges:0,scapegoat:0,spouseKind:''},
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
-    fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};
+    stapleUnit:ODDS.staple.unit,fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
   G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
@@ -212,6 +212,7 @@ function newGame(sysKey,regionPref,startTier=0){
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c)&&(picked||c.region_id!=='reg_central'));
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c));
   {const sc=cs.filter(canSea);if(sc.length)cs=sc}   // 所有流派都在港口開局（委託採買的海運要港口）
+  if(!picked&&ODDS.startEven.sys.includes(sysKey)){const rg=pick([...new Set(cs.map(c=>c.region_id))]);cs=cs.filter(c=>c.region_id===rg)}   // 先平均抽地區、再抽城（魚屋，第二百八十一節）
   G.cityId=pick(cs).id;
   G.supplySeed=hashStr('originSupply|'+G.rs+'|'+G.cityId);   // 本局固定的產地月度供貨種子
   G.cityPopulation=parseInt(CITY(G.cityId).population,10)||0;
@@ -219,6 +220,8 @@ function newGame(sysKey,regionPref,startTier=0){
   G.activeIds=pickActiveCities(G.cityId,own);applyActiveCities(G.activeIds);
   G.world=genWorld(G.cityId);
   G.trade=startTrade(sysKey,tier);                // 第六、七等級開局送第二貴貨物的交易許可
+  G.guide={s:1};                                  // 開業指引（07zzw_guide.js）
+  if(sysKey==='mining')G.kakeOn=true;             // 礦產開局就能談掛賣（第二百七十八節）
   initMarket();
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   daimyoPlan();                                    // 今年的大名行列過境旬（07zzc_daimyo.js）

@@ -302,6 +302,19 @@ button,.pill,.mkt-row,.loc,.tag.clk,.ibtn,.hbtn,[data-act],[data-chg],nav#bottom
 .guide-glow{outline:3px solid #e5a93b;outline-offset:2px;animation:guideGlow 1.1s ease-in-out infinite}
 @keyframes guideGlow{0%,100%{outline-color:#e5a93b}50%{outline-color:rgba(229,169,59,.25)}}
 
+/* 拉霸統一樣式（06_ui.js 的 rangeFill／shipBarSync，第二百九十節）：細圓角軌道、紅色圓鈕；出貨拉霸超出配額的那一段黑色閃爍 */
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border:none;border-radius:3px;background:#ddd5c4;margin:10px 0;padding:0;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;box-shadow:0 0 0 1px rgba(0,0,0,.15);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--red);border:none;cursor:pointer}
+input[type=range]::-moz-range-track{background:transparent;border:none}
+input[type=range]:disabled::-webkit-slider-thumb{background:#b9b2a6}
+input[type=range]:disabled::-moz-range-thumb{background:#b9b2a6}
+input[type=range]:focus-visible{box-shadow:0 0 0 2px rgba(229,169,59,.6)}
+.qwrap{position:relative;display:flex;align-items:center}
+.qwrap .qover{position:absolute;top:50%;height:6px;margin-top:-3px;background:#000;display:none;pointer-events:none;animation:qBlink .9s steps(1,end) infinite}
+@keyframes qBlink{0%{opacity:1}50%{opacity:.15}}
+input.qslider{position:relative}
+
 </style>
 </head>
 <body>
@@ -946,6 +959,7 @@ const ODDS={
   ,works:{name:'大工程（07zzp_works.js）：外港開闢（船奉行五階）、開闢道路（道中奉行五階，陸運運量倍數）與國產取立（遠國奉行六階）的公款、成功率依次數、失敗冷卻旬數、外港的知名度、國產取立的知名度下限',port:{cost:15000,fame:10},road:{cost:15000,fame:10,mult:2},kokusan:{cost:30000,floor:165},p:[0.4,0.7,1],cd:12}
   ,extortReport:{name:'告發索賄的官員（04_people.js 的 reportExtort）：風聲減幾點；撤職下獄的機率（一到四階、五六階）',heat:2,fall:0.2,fallHi:0.1}
   ,startEven:{name:'隨機開局時先平均抽地區、再抽城的行業（其餘行業照城數抽；第二百八十一節）',sys:['marine']}
+  ,help:{name:'去店裡幫忙（07zzx_help.js）：私房錢範圍（依對方在本城同業與旅商裡的身代排位）、旅商與同業的好感增幅、探聽到性向的機率、名望到幾階永久停止',pay:[20,40],affGuest:[3,5],affRival:[2,4],scout:0.3,stopTier:2}
   ,move:{name:'遷居（07zzr_move.js）：搬家費、籌備最少與最多幾旬、抵達後幾旬內不能再遷居',fee:2000,prepMin:9,prepMax:18,cool:180}
   ,komon:{name:'木戶黃門宣判（07zzj_komon.js）：開局幾旬後開始判定（每季例會旬，機率％＝惡德值）、現款留幾成、壓力增加、本業貨各留幾旬的量（本城需求 × 市佔 × 旬數）、宣判唸幾件',after:72,cashKeep:0.25,stress:30,keepShare:0.05,keepTurns:2,read:4}
   ,komonRumor:{name:'木戶黃門年度傳聞（07zzj_komon.js）：惡德值到 region 傳聞落在本地區、到 near 落在本城附近（離本城最近的 nearN 座城之一）',region:10,near:20,nearN:3}
@@ -1577,6 +1591,11 @@ LINES.gov={
   finance:['「錢座那邊要{g}，量不大，但不能誤期。貴號接是不接？」','「勘定方要一批{g}入庫，貴號分幾旬送來。」'],
   war:['「藩裡要整備海防，{g}要得急、要得多。這件事，本官想交給貴號。」','「上頭催著鑄砲、造彈，{g}越快越好。價錢照規矩給，絕不虧待。」','「沿海不太平，藩裡點名要{g}。貴號若誤了期，本官可擔待不起。」']
 };
+/** 去店裡幫忙（07zzx_help.js）：旅商人、同業給謝禮時說的話。 */
+LINES.help={
+  guest:['貨都對過了，帳也記清了，省了我大半天。這點謝禮你收下。','有你幫忙整貨，這趟出門安心多了。拿去喝杯茶。','你算盤打得比我的伙計還快！下回再來搭把手。'],
+  rival:['同行肯來幫忙看店，難得難得。這點心意，別嫌少。','今天客人多，多虧你在。不過我店裡的門道，你可別學了去。','倉裡的進貨單你也看見了，嘴巴緊些。謝禮在這。']
+};
 
 /* =====================================================================
  * 01e_ui_text.js — 指令·按鈕·選項文字總表
@@ -1880,6 +1899,16 @@ const UI_TXT={
   'mk.stance.none':'未表態',
   'mk.title':'📊 本旬相場牌價（{p}）',
   'mk.lead':'本旬牌價依上旬收市公布；本旬所有出貨結束後，才知道本旬收市價。',
+  'btn.help':'去店裡幫忙',
+  'btn.helpUsed':'本旬已去幫過忙',
+  'help.note':'扮成雜工去幫忙。',
+  'help.t':'在「{n}」店裡幫忙',
+  'help.eff':'私房錢 +{a} 兩，好感 +{g}。',
+  'help.scout':'閒談間摸清了對方的性子：{t}。',
+  'help.log':'去他店裡幫忙，得謝禮 {a} 兩。',
+  'help.used':'這一旬已經去別人店裡幫過忙了。',
+  'help.offNote':'城裡的人都認識你，不能再扮成雜工賺外快了。',
+  'mk.trade.over':'⚠ 超出協議配額 {n} 件，可能被查獲。',
   'mk.leadNormal':'本期「維持」：參加協議者各自以穩定供應量{r}為配額；同業不會補足你少出的貨。',
   'mk.leadNormalNone':'本期「維持」；你未參加協議，出貨不受配額限制，預設照穩定供貨線。',
   'mk.leadRestrict':'本期「減供」：參加協議者各自以穩定供應量七成為配額，以量控價。',
@@ -4579,6 +4608,7 @@ const NEWS_TXT={
   "thieves.2":"🥷【盜賊】夜間遭賊潛入倉庫，損失「{k}」{l} 單位。",
   /* —— evalCartel —— */
   "evalCartel.1":"⚖️【公會制裁】你誓言守配額卻超量出貨，被株仲間查獲！{bond}三旬內遭聯合斷貨，進貨價飆升，知名度 -4。",
+  "help.off":"🏮【街談】城裡的人都認識你，不能再扮成雜工賺外快了。",
   "evalCartel.2":"⚖️【暗約敗露】你私下偷跑被同業告發！{fine}並遭聯合斷貨三旬，知名度 -5。",
   /* —— invUpkeep —— */
   "invUpkeep.1":"🔥【倉庫失火】易燃貨物起火，連環波及，共燒毀 {tot} 單位貨物！（保鏢可降低機率）",
@@ -4970,6 +5000,10 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月15日',items:[
+    '新增「去店裡幫忙」：名門商邸裡認識的同業與旅商人，可以花一點行動去他店裡幫忙，賺點私房錢、攢點交情，一旬一次；名望到了二階就不再有人請你。',
+    '修改背景資料'
+  ]},
   {date:'2026年11月14日',items:[
     '店員設定更新：店員多了「閒聊」，交情淺時靠零用錢、交情深了靠閒聊，閒聊時會聊起以前的事；暗殺、放火、做帳不再直接列出，要找心腹閒聊時他才會說出來。',
     '公會長設定更新：菓子折的得標金要分成三份，趁三系的六階大人各自來城時分頭報告；少報告一位就罰一份。',
@@ -8127,7 +8161,8 @@ function tradeCard(name){
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
-  h+=stepRow('<input id="slider-ship" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'>','slider-ship',have<1||ship<=0,have<1||ship>=have);
+  h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'></div>','slider-ship',have<1||ship<=0,have<1||ship>=have);
+  h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';   // 超出協議配額的提醒（shipBarSync）
   h+='<div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
@@ -8159,10 +8194,20 @@ function refreshTrade(){
   {const mc=$('#m-close');if(mc)mc.textContent=closeRangeTxt(name,UI.s.ship)}
   const ship=UI.s.ship,q=quoteSale(name,ship),bmax=maxBuy(name,true),sb=$('#slider-buy');
   if(sb){sb.max=Math.max(1,bmax);sb.disabled=bmax<1}
-  const bq=buyPlanOf(name);if(sb)sb.value=bq;
+  const bq=buyPlanOf(name);if(sb){sb.value=bq;rangeFill(sb)}
   $('#q-q').textContent=UT('mk.units',{n:ship});$('#q-price').textContent=UT('mk.liang',{a:fmt1(q.price)});$('#q-rev').textContent=UT('mk.liang',{a:fmt(q.revenue)});
   $('#b-q').textContent=UT('mk.units',{n:bq});$('#b-cost').textContent=UT('mk.liang',{a:fmt(Math.round(unitBuyCost(name)*bq))});
   const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
+  shipBarSync();
+}
+/** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
+function shipBarSync(){
+  const el=$('#slider-ship'),bar=$('#q-over-bar'),tip=$('#q-over');if(!el)return;
+  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,q=guildMember()?quotaOf(UI.s.focus):Infinity,pc=x=>clamp(x/max*100,0,100);
+  const vp=pc(v),a=Math.min(vp,q===Infinity?100:pc(q)),over=q!==Infinity&&v>q;
+  el.style.background='linear-gradient(to right,var(--red) 0 '+rangeAt(a)+',transparent '+rangeAt(a)+' '+rangeAt(vp)+','+RANGE_BG+' '+rangeAt(vp)+' 100%)';
+  if(bar){bar.style.left=rangeAt(a);bar.style.width='calc((100% - '+RANGE_THUMB+'px) * '+((vp-a)/100).toFixed(4)+')';bar.style.display=over?'block':'none'}
+  {const t=over?UT('mk.trade.over',{n:v-q}):'';if(tip&&tip.textContent!==t)tip.textContent=t}   // 內容沒變就不寫，免得觸發拉霸上色的監看（rangeFillAll）
 }
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
@@ -8350,12 +8395,25 @@ function snapVal(el){
   const v=+el.value,sn=+(el.dataset.snap||0),pv=+(el.dataset.prev||0);
   return sn&&v>0&&v<sn?(pv>=sn?0:sn):v;
 }
+/* ---------- 拉霸的統一樣式（第二百九十節）：細圓角軌道、紅色圓鈕；拉到的部分紅色、其餘淺色（出貨拉霸另有配額色，見 shipBarSync） ---------- */
+const RANGE_THUMB=18,RANGE_BG='#ddd5c4';
+/** 軌道上第 x%（0～100）的位置，照拉霸鈕中心換算。 */
+const rangeAt=x=>'calc('+(RANGE_THUMB/2)+'px + (100% - '+RANGE_THUMB+'px) * '+(x/100).toFixed(4)+')';
+/** 依目前數值重畫一支拉霸的填色。 */
+function rangeFill(el){
+  if(!el||el.type!=='range')return;if(el.id==='slider-ship'){shipBarSync();return}
+  const lo=+el.min||0,hi=+el.max||100,p=hi>lo?clamp((+el.value-lo)/(hi-lo)*100,0,100):0,c=el.disabled?'#b9b2a6':'var(--red)';
+  el.style.background='linear-gradient(to right,'+c+' 0 '+rangeAt(p)+','+RANGE_BG+' '+rangeAt(p)+' 100%)';
+}
+const rangeFillAll=()=>document.querySelectorAll('input[type=range]').forEach(rangeFill);
+/** 畫面重繪、面板與說明視窗打開時，新出現的拉霸也上色。 */
+{let pend=false;new MutationObserver(()=>{if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;rangeFillAll()})}).observe(document.documentElement,{childList:true,subtree:true})}
 /** 拉動時即時更新旁邊的數字（data-lbl＝顯示元素 id；data-unit＝含 # 的單位格式）。 */
 function rangeLabel(el){
   const id=el.dataset.lbl;if(!id)return;const t=document.getElementById(id);if(!t)return;
   const v=snapVal(el),u=el.dataset.unit;t.textContent=u?u.replace('#',fmt(v)):String(v);
 }
-document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target)}});
+document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target);rangeFill(e.target)}});
 
 'use strict';
 /* ★檔案總覽：人物介面、面板（Sheet）、筆記、私宅、開局
@@ -15812,7 +15870,7 @@ document.addEventListener('change',e=>{
   // 滑塊彈動：反方向一下、再越過目標一下，最後停在 nv（只改畫面，不寫計畫）
   const dir=Math.sign(nv-v)||1,path=[clamp(v-dir*unit,lo,hi),clamp(nv+dir*unit,lo,hi),clamp(v+Math.round((nv-v)/2),lo,hi)],A={id:el.id,nv,row,timers:[]};
   if(row){row.classList.remove('shaking');void row.offsetWidth;row.classList.add('shaking')}
-  path.forEach((x,k)=>A.timers.push(setTimeout(()=>{const e2=document.getElementById(A.id);if(e2)e2.value=x},70+k*90)));
+  path.forEach((x,k)=>A.timers.push(setTimeout(()=>{const e2=document.getElementById(A.id);if(e2){e2.value=x;rangeFill(e2)}},70+k*90)));
   A.timers.push(setTimeout(shakeFinish,70+path.length*90+40));
   SHAKE_ANIM=A;
 },true);
@@ -17803,6 +17861,59 @@ document.addEventListener('change',e=>{   // 拉霸放開、兩側加減鈕都�
 ACT.guideSkip=()=>{if(G)G.guide=null;UI.render();sfx.tap()};
 /** 第一次推進：指引結束。 */
 {const _a=advanceTurn;advanceTurn=function(){if(G&&G.guide)G.guide=null;return _a.apply(this,arguments)}}
+
+'use strict';
+/* ★檔案總覽：去店裡幫忙（DESIGN_NOTES 第二百八十八節）
+ * - 名門商邸裡同業與旅商人的人物卡多一顆「去店裡幫忙」：扣 1 點行動（照常加壓力），一旬只能幫一次（G.helpT＝幫過的那一旬）。
+ * - 報酬：私房錢 20～40 兩（對方在本城同業與旅商裡身代越高給得越多）；好感（旅商 +3～5、同業 +2～4）；
+ *   三成機會順便探聽到對方的性向。只有已經認識的人才會讓你去幫忙；仇人不讓你進門。
+ * - 名望一到二階就永久停止（G.helpOff，之後掉回一階也不再開放）；按鈕不再出現，當旬旬報一則。
+ * - 數值 ODDS.help；台詞 LINES.help；文字 btn.help*、help.*（01e）；新聞 help.off（01g）。 */
+const HP=()=>ODDS.help;
+/** 名望到了門檻就永久停止。 */
+function helpCheck(log){
+  if(!G||G.helpOff)return;
+  if(fameTier()>=HP().stopTier){G.helpOff=true;if(log&&G.turn>0){const t=NEWS('help.off');pushNews(t);log.push(t)}}
+}
+const helpOK=cid=>{const n=npc(cid),r=G.rel[cid];return !!(r&&r.bond&&n&&(n.role==='rival'||n.role==='guest')&&n.cityId===G.cityId&&alive(cid)&&!n.hired&&!jailed(n)&&!isEnemy(cid))};
+/** 人物卡上的幫忙列。 */
+function helpRow(cid){
+  helpCheck();
+  if(G.helpOff||!helpOK(cid))return '';
+  const used=G.helpT===G.turn;
+  return '<div style="margin-top:5px"><button class="pixel-btn btn-sm" data-act="help" data-cid="'+cid+'" '+(used?'disabled':'')+'>'+UT(used?'btn.helpUsed':'btn.help')+'</button> <span class="tiny muted">'+UT('help.note')+'</span></div>';
+}
+{const _pb=personBlock;personBlock=function(cid,ctx){
+  const h=_pb.apply(this,arguments);
+  if(ctx!=='res'||h.indexOf('class="card locked"')>=0)return h;   // 知名度不夠見不到的人不能去幫忙
+  const row=helpRow(cid);if(!row)return h;
+  return h.slice(0,h.lastIndexOf('</div>'))+row+'</div>';
+}}
+/** 這位在本城同業與旅商裡的身代排位（0～1，越大生意越大）。 */
+function helpRankOf(cid){
+  const L=Object.values(G.world.npcs).filter(n=>n.cityId===G.cityId&&(n.role==='rival'||n.role==='guest')&&alive(n.cid)).map(n=>({cid:n.cid,w:bzInit(n).bzw||0})).sort((a,b)=>a.w-b.w);
+  const i=L.findIndex(x=>x.cid===cid);return L.length>1&&i>=0?i/(L.length-1):0.5;
+}
+ACT.help=el=>{
+  const cid=el.dataset.cid;helpCheck();
+  if(G.helpOff){toast(UT('help.offNote'));UI.render();refreshSheet();return}
+  if(!helpOK(cid))return;
+  if(G.helpT===G.turn){toast(UT('help.used'));return}
+  if(!spendAP())return;
+  const P=HP(),n=npc(cid),r=R(cid),rival=n.role==='rival';
+  G.helpT=G.turn;
+  const pay=Math.round(P.pay[0]+(P.pay[1]-P.pay[0])*helpRankOf(cid)*(0.8+0.2*rnd()));
+  G.gold=(G.gold||0)+pay;
+  const g=rival?P.affRival:P.affGuest,gain=rint(g[0],g[1]),a0=r.aff;setAff(r,r.aff+gain);
+  let tip='';if(!r.topKnown&&chance(P.scout)){r.topKnown=true;tip=UT('help.scout',{t:top3Txt(cid)})}
+  logRel(cid,UT('help.log',{a:pay}));
+  const line=TX(rival?'help.rival':'help.guest');
+  UI.showInfo(UT('help.t',{n:nameOf(cid)}),portraitHtml(cid,56)+'<div class="small" style="margin:5px 0">「'+esc(line)+'」</div>'
+    +'<div class="notice tiny">'+UT('help.eff',{a:pay,g:Math.round(r.aff-a0)})+tip+'</div>');
+  sfx.coin();UI.render();refreshSheet();
+};
+/** 每旬：檢查名望（advanceTurn 結尾前）。 */
+{const _a=advanceTurn;advanceTurn=function(){const log=_a.apply(this,arguments);try{helpCheck(log)}catch(e){}return log}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件

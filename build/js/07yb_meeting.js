@@ -49,12 +49,15 @@ function meetingPayout(log){
 }
 /** 新方針立即生效：重算本旬本業貨的同業供給與市價。 */
 function meetResupply(){ownComms().forEach(c=>{const m=G.mk[c.name];m.so=rivalSupply(c,m,false)});syncPrices()}
+/** 簡易模式開局第一年的例會：同業一律投維持（第二百八十四節；ODDS.guildPolicy.easyYear1）。 */
+const meetEasyYear=()=>diffNow()==='easy'&&G.year===0&&!!ODDS.guildPolicy.easyYear1;
 /** 供給投票。me＝你的票（'normal'／'restrict'；沒有票時 null）。回傳 {n,r,me,policy,tie}。 */
 function meetVote(me){
   const M=meetNow();if(!M||M.voted)return M&&M.tally;
   let n=0,r=0;const cast=v=>{if(v==='normal')n++;else r++};
   if(me)cast(me);
   rivalsHere().forEach(x=>{
+    if(meetEasyYear()){cast('normal');return}
     if(me){const p=Math.min(MEET.followMax,MEET.followMax*R(x.cid).aff/100);cast(chance(p)?me:(me==='normal'?'restrict':'normal'))}
     else cast(chance(MEET.restrictP)?'restrict':'normal');
   });
@@ -135,7 +138,7 @@ function meetTalk(step){
   const out=rv.map(n=>{
     const cid=n.cid,foe=isEnemy(cid),r=R(cid),v={me,item};let t;
     if(step<=1){t=foe?say('meet.greet.enemy',v):G.month===3&&chance(0.5)?say('meet.greet.spring',v):say('meet.greet.'+(r.bond&&r.aff>=60?'warm':r.bond&&r.aff<20?'cold':'plain'),v)}
-    else if(step===2){const st=chance(MEET.restrictP)?'restrict':'normal';t=say('meet.stance.'+(foe?(st==='normal'?'enemyNormal':'enemyRestrict'):st),v)}
+    else if(step===2){const st=!meetEasyYear()&&chance(MEET.restrictP)?'restrict':'normal';t=say('meet.stance.'+(foe?(st==='normal'?'enemyNormal':'enemyRestrict'):st),v)}
     else if(step===3){const u=rnd(),k=u<0.35?'high':u<0.65?'none':'chat';t=say('meet.lot.'+(foe?'enemy'+k[0].toUpperCase()+k.slice(1):k),v)}
     else{
       const res=M.res||{},T=M.tally||{},bid=(M.bids||{})[cid]||0;v.p=policyName(T.policy);
@@ -190,7 +193,7 @@ SHEETS.guild=()=>{
     info=UT('gmeet.guild.3',{a:rivalsHere().length+1,b:st})+'</div>'+guildBondCard()+'</div>';
     act='<button class="pixel-btn btn-green" style="width:100%" data-act="cartel" data-s="pledged" '+(C.state==='pledged'?'disabled':'')+'>'+(mem?UT('btn.cartel'):UT('btn.cartelJoin',{c:bc}))+'</button>'+(gmIsMe()?UT('gm.noQuitNote'):UI.s.quitArm&&C.state!=='none'?'<div class="grid2" style="margin-top:4px"><button class="pixel-btn btn-red" data-act="cartel" data-s="none">'+UT('btn.cartel3Confirm',{c:fmt(C.bond||0)})+'</button><button class="pixel-btn" data-act="cartelQuitCancel">'+UT('btn.cartel3Cancel')+'</button></div>':'<button class="pixel-btn" style="width:100%;margin-top:4px" data-act="cartel" data-s="none" '+(C.state==='none'?'disabled':'')+'>'+(mem?UT('btn.cartel3Lose'):UT('btn.cartel3'))+'</button>')+UT('gmeet.guild.4');
   }else if(cur===2){
-    info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev)})
+    info=guildMember()?UT('gmeet.guild.5',{b:policyName(M.prev),r:UT('diff.ratio.'+diffNow())})
       :UT('gmeet.guild.6');
     if(!M.voted&&M.tieAsk)act=UT('gm.tieAsk',{n:M.tieAsk.n,r:M.tieAsk.r});
     else if(!M.voted)act=guildMember()?UT('gmeet.guild.7')

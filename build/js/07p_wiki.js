@@ -94,7 +94,7 @@ function wikiGoods(){
   let h=UT('wiki.h.4');
   SYS.forEach(s=>{
     const list=by[s.key]||[];if(!list.length)return;
-    const body=list.slice().sort((a,b)=>a.base-b.base).map(c=>{const n=(CITIES.filter(ct=>cityProds(ct).includes(c.name)).length);return '<div class="row tiny" style="margin-top:3px" data-act="commInfo" data-n="'+esc(c.name)+'"><span><span class="tag clk">'+esc(c.short.slice(0,8))+'</span> <span class="tag '+(c.luxury?'gold':c.staple?'green':'gray')+'">'+UT('wiki.body.4',{a:c.kind,b:fmt1(c.base),c:n})}).join('');
+    const body=list.slice().sort((a,b)=>a.base-b.base).map(c=>{const n=(CITIES.filter(ct=>cityProds(ct).includes(c.name)).length);return '<div class="row tiny" style="margin-top:3px" data-act="commInfo" data-n="'+esc(c.name)+'"><span><span class="tag clk">'+esc(c.short.slice(0,8))+'</span> <span class="tag '+(c.luxury?'gold':c.staple?'green':'gray')+'">'+UT('wiki.body.4',{a:NM('kind',c.kind),w:NM('weight',weightClass(c.name)),b:fmt1(c.base),c:n})}).join('');
     h+=wikiBox('s'+s.key,UT('wiki.wikiGoods',{a:esc(s.name)}),body,UT('wiki.wikiGoods.2',{a:list.length}));
   });
   return h;
