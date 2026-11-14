@@ -863,7 +863,7 @@ const ODDS={
   hold:{name:'持有成本與風險（依貨值）',rate:0.003,riskDiv:400000,riskMax:0.12,lossMin:0.1,lossMax:0.35,guardCut:0.1},
   rivalEvent:{name:'同業突發事件',p:0.05,good:0.5,news:0.5},
   cartelPledged:{name:'誓言守配額卻超量被查獲',base:0.25,slope:0.35,max:0.9},
-  guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持依難度為各自穩定供應量的 105%／100%／90%、減供一律七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7,diffNormal:{easy:1.05,normal:1,hard:0.9}},   // diffNormal：維持期的比例依難度（簡易、一般、困難；第二百八十二節），normalRatio 只留作舊程式相容
+  guildPolicy:{name:'開局第一期的協議方針（維持／減供各半）；之後由例會投票決定。參加協議者的配額與同業目標供給，維持依難度為各自穩定供應量的 105%／100%／90%、減供一律七成',normal:0.5,normalRatio:0.9,restrictRatio:0.7,diffNormal:{easy:1.05,normal:1,hard:0.9},easyYear1:true,diffDefault:'easy'},   // diffNormal：維持期的比例依難度（簡易、一般、困難；第二百八十二節），normalRatio 只留作舊程式相容；easyYear1：簡易模式開局第一年的例會同業一律投維持（第二百八十四節）；diffDefault：開局畫面預設選的難度（第二百八十五節）
   meeting:{name:'公會例會：菓子折份量（兩）、起標、出價級距；同業跟票上限、沒你投票時投減供機率、不出價機率',lotMin:8000,lotMax:12000,start:6000,step:500,followMax:0.8,restrictP:0.6,skipP:0.25},
   guildBond:{name:'協議訂約金一期的旬數（自動續押，期滿分配違約金）',turns:9},
   cityPopulation:{name:'城市人口每九旬依全城需求被滿足的比例調整（第二百五十五節起大幅 ±1%、小幅 ±0.6%）（平常需求，不含節慶、大名行列、大相撲、夫人捧場與奢侈品冷熱；同業與你的出貨合計，每項以需求為上限、按基準價加權，九旬平均）：hi 以上 +all、mid 以上 +majority、lo 以上 −majority、lo 以下 −all',turns:9,all:0.01,majority:0.006,hi:0.80,mid:0.72,lo:0.62,min:1000},
@@ -4982,7 +4982,7 @@ const CHANGELOG=[
     '金物鐵石問屋改以訂單為主：開局就能談定約掛賣，單也比別的行業大；本城普請方、勘定方的官員會來下注文，碰上軍需，藩裡還會託官員找你下大單。',
     '損耗設定更新：鮮魚改稱醃魚，損耗大減；醃魚、米麥與油的損耗隨月份起伏，入夏易壞、冬天耐放，其他貨四季一樣。',
     '開局設定更新：東海道的紅林、北境的星澤改為商港，不再出產漁貨；魚屋開局會平均落在西道、南海、東海道、北境。',
-    '開局可選難度：簡易、一般、困難，差在協議「維持」時的配額寬緊；困難就是原本的規則，舊存檔照困難繼續。',
+    '開局可選難度：簡易、一般、困難，預設簡易，差在協議「維持」時的配額寬緊；簡易模式開局第一年，同業在例會上都投「維持」；困難就是原本的規則，舊存檔照困難繼續。',
     '新增開業指引：開局時帶你先去例會、再到相場安排進出貨，推進第一旬後結束，也可以隨時略過。',
     '修改背景資料'
   ]},
@@ -8890,7 +8890,7 @@ UI.showStart=function(){
   if(sv)h+='<button class="pixel-btn btn-gold" style="width:100%;padding:8px;margin-bottom:10px" data-act="resume">'+UT('btn.resume',{n:esc(sv.me.name),y:yearStr(sv.year)})+'</button>';
   h+=UT('ppl.showStart.3');
   h+=UI.s.startDeck.map((key,i)=>{const s=SYS_BY_KEY[key],t=START_TIERS[i];return '<div class="sys-card '+(UI.s.startTier===i?'sel':'')+'" data-act="pickSys" data-k="'+s.key+'" data-t="'+i+'"><h3>'+s.firm+'·'+s.name+' <span class="tag gold">'+s.style+'</span></h3><div class="small">'+s.tip+'</div><div class="tiny muted" style="margin-top:2px">▸ '+UT('ppl.showStart.4',{a:t.perk,b:t.res})+'</div></div>'}).join('');
-  if(!ODDS.guildPolicy.diffNormal[UI.s.startDiff])UI.s.startDiff='normal';   // 難度（第二百八十二節）
+  if(!ODDS.guildPolicy.diffNormal[UI.s.startDiff])UI.s.startDiff=ODDS.guildPolicy.diffDefault;   // 難度（第二百八十二節）；預設簡易（第二百八十五節）
   h+=UT('start.diff.t')+'<div style="text-align:center">'+['easy','normal','hard'].map(k=>'<span class="pill '+(UI.s.startDiff===k?'on':'')+'" style="font-size:15px;padding:3px 14px" data-act="pickDiff" data-k="'+k+'">'+NM('diff',k)+'</span>').join('')+'</div><div class="tiny" style="color:#cfc6b6;text-align:center;margin-top:3px">'+UT('start.diff.'+UI.s.startDiff)+'</div>';
   h+='<button class="pixel-btn btn-red" style="width:100%;padding:10px;margin-top:14px;font-size:17px" data-act="begin">'+UT('btn.begin')+'</button>';
   h+=saveIoHtml(!!sv);                               // 匯出（有存檔時）與匯入存檔（07z_saveio.js）
@@ -12331,12 +12331,15 @@ function meetingPayout(log){
 }
 /** 新方針立即生效：重算本旬本業貨的同業供給與市價。 */
 function meetResupply(){ownComms().forEach(c=>{const m=G.mk[c.name];m.so=rivalSupply(c,m,false)});syncPrices()}
+/** 簡易模式開局第一年的例會：同業一律投維持（第二百八十四節；ODDS.guildPolicy.easyYear1）。 */
+const meetEasyYear=()=>diffNow()==='easy'&&G.year===0&&!!ODDS.guildPolicy.easyYear1;
 /** 供給投票。me＝你的票（'normal'／'restrict'；沒有票時 null）。回傳 {n,r,me,policy,tie}。 */
 function meetVote(me){
   const M=meetNow();if(!M||M.voted)return M&&M.tally;
   let n=0,r=0;const cast=v=>{if(v==='normal')n++;else r++};
   if(me)cast(me);
   rivalsHere().forEach(x=>{
+    if(meetEasyYear()){cast('normal');return}
     if(me){const p=Math.min(MEET.followMax,MEET.followMax*R(x.cid).aff/100);cast(chance(p)?me:(me==='normal'?'restrict':'normal'))}
     else cast(chance(MEET.restrictP)?'restrict':'normal');
   });
@@ -12417,7 +12420,7 @@ function meetTalk(step){
   const out=rv.map(n=>{
     const cid=n.cid,foe=isEnemy(cid),r=R(cid),v={me,item};let t;
     if(step<=1){t=foe?say('meet.greet.enemy',v):G.month===3&&chance(0.5)?say('meet.greet.spring',v):say('meet.greet.'+(r.bond&&r.aff>=60?'warm':r.bond&&r.aff<20?'cold':'plain'),v)}
-    else if(step===2){const st=chance(MEET.restrictP)?'restrict':'normal';t=say('meet.stance.'+(foe?(st==='normal'?'enemyNormal':'enemyRestrict'):st),v)}
+    else if(step===2){const st=!meetEasyYear()&&chance(MEET.restrictP)?'restrict':'normal';t=say('meet.stance.'+(foe?(st==='normal'?'enemyNormal':'enemyRestrict'):st),v)}
     else if(step===3){const u=rnd(),k=u<0.35?'high':u<0.65?'none':'chat';t=say('meet.lot.'+(foe?'enemy'+k[0].toUpperCase()+k.slice(1):k),v)}
     else{
       const res=M.res||{},T=M.tally||{},bid=(M.bids||{})[cid]||0;v.p=policyName(T.policy);
