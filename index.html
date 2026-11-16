@@ -691,13 +691,15 @@ function toast(msg,ms=2600){
 const AP_MAX=5;
 /** 本旬剩餘行動點數（舊存檔無此欄位時補滿）。 */
 function apLeft(){if(G.ap===undefined)G.ap=AP_MAX;return G.ap}
+/** 本旬行動上限：照壓力狀態（從容 5、疲憊 4、心力交瘁與病倒 3；07zzi_stress.js 的 apMaxNow），畫面一律顯示這個數。 */
+const apCapNow=()=>typeof apMaxNow==='function'&&G?apMaxNow():AP_MAX;
 /** 消耗 1 點行動點數；不足時提示並回傳 false。所有「實際外出辦事」的動作應先呼叫它。 */
 function spendAP(){
-  if(apLeft()<=0){toast(MSG('ap.out',{m:AP_MAX}));return false}
+  if(apLeft()<=0){toast(MSG('ap.out',{m:apCapNow()}));return false}
   G.ap--;updateAP();return true;
 }
 /** 更新頂部『行動 x/5』顯示。 */
-function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent=UT('top.ap',{a,m:AP_MAX});e.className='ap'+(a<=1?' low':'')}}
+function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent=UT('top.ap',{a,m:G?apCapNow():AP_MAX});e.className='ap'+(a<=1?' low':'')}}
 
 /* ---------- 知名度：做任何事都有一點，結識高階官吏更多；降低拜訪被拒的機率，也影響市佔率 ---------- */
 /** 永久知名度下限（新町取立、國產取立等；尚無時為 0）。 */
@@ -2551,6 +2553,8 @@ const UI_TXT={
   'reg.appGrant':'申請「{a}」獲准。',
   'reg.appsCard':'{a}·審理中，剩 <b>{b}</b> 旬</div></span></div>',
   'reg.appsCard.2':'<div class="card"><b class="small">📬 申請案件</b>{a}',
+  'reg.cdHead':'<div class="tiny bold" style="margin-top:6px;border-top:1px dashed #b5a98f;padding-top:4px">⏳ 冷卻中</div>',
+  'reg.cdRow':'<div class="row small" style="margin-top:4px"><span>{a}<div class="tiny muted">{b}·再過 <b>{c}</b> 旬可再請託</div></span></div>',
   /* —— 07l_flower.js —— */
   'flower.flowerSpend':'，知名度 -{a}',
   'flower.flowerSpend.2':'（吉原揮霍，風評受損{a}）',
@@ -5111,6 +5115,7 @@ const CHANGELOG=[
     '協議設定更新：例會改了方針後，本旬已經出過貨的貨不會在推進時再出一次；專賣與同業停業剛好到期那一旬，照出貨當下的配額判定有沒有超賣。',
     '貴人訂貨設定更新：交貨時不會動用其他合約已經備好的貨。',
     '醬漬問屋設定更新：醬油的產地變多、梅干的產地變少。',
+    '壓力設定更新：疲憊時畫面上方的行動上限也跟著變少，與推進鈕一致；恢復從容後變回 5。',
     '走私設定更新：走私貨改為珍陀酒、珈琲豆、琉球黑糖、火繩槍、鴉片；唐物藥種的船長只會順手夾帶珍陀酒、珈琲豆、黑糖。',
     '新增行業「醬漬問屋」（野田屋）：味噌、醃菜、醬油、梅干、味醂、奈良漬、八丁味噌。跟魚屋共用開局牌上的一個位子；選了醬漬問屋，這一局各地的漁產都換成醬漬貨。味噌太貴會鬧打毀；逢公方下令齋戒，醬菜一時搶手，事前會有風聲。',
     '新增行業「酒問屋」（灘屋）：只批清酒、燒酎兩樣，按桶算，適合新手；拿到南蠻珍陀酒的許可，私運的珍陀酒也能上架；凶年可能下禁酒令，清酒只能走黑市。開局時從八個行業抽七個。',
@@ -10518,11 +10523,20 @@ function appsTick(log){
   });
   G.apps=L.filter(a=>!a.done);
 }
+/** 冷卻中的請託（第三百零九節）：官員身上的冷卻（r.cd）、新町取立、大工程失敗後的冷卻。回傳 [{name,who,left}]，剩餘旬數少的在前。 */
+function cdList(){
+  const out=[],favName=k=>{for(const L of Object.values(FAVORS)){const f=(L||[]).find(x=>x.k===k);if(f)return f.name||UT('fav.'+k)}return UT('fav.'+k)};
+  Object.entries(G.rel||{}).forEach(([cid,r])=>{if(!r||!r.cd||!alive(cid))return;Object.entries(r.cd).forEach(([k,t])=>{if(t>G.turn)out.push({name:favName(k),who:nameOf(cid),left:t-G.turn})})});
+  if(typeof newTownCool==='function'&&newTownCool())out.push({name:favName('newTown'),who:homeCity().name,left:NT().cd-G.turn+1});
+  const WN={port:'rport2',road:'rroad2',kokusan:'rkokusan'};
+  if(G.works&&G.works.cd)Object.entries(G.works.cd).forEach(([key,t])=>{if(!(t>=G.turn))return;const [k,rid]=key.split(':');if(WN[k])out.push({name:favName(WN[k]),who:REG_NAME(rid),left:t-G.turn+1})});
+  return out.sort((a,b)=>a.left-b.left);
+}
 function appsCard(){
-  const L=appsList();if(!L.length)return '';
+  const L=appsList(),C=cdList();if(!L.length&&!C.length)return '';
   return UT('reg.appsCard.2',{a:L.map(A=>{
     return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+UT('reg.appsCard',{a:esc(nameOf(A.cid)),b:A.left});
-  }).join('')})+'</div>';
+  }).join('')+(C.length?UT('reg.cdHead')+C.map(x=>UT('reg.cdRow',{a:esc(x.name),b:esc(x.who),c:x.left})).join(''):'')})+'</div>';
 }
 
 /* ======================= 吉原花街：夜宴、指名名伶、贖身成側室 =======================
@@ -14423,7 +14437,7 @@ function letterCheck(cid,amt){
   const n=npc(cid);if(!foreignReg(n))return MSG('letter.notForeign');
   if(letterUsed(cid))return MSG('letter.used');
   if(G.silver<amt)return MSG('letter.short',{a:fmt(amt)});
-  if(apLeft()<=0)return MSG('ap.out',{m:AP_MAX});
+  if(apLeft()<=0)return MSG('ap.out',{m:apCapNow()});
   return null;
 }
 /** 尚未結識：問候信按鈕。 */
