@@ -1954,6 +1954,13 @@ const UI_TXT={
   'mk.trade.title':'📦 本旬買賣·{n}',
   'mk.trade.cap':'容量 {u}/{c}',
   'mk.trade.ship':'📤 出貨',
+  'btn.shipLock':'⏸ 停賣',
+  'btn.shipUnlock':'▶ 恢復出貨',
+  'mk.lock.hint':'每旬都不想賣這項貨，就停賣。',
+  'mk.lock.lux':'停賣中，每旬不出貨。',
+  'mk.lock.warn':'停賣中，每旬不出貨；供貨不足會扣知名度。',
+  'mk.lock.burst':'買家上門了，停賣中。',
+  'mk.lock.chip':'<i class="tiny" style="color:#6b6370">·停</i>',
   'mk.units':'{n} 單位',
   'mk.trade.quota':'協議配額 {q}（{s}）·穩定供貨線 {l}',
   'mk.trade.closeRange':'預估收市價 {p}',
@@ -2635,7 +2642,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.19':'⚠️ 風險與事件',
   'wiki.WIKI_GUIDE.20':'倉庫會失火、遭竊、受潮；主食比平常貴一截、又一連好幾旬，市民會鬧「打毀」；走私被查獲要罰銀、遠島，甚至處刑。走私出過事，船長們會好幾旬不敢出海。同行也會造謠、栽贓、縱火，你也可以反擊。每年某個地區會鬧海賊或山賊，輪到本地區時，船隊馬幫出不了門。跟官員走得太近、勾結的事做多了，風聲傳出去，欽差與巡見使就會找上門。',
   'wiki.WIKI_GUIDE.21':'💎 奢侈品',
-  'wiki.WIKI_GUIDE.22':'每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。奢侈品不算在每旬的穩定供貨裡，冷清時不出貨也不要緊。\n真正吃三年的是大官貴人的訂單：本城四階以上的大人、番付上有名的旅商，交情夠深的，會在節慶與歲末前上門訂貨，開價是平常的好幾倍；手上要有貨，才接得下。',
+  'wiki.WIKI_GUIDE.22':'每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。奢侈品不算在每旬的穩定供貨裡，冷清時不出貨也不要緊；開業時奢侈品都先停賣，要賣再到相場按「恢復出貨」。不想賣的貨，出貨拉到零就能停賣，之後每旬都不出。\n真正吃三年的是大官貴人的訂單：本城四階以上的大人、番付上有名的旅商，交情夠深的，會在節慶與歲末前上門訂貨，開價是平常的好幾倍；手上要有貨，才接得下。',
   'wiki.WIKI_GUIDE.23':'🌸 花街與名流',
   'wiki.WIKI_GUIDE.24':'吉原花街是人脈的重地：花魁是紅顏知己，也是消息來源；包場夜宴更能廣結官商。往來要有分寸，否則風評與家庭都會受影響；一旬裡指名太多位，身子也會吃不消。',
   'wiki.WIKI_GUIDE.25':'🏯 人生終章',
@@ -4366,6 +4373,9 @@ const MSG_TXT={
   'plan.quota':'每項進貨都照協議配額。',
   'plan.quotaShort':'每項進貨照協議配額；有幾項受進貨上限、倉位或現款所限，進不足。',
   'plan.clear':'已清除本旬的進貨安排。',
+  'shipLock.on':'「{n}」停賣，之後每旬都不出貨。',
+  'shipLock.off':'「{n}」恢復出貨，照配額安排。',
+  'shipLock.need':'先把出貨拉到零，才能停賣。',
   'sendVoyage.ok':'{crew}「{name}」帶著 {budget} 兩委託金前往【{dest}】，約 {d} 旬後歸來。',
   'voyage.depart':'出發！',
   'save.exported':'存檔已匯出：{f}',
@@ -4628,7 +4638,7 @@ const NEWS_TXT={
   "chief.visit":"🚶【大番頭】代你登門問候：{list}。",
   "receiveOrders.1":"📦【到貨】{items} 已入倉。",
   /* —— setEv —— */
-  "setEv.1":"🔥【火災急報】千代田町夜起狂風，大火焚毀民房數百戶，建材與薪炭行情狂飆！",
+  "setEv.1":"🔥【火災急報】{city}城下夜起狂風，大火焚毀民房數百戶，建材與薪炭行情狂飆！",
   "setEv.2":"🌾【凶作】旱象不退，米麥歉收，米價日日上漲，市井人心惶惶。",
   "setEv.3":"🌾【豐收】今秋風調雨順，新米大量入倉，米麥價格回落。",
   "setEv.4":"🌊【颱風】海面風浪滔天，鹽船與漁船暫緩出港，在途海運船隊延誤一旬。",
@@ -5064,7 +5074,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月16日',items:[
-    '寺社參拜介面簡化：香油錢用拉桿決定，按一顆「參拜」就好；拉桿放在零就是只參拜不捐。'
+    '寺社參拜介面簡化：香油錢用拉桿決定，按一顆「參拜」就好；拉桿放在零就是只參拜不捐。',
+    '協議設定更新：例會改了方針後，本旬已經出過貨的貨不會在推進時再出一次；專賣與同業停業剛好到期那一旬，照出貨當下的配額判定有沒有超賣。',
+    '貴人訂貨設定更新：交貨時不會動用其他合約已經備好的貨。',
+    '新增停賣：相場出貨拉到零時可以按「停賣」，之後每旬都不出這項貨，按「恢復出貨」解除；開業時奢侈品預設停賣（舊存檔不預設）。',
+    '修改背景資料'
   ]},
   {date:'2026年11月15日',items:[
     '官府督促設定更新：城裡連月缺貨時（米問屋、魚屋改為一段時間內第二次打毀時），主畫面會出現紅色的「奉行所傳喚」按鈕。前往後先挨一頓訓、再由公會長進去細談，最後分配出貨額，九旬交滿問題就解決；收購價看你跟出面大人的交情。',
@@ -5463,6 +5477,7 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   G.guide={s:1};                                  // 開業指引（07zzw_guide.js）
   if(sysKey==='mining')G.kakeOn=true;             // 礦產開局就能談掛賣（第二百七十八節）
   initMarket();
+  shipLockInit();                                  // 本業奢侈品預設停賣（第二百九十九節）
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   daimyoPlan();                                    // 今年的大名行列過境旬（07zzc_daimyo.js）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
@@ -5856,7 +5871,7 @@ function setEv(test,mult){Object.keys(G.mk).forEach(n=>{if(test(COMM_MAP[n]))G.m
  *  四種災難只在對應季節：春疫病、夏颱風、秋凶作、冬大火，不限次數（第二百五十二節）。 */
 const ALL_SEASONS=['spring','summer','autumn','winter'];
 const EVENTS=[
-  {w:ODDS.eventW.fire,seasons:['winter'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1')}},
+  {w:ODDS.eventW.fire,seasons:['winter'],f(){setEv(c=>commTag(c,'fire'),1.8+rnd()*0.9);markDisaster('fire');return NEWS('setEv.1',{city:homeCity().name})}},
   {w:ODDS.eventW.famine,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),1.5+rnd()*0.7);markDisaster('famine');return NEWS('setEv.2')}},
   {w:ODDS.eventW.harvest,seasons:['autumn'],f(){setEv(c=>commTag(c,'grain'),0.72);return NEWS('setEv.3')}},
   {w:ODDS.eventW.typhoon,seasons:['summer'],f(){setEv(c=>commTag(c,'typhoon'),1.4+rnd()*0.4);G.ships.forEach(s=>{if(s.mode==='sea')s.eta++});markDisaster('typhoon');return NEWS('setEv.4')}},
@@ -5928,10 +5943,10 @@ function thieves(){
 }
 
 /* ---------- 株仲間卡特爾 ---------- */
-/** 每旬結算公會：誓言守配額卻超量→斷貨；遵守率隨行為變動。暗約已取消（第二百五十六節；偷跑改由督促期的闇商代出，07zzq_urge.js）。 */
+/** 每旬結算公會：誓言守配額卻超量→斷貨；遵守率隨行為變動。配額用出貨當下記下的 G.shipQuota（autoShip）。暗約已取消（第二百五十六節；偷跑改由督促期的闇商代出，07zzq_urge.js）。 */
 function evalCartel(log){
   const C=G.cartel;let over=0,shippedAny=false;
-  ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const q=quotaOf(c.name),x=q>0?Math.max(0,(m.shipped-q)/q):(m.shipped>0?1:0);over=Math.max(over,x)});
+  ownComms().forEach(c=>{const m=G.mk[c.name];if(m.shipped>0)shippedAny=true;const SQ=G.shipQuota,q=SQ&&SQ[c.name]!==undefined?SQ[c.name]:quotaOf(c.name),x=q>0?Math.max(0,(m.shipped-q)/q):(m.shipped>0?1:0);over=Math.max(over,x)});
   if(C.state==='pledged'){
     if(over>0){
       C.cheated++;G.life.cheats++;
@@ -5943,6 +5958,7 @@ function evalCartel(log){
   }else{C.comp+= (60-C.comp)*0.1}
   C.comp=Math.round(C.comp*10)/10;
   if(C.sanction>0)C.sanction--;
+  delete G.shipQuota;                              // 只用在這一次判定，不留存檔
 }
 
 /* ---------- 庫存損耗、火災 ---------- */
@@ -8182,7 +8198,7 @@ function renderMarket(){
   let h='<div class="pixel-box" style="padding:8px">';
   h+='<div class="row" style="border-bottom:1px solid #b5a98f;padding-bottom:5px"><div><b>'+UT('mk.title',{p:guildPolicyName()})+'</b><div class="tiny muted">'+UT('mk.lead')+(cartelPolicy()==='normal'?UT(guildMember()?'mk.leadNormal':'mk.leadNormalNone',{r:UT('diff.ratio.'+diffNow())}):UT('mk.leadRestrict'))+UT('mk.leadTail')+'</div></div><span class="tag gold">'+UT('mk.seasonTag',{s:seasonName(season())})+'</span></div>';
   h+=planCard();                                   // 本旬買賣總表放在最上方：頁面說明之下、貨物選項之上
-  h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+'</span>').join('')+'</div>';
+  h+='<div style="margin-top:6px">'+own.map(x=>'<span class="pill '+(x.name===name?'on':'')+'" data-act="focus" data-n="'+esc(x.name)+'">'+(tradeOK(x.name)?'':'🔒')+esc(x.short.slice(0,7))+(shipLocked(x.name)?UT('mk.lock.chip'):'')+'</span>').join('')+'</div>';
   h+='<div class="card" style="background:#fff8eb;margin-top:4px"><div class="row"><div><b style="font-size:16px;color:#9b2c3a">'+esc(c.short)+'</b>'+infoBtn(name)+' <span class="tag">'+NM('kind',c.kind)+'</span>'+(c.flam?'<span class="tag red">'+UT('mk.flam')+'</span>':'')+'</div><div style="text-align:right" class="small">'+UT('mk.base',{p:fmt1(c.base)})+'</div></div>';
   h+=(m.quoteFloor?'<div class="tiny up" style="text-align:center">'+UT('mk.floorNote')+'</div>':'');
   h+='<div class="grid3 small" style="margin-top:5px;text-align:center"><div class="card" style="margin:0">'+UT('mk.price')+'<br><b class="'+(chg(name)>=0?'up':'down')+'" id="m-price">'+fmt1(mkt)+'</b><div class="tiny '+(chgAmt(name,mkt)>=0?'up':'down')+'">'+UT('mk.vsLast',{d:amtShort(chgAmt(name,mkt))})+'</div></div><div class="card" style="margin:0">'+UT('mk.buyPrice')+'<br><b>'+fmt1(buy)+'</b>'+'<div class="tiny muted">'+UT(guildMember()?'mk.jointPrice':'mk.price')+'</div>'+'</div><div class="card" style="margin:0">'+UT('mk.stock')+'<br><b>'+have+'</b>'+(have>0?'<div class="tiny muted">'+UT('mk.avg',{p:fmt1(avgCostOf(name))})+'</div>':'')+'</div></div>';
@@ -8230,8 +8246,9 @@ function tradeCard(name){
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
-  h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1?'disabled':'')+'></div>','slider-ship',have<1||ship<=0,have<1||ship>=have);
-  h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';   // 超出協議配額的提醒（shipBarSync）
+  h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1||shipLocked(name)?'disabled':'')+'></div>','slider-ship',have<1||ship<=0||shipLocked(name),have<1||ship>=have||shipLocked(name));
+  h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';
+  h+='<div id="q-lock">'+shipLockHtml(name,ship)+'</div>';   // 停賣鎖（第二百九十九節）   // 超出協議配額的提醒（shipBarSync）
   h+='<div class="tiny">'+UT('mk.trade.after',{p:'<b id="q-price">'+UT('mk.liang',{a:fmt1(q.price)})+'</b>',r:'<b id="q-rev" style="color:#b3261e">'+UT('mk.liang',{a:fmt(q.revenue)})+'</b>'})+'</div></div>';
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px;margin-top:4px"><div class="row"><b class="small">'+UT('mk.trade.buy')+'</b><b id="b-q" style="color:#9b2c3a">'+UT('mk.units',{n:bq})+'</b></div>';
   h+=stepRow('<input id="slider-buy" type="range" min="0" max="'+Math.max(1,bmax)+'" value="'+bq+'" step="1" '+(bmax<1?'disabled':'')+'>','slider-buy',bmax<1||bq<=0,bmax<1||bq>=bmax);
@@ -8251,7 +8268,7 @@ function planCard(){
   const L=tradeComms();let rev=0,cost=0;
   let h='<div class="card" id="order-card" style="background:#fff8eb"><b class="small">'+UT('mk.plan.title')+'</b><div class="row" style="margin:4px 0;gap:4px;justify-content:flex-start">'+['planMax','planQuota','planClear'].map(k=>'<button class="pixel-btn btn-sm" data-act="'+k+'">'+UT('btn.'+k)+'</button>').join('')+'</div>'+((G.exile||0)>0?'<div class="tiny muted">'+UT('mk.plan.away')+'</div>':'');
   h+=L.map(c=>{const n=c.name,s=planOf(n),b=buyPlanOf(n);rev+=s>0?quoteSale(n,s).revenue:0;cost+=Math.round(unitBuyCost(n)*b);
-    return '<div class="row small" data-act="focus" data-n="'+esc(n)+'" style="margin-top:3px;cursor:pointer'+(n===UI.s.focus?';font-weight:bold;color:#9b2c3a':'')+'"><span>'+esc(c.short)+'</span><span>'+UT('mk.plan.row',{s,b,n:nextStock(n,s,b)})+'</span></div>'}).join('')||'<div class="tiny muted">'+UT('mk.plan.none')+'</div>';
+    return '<div class="row small" data-act="focus" data-n="'+esc(n)+'" style="margin-top:3px;cursor:pointer'+(n===UI.s.focus?';font-weight:bold;color:#9b2c3a':'')+'"><span>'+esc(c.short)+(shipLocked(n)?UT('mk.lock.chip'):'')+'</span><span>'+UT('mk.plan.row',{s,b,n:nextStock(n,s,b)})+'</span></div>'}).join('')||'<div class="tiny muted">'+UT('mk.plan.none')+'</div>';
   h+='<div class="row tiny muted" style="margin-top:3px;border-top:1px dashed #b5a98f;padding-top:3px"><span>'+UT('mk.plan.rev',{a:fmt(rev)})+'</span><span>'+UT('mk.plan.cost',{a:fmt(cost)})+'</span></div>';
   return h+'</div>';
 }
@@ -8267,6 +8284,7 @@ function refreshTrade(){
   $('#q-q').textContent=UT('mk.units',{n:ship});$('#q-price').textContent=UT('mk.liang',{a:fmt1(q.price)});$('#q-rev').textContent=UT('mk.liang',{a:fmt(q.revenue)});
   $('#b-q').textContent=UT('mk.units',{n:bq});$('#b-cost').textContent=UT('mk.liang',{a:fmt(Math.round(unitBuyCost(name)*bq))});
   const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
+  {const lk=$('#q-lock'),t=shipLockHtml(name,ship);if(lk&&lk.innerHTML!==t)lk.innerHTML=t}   // 拉到 0 時出現停賣鈕
   shipBarSync();
 }
 /** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
@@ -8280,7 +8298,7 @@ function shipBarSync(){
 }
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
-function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=clamp(v,0,kakeFree(n));UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
+function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=shipLocked(n)?0:clamp(v,0,kakeFree(n));UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
 /** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為協議配額，出貨不動）、清除（只清進貨）。 */
 function planAllBuy(f){const L=tradeComms();G.buyPlan={};L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
@@ -8394,7 +8412,23 @@ const infoBtn=n=>'<span class="ibtn" data-act="commInfo" data-n="'+esc(n)+'">'+U
 
 /* ---------- 出貨預設＝本期有效協議配額；未按「出貨」，推進一旬時自動出貨 ---------- */
 /** 某物品本旬的預定出貨量：參加協議時預設為穩定供貨線的九成／七成；未參加時為穩定供貨線。不超過庫存，可被滑桿覆蓋（存在 G.plan）。 */
+/** 停賣鎖（第二百九十九節）：鎖住的貨每旬預設出貨 0；只有出貨量是 0 時才能上鎖。G.shipLock={貨:true}。 */
+const shipLocked=name=>!!(G&&G.shipLock&&G.shipLock[name]);
+/** 開局（含遷居後的新城）：本業奢侈品預設停賣。 */
+function shipLockInit(){G.shipLock={};ownComms().forEach(c=>{if(c.luxury)G.shipLock[c.name]=true})}
+ACT.shipLock=()=>{const n=UI.s.focus;if(!n)return;G.shipLock=G.shipLock||{};
+  if(shipLocked(n)){delete G.shipLock[n];G.plan=G.plan||{};delete G.plan[n];toast(MSG('shipLock.off',{n:COMM_MAP[n].short}))}
+  else{if(planOf(n)>0){toast(MSG('shipLock.need'));return}G.shipLock[n]=true;G.plan=G.plan||{};G.plan[n]=0;toast(MSG('shipLock.on',{n:COMM_MAP[n].short}))}
+  sfx.tap();renderMarket()};
+/** 出貨區的停賣鈕與說明：出貨量是 0 或已鎖住時才出現。 */
+function shipLockHtml(name,ship){
+  const L=shipLocked(name);if(!L&&ship>0)return '';
+  const c=COMM_MAP[name],m=G.mk[name],burst=c.luxury&&m&&m.lux&&m.lux.ph==='burst';
+  const note=L?UT(burst?'mk.lock.burst':c.luxury?'mk.lock.lux':'mk.lock.warn'):UT('mk.lock.hint');
+  return '<div class="row" style="margin-top:4px;gap:6px;justify-content:flex-start;align-items:center"><button class="pixel-btn btn-sm'+(L?' btn-gold':'')+'" data-act="shipLock">'+UT(L?'btn.shipUnlock':'btn.shipLock')+'</button><span class="tiny" style="color:'+((L&&!c.luxury)||burst?'#b3261e':'#6b6370')+'">'+note+'</span></div>';
+}
 function planOf(name){
+  if(shipLocked(name)){G.plan=G.plan||{};G.plan[name]=0;return 0}   // 停賣鎖
   const have=kakeFree(name);G.plan=G.plan||{};       // 定約掛賣保留的貨不能出貨（07zzm_kake.js）
   if(G.plan[name]===undefined)G.plan[name]=Math.min(quotaOf(name),have);   // 預設照本旬配額
   return clamp(G.plan[name],0,have);
@@ -8407,6 +8441,7 @@ function autoShip(log){
   const rep={rev:0,ship:[],market:[],marketDate:dateStr(),fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
   G.publicSpend={};
   const own=tradeComms();let short=[],squeeze=[],judged=0,allMet=true;          // 未取得交易許可的貨不算進穩定供貨線
+  G.shipQuota={};ownComms().forEach(c=>{G.shipQuota[c.name]=quotaOf(c.name)});   // 出貨當下的配額：違約判定（evalCartel）在日期前進後才做，專賣株、株札暫扣剛好到期時不能改用到期後的配額
   own.forEach(c=>{
     const quota=quotaOf(c.name),have=G.inv[c.name]||0;
     const q=planOf(c.name);let shipped=0;
@@ -10283,10 +10318,11 @@ function xgoodsTick(log){
 'use strict';
 /* ★檔案總覽：地區官制（遠國奉行所）與海運、陸運許可
  * - 在各城官署之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
- * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發；船奉行的朱印狀＝全地區通用；遠國奉行的通商特許＝該地區海陸皆通）。
- * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發；道中奉行的通行狀＝通用、航程 −1）。
+ * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發）。
+ * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發）。
+ * - 朱印狀、五街道通行狀、地區通商特許狀已刪除（第一百四十二、二百五十六節）；舊存檔已取得的照舊有效（G.flags.road、charter）。
  * - 其餘請託：驛馬優先、產地買付便宜、船手護送、雜費減免狀、請巡見使美言。中央巡見使巡視時，風聲太緊會吊銷許可。
- * - 狀態：G.permits={sea:{regId|all:true},land:{…}}；G.flags.horse/escort/taxfree/cheap（剩餘旬數）、road/charter。 */
+ * - 狀態：G.permits={sea:{regId|all:true},land:{…}}；G.flags.horse/escort/taxfree/cheap（剩餘旬數）；road/charter 只剩舊存檔會有。 */
 /** 全部地區（id、名稱）。 */
 const REG_LIST=[...new Map(CITIES.map(c=>[c.region_id,{id:c.region_id,name:c.region_name}])).values()];
 const REG_NAME=id=>{const r=REG_LIST.find(x=>x.id===id);return r?r.name:id};
@@ -11578,7 +11614,7 @@ function posFavorsHtml(id){
  *  - 期待：每回合對方心裡預設一檔（依個性偏重），台詞約七成準地暗示；猜中那一回合傷害 ×1.5、好感另 +1。
  *    走完 3 回合仍未打穿、且一次都沒猜中：「什麼東西，真沒意思」，好感不加，本旬與下一旬不能拜訪（也不能派丁稚）。
  *  - 勝：好感 +10～20（基本 10＋交情 0～5＋最後一擊溢出 0～5）＋猜中次數；未打穿：依進度 +0～4＋猜中次數。
- *  - 對官員出過價：風聲 +0.2（貪官 +0.3），與金額無關。
+ *  - 對官員出過價：一場一次，與金額無關；一般官員與清官、貪官各加多少見 ODDS.heat（visit、visitGreedy，第二百四十三節）。
  *  - 丁稚代送禮金：只能派給好感未滿 60 的人；付中檔禮金，好感隨機 +4～8（最多補到 60），不扣行動點數、不能請託。
  *  - 狀態只在 BT（不存檔）。 */
 /** 六種禮物（不花錢，只代表投其所好）：每種對應兩個軟肋；prop＝拜訪動畫用的道具樣式。 */
@@ -12487,7 +12523,7 @@ function meetVote(me){
 /** 投票定案。 */
 function meetVoteFinal(n,r,me,pol,tie){
   const M=meetNow();M.tieAsk=null;
-  const C=G.cartel,changed=pol!==cartelPolicy();C.policy=pol;if(changed)G.plan={};
+  const C=G.cartel,changed=pol!==cartelPolicy();C.policy=pol;if(changed){const S=G.sold||{},P={};Object.keys(S).forEach(k=>{if(S[k])P[k]=0});G.plan=P}   // 方針改了，出貨預設改照新配額；本旬已按過「出貨」的貨維持 0，推進時不再自動出一次
   M.voted=true;M.myVote=me||null;M.tally={n,r,me:me||null,policy:pol,tie,gm:tie?gmCid():null};
   meetResupply();
   return M.tally;
@@ -13306,6 +13342,7 @@ function migrateSave(){
   Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
+  if(!G.shipLock)G.shipLock={};                     // 停賣鎖（第二百九十九節）：舊存檔不預設鎖
   if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
   if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）
@@ -17605,7 +17642,7 @@ function moveDepart(sysKey,takeIds){
   officialMigrate();officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
   {const r=R(friend);r.lockAff=true;setAff(r,100);r.out=false;r.met=true;r.seen=true;r.bond=Object.assign({},r.bond||{mult:1},{label:UT('mv.bond'),introId:null});addKnown(friend);G.intros=[{cid:friend}];G.introId=friend;logRel(friend,UT('mv.log.arrive'))}
   G.cartel={state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:chance(ODDS.guildPolicy.normal)?'normal':'restrict'};   // 友人代墊訂約金（同開局）
-  G.mk={};initMarket();
+  G.mk={};initMarket();shipLockInit();             // 新城：停賣鎖重來，本業奢侈品預設停賣（第二百九十九節）
   G.share=marketShares();
   G.gm=null;if(G.month!==3){const t=gmSucceed('me');if(t)log.push(t)}
   newMeeting();
@@ -17821,7 +17858,7 @@ function patronTick(log){
   // 交貨（到期那一次推進）
   S0.orders.filter(o=>o.due<=G.turn).forEach(o=>{
     S0.orders=S0.orders.filter(x=>x!==o);
-    const have=G.inv[o.name]||0,c=COMM_MAP[o.name],nm=nameOf(o.cid),r=R(o.cid);
+    const have=Math.max(0,(G.inv[o.name]||0)-kakeHeld(o.name)),c=COMM_MAP[o.name],nm=nameOf(o.cid),r=R(o.cid);
     if(have>=o.qty){
       const rev=Math.round(o.qty*o.unit);stockTake(o.name,o.qty,false);G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
       setAff(r,r.aff+P.doneAff);const f0=G.fame||0;addFame(rint(P.fame[0],P.fame[1]),'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;
