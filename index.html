@@ -3554,8 +3554,7 @@ const UI_TXT={
   'trip.free':'免費',
   'trip.hatsu':'初詣',
   'trip.hatsuTag':'正月初詣，人潮洶湧',
-  'btn.tripGiftDo':'奉納香油錢',
-  'btn.tripGiftSkip':'不捐，直接參拜',
+  'btn.tripPray':'參拜',
   'trip.gift.h':'香油錢（私房錢）：{a} 兩',
   'trip.gift.d':'捐得越多心越安，壓力最多再 −{r}；一次捐 {f} 兩以上，知名度小增。',
   'trip.gift.none':'私房錢不夠，這回只參拜不捐香油錢。',
@@ -5064,6 +5063,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月16日',items:[
+    '寺社參拜介面簡化：香油錢用拉桿決定，按一顆「參拜」就好；拉桿放在零就是只參拜不捐。'
+  ]},
   {date:'2026年11月15日',items:[
     '官府督促設定更新：城裡連月缺貨時（米問屋、魚屋改為一段時間內第二次打毀時），主畫面會出現紅色的「奉行所傳喚」按鈕。前往後先挨一頓訓、再由公會長進去細談，最後分配出貨額，九旬交滿問題就解決；收購價看你跟出面大人的交情。',
     '官府督促設定更新：傳喚當旬不去，下一旬罰現款四分之一（最少兩千兩）；交不足也罰同樣的錢，差事由其他商號補上。公會長可以全部接下，錢自己賺。',
@@ -15877,14 +15879,13 @@ function tripStart(k,f){
   playFx('walk',MSG('trip.fx.'+k),MSG(f?'trip.fxSubWith.'+k:'trip.fxSub.'+k,{f:f?nameOf(f):''}),()=>{
     addStress(k,-T.relief);
     if(k==='temple'){TRIP_PEND={k,f};UI.s.tripGift=0;UI.showInfo(UT('trip.done.temple'),'<div class="text-prose" style="margin-bottom:6px">'+MSG(hatsuNow()?'trip.arrive.hatsu':'trip.arrive.temple')+'</div>'+tripGiftRow()
-      +'<div class="grid2" style="margin-top:6px"><button class="pixel-btn btn-gold btn-sm" data-act="tripGiftDo">'+UT('btn.tripGiftDo')+'</button><button class="pixel-btn btn-sm" data-act="tripGiftSkip">'+UT('btn.tripGiftSkip')+'</button></div>');UI.render();return}
+      +'<button class="pixel-btn btn-gold btn-sm" style="width:100%;margin-top:6px" data-act="tripGiftDo">'+UT('btn.tripPray')+'</button>');UI.render();return}
     tripArrive(k,f,0);
   },1500);
 }
-/** 寺社：到了才決定香油錢（關掉視窗＝不捐，同行好感照算）。 */
+/** 寺社：到了才決定香油錢，一顆「參拜」照拉桿金額奉納，拉桿在 0 就是只參拜（關掉視窗＝不捐，同行好感照算）。 */
 var TRIP_PEND=null;
 ACT.tripGiftDo=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,UI.s.tripGift||0)};   // 直接換掉視窗內容，不先關（關掉會讓排隊的事件插進來）
-ACT.tripGiftSkip=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,0)};
 {const _h=UI.hideInfo;UI.hideInfo=function(){const P=TRIP_PEND;TRIP_PEND=null;const O=TRIP_OFFER,done=TRIP_RESULT;const r=_h.apply(this,arguments);
   if(P){tripArrive(P.k,P.f,0,true);tripMusicEnd()}else if(done||(O&&TRIP_OFFER===O)){TRIP_OFFER=null;tripMusicEnd()}return r}}   // 同行詢問直接關掉＝不出發
 /** 到了當地：香油錢、當地人物、湯客、同行的人、求籤，最後一張結果視窗。quiet＝不跳視窗（玩家直接關掉時）。 */
