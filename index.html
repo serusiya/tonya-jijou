@@ -5129,7 +5129,8 @@ const CHANGELOG=[
     '打毀設定更新：米鹽價一連三旬超過門檻時，旬報會先出現騷動的街談；這時在私宅開倉施粥，可以讓街頭的怨氣平一些，延後打毀（三旬一次）。',
     '打毀設定更新：打毀改看實際收市價（含你的出貨），不再高估；相場的打毀警戒與打毀指標會跟著出貨拉霸即時變化，多出主食就看到指數下降。',
     '地區特色：北境倉庫的貨不易壞、也少失火；東海道陸運一趟馱得多；西道海運一趟裝得多；南海的大口買付只有一旬。開業旬報與地圖頁的地區概況有說明。',
-    '交易許可設定更新：還沒拿到商株御免的貨可以先進貨囤著，只是不能賣；許可下來後頭三旬不算供貨穩不穩。'
+    '交易許可設定更新：還沒拿到商株御免的貨可以先進貨囤著，只是不能賣；許可下來後頭三旬不算供貨穩不穩。',
+    '修改背景資料'
   ]},
   {date:'2026年11月16日',items:[
     '寺社參拜介面簡化：香油錢用拉桿決定，按一顆「參拜」就好；拉桿放在零就是只參拜不捐。',
@@ -5315,6 +5316,7 @@ const CHANGELOG=[
   ]}
 ];
 
+/* ═════ [02_world] ═════ */
 'use strict';
 /* ★檔案總覽：世界生成
  * - ROLE_MAP/roleOf：把名冊人物的「適任職務」對應成遊戲角色（官吏、同業、掮客…）。
@@ -5571,6 +5573,7 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   return G;
 }
 
+/* ═════ [02b_calendar] ═════ */
 'use strict';
 /* ======================= 例會曆法（0.8 公會例會、遷居共用） =======================
  *  - 一年 12 月、每月三旬（上、中、下）；新年在一月上旬。
@@ -6068,6 +6071,7 @@ function invUpkeep(log){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       let val=0;Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l;val+=l*marketQuote(n)});
       lossNote('fire',val);                         // 火難御救（07zze_favor8.js）
+      G.fireT=G.turn;                               // 主畫面倉庫焦痕與煙兩旬（05h_yard；用到才建立）
       G.life.fires++;sfx.bad();consoleNote('fire');
       const t=NEWS('invUpkeep.1',{tot});pushNews(t);log.push(t);
       setEv(c=>commTag(c,'fire'),1.5);
@@ -7017,6 +7021,7 @@ function endLife(cause){
   if(typeof UI!=='undefined'&&UI.showLegacy)UI.showLegacy();
 }
 
+/* ═════ [05_scene] ═════ */
 'use strict';
 /* ★檔案總覽：像素場景與動畫
  * - 家宅畫布（320×180）：drawScene 每幀繪製；SCENE.ents 為角色：每種職位、夫人、側室、子女各畫一人（不畫主角），點選時從同類隨機挑一名聊天。
@@ -7375,6 +7380,7 @@ function pickIdlePose(e){
   if(e.kind==='kid')return Math.random()<0.65?'hop':'look';
   if(e.kind==='guard'||e.rank==='guard'||e.rank==='captain')return 'guard';
   if(e.rank==='chief'||e.rank==='banto')return Math.random()<0.7?'abacus':'look';
+  if(e.rank==='apprentice'&&season()==='winter'&&Math.random()<0.6)return 'sweep';   // 冬天掃雪（05h_yard）
   if(e.rank==='courier'||e.rank==='apprentice')return Math.random()<0.6?'wipe':'look';
   if(e.rank==='clerk')return Math.random()<0.5?'hold':'look';
   return Math.random()<0.5?'look':'';
@@ -7460,12 +7466,15 @@ function drawScene(now){
   drawHouse(c,102,40,now,season());
   const slots=[[34,75],[226,75],[274,75]];
   for(let i=0;i<Math.min(G.wh.n,slots.length);i++){const [x,y]=slots[i];drawKura(c,x,y,i===0);}
+  yardBack(c,now,dt);                                                                  // 焦痕與煙、烏鴉、貓（05h_yard）
   if(season()==='winter')R_(c,0,108,320,3,'#fff8');
   if(fest){drawNobori(c,now);drawLanterns(c,now)}
   const list=SCENE.ents.map(e=>({y:e.y,draw:c=>{
     const L=entLook(e),nod=e.bowT>0?Math.sin(e.bowT/380*Math.PI)*0.45:0;
     drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0,moving:e.moving,faceLeft:e.dir<0,pose:e.pose,pt:e.pt,bow:nod},L,{small:L.small||e.kind==='kid'&&e.age<12}));
+    if(e.pose==='sweep')yardBroom(c,e);                                               // 冬天掃雪（05h_yard）
   }}));
+  yardPeople(now,dt).forEach(x=>list.push(x));                                        // 荷車、馬隊、飛腳（05h_yard）
   if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
   if(dmy)dmyPeople(now,dt).forEach(x=>list.push(x));
   list.sort((a,b)=>a.y-b.y).forEach(x=>x.draw(c));
@@ -7727,6 +7736,7 @@ function visitFx(o,done){
   raf=requestAnimationFrame(frame);
 }
 
+/* ═════ [05b_portrait] ═════ */
 /* =====================================================================
  * 05b_portrait.js — 江戶風模組化像素頭像
  *  - 48×48 原生像素畫；臉型、膚色、年齡、髮型、衣裝與神情分層組合。
@@ -7989,6 +7999,7 @@ function portraitEmp(e,px){
   return '<img class="pt" src="'+(PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o)))+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
 }
 
+/* ═════ [05f_festscene] ═════ */
 'use strict';
 /* ======================= 節慶當旬的宅邸場景 =======================
  *  - 只在 G.festival（本城節慶那一旬）時畫；下一旬自動回到平日。季節粒子（花瓣、雪、楓葉）照舊。
@@ -8081,6 +8092,7 @@ function festFireworks(c,now){
 /** 燈籠暖光（疊在原本的早晚色調上）。 */
 function festTint(c){c.fillStyle='#ffb04018';c.fillRect(0,0,320,180)}
 
+/* ═════ [05g_daimyoscene] ═════ */
 'use strict';
 /* ======================= 大名行列過境當旬的宅邸場景 =======================
  *  - 只在大名行列過境那一旬畫（07zzc_daimyo.js 的 daimyoActive）；下一旬回到平日。
@@ -8166,6 +8178,145 @@ function dmyUnit(c,k,cx,y,f,fl){
   R_(c,x-8,y-30-bob,16,13,'#1a1612');R_(c,x-7,y-29-bob,14,11,'#5a2a2a');   // 轎身（黑漆、紅簾）
   R_(c,x-5,y-27-bob,10,5,'#e8dcc4');                    // 簾窗
   R_(c,x-10,y-33-bob,20,3,'#1a1612');R_(c,x-10,y-33-bob,20,1,'#e5a93b');   // 屋頂與金邊
+}
+/* ═════ [05h_yard] ═════ */
+/* ★主畫面院子小景（第三百二十一節）：
+ *  - 荷車：讀上一份旬報，有進貨（大盤到貨、委託採買歸來）就有人足推車進倉，有出貨（相場出貨）就推車從倉裡出來；車上的貨依行業畫。
+ *  - 陸運馬隊（本旬出發的陸路委託採買）、飛腳（本旬寄出的信）、失火後兩旬內倉庫的焦痕與煙、屋頂的烏鴉、打盹的貓、冬天掃雪的丁稚。
+ *  - 大名行列當旬不推車、不出馬隊與飛腳；節慶當旬推車的間隔加倍。都不能點，沒有畫面文字。 */
+const YARD={planT:-1e9,plan:null,carts:[],horses:[],runner:null,nextCart:0,nextHorse:0,nextRunner:0,turn:-1,flow:0,crows:null,smoke:[],catT:0};
+const YARD_KURA=[[34,75],[226,75],[274,75]];
+const YARD_LANE=150,YARD_DOOR=112;
+/** 價值分三級：決定一趟幾台車。 */
+const yardTier=v=>v<=0?0:v<1500?1:v<6000?2:3;
+/** 依目前狀態整理要演的東西（每秒重算一次，很便宜）。 */
+function yardPlan(){
+  const R=G.report||{};let inV=0,outV=0;
+  (G.arrived||[]).forEach(a=>{const c=COMM_MAP[a.name];if(a.qty>0&&c)inV+=a.qty*c.base});
+  (R.voy||[]).forEach(E=>(E.items||[]).forEach(it=>{const got=(it.q||0)-(it.lost||0);if(got>0)inV+=got*(it.unit||1)}));
+  (R.ship||[]).forEach(s=>{outV+=s.rev||0});
+  const land=(G.ships||[]).some(s=>s.mode==='land'&&s.eta===s.eta0);
+  const letter=Object.values(G.rel||{}).some(r=>r&&r.ltrT===G.turn);
+  const fire=G.fireT!=null&&G.turn-G.fireT<=1;
+  return {inN:yardTier(inV),outN:yardTier(outV),land,letter,fire};
+}
+/** 人足的外觀（藍半纏、頭巾）。 */
+const YARD_LOOK={cloth:'#3e5f7c',cloth2:'#e8dcc4',pants:'#2b2a2a',obi:'#c8b48a',variant:3};
+/** 一趟荷車：從邊上沿走道到倉門前，停一下裝卸，再原路回去。 */
+function yardCart(flow,idx,delay){
+  const n=Math.max(1,Math.min(G.wh.n,YARD_KURA.length)),ki=idx%n,[kx]=YARD_KURA[ki],door=kx+20,left=ki===0,edge=left?-34:354;
+  const pts=[[edge,YARD_LANE],[door,YARD_LANE],[door,YARD_DOOR],[door,YARD_LANE],[edge,YARD_LANE]];
+  return {flow,pts,seg:0,x:edge,y:YARD_LANE,dir:left?1:-1,wait:delay,stop:0,load:flow==='in',frame:0,ft:0,dist:0};
+}
+/** 推進荷車、馬隊、飛腳。 */
+function yardStep(now,dt){
+  const P=YARD.plan,calm=!(typeof daimyoScene==='function'&&daimyoScene()),fest=typeof festScene==='function'&&festScene();
+  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500}
+  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null}
+  if(calm&&P&&!YARD.carts.length&&now>=YARD.nextCart){
+    const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
+    if(flows.length){const f=flows[YARD.flow++%flows.length],k=f==='in'?P.inN:P.outN;for(let i=0;i<k;i++)YARD.carts.push(yardCart(f,i,i*5200))}
+    YARD.nextCart=now+(16000+Math.random()*8000)*(fest?2:1);
+  }
+  YARD.carts.forEach(c=>{
+    if(c.wait>0){c.wait-=dt;return}
+    if(c.stop>0){c.stop-=dt;if(c.stop<=0)c.load=c.flow==='out';return}
+    const [tx,ty]=c.pts[c.seg+1]||c.pts[c.seg],dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy),v=22*dt/1000;
+    if(d<=v){c.x=tx;c.y=ty;c.seg++;if(c.seg===2)c.stop=1700;if(c.seg>=c.pts.length-1)c.done=true;return}
+    c.x+=dx/d*v;c.y+=dy/d*v;c.dist+=v;if(Math.abs(dx)>0.5)c.dir=dx>0?1:-1;
+    c.ft+=dt;if(c.ft>165){c.ft=0;c.frame++}
+  });
+  YARD.carts=YARD.carts.filter(c=>!c.done);
+  if(calm&&P&&P.land&&!YARD.horses.length&&now>=YARD.nextHorse){
+    YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000;
+  }
+  YARD.horses.forEach(h=>{h.x+=14*dt/1000;h.ft=(h.ft||0)+dt;if(h.ft>200){h.ft=0;h.frame=(h.frame||0)+1}});
+  YARD.horses=YARD.horses.filter(h=>h.x<380);
+  if(calm&&P&&P.letter&&!YARD.runner&&now>=YARD.nextRunner){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
+  const r=YARD.runner;
+  if(r){const v=55*dt/1000;if(r.seg===0){r.y+=v;if(r.y>=156){r.y=156;r.seg=1}}else r.x-=v;r.ft+=dt;if(r.ft>90){r.ft=0;r.frame++}if(r.x<-20)YARD.runner=null}
+}
+/** 車上的貨，依行業畫。 */
+function yardLoad(c,x,y,k){
+  const B=(dx,dy,w,h,col)=>R_(c,x+dx,y+dy,w,h,col);
+  if(k==='grain'||k==='marine'){const s=k==='grain'?['#d8c27a','#9c8443']:['#ebe6d8','#a59f8e'];[[-9,-4],[-3,-4],[3,-4],[-6,-8],[0,-8]].forEach(([dx,dy])=>{B(dx,dy,6,4,s[0]);B(dx+1,dy,1,4,s[1]);B(dx+4,dy,1,4,s[1])});return}
+  if(k==='pickle'){[-9,-3,3].forEach(dx=>{B(dx,-6,6,6,'#8a5a2e');B(dx,-5,6,1,'#3b2a1c');B(dx,-2,6,1,'#3b2a1c');B(dx+1,-7,4,1,'#c9a46a')});return}
+  if(k==='sake'){[-9,1].forEach(dx=>{B(dx,-8,8,8,'#e9dcb4');B(dx,-6,8,1,'#8a6a3a');B(dx,-2,8,1,'#8a6a3a');B(dx+3,-5,2,2,'#b3261e')});return}
+  if(k==='timber'){[-4,-6,-8].forEach((dy,i)=>{B(-11+i,dy,24-i,2,'#9a6a3a');B(-11+i,dy,2,2,'#d9b07a')});return}
+  if(k==='mining'){[[-9,-4],[-2,-4],[5,-4],[-5,-7]].forEach(([dx,dy])=>{B(dx,dy,6,4,'#55585e');B(dx,dy,6,1,'#8a8f96')});return}
+  if(k==='textile'){[['#2f4f7f',-9,-3],['#a83a3a',-2,-3],['#e8e2d2',5,-3],['#6b7a3a',-5,-6],['#2f4f7f',2,-6]].forEach(([col,dx,dy])=>{B(dx,dy,6,3,col);B(dx,dy,1,3,'#0003')});return}
+  if(k==='medicine'){[[-9,-5],[-1,-5],[-5,-9]].forEach(([dx,dy])=>{B(dx,dy,7,5,'#2a2622');B(dx+3,dy,1,5,'#a8323a');B(dx,dy+2,7,1,'#a8323a')});return}
+  [[-9,-5],[-1,-5],[-5,-9]].forEach(([dx,dy])=>{B(dx,dy,7,5,'#c9a46a');B(dx,dy+2,7,1,'#7a5a32');B(dx+3,dy,1,5,'#7a5a32')});   // 陶磁雅玩等：稻草包的木箱
+}
+/** 大八車（側面）：車台、大輪、拉桿。 */
+function yardCartDraw(c,x,y,dir,dist,load){
+  x=Math.round(x);y=Math.round(y);
+  R_(c,x-11,y-1,22,2,'#0003');
+  if(load)yardLoad(c,x,y-10,G.sysKey);
+  R_(c,x-12,y-10,24,2,'#7a4e2a');R_(c,x-12,y-8,24,1,'#4a2f1c');
+  R_(c,x+dir*12,y-10,dir>0?8:-8,1,'#5a3a22');R_(c,x+dir*19-1,y-11,2,2,'#5a3a22');   // 拉桿
+  const wx=x-dir*2,wy=y-5,sp=Math.floor(dist/3)%2;
+  R_(c,wx-4,wy-4,8,8,'#3b2a1c');R_(c,wx-3,wy-3,6,6,'#8a6a44');R_(c,wx-1,wy-1,2,2,'#3b2a1c');
+  if(sp){R_(c,wx-3,wy,6,1,'#3b2a1c');R_(c,wx,wy-3,1,6,'#3b2a1c')}else{R_(c,wx-2,wy-2,1,1,'#3b2a1c');R_(c,wx+1,wy+1,1,1,'#3b2a1c');R_(c,wx+1,wy-2,1,1,'#3b2a1c');R_(c,wx-2,wy+1,1,1,'#3b2a1c')}
+}
+/** 馱馬（側面）與牽馬人。 */
+function yardHorseDraw(c,h){
+  const x=Math.round(h.x),y=Math.round(h.y),f=(h.frame||0)%2;
+  R_(c,x-8,y-1,18,2,'#0003');
+  [-6,-3,4,7].forEach((dx,i)=>R_(c,x+dx,y-5+((i+f)%2),2,5-((i+f)%2),'#4a2c18'));
+  R_(c,x-8,y-11,17,6,'#7a4a2a');R_(c,x+8,y-14,3,6,'#7a4a2a');R_(c,x+10,y-15,4,3,'#7a4a2a');R_(c,x+12,y-14,1,1,'#1a1612');
+  R_(c,x-9,y-11,2,4,'#3b2a1c');R_(c,x+7,y-15,2,4,'#3b2a1c');                   // 尾、鬃
+  R_(c,x-6,y-15,12,4,'#c9a46a');R_(c,x-6,y-13,12,1,'#7a5a32');R_(c,x-7,y-11,3,4,'#b08a52');R_(c,x+5,y-11,3,4,'#b08a52');   // 貨包
+}
+/** 冬天掃雪的掃帚與雪花（畫在丁稚身上）。 */
+function yardBroom(c,e){
+  const x=Math.round(e.x),y=Math.round(e.y),d=e.dir<0?-1:1,sw=Math.floor((e.pt||0)/260)%2;
+  for(let i=0;i<6;i++)R_(c,x+d*(2+i)+(sw?d:0),y-9+i,1,1,'#8a6a3a');
+  R_(c,x+d*7+(sw?d:0)-1,y-3,4,3,'#c9a85a');
+  if(sw)R_(c,x+d*11,y-4,2,1,'#ffffff');else R_(c,x+d*12,y-6,1,1,'#ffffff');
+}
+/** 背景層：失火的焦痕與煙、屋頂的烏鴉、打盹的貓（畫在倉與主屋之後、人物之前）。 */
+function yardBack(c,now,dt){
+  if(now-YARD.planT>1000){YARD.plan=yardPlan();YARD.planT=now}
+  const P=YARD.plan||{},n=Math.min(G.wh.n,YARD_KURA.length);
+  if(P.fire){
+    for(let i=0;i<n;i++){const [x,y]=YARD_KURA[i];c.fillStyle='#2a201899';c.fillRect(x+4,y+11,9,7);c.fillRect(x+27,y+4,8,10);c.fillRect(x+16,y-6,10,3);c.fillStyle='#1a141066';c.fillRect(x+3,y+18,14,4)}
+    if(Math.random()<dt/260){const [x,y]=YARD_KURA[0];YARD.smoke.push({x:x+16+Math.random()*10,y:y-14,r:2,a:0.55})}
+  }
+  YARD.smoke.forEach(s=>{s.y-=7*dt/1000;s.x+=Math.sin((now/700)+s.r)*0.15+0.05;s.r+=1.6*dt/1000;s.a-=0.12*dt/1000;c.fillStyle='rgba(90,86,82,'+Math.max(0,s.a).toFixed(2)+')';c.fillRect(Math.round(s.x-s.r),Math.round(s.y-s.r),Math.round(s.r*2),Math.round(s.r*2))});
+  YARD.smoke=YARD.smoke.filter(s=>s.a>0&&s.y>-10);
+  // 屋頂的烏鴉：偶爾飛走一圈再回來
+  if(!YARD.crows)YARD.crows=[{hx:142,x:142,y:22,st:'sit',t:3000+Math.random()*9000},{hx:166,x:166,y:22,st:'sit',t:6000+Math.random()*12000}];
+  YARD.crows.forEach(w=>{
+    w.t-=dt;
+    if(w.st==='sit'){if(w.t<=0){w.st=Math.random()<0.35?'fly':'hop';w.t=w.st==='fly'?0:300}}
+    else if(w.st==='hop'){if(w.t<=0){w.st='sit';w.t=4000+Math.random()*9000}}
+    else if(w.st==='fly'){w.x+=34*dt/1000;w.y=22-Math.min(18,(w.x-w.hx)*0.4);if(w.x>340){w.st='away';w.t=8000+Math.random()*8000}}
+    else if(w.st==='away'){if(w.t<=0){w.st='back';w.x=-10;w.y=6}}
+    else if(w.st==='back'){w.x+=34*dt/1000;w.y=Math.min(22,6+(w.x/w.hx)*16);if(w.x>=w.hx){w.x=w.hx;w.y=22;w.st='sit';w.t=6000+Math.random()*10000}}
+    if(w.st==='away')return;
+    const x=Math.round(w.x),y=Math.round(w.y)-(w.st==='hop'?1:0);
+    if(w.st==='fly'||w.st==='back'){const up=Math.floor(now/120)%2;R_(c,x-1,y-1,3,2,'#141414');R_(c,x-4,y-1-(up?2:0),3,1,'#141414');R_(c,x+2,y-1-(up?2:0),3,1,'#141414')}
+    else{R_(c,x-2,y-3,4,3,'#141414');R_(c,x+1,y-4,2,2,'#141414');R_(c,x+3,y-4,1,1,'#5a5a5a');R_(c,x-3,y-2,1,2,'#141414');R_(c,x-1,y,1,1,'#3a3a3a');R_(c,x+1,y,1,1,'#3a3a3a')}
+  });
+  // 打盹的貓（主屋右側牆角），尾巴偶爾甩一下
+  YARD.catT+=dt;const cx=212,cy=110,fl=(YARD.catT%5200)<500?(Math.floor(YARD.catT/120)%2):0;
+  R_(c,cx-4,cy-1,9,2,'#0002');R_(c,cx-4,cy-4,8,4,'#ece6d8');R_(c,cx-2,cy-4,3,2,'#c07a3a');R_(c,cx+2,cy-3,2,2,'#2a2622');
+  R_(c,cx+3,cy-6,3,3,'#ece6d8');R_(c,cx+3,cy-7,1,1,'#c07a3a');R_(c,cx+5,cy-7,1,1,'#ece6d8');R_(c,cx+4,cy-5,1,1,'#3a3230');
+  R_(c,cx-6,cy-2-fl,3,1,'#c07a3a');
+}
+/** 人物層：荷車與人足、馬隊、飛腳（跟其他人物一起依前後排序）。 */
+function yardPeople(now,dt){
+  yardStep(now,dt);const out=[];
+  YARD.carts.forEach(k=>{if(k.wait>0)return;out.push({y:k.y,draw:c=>{
+    const mv=!(k.stop>0),o=Object.assign({frame:mv?k.frame:0,moving:mv,faceLeft:k.dir<0,pose:mv?'':'hold',pt:now},YARD_LOOK);
+    drawPerson(c,k.x+k.dir*19,k.y,o);
+    yardCartDraw(c,k.x,k.y,k.dir,k.dist,k.load);
+    drawPerson(c,k.x-k.dir*15,k.y,Object.assign({},o,{variant:5}));
+  }})});
+  YARD.horses.forEach(h=>out.push({y:h.y,draw:c=>{yardHorseDraw(c,h);if(h.k===0)drawPerson(c,h.x+18,h.y,Object.assign({frame:h.frame||0,moving:true},YARD_LOOK,{hat:'#8a6a3a'}))}}));
+  const r=YARD.runner;if(r)out.push({y:r.y,draw:c=>drawPerson(c,r.x,r.y,Object.assign({frame:r.frame,moving:true,faceLeft:r.seg===1},RANK_LOOK.courier,{variant:7}))});
+  return out;
 }
 
 'use strict';
@@ -8617,6 +8768,7 @@ function rangeLabel(el){
 }
 document.addEventListener('input',e=>{if(e.target&&e.target.type==='range'){stepSync();rangeLabel(e.target);rangeFill(e.target)}});
 
+/* ═════ [07_ui_people] ═════ */
 'use strict';
 /* ★檔案總覽：人物介面、面板（Sheet）、筆記、私宅、開局
  * - SHEETS[type]()：回傳 {title,html} 的底部面板（奉行所、花街、公會、商邸、倉庫、聘人、說親…）。
@@ -9179,6 +9331,7 @@ ACT.resume=()=>enterSave(loadSave());
 /** 以一份存檔進入遊戲（繼續人生、匯入存檔共用）。 */
 function enterSave(o){if(!o)return;musicWant('market');G=o;LASTREP=G.lastRep||null;migrateSave();save();applyActiveCities(G.activeIds);$('#start').classList.add('hidden');SCENE.sig='';sceneSync(true);_tk='';UI.go('home');say(TX('protag.resume'))}
 
+/* ═════ [07b_purse] ═════ */
 /* =====================================================================
  * 07b_purse.js — 現款／私房錢、保鏢遇襲
  *  - 現款 = G.silver：貨款、賄賂、拜訪、薪資皆用現款。
@@ -9282,6 +9435,7 @@ function rollAmbush(){
   return {abort:true};
 }
 
+/* ═════ [07c_report] ═════ */
 /* =====================================================================
  * 07c_report.js — 推進一旬後的「旬報」彈窗（收支圖表化）
  *  - doTurn 把每旬的 TURNRP 收集成 G.report，這裡負責彙整並畫出來。
@@ -9374,6 +9528,7 @@ function showTurnReport(reps,logs,n,kind){
   UI.showInfo(kind==='open'?UT('rep.showTurnReport.27'):kind==='recent'?UT('rep.showTurnReport.28'):UT('rep.showTurnReport.29'),h);
 }
 
+/* ═════ [07d_inspect] ═════ */
 /* =====================================================================
  * 07d_inspect.js — 官吏查貨事件
  *  - 推進一旬時有 5%～30% 機率（知名度越低越高）由本城一二階官員來查貨。
@@ -9417,6 +9572,7 @@ function inspectResolve(bribe,log){
 ACT.inspBribe=()=>{const t=inspectResolve(true);toast(t);if(!G.inspect){UI.hideInfo();sfx.coin();UI.render()}};
 ACT.inspPass=()=>{const t=inspectResolve(false);toast(t);UI.hideInfo();UI.render()};
 
+/* ═════ [07e_encounter] ═════ */
 /* =====================================================================
  * 07e_encounter.js — 路遇急難
  *  - 「出門前往」沒遇襲時，有 10% 機率路上遇到一個人向你求助 50 兩救急。
@@ -9486,6 +9642,7 @@ ACT.encNo=()=>{if(ENC)encFinish()};
 /* 直接按「關閉」等同不理會，仍繼續出門 */
 (function(){const h=UI.hideInfo;UI.hideInfo=function(){h();if(ENC){const e=ENC;ENC=null;if(e.cont)e.cont()}}})();
 
+/* ═════ [07f_enemy] ═════ */
 /* =====================================================================
  * 07f_enemy.js — 仇人
  *  - 每個人記錄「曾經最高好感度」r.peak。
@@ -9546,6 +9703,7 @@ function enemyTick(log){
   const t=thieves();if(t){const m=NEWS('enemyTick.1',{replace:t.replace(NEWS_FMT.tagEnd,'')});pushNews(m);log.push(m)}
 }
 
+/* ═════ [07g_smuggle] ═════ */
 /* =====================================================================
  * 07g_smuggle.js — 走私與搜查、刑罰
  *  走私：用私房錢向海外買違禁品，船隊＋船長出海，到貨進「密庫」，再請私梟脫手（07x_dealers.js），收入進私房錢。
@@ -9779,6 +9937,7 @@ ACT.smugGo=()=>{
 /** 被捕者供出主使的機率（忠誠越高越不會招）。 */
 const confessP=loyal=>clamp(ODDS.confess.base-loyal/ODDS.confess.loyalDiv,ODDS.confess.min,ODDS.confess.max);
 
+/* ═════ [07h_duties] ═════ */
 'use strict';
 /* ★檔案總覽：店員職能與店內閒談
  * - 丁稚：代跑腿（拜訪/送禮/兌現承諾不扣行動點數，好感打折）。
@@ -9997,6 +10156,7 @@ function applyStartBoost(idx,sysKey){
   }
 }
 
+/* ═════ [07i_voyage] ═════ */
 'use strict';
 /** 遇難的圖示與標籤：海難／海賊／山賊。 */
 const voyIcon=(mode,robbed)=>mode==='land'?'⛰️':robbed?'🏴‍☠️':'🌊';
@@ -10276,6 +10436,7 @@ ACT.vGoAll=()=>{
 };
 document.addEventListener('input',e=>{if(e.target.id==='slider-voy'){UI.s.route.budget=+e.target.value;const b=$('#v-b');if(b)b.textContent=UT('voy.top',{a:fmt(UI.s.route.budget)})}});
 
+/* ═════ [07ia_buyout] ═════ */
 'use strict';
 /* ======================= 大口買付 =======================
  * 五個地區各自於每季抽一個月；第一年從夏季起，只抽後三季。
@@ -10330,6 +10491,7 @@ function buyoutIntelFor(rid){const I=buyoutNextOf(rid);return I&&!I.known?I:null
 /** 仲買人只說玩家所在地區、本年度「下一次」買付。 */
 function buyoutIntelNext(){return buyoutIntelFor(homeCity().region_id)}
 
+/* ═════ [07ib_origin_supply] ═════ */
 'use strict';
 /* ======================= 產地供貨指數 =======================
  * 每局、每年、每月、每城、每項當地物產都有固定指數；同月重複前往不重抽。
@@ -10362,6 +10524,7 @@ function originSupplyBand(i){
 /** 舊船隊沒有出發月快照，維持舊版採買結果（指數 1）。 */
 const originSupplyForShip=(s,dest,name)=>s.supplyY===undefined?1:originSupplyIndex(dest.id,name,s.supplyY,s.supplyM);
 
+/* ═════ [07j_xgoods] ═════ */
 'use strict';
 /* ★檔案總覽：跨行貨物（趣味玩法，不是正式的賺錢途徑）
  * - 來源只有三種：①船長／飛腳在產地順手買回的便宜貨；②認識的商人拿貨物抵押向你借錢；③官吏硬塞給你的貨。
@@ -10423,6 +10586,7 @@ function xgoodsTick(log){
   }
 }
 
+/* ═════ [07k_region] ═════ */
 'use strict';
 /* ★檔案總覽：地區官制（遠國奉行所）與海運、陸運許可
  * - 在各城官署之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
@@ -10581,6 +10745,7 @@ function appsCard(){
   }).join('')+(C.length?UT('reg.cdHead')+C.map(x=>UT('reg.cdRow',{a:esc(x.name),b:esc(x.who),c:x.left})).join(''):'')})+'</div>';
 }
 
+/* ═════ [07l_flower] ═════ */
 /* ======================= 吉原花街：夜宴、指名名伶、贖身成側室 =======================
  * 規則：
  *  - 城中名伶固定 8 人，每旬只有 4 人在席（以旬數雜湊決定，同一旬內固定）。
@@ -10740,6 +10905,7 @@ SHEETS.flower=()=>{
   return {title:UT('flower.flower.4'),html:h};
 };
 
+/* ═════ [07m_loyalty] ═════ */
 /* ======================= 雇員好感：零用錢、保鏢暗殺、手代番頭放火、船長走私 =======================
  *  - 雇員（含保鏢、船長）好感起始 40；給零用錢 5 兩，好感 +3～5；每人每旬只能給一次。好感 80 以上改靠閒聊，特殊指令要閒聊後才出現（07zzs_staffchat.js 覆寫 empAffHtml、ACT.allow）。
  *  - 保鏢好感 100：出現「暗殺」指令，只能對仇人或本城同業下手；名單不列成功率與職位。
@@ -10896,6 +11062,7 @@ ACT.arson=el=>{
   },1000);
 };
 
+/* ═════ [07n_scheme] ═════ */
 /* ======================= 官員運作：司法官員栽贓、行政官員打壓 =======================
  *  - 四階以上官員好感 100：司法官員可「栽贓」隨機一家同業（成功＝該同業被查抄，市佔分數剩 40%）；
  *    行政官員可「打壓」隨機一家同業（成功＝該同業行情 ×0.6，持續數旬）。
@@ -10943,6 +11110,7 @@ function startScheme(cid){
   },1000);
 }
 
+/* ═════ [07o_tribute] ═════ */
 /* ======================= 上貢：四階以上財務官員（好感 100）=======================
  *  好感 100 時出現在拜訪後的請託選單，每位官員只能請託一次（請託即好感 −30）。官員開口要一批本業貨：限期內自己備妥庫存，數量取協議配額的數倍（合理可達）。
  *  到期若庫存足夠，自動上貢＝賣出，作價市價 × 倍數，並增加知名度與市佔率；
@@ -10983,6 +11151,7 @@ function tributeTick(log){
   }
 }
 
+/* ═════ [07p_wiki] ═════ */
 'use strict';
 /* ★檔案總覽：筆記內的「百科」分頁（線上遊戲百科全書）
  * - 玩法簡介、官吏架構、物產圖鑑；內容多半取自資料檔（OFFICIALS／COMM_INFO），玩法簡介文字在 WIKI_GUIDE。
@@ -11102,6 +11271,7 @@ function renderMap(){
 /** 從別處（遠國奉行所）跳到筆記的地圖頁，停在指定地區。 */
 ACT.goMap=el=>{UI.s.notesTab='map';UI.s.wikiRegion=el.dataset.id;UI.s.mapSel=null;if(UI.s.sheet)UI.closeSheet();UI.go('notes')};
 
+/* ═════ [07q_map] ═════ */
 /* 地區地圖（日式古地圖風格）：用遊戲內真實的城市座標（cityXY）畫 SVG，標示城市位置與連接道路。
  * - 陸地：以城市為中心的圓團疊成，再用濾鏡畫出手繪般的海岸線與水紋；南海群島每城各成一島，連線為海路（紅色虛線加帆船）。
  * - 道路：先連成最短樹，再補上相近城市之間的支線；陸地上為朱紅色街道，沿線有里程點。
@@ -11312,6 +11482,7 @@ function regionMapSvg(rid,opts){
   return s+'</svg>';
 }
 
+/* ═════ [07qa_routemap] ═════ */
 /* =====================================================================
  * 07qa_routemap.js — 商路頁的地圖
  *  - 五地區縮圖：手繪感的地區輪廓（照各城相對位置疊出），只畫海運航線：本店 → 其他地區的主城。
@@ -11460,6 +11631,7 @@ ACT.rmapShip=el=>{
   UI.showInfo(UT('rmap.shipTitle',{a:place}),L.map(s=>'<div class="card small">'+UT(s.out?'rmap.shipRowOut':'rmap.shipRow',{n:esc(s.captName||''),c:esc(CITY(s.origId).name),t:s.eta})+'</div>').join(''));
 };
 
+/* ═════ [07r_silver] ═════ */
 /* 現款走勢：記錄每旬開始時的現款，點頂部「現款」開啟近九旬折線圖。
  * - G.silverHist＝[{l:'3月上',v:現款}]，最多 9 筆；開局記一筆，之後每推進一旬記一筆（advanceTurn 結尾）。 */
 const SILVER_WIN=9;
@@ -11522,6 +11694,7 @@ ACT.fameInfo=()=>{
   UI.showInfo(UT('silver.fameInfo'),UT('silver.fameInfo.3',{a:f,b:TIER_NAME[fameTier()]})+'</b></div>'+UT('silver.fameInfo.4',{a:gated?UT('silver.fameInfo.2'):''}));
 };
 
+/* ═════ [07s_face_events] ═════ */
 'use strict';
 /* ======================= 旬報後的人物事件 =======================
  * 具名人物親自帶來的事件不能只留在旬報文字裡：旬報關閉後依序顯示頭像與對話。
@@ -11585,6 +11758,7 @@ function showNextFaceEvent(){
 function armFaceEvents(){if(G&&faceEventQueue().length)INFO_AFTER=showNextFaceEvent}
 ACT.faceNext=()=>UI.hideInfo();
 
+/* ═════ [07t_permits] ═════ */
 'use strict';
 /* ======================= 許可（資格）：倉地、船株、人別帳、馬幫株、帶刀、交易許可、減罪狀 =======================
  *  - 三系官署官員的一般請託都是「資格」：拿到許可才能擴充倉庫、船長、飛腳、店員、保鏢，或買賣本業最貴的兩項貨。
@@ -11727,6 +11901,7 @@ function posFavorsHtml(id){
   return UT('lic.posFavorsHtml.2',{a:L.length?L.map(f=>'<div style="margin-top:3px"><b>'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc)+'</div></div>').join(''):UT('lic.posFavorsHtml')})+'</div>';
 }
 
+/* ═════ [07u_battle] ═════ */
 'use strict';
 /* ======================= 拜訪戰鬥：禮物破防、賄賂造成傷害、身份決定心防 =======================
  * 流程：1 選人物 → 2 選禮物（好感 60 以上免選）→ 3 門口動畫（只決定拒見、不在家）→ 4 對話框戰鬥 → 5 請託（官員，好感 ≥60 且打勝）。
@@ -11964,6 +12139,7 @@ ACT.reqAsk=el=>{
   if(res.status==='done')sfx.coin();else sfx.bad();UI.render();refreshSheet();
 };
 
+/* ═════ [07v_party] ═════ */
 'use strict';
 /* ======================= 忘年會：每年最後一旬結束時，在大廣間設宴 =======================
  *  - 年度大事簿 G.yearLog：pushNews 時依【標籤】自動分類記下（天災、行情、官場、商號、家族、風波），新年清空。
@@ -12123,6 +12299,7 @@ function partyDraw(){
   seats.forEach((p,i)=>{const a=P.att[i];sitAt(p[0],p[1],a?a.look:null,a&&L.who===i)});
 }
 
+/* ═════ [07w_music] ═════ */
 'use strict';
 /* ======================= 配樂：江戶風 WebAudio 音序器 =======================
  *  - 不用任何音檔：樂曲存成音符表 [MIDI 音高, 起始拍, 拍長, 樂器, 音量(可省略＝1)]（音高 0＝休止），即時合成。
@@ -12326,6 +12503,7 @@ ACT.audioToggle=el=>{const k=el.dataset.k;AUDIO[k]=!AUDIO[k];audioSave();audioAp
 document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.audio==='vol'){AUDIO.vol=+e.target.value;const v=$('#audio-vol');if(v)v.textContent=AUDIO.vol;audioApply();audioSave()}});
 audioApply();
 
+/* ═════ [07x_dealers] ═════ */
 'use strict';
 /* ======================= 商人請託：同業調貨、掮客銷貨、經營好手臨時打工、座客商人代售他行貨物、私梟脫手走私貨 =======================
  *  - 拜訪同業、掮客、經營好手、座客商人或私梟打勝、好感 ≥60 時出現請託（與官員請託同一個視窗）。開口好感 −10，同一人冷卻 3 旬。
@@ -12478,6 +12656,7 @@ function dealerTick(log){
   });
 }
 
+/* ═════ [07y_guild] ═════ */
 'use strict';
 /* ======================= 聯合採購與出貨協議的訂約金與違約金分配 =======================
  *  - 參加協議要付訂約金 1,000 兩（COSTS.guildBond）；開局即以守約立場參加，訂約金由開局贈送。
@@ -12574,6 +12753,7 @@ function rivalHeirTick(log){
   });
 }
 
+/* ═════ [07yb_meeting] ═════ */
 'use strict';
 /* ======================= 問屋公會例會：公會長選舉、供給投票、菓子折拍賣 =======================
  *  - 例會固定在 3、6、9、12 月上旬（每季第一旬；02b_calendar.js 的 isMeetingTurn）；一期＝九旬；開局那一旬（3 月上旬）就是第一次例會。主畫面在例會旬出現整列按鈕，
@@ -12814,6 +12994,7 @@ function meetUnitTxt(M){
 /** 退出協議的二次確認：取消。 */
 ACT.cartelQuitCancel=()=>{UI.s.quitArm=false;refreshSheet()};
 
+/* ═════ [07yc_gm] ═════ */
 'use strict';
 /* =====================================================================
  * 07yc_gm.js — 問屋公會長（0.7.3；DESIGN_NOTES 第二十九節公會長段、第 188、197～202 節）
@@ -13228,6 +13409,7 @@ function gmAutoRemind(M){const D=G.gmDue,off=gmOfficial();if(M&&gmIsMe()&&D&&D.m
 /** 開局：開業旬報之後接著候選人上門。 */
 {const _b=ACT.begin;ACT.begin=function(){_b.apply(this,arguments);armFaceEvents()}}
 
+/* ═════ [07z_saveio] ═════ */
 'use strict';
 /* ======================= 存檔匯出與匯入（.sav） =======================
  *  - 匯出：開局畫面（有存檔時）與設定面板。存檔文字一律壓縮（瀏覽器內建 CompressionStream），加上檢查碼並打亂內容後下載成 .sav。
@@ -13304,6 +13486,7 @@ ACT.exportSave=()=>{exportSave()};
 ACT.importSave=()=>{const f=$('#save-file');if(f){f.value='';f.click()}};
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='save-file'&&e.target.files&&e.target.files[0])importSaveFile(e.target.files[0])});
 
+/* ═════ [07zf_festwalk] ═════ */
 'use strict';
 /* ======================= 逛祭典（本城節慶那一旬） =======================
  *  - 入口：節慶那一旬，主畫面「出門前往」上方出現一整列按鈕「🏮 逛祭典：○○」。扣 1 行動；不擲出門遇襲（人潮擁擠）；
@@ -13388,6 +13571,7 @@ ACT.festWalk=()=>{
   },900);
 };
 
+/* ═════ [07zm_migrate] ═════ */
 'use strict';
 /* ======================= 存檔補欄位：讀檔與匯入的統一入口 =======================
  *  - 讀本機存檔（ACT.resume）與匯入 .sav（importSaveFile）都經過 enterSave → migrateSave。
@@ -13502,6 +13686,7 @@ function migrateSave(){
   G.ver=GAME_VER;
 }
 
+/* ═════ [07zs_staffcare] ═════ */
 'use strict';
 /* ======================= 員工：久任成長、升遷恩情、風聲與查帳 =======================
  *  - 能力成長另存在員工紀錄 e.grow={能力:加值}，statsOfEmp 計算時疊加；不可改名冊資料（CHARS 全局共用）。上限 95。
@@ -13612,6 +13797,7 @@ function auditDecide(id,k){
 ACT.audit=el=>{const r=auditEmp(el.dataset.id);if(r.msg)UI.showInfo(UT('staff.audit'),(r.found?'<div class="notice">':'<div class="notice tiny">')+esc(r.msg)+'</div>');if(r.ok)sfx[r.found?'bad':'tap']();UI.render();refreshSheet()};
 ACT.auditDo=el=>{const m=auditDecide(el.dataset.id,el.dataset.k);if(m){toast(m,5200);sfx.coin()}UI.hideInfo();UI.render();refreshSheet()};
 
+/* ═════ [07zt_staffevents] ═════ */
 'use strict';
 /* ======================= 店員偶發事件（第一百四十八節） =======================
  *  賭債、酒後鬧事、家人急病、成親主婚、同行挖角、遭人誣陷：旬報後以人物事件視窗出現，只有「出錢」「不管」兩個選項，當下決定。
@@ -13695,6 +13881,7 @@ ACT.sevPay=()=>{const S=G.staffEv;if(!S||S.done)return UI.hideInfo();if(G.silver
   const m=sevResolve(true);sfx.coin();UI.hideInfo();if(m)toast(m,4200);UI.render()};
 ACT.sevIgnore=()=>{const m=sevResolve(false);UI.hideInfo();if(m)toast(m,4200);UI.render()};
 
+/* ═════ [07zu_relief] ═════ */
 'use strict';
 /* ======================= 災情救濟請託（第一百四十九節） =======================
  *  大火（冬）、凶作（秋）、颱風（夏）、疫病（春）發生的那一旬，記為「本城災情」（G.disaster），主畫面右上角提醒（城史不算，第二百五十二節）。
@@ -13748,6 +13935,7 @@ function doRelief(cid,n,r,f){
   return {ok:true,status:'done',msg};
 }
 
+/* ═════ [07zv_bandit] ═════ */
 'use strict';
 /* ======================= 海賊／山賊猖獗（第一百五十四節） =======================
  *  全國每年一次：隨機一旬、隨機一個地區，海賊或山賊二選一，持續三旬（含當旬）。G.bandit＝{type:'sea'|'land',region,start,until,cleared}。
@@ -13804,6 +13992,7 @@ function doBanditFavor(cid,n,r,f){
   return {ok:true,status:'done',msg};
 }
 
+/* ═════ [07zw_ronin] ═════ */
 'use strict';
 /* ======================= 浪人頭：投資他當官（第一百五十七節） =======================
  *  - 結識：不能求見（不分男女；本城沒有就從外地調一位，再沒有才從名冊補）。指名花魁 10%、包場夜宴 15%、出門遇襲時 30%（拔刀相助，這次遇襲直接化解）；最多結識三位（G.ronin.ids）。
@@ -13894,6 +14083,7 @@ function roninVisit(cid){
   UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,TX('ronin.visit')));
 }
 
+/* ═════ [07zx_homeevt] ═════ */
 'use strict';
 /* ======================= 回府時的事件（第一百六十一節） =======================
  *  第三個事件切入點：這一旬只要用掉行動點數（出門前往、商路出發、私房錢、宴客……），做完回到主畫面時，若有排隊的事件就跳出一件（每次最多一件）。
@@ -13956,6 +14146,7 @@ const homeSoon=()=>{if(!HOME_T)HOME_T=setTimeout(homeCheck,60)};
 {const _h=UI.hideInfo;UI.hideInfo=function(){_h.apply(this,arguments);homeSoon()}}
 {const _c=UI.closeSheet;UI.closeSheet=function(){_c.apply(this,arguments);homeSoon()}}
 
+/* ═════ [07zy_branch] ═════ */
 'use strict';
 /* ======================= 暖簾分：大番頭到隔壁城開分號（第一百六十節） =======================
  *  - 提議（旬報後）：大番頭任職滿一年（以升任大番頭起算）、累計意外之財超過 10,000 兩、店裡現款多過他的累計意外之財、目前沒有經營中的分號。
@@ -14040,6 +14231,7 @@ ACT.branchRefuse=()=>{
   UI.hideInfo();toast(msg,4600);UI.render();
 };
 
+/* ═════ [07zz_enlist] ═════ */
 'use strict';
 /* =====================================================================
  * 07zz_enlist.js — 延攬熟人、另謀高就
@@ -14150,6 +14342,7 @@ function driftTick(log){
   if(G.known.includes(n.cid)){const t=NEWS('drift.leave',{n:nameOf(n.cid),c:CITY(to).name});pushNews(t);log.push(t)}
 }
 
+/* ═════ [07zz_friends] ═════ */
 'use strict';
 /* ======================= 人情往來與朋友事件（第一百六十八、一百七十節） =======================
  *  一、人情往來（回府時事件，07zx_homeevt.js）：
@@ -14462,6 +14655,7 @@ function friendsTick(log){
   consoleTick(log);
 }
 
+/* ═════ [07zz_letters] ═════ */
 'use strict';
 /* ======================= 外地遠國奉行所官員：只能書信往來（第一百四十四節） =======================
  *  - 本店所在地區的遠國奉行所官員照舊親自拜訪；外地的不能見面、不能派丁稚，只能託人寄信。
@@ -14546,6 +14740,7 @@ ACT.letterReq=el=>{
 {const v=ACT.visit;ACT.visit=el=>{if(foreignReg(npc(el.dataset.cid))){toast(MSG('letter.only'));return}v(el)}}
 {const m=ACT.meet;ACT.meet=el=>{if(foreignReg(npc(el.dataset.cid))){toast(MSG('letter.only'));return}m(el)}}
 
+/* ═════ [07zz_regfavor] ═════ */
 'use strict';
 /* ======================= 遠國奉行所三階新請託：官船捎帶、官荷捎帶、本陣御用達（第一百六十二節） =======================
  *  - 都只能向本店所在地區的官員開口（外地官員寫信也求不到）；一般請託：好感 −10，同一位官員冷卻 12 旬。
@@ -14649,6 +14844,7 @@ function honjinTick(log){
 }
 SPEND_ARG['spend.consignSea']=SPEND_ARG['spend.consignLand']=a=>COMM_MAP[a]?COMM_MAP[a].short:a;
 
+/* ═════ [07zz_regfavor4] ═════ */
 'use strict';
 /* ======================= 遠國奉行所四階新請託（第一百五十二、一百六十五節） =======================
  *  - 唐船割符（郡代，本地）：拿到一張割符，河岸藏走私面板多一個「借給官方出差」；任何空閒船長都能派，私房錢照付、扣 1 行動點數、
@@ -14875,6 +15071,7 @@ REG_FAVOR.rkokusho=n=>{
 };
 SPEND_ARG['spend.unload']=a=>COMM_MAP[a]?COMM_MAP[a].short:a;
 
+/* ═════ [07zza_chancemeet] ═════ */
 'use strict';
 /* =====================================================================
  * 07zza_chancemeet.js — 拜訪巧遇（設計筆記第二十九節「拜訪巧遇」、第一百九十一節）
@@ -14919,6 +15116,7 @@ function sideCard(cid,line,foot){
   return '<div class="card" style="display:flow-root;margin-bottom:6px">'+portraitHtml(cid,48)+'<div class="small">'+esc(line)+'</div><div class="tiny" style="margin-top:4px;color:#9b2c3a">'+esc(foot)+'</div></div>';
 }
 
+/* ═════ [07zzb_escort] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzb_escort.js — 陪同（通用機制）與朋友請你引薦官員（設計筆記第一百七十一節、第一百九十二節）
@@ -15024,6 +15222,7 @@ function escortTick(log){
   }
 }
 
+/* ═════ [07zzc_daimyo] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzc_daimyo.js — 大名行列過境（設計筆記第二十九節「大名行列過境」、第一百九十三節）
@@ -15054,6 +15253,7 @@ function daimyoTick(log){
   const t=NEWS('daimyo.pass',{name:homeCity().name});pushNews(t);log.push(t);
 }
 
+/* ═════ [07zzd_sick] ═════ */
 /* =====================================================================
  * 07zzd_sick.js — 病倒（通用機制）
  *  - 條件成立時先記下「待發作」（sickArm），等玩家離開場景（關掉面板）或直接推進一旬時立刻發作（sickFire）。
@@ -15084,6 +15284,7 @@ const nomCountTurn=()=>Object.keys(G.rel||{}).filter(cid=>G.rel[cid].nomT===G.tu
 {const _c=UI.closeSheet;UI.closeSheet=function(){const was=UI.s.sheet;_c.apply(this,arguments);if(was&&!UI.s.sheet&&!SICK_ADV&&G&&G.sickPend)sickLeaveFire()}}
 {const _d=doTurn;doTurn=function(){SICK_ADV=true;try{return _d.apply(this,arguments)}finally{SICK_ADV=false}}}
 
+/* ═════ [07zze_favor8] ═════ */
 'use strict';
 /* =====================================================================
  * 07zze_favor8.js — 0.8 先行的一批請託與規則（DESIGN_NOTES 第 152、204～206 節、第二十九節五六階）
@@ -15308,6 +15509,7 @@ function f8Tick(log){
   if(G.mono&&G.mono.until<G.turn){const t=NEWS('f8.monoEnd',{n:COMM_MAP[G.mono.name].short});pushNews(t);log.push(t);G.mono=null}
 }
 
+/* ═════ [07zzf_banzuke] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzf_banzuke.js — 商人番付與花邊八卦（DESIGN_NOTES 第二百零九、二百十一節）
@@ -15588,6 +15790,7 @@ function bzTopic(cid){
   return out;
 }}
 
+/* ═════ [07zzg_record] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzg_record.js — 商號紀錄（筆記「📒 紀錄」分頁；DESIGN_NOTES 第二百十二節）
@@ -15713,6 +15916,7 @@ function wikiRecord(){
   $('#view-notes').innerHTML='<div class="pixel-box" style="padding:8px">'+UT('rec.h',{a:notesTabsHtml()})+'<div style="margin-top:6px">'+wikiRecord()+'</div></div>';
 }}
 
+/* ═════ [07zzh_wife] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzh_wife.js — 夫人事件（DESIGN_NOTES 第二百一十六節）
@@ -15852,6 +16056,7 @@ FACE_TITLE.wifeGood='wife.title.good';FACE_TITLE.wifeBad='wife.title.bad';
 {const _s=showHomeEvent;showHomeEvent=function(lead){const e=homeQ().find(x=>x.turn===G.turn);return _s(e&&(e.type==='wifeGood'||e.type==='wifeBad')?'wife.lead':lead)}}   // 夫人事件換一句開頭
 {const _f=faceEventCard;faceEventCard=function(e){return e&&(e.type==='wifeGood'||e.type==='wifeBad')?wifeCard(e):_f(e)}}
 
+/* ═════ [07zzi_stress] ═════ */
 'use strict';
 /* =====================================================================
  * 07zzi_stress.js — 壓力值與外城出遊（DESIGN_NOTES 第二十九節「壓力值」、第二百一十七節）
@@ -16111,6 +16316,7 @@ document.addEventListener('change',e=>{
   SHAKE_ANIM=A;
 },true);
 
+/* ═════ [07zzj_komon] ═════ */
 'use strict';
 /* ★檔案總覽：木戶黃門（DESIGN_NOTES 第二百三十二、二百五十二節）
  * - 上半是年度傳聞（下半是每季判定、宣判與查抄）：每年一次，「傳聞木戶黃門大人在某城懲戒了惡德商人某某」。地點依你的惡德值（G.evil.v）靠近：
@@ -16260,6 +16466,7 @@ function showKomon(done){
   if(K&&K.t>(L?L.turn:-1)&&!out.some(g=>g.key==='komonMe')){if(out.length>=BZ().gossip[1])out.pop();out.unshift({key:'komonMe',about:['me'],truth:true})}
   return out}}
 
+/* ═════ [07zzk_tripev] ═════ */
 'use strict';
 /* ★檔案總覽：出遊奇遇與季節小景（DESIGN_NOTES 第二百二十六～二百三十一節）
  * - 一趟出遊最多碰到一件奇遇，依序判定，碰到一件就停（tripEnc）：
@@ -16376,6 +16583,7 @@ function tripSeason(k,withF,quiet){
   if(G.sansukeGone&&G.sansukeGone.t>(L?L.turn:-1)&&!out.some(g=>g.key==='meScam')){if(out.length>=BZ().gossip[1])out.pop();out.push({key:'meScam',about:['me'],truth:true})}
   return out}}
 
+/* ═════ [07zzl_tripev2] ═════ */
 'use strict';
 /* ★檔案總覽：出遊奇遇第二批與惡德累計（DESIGN_NOTES 第二百三十四、二百三十七節）
  * - 判定接在 07zzk_tripev.js 的 tripEnc 裡（三助開口之後、賣藥郎之前），一趟仍最多一件：
@@ -16537,6 +16745,7 @@ function tripEvTick(log){
   }
 }
 
+/* ═════ [07zzm_kake] ═════ */
 'use strict';
 /* ★檔案總覽：定約掛賣（旅商的合約供貨；DESIGN_NOTES 第二百三十五、二百三十八、二百三十九節）
  * - 解鎖：畫面上的市佔第一次超過一成（G.kakeOn，永久）。之後每旬隨機 3～5 位本城旅商人帶「求掛賣」標記（G.kakeMarks）。
@@ -16801,6 +17010,7 @@ function kakeRecvCard(){
 /** 有合約在身的旅商人不能延攬進店。 */
 {const _e=enlistRanks;enlistRanks=function(cid){return kakeWith(cid)?[]:_e.apply(this,arguments)}}
 
+/* ═════ [07zzn_outfriend] ═════ */
 'use strict';
 /* ★檔案總覽：外城友人（DESIGN_NOTES 第二百四十、二百四十一節；遷居在 07zzr_move.js）
  * - 外城友人＝住在別座城、由船長或飛腳牽線（或遠國奉行引薦、作客時經友人引見）結識的商人（旅商人、仲買人、差配人、同業）。
@@ -17130,6 +17340,7 @@ function ofForgetTick(log){
 {const _o=outRowHtml;outRowHtml=function(cid){const h=_o.apply(this,arguments),d=G.rel[cid]?ofIdle(cid):0,O=OF();
   return (d>=O.forgetWarn&&!ofKeep(cid)?'<div class="tiny" style="color:#b3392b;margin-top:3px">'+UT('of.card.idle',{n:Math.max(1,O.forget-d)})+'</div>':'')+h}}
 
+/* ═════ [07zzo_dealings] ═════ */
 'use strict';
 /* ★檔案總覽：商行往來（私宅頁的資訊清單；DESIGN_NOTES 第二百四十二節）
  * - 把眼下還沒了結的帳、約與差事列在一處：錢銀往來、合約與訂貨、在途的人與貨、官府的事、人情往來。
@@ -17182,6 +17393,7 @@ function dealHtml(){
 }
 ACT.dealings=()=>{UI.showInfo(UT('deal2.title'),dealHtml());sfx.tap()};
 
+/* ═════ [07zzp_works] ═════ */
 'use strict';
 /* ★檔案總覽：遠國奉行所的大工程（DESIGN_NOTES 第二十九、二百零五、二百五十六節）
  * - 外港開闢（五階 船奉行，rport2）：公款 15,000 兩。從那位船奉行所屬地區裡，挑一座還沒有海運的城（西道、南海各城本來都算港口，不會出現），
@@ -17274,6 +17486,7 @@ FAVOR_PICK.rkokusan=cid=>{
   pushNews(t);log.push(t);
 }}
 
+/* ═════ [07zzq_urge] ═════ */
 'use strict';
 /* ★檔案總覽：官府督促、御救販售、闇商代出（DESIGN_NOTES 第二百五十、二百五十六節）
  * - 督促（第二百九十六節）：米問屋、魚屋只有打毀督促（36 旬內第二次打毀，普請方四階町年寄出面）；其他行業只有人口督促（季度人口連續三季減少，例會當月在城的吟味方六階出面，G.urge）。
@@ -17562,6 +17775,7 @@ function yamiDeliver(log){
   if(Y.left<=0)G.yami=null;
 }
 
+/* ═════ [07zzr_move] ═════ */
 'use strict';
 /* ★檔案總覽：遷居與轉行（DESIGN_NOTES 第二十九、二百四十（第五段）、二百五十九～二百六十三節）
  * - 約定：好感 100 的外城友人人物卡「🏠 遷居」區塊 →「商量遷居」→ 約定（G.move={cid,city,start}）。京畿圈要先完成帝都獻上（尚未實作，一律不能約）。
@@ -17818,6 +18032,7 @@ function moveTopUp(cityId){
   });
 }
 
+/* ═════ [07zzs_staffchat] ═════ */
 'use strict';
 /* ★檔案總覽：店員閒聊、零用錢與心腹指令（DESIGN_NOTES 第二百六十八節）
  * - 人物卡（私宅、河岸碼頭）不再直接列出暗殺、放火、做帳；每位店員多一顆「閒聊」（樣式同辭退）。
@@ -17920,6 +18135,7 @@ ACT.staffOrder=el=>{const e=G.emps.find(x=>x.id===el.dataset.id);if(!e||!scSworn
 {const _f=fraudDo;fraudDo=function(){const h0=new Map(G.emps.map(e=>[e,e.hurtUntil||0]));const r=_f.apply(this,arguments);G.emps.forEach(e=>{if(h0.has(e)&&(e.hurtUntil||0)>h0.get(e))scMem(e,'fraud')});return r}}
 {const _f=resolveVoyage;resolveVoyage=function(s){const top=G.voyLog&&G.voyLog[0];const r=_f.apply(this,arguments);const E=G.voyLog&&G.voyLog[0];if(E&&E!==top&&E.wreck){const e=G.emps.find(x=>x.id===s.capt);if(e)scMem(e,'wreck')}return r}}
 
+/* ═════ [07zzu_patron] ═════ */
 'use strict';
 /* ★檔案總覽：貴人訂貨（奢侈品的訂單；DESIGN_NOTES 第二百六十九、二百七十五節）
  * - 奢侈品照舊在相場（冷熱循環、地板價不變），另外有大官貴人的訂單，是「一賣吃三年」的主要來源。
@@ -18027,6 +18243,7 @@ ACT.ptTake=()=>{
 /* ---------- 接進合約卡（照上貢的做法：本店負責、可以提早填貨） ---------- */
 {const _x=pactExtras;pactExtras=function(){const L=_x.apply(this,arguments);if(G&&G.patron)ptOrders().forEach(o=>{if(COMM_MAP[o.name])L.push({kind:'patron',ref:o,cid:o.cid,name:o.name,qty:o.qty,due:G.turn+1>=o.due})});return L}}
 
+/* ═════ [07zzv_govorder] ═════ */
 'use strict';
 /* ★檔案總覽：官府注文（只給礦產；DESIGN_NOTES 第二百七十八節）
  * - 平時小單：本城普請方、勘定方四階以上、好感 ≥60 的官員，每旬約一成二機會上門（回府時事件），同時最多一張。
@@ -18166,6 +18383,7 @@ ACT.govTake=()=>{
   if(o.kind==='govS')L.push({kind:'govS',ref:o,cid:o.cid,name:o.name,qty:o.qty,due:G.turn+1>=o.start,left:o.left});
   else L.push({kind:'govW',ref:o,cid:o.cid,name:o.name,qty:o.qty,due:G.turn+1>=o.due})});return L}}
 
+/* ═════ [07zzw_guide] ═════ */
 'use strict';
 /* ★檔案總覽：開業指引（DESIGN_NOTES 第二百八十三節）
  * - 每一世開局帶一次，只到第一次推進：① 出席例會 → ② 回相場 → ③ 按「照配額」或動進出貨拉霸 → ④ 按「推進一旬」。
@@ -18212,6 +18430,7 @@ ACT.guideSkip=()=>{if(G)G.guide=null;UI.render();sfx.tap()};
 /** 第一次推進：指引結束。 */
 {const _a=advanceTurn;advanceTurn=function(){if(G&&G.guide)G.guide=null;return _a.apply(this,arguments)}}
 
+/* ═════ [07zzx_help] ═════ */
 'use strict';
 /* ★檔案總覽：去店裡幫忙（DESIGN_NOTES 第二百八十八節）
  * - 名門商邸裡同業與旅商人的人物卡多一顆「去店裡幫忙」：扣 1 點行動（照常加壓力），一旬只能幫一次（G.helpT＝幫過的那一旬）。
@@ -18265,6 +18484,7 @@ ACT.help=el=>{
 /** 每旬：檢查名望（advanceTurn 結尾前）。 */
 {const _a=advanceTurn;advanceTurn=function(){const log=_a.apply(this,arguments);try{helpCheck(log)}catch(e){}return log}}
 
+/* ═════ [07zzy_sake] ═════ */
 'use strict';
 /* ★檔案總覽：酒問屋（DESIGN_NOTES 第三百零一節）
  * - 本業三樣：清酒（prod_0801，西道產）、燒酎（prod_0802，東海道產，易燃）、珍陀酒（prod_0803，奢侈品，全國沒有產地）。
@@ -18368,6 +18588,7 @@ const sakeBuyReady=()=>{const S=sakeState();return S.buyT===undefined||G.turn-S.
   return _d.apply(this,arguments);
 }}
 
+/* ═════ [07zzz_pickle] ═════ */
 'use strict';
 /* ★檔案總覽：醬漬問屋與齋戒（DESIGN_NOTES 第三百零二節）
  * - 醬漬問屋（pickle，野田屋）與魚屋共用開局牌上的一個位子；選了醬漬問屋，這一局全國的魚貨產地一對一換成醬漬貨（G.prodSwap，02_world.js 的 cityRaw），沒有魚屋的貨；
