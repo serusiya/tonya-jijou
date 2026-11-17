@@ -77,20 +77,20 @@
  },
  "prod_0105": {
   "id": "prod_0105",
-  "name": "金芝麻與冷榨麻油",
+  "name": "釀造用米麴",
   "origin_type": "平地",
   "primary_regions": [
-   "東海道砂質向陽平地",
-   "西南溫暖島鏈"
+   "各地稻作盆地",
+   "酒造與味噌藏周邊"
   ],
-  "base_price_silver": 280,
-  "unit": "小木樽 (約20升)",
-  "seasonal_traits": "秋季採收；歲末年終各家烹飪天婦羅、年節點心，冬春之交需求達最高峰。",
-  "price_volatility": "中高。兼具調味、醫用與高級料理屬性，富有家庭消費彈性較大。",
-  "demand_strata": "富商豪紳、高檔料亭、寺院素齋宴客專用。",
-  "decay_rate": "每旬 0.3%（純度高不易哈敗，高檔密封桶可存數年）。",
+  "base_price_silver": 50,
+  "unit": "麴蓋大箱 (約一斗)",
+  "seasonal_traits": "秋收新米後開始製麴，冬天酒造、味噌藏仕込最搶手；節慶要做甘酒也用得多。",
+  "price_volatility": "中。酒造、味噌藏開工的季節需求高，夏天偏淡。",
+  "demand_strata": "酒造、味噌藏、醬油藏、菓子屋、人家做甘酒。",
+  "decay_rate": "每旬約 1.4%～2.6%：麴是活的，冬天耐放，入夏容易壞。",
   "contraband_status": "完全合法。",
-  "cartel_potential": "中等。高單價但市場容量較菜籽油小。",
+  "cartel_potential": "中。麴座之爭由來已久，大宗都經米問屋。",
   "system_name": "糧穀與油料系統 (Grains & Edible Oils)",
   "system_desc": "城市維生與民生安定的最核心大宗物資。需求彈性極低（剛性需求），是官府平準物價、防範暴動（打毀）的首要監控對象。也是米問屋、油問屋聯合炒作的主要領域。"
  },
@@ -815,5 +815,192 @@
   "cartel_potential": "走私闇商人完全控盤，任何正統公會皆無法合法干預。",
   "system_name": "城市精工與奢華雅玩系統 (Urban Craftsmanship & Luxury System)",
   "system_desc": "城市少量高難度手工業的巔峰代表。不以滿足日常溫飽為目的，純粹服務於社會上層統治者、大名、豪商與風月場所的精神審美與階級地位認同。"
+ },
+ "prod_0801": {
+  "id": "prod_0801",
+  "name": "灘生一本寒造清酒",
+  "origin_type": "平地",
+  "primary_regions": [
+   "西道酒造鄉",
+   "西道稻作盆地"
+  ],
+  "base_price_silver": 130,
+  "unit": "四斗酒樽一桶",
+  "seasonal_traits": "冬天寒造，春天新酒上市，貨多價穩；入夏怕熱，酒樽容易走味。",
+  "price_volatility": "中。城裡天天要喝，價錢平穩；新酒上市時略跌，秋冬存貨見底時略漲。",
+  "demand_strata": "町人、酒屋、料理茶屋、祭典。",
+  "decay_rate": "每旬約 0.8%～2.3%：冬天最穩，盛夏最容易走味。",
+  "contraband_status": "完全合法；凶年官府下禁酒令時，不准在市面販售。",
+  "cartel_potential": "中。酒造多，但大批貨都經酒問屋。",
+  "system_name": "酒類釀造系統 (Sake & Spirits System)",
+  "system_desc": "只做酒的批發：清酒、燒酎按桶批給城裡的酒屋與料理茶屋，另有長崎進來的南蠻珍陀酒。貨少量大、單價高，倉庫就是生意。"
+ },
+ "prod_0802": {
+  "id": "prod_0802",
+  "name": "薩摩芋燒酎",
+  "origin_type": "平地",
+  "primary_regions": [
+   "東海道芋作地",
+   "東海道山間村落"
+  ],
+  "base_price_silver": 120,
+  "unit": "燒酎大桶一桶",
+  "seasonal_traits": "秋收番薯後開蒸，四季都能出貨。",
+  "price_volatility": "低。耐放，行情平穩。",
+  "demand_strata": "町人、船夫、腳夫、祭典。",
+  "decay_rate": "每旬約 0.2%，幾乎不壞；但烈酒遇火即燃。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "酒類釀造系統 (Sake & Spirits System)",
+  "system_desc": "只做酒的批發：清酒、燒酎按桶批給城裡的酒屋與料理茶屋，另有長崎進來的南蠻珍陀酒。貨少量大、單價高，倉庫就是生意。"
+ },
+ "prod_0803": {
+  "id": "prod_0803",
+  "name": "長崎南蠻珍陀酒（紅葡萄酒）",
+  "origin_type": "舶來",
+  "primary_regions": [
+   "長崎會所（舶來）"
+  ],
+  "base_price_silver": 200,
+  "unit": "玻璃瓶十二瓶一箱",
+  "seasonal_traits": "國內不產，只能向大盤買；買家來去無常，大名與豪商偶爾一擁而上。",
+  "price_volatility": "極高。久無問津，一有大單就翻好幾倍。",
+  "demand_strata": "大名、豪商、好南蠻趣味的名士。",
+  "decay_rate": "每旬約 0.5%。",
+  "contraband_status": "要商株御免才能公開買賣；私運的珍陀酒入港照樣會被扣。",
+  "cartel_potential": "低。",
+  "system_name": "酒類釀造系統 (Sake & Spirits System)",
+  "system_desc": "只做酒的批發：清酒、燒酎按桶批給城裡的酒屋與料理茶屋，另有長崎進來的南蠻珍陀酒。貨少量大、單價高，倉庫就是生意。"
+ },
+ "prod_0901": {
+  "id": "prod_0901",
+  "name": "仙台味噌（赤味噌）",
+  "origin_type": "平地",
+  "primary_regions": [
+   "西道大豆鄉",
+   "北境寒地味噌藏"
+  ],
+  "base_price_silver": 6,
+  "unit": "大味噌桶 (約八貫)",
+  "seasonal_traits": "秋冬仕込，春夏出藏；天天要用，價錢一高就有人鬧。",
+  "price_volatility": "中。天天要用，缺貨時漲得快。",
+  "demand_strata": "町人、長屋人家、料理茶屋。",
+  "decay_rate": "每旬約 0.6%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0902": {
+  "id": "prod_0902",
+  "name": "練馬澤庵醃蘿蔔",
+  "origin_type": "平地",
+  "primary_regions": [
+   "帝都近郊菜園",
+   "各地農村"
+  ],
+  "base_price_silver": 5,
+  "unit": "澤庵大桶 (約五十本)",
+  "seasonal_traits": "秋收蘿蔔曬乾入桶，冬天最耐放；入夏鹽下得不夠就酸壞。",
+  "price_volatility": "中。天天要用，缺貨時漲得快。",
+  "demand_strata": "町人、長屋人家、寺院。",
+  "decay_rate": "每旬約 3%～7%：冬天最耐放，入夏容易酸壞。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0903": {
+  "id": "prod_0903",
+  "name": "野田濃口醬油",
+  "origin_type": "平地",
+  "primary_regions": [
+   "東海道醬油藏",
+   "帝都近郊"
+  ],
+  "base_price_silver": 12,
+  "unit": "醬油樽 (約四斗)",
+  "seasonal_traits": "四季都能出貨，冬天仕込、夏天熟成。",
+  "price_volatility": "低。行情平穩；齋戒時一時搶手。",
+  "demand_strata": "町人、料理茶屋、煮賣屋。",
+  "decay_rate": "每旬約 0.3%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0904": {
+  "id": "prod_0904",
+  "name": "紀州梅干",
+  "origin_type": "平地",
+  "primary_regions": [
+   "南海梅林",
+   "西道山間"
+  ],
+  "base_price_silver": 16,
+  "unit": "梅干甕 (約五貫)",
+  "seasonal_traits": "初夏醃梅、盛夏三日三夜土用曬，幾乎不壞。",
+  "price_volatility": "低。行情平穩；齋戒時一時搶手。",
+  "demand_strata": "町人、旅人、藥用。",
+  "decay_rate": "每旬約 0.2%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0905": {
+  "id": "prod_0905",
+  "name": "三河本味醂",
+  "origin_type": "平地",
+  "primary_regions": [
+   "東海道三河",
+   "帝都近郊"
+  ],
+  "base_price_silver": 45,
+  "unit": "味醂樽 (約四斗)",
+  "seasonal_traits": "冬天仕込，節慶時甜食、蒲燒都要用。",
+  "price_volatility": "低。行情平穩；齋戒時一時搶手。",
+  "demand_strata": "料理茶屋、菓子屋、富家。",
+  "decay_rate": "每旬約 0.8%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "中。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0906": {
+  "id": "prod_0906",
+  "name": "奈良漬（酒粕醃瓜）",
+  "origin_type": "平地",
+  "primary_regions": [
+   "京畿酒造鄉"
+  ],
+  "base_price_silver": 120,
+  "unit": "塗漆漬物樽 (約三貫)",
+  "seasonal_traits": "用好幾回新酒粕換醃，越陳越貴；歲末贈禮最搶手。",
+  "price_volatility": "極高。久無問津，一有大單就翻好幾倍。",
+  "demand_strata": "武家、豪商的贈答。",
+  "decay_rate": "每旬約 0.8%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "低。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
+ },
+ "prod_0907": {
+  "id": "prod_0907",
+  "name": "三年熟成八丁味噌（獻上）",
+  "origin_type": "平地",
+  "primary_regions": [
+   "東海道岡崎"
+  ],
+  "base_price_silver": 220,
+  "unit": "獻上味噌樽 (約五貫，封印)",
+  "seasonal_traits": "要熬過兩夏兩冬才出藏；齋戒時寺院與大名家辦精進料理，最需上等味噌。",
+  "price_volatility": "極高。久無問津，一有大單就翻好幾倍。",
+  "demand_strata": "大名、將軍家、名剎。",
+  "decay_rate": "每旬約 0.3%。",
+  "contraband_status": "完全合法。",
+  "cartel_potential": "低。",
+  "system_name": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "system_desc": "味噌、醬油、醃菜等天天上桌的醬漬貨，量大利薄；逢公方下令齋戒，不吃魚肉，醬菜一時搶手。"
  }
 }

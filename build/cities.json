@@ -580,7 +580,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0105"
   ],
   "history_100_years": [
    {
@@ -1163,7 +1164,8 @@
   "connected_commodities": [
    "prod_0503",
    "prod_0103",
-   "prod_0504"
+   "prod_0504",
+   "prod_0801"
   ],
   "history_100_years": [
    {
@@ -1393,7 +1395,8 @@
   "connected_commodities": [
    "prod_0406",
    "prod_0103",
-   "prod_0704"
+   "prod_0704",
+   "prod_0801"
   ],
   "history_100_years": [
    {
@@ -1449,7 +1452,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0801"
   ],
   "history_100_years": [
    {
@@ -1684,7 +1688,9 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0801",
+   "prod_0105"
   ],
   "history_100_years": [
    {
@@ -1748,7 +1754,8 @@
   "connected_commodities": [
    "prod_0205",
    "prod_0204",
-   "prod_0201"
+   "prod_0201",
+   "prod_0801"
   ],
   "history_100_years": [
    {
@@ -2047,7 +2054,8 @@
   "connected_commodities": [
    "prod_0205",
    "prod_0204",
-   "prod_0201"
+   "prod_0201",
+   "prod_0801"
   ],
   "history_100_years": [
    {
@@ -3428,7 +3436,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0105"
   ],
   "history_100_years": [
    {
@@ -3908,8 +3917,7 @@
   },
   "connected_commodities": [
    "prod_0601",
-   "prod_0201",
-   "prod_0105"
+   "prod_0201"
   ],
   "history_100_years": [
    {
@@ -4254,7 +4262,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0105"
   ],
   "history_100_years": [
    {
@@ -4615,7 +4624,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0105"
   ],
   "history_100_years": [
    {
@@ -4959,7 +4969,8 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0802"
   ],
   "history_100_years": [
    {
@@ -5127,7 +5138,8 @@
   "connected_commodities": [
    "prod_0205",
    "prod_0204",
-   "prod_0201"
+   "prod_0201",
+   "prod_0802"
   ],
   "history_100_years": [
    {
@@ -5357,7 +5369,8 @@
    "prod_0303",
    "prod_0701",
    "prod_0106",
-   "prod_0301"
+   "prod_0301",
+   "prod_0802"
   ],
   "history_100_years": [
    {
@@ -5532,7 +5545,8 @@
   "connected_commodities": [
    "prod_0205",
    "prod_0204",
-   "prod_0201"
+   "prod_0201",
+   "prod_0802"
   ],
   "history_100_years": [
    {
@@ -5708,7 +5722,9 @@
   "connected_commodities": [
    "prod_0103",
    "prod_0102",
-   "prod_0101"
+   "prod_0101",
+   "prod_0802",
+   "prod_0105"
   ],
   "history_100_years": [
    {

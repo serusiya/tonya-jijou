@@ -79,22 +79,24 @@
  },
  {
   "id": "prod_0105",
-  "name": "金芝麻與冷榨麻油",
-  "short_name": "芝麻油",
+  "name": "釀造用米麴",
+  "short_name": "米麴",
   "system": "糧穀與油料系統 (Grains & Edible Oils)",
   "origin_type": "平地",
-  "base_price": 280,
-  "unit": "小木樽 (約20升)",
+  "base_price": 500,
+  "unit": "麴蓋大箱 (約一斗)",
   "elasticity": null,
   "cartel_speculation": null,
   "decay_rate": null,
   "season_peak": "",
   "sys": "grain",
   "tags": [
-   "flam",
    "fest"
   ],
-  "decay": 0.01
+  "decay": 0.02,
+  "old_names": [
+   "金芝麻與冷榨麻油"
+  ]
  },
  {
   "id": "prod_0106",
@@ -773,5 +775,179 @@
   "sys": "luxury",
   "tags": [],
   "decay": 0.01
+ },
+ {
+  "id": "prod_0801",
+  "name": "灘生一本寒造清酒",
+  "short_name": "清酒",
+  "system": "酒類釀造系統 (Sake & Spirits System)",
+  "origin_type": "平地",
+  "base_price": 1300,
+  "unit": "四斗酒樽一桶",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "春",
+  "sys": "sake",
+  "tags": [
+   "normal",
+   "fest"
+  ],
+  "decay": 0.015
+ },
+ {
+  "id": "prod_0802",
+  "name": "薩摩芋燒酎",
+  "short_name": "燒酎",
+  "system": "酒類釀造系統 (Sake & Spirits System)",
+  "origin_type": "平地",
+  "base_price": 1200,
+  "unit": "燒酎大桶一桶",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "sake",
+  "tags": [
+   "normal",
+   "flam",
+   "fest"
+  ],
+  "decay": 0.002
+ },
+ {
+  "id": "prod_0803",
+  "name": "長崎南蠻珍陀酒（紅葡萄酒）",
+  "short_name": "珍陀酒",
+  "system": "酒類釀造系統 (Sake & Spirits System)",
+  "origin_type": "舶來",
+  "base_price": 2000,
+  "unit": "玻璃瓶十二瓶一箱",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "sake",
+  "tags": [],
+  "decay": 0.005
+ },
+ {
+  "id": "prod_0901",
+  "name": "仙台味噌（赤味噌）",
+  "short_name": "味噌",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 60,
+  "unit": "大味噌桶 (約八貫)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [
+   "staple",
+   "riot"
+  ],
+  "decay": 0.006
+ },
+ {
+  "id": "prod_0902",
+  "name": "練馬澤庵醃蘿蔔",
+  "short_name": "醃菜",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 50,
+  "unit": "澤庵大桶 (約五十本)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [
+   "staple"
+  ],
+  "decay": 0.05
+ },
+ {
+  "id": "prod_0903",
+  "name": "野田濃口醬油",
+  "short_name": "醬油",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 120,
+  "unit": "醬油樽 (約四斗)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [],
+  "decay": 0.003
+ },
+ {
+  "id": "prod_0904",
+  "name": "紀州梅干",
+  "short_name": "梅干",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 160,
+  "unit": "梅干甕 (約五貫)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [],
+  "decay": 0.002
+ },
+ {
+  "id": "prod_0905",
+  "name": "三河本味醂",
+  "short_name": "味醂",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 450,
+  "unit": "味醂樽 (約四斗)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [
+   "fest"
+  ],
+  "decay": 0.008
+ },
+ {
+  "id": "prod_0906",
+  "name": "奈良漬（酒粕醃瓜）",
+  "short_name": "奈良漬",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 1200,
+  "unit": "塗漆漬物樽 (約三貫)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [],
+  "decay": 0.008
+ },
+ {
+  "id": "prod_0907",
+  "name": "三年熟成八丁味噌（獻上）",
+  "short_name": "八丁味噌",
+  "system": "醬漬釀造系統 (Miso, Soy & Pickles System)",
+  "origin_type": "平地",
+  "base_price": 2200,
+  "unit": "獻上味噌樽 (約五貫，封印)",
+  "elasticity": null,
+  "cartel_speculation": null,
+  "decay_rate": null,
+  "season_peak": "",
+  "sys": "pickle",
+  "tags": [],
+  "decay": 0.003
  }
 ]
