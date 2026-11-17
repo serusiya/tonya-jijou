@@ -876,7 +876,7 @@ const ODDS={
   drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
   roleShift:{name:'職業調整：每季第一旬，本城低於基本數的身分從多出的身分轉入一人（只轉沒見過面、手帳沒有的人）',base:{broker:2,guest:6,manager:4}},
   shareShip:{name:'市佔修正：沒出貨不加市佔（出貨達配額幾成才算）；舊算法達幾成算有市場、掉到幾成回到新人；有市場後實際出貨占比的比重',shipMin:0.5,est:0.10,reset:0.05,w:0.6},
-  riot:{name:'打毀：主食或鹽的收市價同時高於「基準價幾倍」與「近幾旬平常價的幾倍」、連續幾旬（平常價紀錄未滿 minHist 旬時只看基準價倍數；第二百七十、二百七十三節）；打毀時搶走的庫存比例（主食／其他）、當替罪羊時罰現款的比例',idx:2.5,rel:1.1,hist:27,minHist:9,streak:5,loot:{staple:1/3,other:0.25},fine:0.125},
+  riot:{name:'打毀：主食或鹽的收市價同時高於「基準價幾倍」與「近幾旬平常價的幾倍」、連續幾旬（平常價紀錄未滿 minHist 旬時只看基準價倍數；第二百七十、二百七十三節）；打毀時搶走的庫存比例（主食／其他）、當替罪羊時罰現款的比例',idx:2.5,rel:1.1,hist:27,minHist:9,streak:5,omen:3,loot:{staple:1/3,other:0.25},fine:0.125},
   dapanDependency:{name:'大盤依賴度（實際出貨來源的固定基準價額加權）',win:9,knownMin:0.95},
   lux:{name:'奢侈品需求冷熱循環（久無買家、一賣吃數年）',warmMin:10,warmMax:30,dryMin:18,dryMax:100,dryMult:0.08,burstT:2,mulDiv:3,mulMin:9,mulMax:27,news:0.9},
   buyLimit:{name:'相場進貨上限（需求×市佔率；參加協議者再加協議配額；番頭與大番頭每人加成；無條件捨去，至少 1）',mult:0.8,perBantou:0.3},
@@ -998,6 +998,7 @@ const ODDS={
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
   ,sake:{name:'酒問屋（07zzy_sake.js，第三百零一節）：凶作後頒布禁酒令的機率與旬數；跟闇商人收私運珍陀酒（好感門檻、每次件數、牌價成數、幾旬一次）；禁酒令期間賣酒給闇商人（每次件數、牌價倍數、風聲）',banP:0.5,banTurns:18,buyAff:60,buyQty:[1,2],buyPrice:0.5,buyCd:3,bmQty:[5,10],bmPrice:1.5,bmHeat:0.5}
   ,fast:{name:'齋戒（07zzz_pickle.js，第三百零二節）：只在醬漬問屋的局；每年頒布的機率、預告提前幾旬、為期幾旬、需求倍數（味噌、醃菜、梅干兩倍，醬油、味醂一倍半）',p:0.3,lead:3,turns:3,mult:{prod_0901:2,prod_0902:2,prod_0904:2,prod_0903:1.5,prod_0905:1.5}}
+  ,charity:{name:'開倉施粥壓打毀（第三百一十六節）：米鹽價超過打毀門檻時，打毀的連續旬數減幾旬、幾旬一次',riotCut:1,cd:3}
   ,relief:{name:'災情救濟',soupFame:6,soupHeat:3,soupStaple:0.75,soupAff:10,importTurns:2,importMult:2,importFame:2,buildTurns:2,buildMul:1.4,buildFame:3}
 };
 /** 擲骰：以 ODDS[k].p（或自訂 p）判定是否發生。 */
@@ -4257,6 +4258,7 @@ const MSG_TXT={
   'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向普請方官員申請「河岸倉地拜領」。',
   /* —— charity —— */
   'charity.1':'施粥賑濟！百姓感念，名聲遠播。{famine}',
+  'charity.calm':'街頭的怨氣稍稍平了些。',
   /* —— banquet（宴會）—— */
   'banquet.done':'本旬已經設過宴了，下旬再辦吧。',
   'banquet.none':'還沒有介紹人，也沒有員工，無人可請。',
@@ -4707,6 +4709,7 @@ const NEWS_TXT={
   /* —— invUpkeep —— */
   "invUpkeep.1":"🔥【倉庫失火】易燃貨物起火，連環波及，共燒毀 {tot} 單位貨物！（保鏢可降低機率）",
   /* —— riot —— */
+  "riot.omen":"🍚【街談】米鹽價一連幾旬居高不下，街頭騷動，人心浮動；再不平下來，怕要鬧事。",
   "riot.1":"🔥【打毀】主食與鹽價居高不下，市民憤而暴動搶倉，奉行所開倉平準。",
   "riot.loss":"商號倉庫被搶走 {tot} 單位貨物。",
   "riot.safe":"所幸商號倉庫沒有損失。",
@@ -5122,6 +5125,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
 const CHANGELOG=[
   {date:'2026年11月17日',items:[
     '米問屋設定更新：芝麻油換成米麴，不易燃，產地多了幾處，價錢比芝麻油高。',
+    '修正：上一版之後穩定供貨不會加知名度的錯誤。',
+    '打毀設定更新：米鹽價一連三旬超過門檻時，旬報會先出現騷動的街談；這時在私宅開倉施粥，可以讓街頭的怨氣平一些，延後打毀（三旬一次）。',
+    '打毀設定更新：打毀改看實際收市價（含你的出貨），不再高估；相場的打毀警戒與打毀指標會跟著出貨拉霸即時變化，多出主食就看到指數下降。',
     '地區特色：北境倉庫的貨不易壞、也少失火；東海道陸運一趟馱得多；西道海運一趟裝得多；南海的大口買付只有一旬。開業旬報與地圖頁的地區概況有說明。',
     '交易許可設定更新：還沒拿到商株御免的貨可以先進貨囤著，只是不能賣；許可下來後頭三旬不算供貨穩不穩。'
   ]},
@@ -6092,8 +6098,16 @@ function holdTick(log){
 /** 主食/鹽相對基準價的倍數（打毀指標）。 */
 function stapleIndex(name){
   const c=COMM_MAP[name],m=G.mk[name];
-  return (c.sys===G.sysKey?priceNow(name,m.shipped):refIndex(name))/c.base;
+  return (c.sys===G.sysKey?(m.lastClose>0?m.lastClose:marketQuote(name)):refIndex(name))/c.base;   // 本業：剛結束那一旬的實際收市價（含你的出貨；第三百一十五節，原本誤用新一旬、出貨歸零後的試算）
 }
+/** 畫面用：照你排好的出貨量（已出的加上預定的）試算本旬收市價；不是本業的照參考行情。拖動出貨拉霸即時更新。 */
+function stapleIndexLive(name){
+  const c=COMM_MAP[name],m=G.mk[name];
+  return (c.sys===G.sysKey?priceNow(name,(m.shipped||0)+(typeof planOf==='function'?planOf(name):0)):refIndex(name))/c.base;
+}
+/** 畫面用的打毀警戒值（同 riotLevel 的尺度，2.5＝到門檻），取各打毀指標的最大值。 */
+const riotLevelLive=()=>Math.max(1,...riotKeys().filter(k=>G.mk[k]).map(k=>ODDS.riot.idx*stapleIndexLive(k)*COMM_MAP[k].base/riotLine(k)));
+const riotBarHtml=idx=>bar((idx-1),2.2,idx>2.3?'red':'gold');
 /** 打毀門檻（兩）：基準價 2.5 倍與「近 27 旬平常價」1.5 倍取較高者；平常價紀錄未滿 9 旬時只看基準價倍數（ODDS.riot，第二百七十節）。 */
 function riotLine(name){
   const R=ODDS.riot,c=COMM_MAP[name],H=(G.staple.h&&G.staple.h[name])||[],abs=R.idx*c.base;
@@ -6107,6 +6121,7 @@ function riotTick(log){
   const S=G.staple,R=ODDS.riot;if(S.cool>0)S.cool--;
   const idx=Math.max(...riotKeys().map(riotLevel));S.idx=idx;
   if(idx>R.idx)S.streak++;else S.streak=0;
+  if(S.streak===R.omen&&!(S.cool>0)){const t=NEWS('riot.omen');pushNews(t);log.push(t)}   // 打毀的預兆：連續三旬超過門檻（第三百一十六節）
   S.h=S.h||{};riotKeys().forEach(k=>{const H=S.h[k]||(S.h[k]=[]);H.push(+(stapleIndex(k)*COMM_MAP[k].base).toFixed(2));if(H.length>R.hist)H.splice(0,H.length-R.hist)});
   if(S.streak>=R.streak&&!(S.cool>0))riot(log);
 }
@@ -8291,7 +8306,7 @@ function renderMarket(){
   h+=shareCard()+guildInfoCard();
   h+=kakeCard();                                   // 定約掛賣（原行情表的位置；07zzm_kake.js）
   h+='<div class="small bold" style="margin:6px 0 3px">'+UT('mk.stapleTitle')+'</div>';
-  h+=riotKeys().filter(k=>G.mk[k]).map(k=>{const si=stapleIndex(k);return '<div class="mkt-row lock"><div><b class="small">'+esc(COMM_MAP[k].short)+'</b>'+infoBtn(k)+'<div class="tiny muted">'+UT('mk.stapleBase',{p:fmt1(COMM_MAP[k].base)})+'</div></div><div class="row" style="gap:8px">'+spark(G.mk[k].hist,chg(k)>=0)+'<div style="text-align:right;width:70px"><b class="'+(si>2?'up':'')+'">'+Math.round(si*100)+'%</b><div class="tiny muted">'+UT('mk.vsBase')+'</div></div></div></div>'}).join('');
+  h+=riotKeys().filter(k=>G.mk[k]).map(k=>{const si=stapleIndexLive(k);return '<div class="mkt-row lock"><div><b class="small">'+esc(COMM_MAP[k].short)+'</b>'+infoBtn(k)+'<div class="tiny muted">'+UT('mk.stapleBase',{p:fmt1(COMM_MAP[k].base)})+'</div></div><div class="row" style="gap:8px">'+spark(G.mk[k].hist,chg(k)>=0)+'<div style="text-align:right;width:70px"><b id="si-'+k+'" class="'+(si>2?'up':'')+'">'+Math.round(si*100)+'%</b><div class="tiny muted">'+UT('mk.vsBase')+'</div></div></div></div>'}).join('');
   h+='</div>';
   $('#view-market').innerHTML=h;updateQuote();
 }
@@ -8322,7 +8337,7 @@ function nextStock(name,ship,buy){
 function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
 /** 【本旬買賣】單項貨的出貨與進貨：頂端顯示協議配額，下面是兩個滑桿。 */
 function tradeCard(name){
-  const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=G.staple.idx||1;
+  const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=riotLevelLive();
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)})+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
@@ -8339,7 +8354,7 @@ function tradeCard(name){
   h+='<div class="row tiny" style="margin-top:6px"><b>'+UT('mk.dep.title',{w:ODDS.dapanDependency.win})+'</b><b>'+depDisplay(itemDapanDependency(name))+'</b></div>';   // 這項貨的大盤依賴度
   if(monoItem(name))h+=UT('f8.monoTag',{n:G.mono.until-G.turn+1});                                    // 專賣株（07zze_favor8.js）
   rivalsHere().filter(suspended).forEach(r=>{h+=UT('f8.suspTag',{n:esc(nameOf(r.cid)),t:r.suspUntil-G.turn+1})});   // 株札暫扣
-  h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div style="width:130px;margin-top:2px">'+bar((idx-1),2.2,idx>2.3?'red':'gold')+'</div></div></div>';
+  h+='<div class="row" style="margin-top:6px"><div class="small"><b>'+UT('mk.riotBar')+'</b> <div id="riot-bar" style="width:130px;margin-top:2px">'+riotBarHtml(idx)+'</div></div></div>';
   h+='</div>';
   return h;
 }
@@ -8365,6 +8380,7 @@ function refreshTrade(){
   $('#b-q').textContent=UT('mk.units',{n:bq});$('#b-cost').textContent=UT('mk.liang',{a:fmt(Math.round(unitBuyCost(name)*bq))});
   const oc=$('#order-card');if(oc)oc.outerHTML=planCard();
   {const lk=$('#q-lock'),t=shipLockHtml(name,ship);if(lk&&lk.innerHTML!==t)lk.innerHTML=t}   // 拉到 0 時出現停賣鈕
+  {const rb=$('#riot-bar');if(rb)rb.innerHTML=riotBarHtml(riotLevelLive());riotKeys().forEach(k=>{const e=$('#si-'+k);if(e){const si=stapleIndexLive(k);e.textContent=Math.round(si*100)+'%';e.className=si>2?'up':''}})}   // 打毀指數跟著出貨拉霸即時變（第三百一十五節）
   shipBarSync();
 }
 /** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
@@ -8530,7 +8546,7 @@ function autoShip(log){
     if(q>0){const r=sellGoods(c.name,q);if(r.ok){shipped=q;rep.rev+=r.revenue;rep.ship.push({n:c.short,q,rev:r.revenue})}}
     /* 穩定供貨線＝本城需求 × 你的市佔率；出貨量沒達到就算未能穩定供貨。
        已參加協議、配額低於供貨線、而你已出到配額（含超賣）＝同業壓貨波及（刻意保留的守約代價，旬報另列）；其餘（含未參加協議）＝出貨不足 */
-    const line=c.luxury||tradeGrace(c.name)?0:supplyLine(c.name);   // 許可剛下來的前三旬不判（第三百一十二節）if(line>0)judged++;   // 奢侈品不計入穩定供貨的判定（第二百七十五節）
+    const line=c.luxury||tradeGrace(c.name)?0:supplyLine(c.name);if(line>0)judged++;   // 奢侈品不計入穩定供貨的判定（第二百七十五節）；許可剛下來的前三旬不判（第三百一十二節）
     if(line>0&&shipped<line){(guildMember()&&quota<line&&shipped>=quota?squeeze:short).push(c.short);allMet=false}   // 未參加協議沒有配額約束，一律算出貨不足
   });
   /* 穩定供貨：全部商品出貨量達穩定供貨線 → 知名度 +1～3；有商品未達 → -1～3 */
@@ -8812,8 +8828,9 @@ ACT.charity=()=>{
   if(!afford('charity')){toast(shortMsg('charity'));return}
   const famine=Object.values(G.mk).some((m,i)=>m.ev>1.3&&commTag(COMM_MAP[Object.keys(G.mk)[i]],'grain'));
   spend('charity');G.charityT=G.turn;G.life.charity++;addFame(1.5,famine?'mid':undefined);   // 饑荒施粥是中事件，平常施粥是小事件
+  let calm='';{const S=G.staple,C=ODDS.charity;if(S&&S.streak>0&&!(G.charityRiotT>G.turn-C.cd)){S.streak=Math.max(0,S.streak-C.riotCut);G.charityRiotT=G.turn;calm=MSG('charity.calm')}}   // 米鹽價超過打毀門檻時：打毀的連續旬數減一，三旬一次（第三百一十六節）
   const t=NEWS('charity.1',{name:G.me.name,homeCity:homeCity().name});pushNews(t);
-  sfx.fanfare();toast(MSG('charity.1',{famine:(famine?UT('ppl.charity.2'):'')}));UI.render();refreshSheet();
+  sfx.fanfare();toast(MSG('charity.1',{famine:(famine?UT('ppl.charity.2'):'')})+calm);UI.render();refreshSheet();
 };
 /** 城市資料面板（人口、節慶、已發生的城史）。 */
 SHEETS.city=()=>{
