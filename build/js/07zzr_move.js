@@ -10,8 +10,8 @@ const MVO=()=>ODDS.move;
 const moving=()=>!!(G&&G.move);
 const MV_RANKS=['chief','banto','clerk','apprentice','captain','courier','guard'];
 /** 這座城可以開哪些行業（不產該行業的本業貨）。 */
-const moveSysOK=(ct,k)=>!commsOfSys(k).some(c=>(ct.connected_commodities||[]).includes(c.name));
-const moveSysList=ct=>SYS.filter(s=>moveSysOK(ct,s.key)).map(s=>s.key);
+const moveSysOK=(ct,k)=>!commsOfSys(k).some(c=>cityRaw(ct).includes(c.name));
+const moveSysList=ct=>SYS.filter(s=>s.key!==absentSys()&&moveSysOK(ct,s.key)).map(s=>s.key);   // 魚屋與醬漬問屋不能互轉（第三百零二節）
 /** 約定遷居前的檢查：回傳不能約的原因（UT 鍵），可以約就回傳空字串。 */
 function moveAskBlock(cid){
   const r=G.rel[cid],ct=outCity(cid);
@@ -53,7 +53,7 @@ const movePrep=()=>G.move?G.turn-G.move.start+1:0;
 function moveItems(){
   const L=[];
   dealGroups().forEach(([g,list])=>list.forEach(x=>{if(x.k!=='promise'&&x.k!=='gmDue')L.push(x)}));   // 對官員的承諾、公會長的得標金不擋啟程
-  if(G.kyusai)L.push({t:UT('mv.it.kyusai'),s:UT('deal2.left',{n:G.kyusai.left})});
+  if(G.kyusai)L.push({t:UT(G.kyusai.kind==='riot'?'mv.it.heika':'mv.it.kyusai'),s:UT('deal2.left',{n:G.kyusai.left})});
   return L;
 }
 /** 現在能不能啟程：回傳 {ok,why:[]}。 */
@@ -200,7 +200,7 @@ function moveDepart(sysKey,takeIds){
   officialMigrate();officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
   {const r=R(friend);r.lockAff=true;setAff(r,100);r.out=false;r.met=true;r.seen=true;r.bond=Object.assign({},r.bond||{mult:1},{label:UT('mv.bond'),introId:null});addKnown(friend);G.intros=[{cid:friend}];G.introId=friend;logRel(friend,UT('mv.log.arrive'))}
   G.cartel={state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:chance(ODDS.guildPolicy.normal)?'normal':'restrict'};   // 友人代墊訂約金（同開局）
-  G.mk={};initMarket();
+  G.mk={};initMarket();shipLockInit();             // 新城：停賣鎖重來，本業奢侈品預設停賣（第二百九十九節）
   G.share=marketShares();
   G.gm=null;if(G.month!==3){const t=gmSucceed('me');if(t)log.push(t)}
   newMeeting();
@@ -229,7 +229,7 @@ function moveClearCity(){
   G.staple={streak:0,peak:1};G.supplyQuarter={stable:0,unstable:0,turns:0};G.festival=null;G.disaster=null;G.smugP={};
   G.bz=[];G.bzBuy={};G.bzShow=false;G.rvLot=null;G.rivalHeirs=[];
   G.gm=null;G.gmDue=null;G.gmLevy=null;G.gmArb=null;G.guild=null;
-  G.urge=null;G.yami=null;G.popDown=0;G.lastGap=null;G.citySatLast=null;G.newTown=null;
+  G.urge=null;G.yami=null;G.urgeCall=null;G.riotLog=null;G.urgePend=null;G.popDown=0;G.lastGap=null;G.citySatLast=null;G.newTown=null;
   G.recruit=null;G.inspect=null;G.raidNote=null;G.tempHelp=null;G.swapOffer=null;G.lendOffer=null;G.stashOffer=null;G.xoffer=null;
   G.sumo=null;G.rushLot=null;G.rushBust=null;G.faceEvents=[];G.homeEvents=[];
 }

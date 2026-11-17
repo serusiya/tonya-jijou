@@ -1,9 +1,10 @@
 'use strict';
 /* ★檔案總覽：筆記內的「百科」分頁（線上遊戲百科全書）
- * - 玩法簡介、官吏架構、地區城市與物產、物產圖鑑；內容多半取自資料檔（OFFICIALS／CITIES／COMM_INFO），玩法簡介文字在 WIKI_GUIDE。
- * - 筆記頁頂端有「名冊／百科」切換；renderNotes（07_ui_people.js）在百科模式下改呼叫 renderWiki。 */
+ * - 玩法簡介、官吏架構、物產圖鑑；內容多半取自資料檔（OFFICIALS／COMM_INFO），玩法簡介文字在 WIKI_GUIDE。
+ * - 地區城市與古地圖另成筆記的「地圖」頁（renderMap，與百科並列；第二百九十二節）。
+ * - 筆記頁頂端有「名冊／百科／地圖／紀錄」切換；renderNotes（07_ui_people.js）在百科、地圖模式下改呼叫 renderWiki、renderMap。 */
 /* ======================= 07p 百科 ======================= */
-const WIKI_SECS=[['guide',UT('wiki.WIKI_SECS')],['office',UT('wiki.WIKI_SECS.2')],['region',UT('wiki.WIKI_SECS.3')],['goods',UT('wiki.WIKI_SECS.4')]];
+const WIKI_SECS=[['guide',UT('wiki.WIKI_SECS')],['office',UT('wiki.WIKI_SECS.2')],['goods',UT('wiki.WIKI_SECS.4')]];
 /** 百科官吏頁的「請託規則」（敘事式，不列公式）。 */
 const WIKI_REQ=UT('wiki.WIKI_REQ');
 /** 玩法簡介：[標題, 內文 HTML]（敘事式說明，不列公式）。 */
@@ -22,10 +23,10 @@ const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE.23'),UT('wiki.WIKI_GUIDE.24')],
   [UT('wiki.WIKI_GUIDE.25'),UT('wiki.WIKI_GUIDE.26')]
 ];
-/** 筆記頂端的「名冊／百科／紀錄」切換。 */
+/** 筆記頂端的「名冊／百科／地圖／紀錄」切換。 */
 function notesTabsHtml(){
   const t=UI.s.notesTab||'book';
-  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')],['rec',UT('wiki.notesTabsHtml.3')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
+  return '<div style="margin-bottom:6px">'+[['book',UT('wiki.notesTabsHtml')],['wiki',UT('wiki.notesTabsHtml.2')],['map',UT('wiki.notesTabsHtml.4')],['rec',UT('wiki.notesTabsHtml.3')]].map(([k,n])=>'<span class="pill '+(t===k?'on':'')+'" data-act="nTab" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
 }
 ACT.nTab=el=>{UI.s.notesTab=el.dataset.k;UI.render();$('#main').scrollTop=0};
 ACT.wikiSec=el=>{UI.s.wikiSec=el.dataset.k;UI.render();$('#main').scrollTop=0};
@@ -80,9 +81,11 @@ function wikiRegion(){
   let id=UI.s.wikiRegion;if(!R_.some(r=>r.id===id))id=(CITY(G.cityId)||{}).region_id||R_[0].id;
   const r=R_.find(x=>x.id===id),types={},typeName={},goods={};
   r.cities.forEach(c=>{types[c.type]=(types[c.type]||0)+1;typeName[c.type]=c.location_type;cityProds(c).forEach(n=>goods[n]=(goods[n]||0)+1)});
-  const top=Object.entries(goods).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const own=n=>COMM_MAP[n]&&COMM_MAP[n].sys===G.sysKey?1:0;   // 本業貨排最前面，剩下的空位照產地城數補滿十項（第三百節）
+  const top=Object.entries(goods).sort((a,b)=>own(b[0])-own(a[0])||b[1]-a[1]).slice(0,10);
   let h='<div>'+R_.map(x=>'<span class="pill '+(x.id===id?'on':'')+'" data-act="wikiRegion" data-id="'+x.id+'">'+esc(x.name)+'</span>').join('')+'</div>';
   h+='<div class="card" style="margin-top:5px"><b>'+esc(r.name)+'</b> <span class="tag gray">'+UT('wiki.wikiRegion.2',{a:r.cities.length,b:Object.entries(types).map(([k,v])=>esc(typeName[k])+' '+v).join(UT('wiki.wikiRegion'))})+'</div>'+UT('wiki.wikiRegion.3',{a:top.map(([n,v])=>{const c=COMM_MAP[n];return c?'<span class="tag clk" data-act="commInfo" data-n="'+esc(n)+'">'+esc(c.short.slice(0,6))+'</span>':''}).join(' ')})+'</div></div>';
+  if(UI_TXT['wiki.trait.'+id]!==undefined)h+='<div class="tiny" style="margin-top:3px;color:#27407a">'+UT('wiki.trait.'+id)+'</div>';   // 地區特色（第三百一十四節）
   const sel=UI.s.mapSel&&r.cities.find(c=>c.id===UI.s.mapSel);
   h+='<div class="pixel-box" style="padding:4px;margin-top:5px;overflow:hidden">'+UT('wiki.wikiRegion.6',{a:regionMapSvg(id,{home:G.cityId,sel:sel&&sel.id}),b:id==='reg_south'?UT('wiki.wikiRegion.4'):UT('wiki.wikiRegion.5')});
   if(sel)h+=cityLine(sel);
@@ -93,7 +96,7 @@ function wikiGoods(){
   const by={};COMM.forEach(c=>{(by[c.sys]=by[c.sys]||[]).push(c)});
   let h=UT('wiki.h.4');
   SYS.forEach(s=>{
-    const list=by[s.key]||[];if(!list.length)return;
+    const list=by[s.key]||[];if(!list.length||(G&&s.key===absentSys()))return;   // 這一局沒有的行業（魚屋或醬漬問屋）不列
     const body=list.slice().sort((a,b)=>a.base-b.base).map(c=>{const n=(CITIES.filter(ct=>cityProds(ct).includes(c.name)).length);return '<div class="row tiny" style="margin-top:3px" data-act="commInfo" data-n="'+esc(c.name)+'"><span><span class="tag clk">'+esc(c.short.slice(0,8))+'</span> <span class="tag '+(c.luxury?'gold':c.staple?'green':'gray')+'">'+UT('wiki.body.4',{a:NM('kind',c.kind),w:NM('weight',weightClass(c.name)),b:fmt1(c.base),c:n})}).join('');
     h+=wikiBox('s'+s.key,UT('wiki.wikiGoods',{a:esc(s.name)}),body,UT('wiki.wikiGoods.2',{a:list.length}));
   });
@@ -101,9 +104,15 @@ function wikiGoods(){
 }
 /** 百科主畫面。 */
 function renderWiki(){
-  const sec=UI.s.wikiSec||'guide';
+  let sec=UI.s.wikiSec||'guide';if(!WIKI_SECS.some(([k])=>k===sec))sec='guide';   // 原本的「城市」分頁已移到地圖頁
   let h='<div class="pixel-box" style="padding:8px">'+UT('wiki.h.5',{a:notesTabsHtml()});
   h+='<div style="margin-top:6px">'+WIKI_SECS.map(([k,n])=>'<span class="pill '+(sec===k?'on':'')+'" data-act="wikiSec" data-k="'+k+'">'+n+'</span>').join('')+'</div>';
-  h+='<div style="margin-top:4px">'+({guide:wikiGuide,office:wikiOffice,region:wikiRegion,goods:wikiGoods}[sec]||wikiGuide)()+'</div></div>';
+  h+='<div style="margin-top:4px">'+({guide:wikiGuide,office:wikiOffice,goods:wikiGoods}[sec]||wikiGuide)()+'</div></div>';
   $('#view-notes').innerHTML=h;
 }
+/** 筆記的「地圖」頁：地區頁籤、地區概況、古地圖與各城說明（原本百科的城市分頁）。 */
+function renderMap(){
+  $('#view-notes').innerHTML='<div class="pixel-box" style="padding:8px">'+UT('wiki.h.6',{a:notesTabsHtml()})+'<div style="margin-top:6px">'+wikiRegion()+'</div></div>';
+}
+/** 從別處（遠國奉行所）跳到筆記的地圖頁，停在指定地區。 */
+ACT.goMap=el=>{UI.s.notesTab='map';UI.s.wikiRegion=el.dataset.id;UI.s.mapSel=null;if(UI.s.sheet)UI.closeSheet();UI.go('notes')};

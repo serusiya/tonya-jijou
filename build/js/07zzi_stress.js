@@ -184,14 +184,13 @@ function tripStart(k,f){
   playFx('walk',MSG('trip.fx.'+k),MSG(f?'trip.fxSubWith.'+k:'trip.fxSub.'+k,{f:f?nameOf(f):''}),()=>{
     addStress(k,-T.relief);
     if(k==='temple'){TRIP_PEND={k,f};UI.s.tripGift=0;UI.showInfo(UT('trip.done.temple'),'<div class="text-prose" style="margin-bottom:6px">'+MSG(hatsuNow()?'trip.arrive.hatsu':'trip.arrive.temple')+'</div>'+tripGiftRow()
-      +'<div class="grid2" style="margin-top:6px"><button class="pixel-btn btn-gold btn-sm" data-act="tripGiftDo">'+UT('btn.tripGiftDo')+'</button><button class="pixel-btn btn-sm" data-act="tripGiftSkip">'+UT('btn.tripGiftSkip')+'</button></div>');UI.render();return}
+      +'<button class="pixel-btn btn-gold btn-sm" style="width:100%;margin-top:6px" data-act="tripGiftDo">'+UT('btn.tripPray')+'</button>');UI.render();return}
     tripArrive(k,f,0);
   },1500);
 }
-/** 寺社：到了才決定香油錢（關掉視窗＝不捐，同行好感照算）。 */
+/** 寺社：到了才決定香油錢，一顆「參拜」照拉桿金額奉納，拉桿在 0 就是只參拜（關掉視窗＝不捐，同行好感照算）。 */
 var TRIP_PEND=null;
 ACT.tripGiftDo=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,UI.s.tripGift||0)};   // 直接換掉視窗內容，不先關（關掉會讓排隊的事件插進來）
-ACT.tripGiftSkip=()=>{const P=TRIP_PEND;TRIP_PEND=null;if(!P)return UI.hideInfo();tripArrive(P.k,P.f,0)};
 {const _h=UI.hideInfo;UI.hideInfo=function(){const P=TRIP_PEND;TRIP_PEND=null;const O=TRIP_OFFER,done=TRIP_RESULT;const r=_h.apply(this,arguments);
   if(P){tripArrive(P.k,P.f,0,true);tripMusicEnd()}else if(done||(O&&TRIP_OFFER===O)){TRIP_OFFER=null;tripMusicEnd()}return r}}   // 同行詢問直接關掉＝不出發
 /** 到了當地：香油錢、當地人物、湯客、同行的人、求籤，最後一張結果視窗。quiet＝不跳視窗（玩家直接關掉時）。 */

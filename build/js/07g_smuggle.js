@@ -7,11 +7,12 @@
  * ===================================================================== */
 
 /** 違禁品：cost 海外進貨單價、sell 江戶基準售價、danger 危險度（影響被查獲與刑責）。 */
+/** 違禁品（內部代號沿用舊名：wine 珍陀酒、glass 珈琲豆、cloth 琉球黑糖、herb 火繩槍、opium 鴉片；第三百零七節）。 */
 const SMUG_ITEMS=[
   {k:'wine', name:UT('smug.SMUG_ITEMS'), icon:'🍷',cost:40, sell:130,danger:1},
-  {k:'glass',name:UT('smug.SMUG_ITEMS.2'),         icon:'🔮',cost:55, sell:165,danger:1},
-  {k:'cloth',name:UT('smug.SMUG_ITEMS.3'), icon:'🧣',cost:60, sell:180,danger:1},
-  {k:'herb', name:UT('smug.SMUG_ITEMS.4'),   icon:'🌿',cost:75, sell:240,danger:2},
+  {k:'glass',name:UT('smug.SMUG_ITEMS.2'),         icon:'☕',cost:55, sell:165,danger:1},
+  {k:'cloth',name:UT('smug.SMUG_ITEMS.3'), icon:'🟫',cost:60, sell:180,danger:1},
+  {k:'herb', name:UT('smug.SMUG_ITEMS.4'),   icon:'🎯',cost:75, sell:240,danger:2},
   {k:'opium',name:UT('smug.SMUG_ITEMS.5'),             icon:'🟤',cost:90, sell:340,danger:3}
 ];
 const SMUG_BY={};SMUG_ITEMS.forEach(i=>SMUG_BY[i.k]=i);

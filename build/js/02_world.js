@@ -156,6 +156,19 @@ function addKnown(cid){if(!G.known.includes(cid)){G.known.push(cid);R(cid).seen=
 /** 在往來實錄追加一筆（最多保留 40 筆）。 */
 function logRel(cid,text){const r=R(cid);r.log.push({y:G.year,m:G.month,c:G.cycle,t:text});if(r.log.length>40)r.log.shift()}
 
+/* ---------- 醬漬問屋的局：魚貨產地換成醬漬貨（第三百零二節） ---------- */
+/** 魚貨→醬漬貨的對照（一對一，產地數量與分布不變）。 */
+const PROD_SWAP={prod_0201:'prod_0901',prod_0205:'prod_0902',prod_0202:'prod_0904',prod_0204:'prod_0903',prod_0206:'prod_0905',prod_0203:'prod_0906',prod_0207:'prod_0907'};
+let PROD_SWAP_CACHE={g:null,m:{}};
+/** 城市的原始物產（資料表）；醬漬問屋的局（G.prodSwap）把魚貨換成醬漬貨。所有讀城市物產的地方都經過它。 */
+function cityRaw(ct){
+  const b=(ct&&ct.connected_commodities)||[];if(!(G&&G.prodSwap))return b;
+  if(PROD_SWAP_CACHE.g!==G)PROD_SWAP_CACHE={g:G,m:{}};
+  return PROD_SWAP_CACHE.m[ct.id]||(PROD_SWAP_CACHE.m[ct.id]=b.map(n=>G.prodSwap[n]||n));
+}
+/** 這一局沒有的行業：醬漬問屋的局沒有魚屋，其餘的局沒有醬漬問屋。 */
+const absentSys=()=>G&&G.prodSwap?'marine':'pickle';
+
 /* ---------- 新局 ---------- */
 /** 主角、子女的名字候選（00_names.js 的 NAMES.given／childM／childF）。 */
 const GIVEN=NAMES.given,CHILD_M=NAMES.childM,CHILD_F=NAMES.childF;
@@ -166,7 +179,7 @@ function pickActiveCities(homeId,own){
   const capOf=r=>ALL_CITIES.filter(c=>c.region_id===r).sort((x,y)=>y.population-x.population)[0].id,caps=regs.map(capOf);   // 各地區人口最多者為主城，一定入選
   const chosen=new Set([homeId,...caps]);
   regs.forEach(r=>{const pool=shuffle(ALL_CITIES.filter(c=>c.region_id===r&&!chosen.has(c.id)));const k=quota[r]-ALL_CITIES.filter(c=>c.region_id===r&&chosen.has(c.id)).length;pool.slice(0,Math.max(0,k)).forEach(c=>chosen.add(c.id))});
-  const prod=n=>ALL_CITIES.filter(c=>c.connected_commodities.includes(n));
+  const prod=n=>ALL_CITIES.filter(c=>cityRaw(c).includes(n));
   const need=n=>Math.min(2,prod(n).length),have=n=>prod(n).filter(c=>chosen.has(c.id)).length;
   for(let guard=0;guard<80;guard++){
     const lack=own.find(n=>have(n)<need(n));if(!lack)break;
@@ -204,9 +217,10 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
     mood:'',festival:null,sales:[],lastRev:0,ended:null,legacy:[],
     stapleUnit:ODDS.staple.unit,fame:0,share:null,plan:{},sold:{},ap:5,orders:[],arrived:[],heat:0,debts:[],recruit:null,lastSpoil:'',lastCost:0,publicSpend:{},histDone:{},encounterTurn:-1,fameFloor:0,caughtLog:{},rec:{r:[],b:[],t:[]},gm:null,gmDue:null,gmOut:{},cityRoutes:{},openedRoads:[]};
   G.cartel.policy=chance(ODDS.guildPolicy.normal)?'normal':'restrict';
+  if(sysKey==='pickle')G.prodSwap=Object.assign({},PROD_SWAP);   // 醬漬問屋的局：全國魚貨產地換成醬漬貨
   G.me.given=pick(GIVEN);G.me.name=UT('me.name',{f:G.me.family,g:G.me.given});
   // 駐節城市：人口 6 萬以上較有規模，可指定地區；一律是港口；本店所在城市不能是本業貨品的產地
-  const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>ct.connected_commodities.includes(n));
+  const own=commsOfSys(sysKey).map(c=>c.name),producesOwn=ct=>own.some(n=>cityRaw(ct).includes(n));
   const picked=regionPref&&regionPref!=='rand',regOK=c=>picked?c.region_id===regionPref:c.region_id!=='reg_central';   // 隨機開局不落在京畿圈（日後要完成帝都獻上才能遷入）
   let cs=ALL_CITIES.filter(c=>c.population>=60000&&!producesOwn(c)&&regOK(c));
   if(!cs.length)cs=ALL_CITIES.filter(c=>!producesOwn(c)&&(picked||c.region_id!=='reg_central'));
@@ -223,6 +237,7 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   G.guide={s:1};                                  // 開業指引（07zzw_guide.js）
   if(sysKey==='mining')G.kakeOn=true;             // 礦產開局就能談掛賣（第二百七十八節）
   initMarket();
+  shipLockInit();                                  // 本業奢侈品預設停賣（第二百九十九節）
   buyoutEnsure();                                  // 五區本年度大口買付排程（首年從夏季起）
   daimyoPlan();                                    // 今年的大名行列過境旬（07zzc_daimyo.js）
   // 開局沒有任何員工，也沒有介紹人：要先找介紹人，再一個一個找員工
@@ -232,6 +247,7 @@ function newGame(sysKey,regionPref,startTier=0,diff='normal'){
   recordSilver();
   G.yearLog=[];G.yearSilver0=G.silver;
   pushNews(NEWS('newGame.1',{name:G.me.name,CITY:CITY(G.cityId).name,firm:G.firm}));
+  {const k='trait.'+CITY(G.cityId).region_id;if(NEWS_TXT[k])pushNews(NEWS(k))}   // 地區特色（第三百一十四節）
   pushNews(NEWS('newGame.guild',{c:fmt(costOf('guildBond')),policy:guildPolicyName()}));
   newMeeting();pushNews(NEWS('meet.today'));     // 開局那一旬（3 月上旬）就是第一次例會；平手時沿用開局隨機決定的方針
   pushNews(NEWS(G.emps.length?'newGame.crew':'newGame.alone'));

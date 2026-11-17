@@ -149,6 +149,7 @@ const MSG_TXT={
   'whUp.max':'倉庫已蓋到許可的上限。要再增建，先向普請方官員申請「河岸倉地拜領」。',
   /* —— charity —— */
   'charity.1':'施粥賑濟！百姓感念，名聲遠播。{famine}',
+  'charity.calm':'街頭的怨氣稍稍平了些。',
   /* —— banquet（宴會）—— */
   'banquet.done':'本旬已經設過宴了，下旬再辦吧。',
   'banquet.none':'還沒有介紹人，也沒有員工，無人可請。',
@@ -215,7 +216,7 @@ const MSG_TXT={
   'sendVoyage.4':'尚未取得【{REG_NAME}】的{sea}。請到「遠國奉行所」請託。',
   'sendVoyage.5':'委託金至少 100 兩',
   'sendVoyage.6':'現款不足，委託金需 {budget} 兩',
-  'sendVoyage.buyout':'已確認【{REG_NAME}】{month}正逢「大口買付」，本月不能再派人前往採買。',
+  'sendVoyage.buyout':'已確認【{REG_NAME}】{month}正逢「大口買付」，這段期間不能再派人前往採買。',
   'sendVoyage.ap':'本旬行動次數已用完，下旬再委託吧。',
   'sendVoyage.hurt':'🤕 你身上有傷，還需靜養 {injured} 旬，沒法到河岸交代。',
   'sendVoyage.hurt.sick':'🤒 你還臥病在床，需靜養 {injured} 旬，沒法到河岸交代。',
@@ -301,6 +302,10 @@ const MSG_TXT={
   'plan.quota':'每項進貨都照協議配額。',
   'plan.quotaShort':'每項進貨照協議配額；有幾項受進貨上限、倉位或現款所限，進不足。',
   'plan.clear':'已清除本旬的進貨安排。',
+  'sake.banSell':'禁酒令中，清酒不准在市面賣。',
+  'shipLock.on':'「{n}」停賣，之後每旬都不出貨。',
+  'shipLock.off':'「{n}」恢復出貨，照配額安排。',
+  'shipLock.need':'先把出貨拉到零，才能停賣。',
   'sendVoyage.ok':'{crew}「{name}」帶著 {budget} 兩委託金前往【{dest}】，約 {d} 旬後歸來。',
   'voyage.depart':'出發！',
   'save.exported':'存檔已匯出：{f}',

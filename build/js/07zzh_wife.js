@@ -68,7 +68,7 @@ const wifeMult=c=>G&&G.wifeFans&&G.turn<=G.wifeFans.until&&c.name===G.wifeFans.n
 function wifeGoodApply(kind){
   const O=ODDS.wife;
   if(kind==='fans'){const c=wifeCheapest();if(!c)return '';G.wifeFans={name:c.name,until:G.turn+O.fansTurns-1};return UT('wife.good.fans.eff',{g:xName(c.name),t:O.fansTurns})}
-  if(kind==='intel'){const I=buyoutIntelNext();if(!I)return UT('wife.good.intel.none');buyoutDiscover(I.y,I.rid,I.m);return UT('wife.good.intel.eff',{r:REG_NAME(I.rid),m:buyoutMonth(I.m)})}
+  if(kind==='intel'){const I=buyoutIntelNext();if(!I)return UT('wife.good.intel.none');buyoutDiscover(I.y,I.rid,I.m);return UT('wife.good.intel.eff',{r:REG_NAME(I.rid),m:buyoutMonth(I.m,I.rid)})}
   if(kind==='recover'){
     const e=G.emps.filter(x=>(x.skim||0)>=1).sort((a,b)=>b.skim-a.skim)[0];if(!e)return UT('wife.good.recover.none');
     const amt=Math.round(e.skim);e.skim=0;G.silver+=amt;G.carryIn=G.carryIn||{};G.carryIn.windfall=(G.carryIn.windfall||0)+amt;sfx.coin();

@@ -19,7 +19,7 @@ function letterCheck(cid,amt){
   const n=npc(cid);if(!foreignReg(n))return MSG('letter.notForeign');
   if(letterUsed(cid))return MSG('letter.used');
   if(G.silver<amt)return MSG('letter.short',{a:fmt(amt)});
-  if(apLeft()<=0)return MSG('ap.out',{m:AP_MAX});
+  if(apLeft()<=0)return MSG('ap.out',{m:apCapNow()});
   return null;
 }
 /** 尚未結識：問候信按鈕。 */

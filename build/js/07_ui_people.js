@@ -209,8 +209,9 @@ ACT.charity=()=>{
   if(!afford('charity')){toast(shortMsg('charity'));return}
   const famine=Object.values(G.mk).some((m,i)=>m.ev>1.3&&commTag(COMM_MAP[Object.keys(G.mk)[i]],'grain'));
   spend('charity');G.charityT=G.turn;G.life.charity++;addFame(1.5,famine?'mid':undefined);   // 饑荒施粥是中事件，平常施粥是小事件
+  let calm='';{const S=G.staple,C=ODDS.charity;if(S&&S.streak>0&&!(G.charityRiotT>G.turn-C.cd)){S.streak=Math.max(0,S.streak-C.riotCut);G.charityRiotT=G.turn;calm=MSG('charity.calm')}}   // 米鹽價超過打毀門檻時：打毀的連續旬數減一，三旬一次（第三百一十六節）
   const t=NEWS('charity.1',{name:G.me.name,homeCity:homeCity().name});pushNews(t);
-  sfx.fanfare();toast(MSG('charity.1',{famine:(famine?UT('ppl.charity.2'):'')}));UI.render();refreshSheet();
+  sfx.fanfare();toast(MSG('charity.1',{famine:(famine?UT('ppl.charity.2'):'')})+calm);UI.render();refreshSheet();
 };
 /** 城市資料面板（人口、節慶、已發生的城史）。 */
 SHEETS.city=()=>{
@@ -247,6 +248,7 @@ function noteLevel(r){return r.aff<12?1:r.aff<32?2:r.aff<56?3:4}
 /** 筆記畫面（員工分頁含無名冊的少年）。 */
 function renderNotes(){
   if((UI.s.notesTab||'book')==='wiki'){renderWiki();return}
+  if(UI.s.notesTab==='map'){renderMap();return}   // 地圖頁（07p_wiki.js）
   const q=UI.s.notesQ.trim(),f=UI.s.notesF;
   let list=G.known.filter(id=>CH(id)&&noteSeen(id)).map(id=>({id,c:CH(id),n:npc(id),r:R(id)}));
   if(f==='emp')list=G.emps.filter(e=>e.cid&&CH(e.cid)).map(e=>({id:e.cid,c:CH(e.cid),n:npc(e.cid),r:R(e.cid)}));
@@ -513,11 +515,12 @@ SHEETS.legacy=()=>{
 };
 
 /* ======================= 開局畫面 ======================= */
-/** 每一世重新將七個行業洗牌到固定的七個資源等級；開局畫面重繪時沿用同一副牌。 */
+/** 每一世把八個行業洗牌，抽七個分到固定的七個資源等級；開局畫面重繪時沿用同一副牌。 */
 function makeStartDeck(){
-  const a=SYS.map(s=>s.key);
+  const drop=Math.random()<0.5?'marine':'pickle';  // 魚屋與醬漬問屋共用一個位子（第三百零二節）
+  const a=SYS.map(s=>s.key).filter(k=>k!==drop);
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
-  return a;
+  return a.slice(0,START_TIERS.length);            // 八個行業抽七個上牌（第三百零一節）
 }
 /** 顯示開局畫面（選流派、地區）。 */
 UI.showStart=function(){

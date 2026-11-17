@@ -77,13 +77,13 @@ function ofIntelBlock(cid){
 ACT.ofIntel=el=>{
   const cid=el.dataset.cid;if(!isOutFriend(cid)||R(cid).aff<OF().letterCap)return;
   const rid=outCity(cid).region_id,b=ofIntelBlock(cid);
-  if(b){const I=buyoutNextOf(rid);toast(UT(b,{r:REG_NAME(rid),m:I?buyoutMonth(I.m):''}));return}
+  if(b){const I=buyoutNextOf(rid);toast(UT(b,{r:REG_NAME(rid),m:I?buyoutMonth(I.m,I.rid):''}));return}
   const amt=ofLetterCost(cid);if(G.silver<amt){toast(UT('of.letter.short',{a:fmt(amt)}));return}
   const I=buyoutIntelFor(rid);if(!I)return;
   if(!letterSpend(cid))return;
   payPublic('spend.ofLetter|'+cid,amt);buyoutDiscover(I.y,I.rid,I.m);
-  logRel(cid,UT('of.log.intel',{a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m)}));
-  toast(UT('of.intel.ok',{n:nameOf(cid),a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m)}),6000);sfx.gift();UI.render();refreshSheet();
+  logRel(cid,UT('of.log.intel',{a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m,I.rid)}));
+  toast(UT('of.intel.ok',{n:nameOf(cid),a:fmt(amt),r:REG_NAME(rid),m:buyoutMonth(I.m,I.rid)}),6000);sfx.gift();UI.render();refreshSheet();
 };
 /* ---------- 出遊訪友 ---------- */
 /** 離家作客中（這一旬人不在店裡）。 */
@@ -133,7 +133,7 @@ function outRowHtml(cid){
   const lt=lb==='of.letter.used'?UT('btn.ofLetterUsed'):lb==='of.letter.away'?UT('btn.ofLetterAway'):lb==='of.letter.enemy'?UT('btn.ofLetterEnemy'):intel?(lb?UT('btn.ofIntelOff'):UT('btn.ofIntel',{c:coin})):UT('btn.ofLetter',{c:coin});
   let h='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:5px"><button class="pixel-btn btn-sm" data-act="'+(intel?'ofIntel':'ofLetter')+'" data-cid="'+cid+'" '+(lb?'disabled':'')+'>'+lt+'</button>'
     +'<button class="pixel-btn btn-sm btn-gold" data-act="ofTrip" data-cid="'+cid+'" '+(tb?'disabled':'')+'>'+UT('btn.ofTrip',{n:ofTripLen(cid),c:coinHtml('gold',ofTripCost(cid))})+'</button></div>';
-  if(intel&&(lb==='of.intel.none'||lb==='of.intel.known')){const I=buyoutNextOf(outCity(cid).region_id);h+='<div class="tiny muted" style="margin-top:2px">'+UT(lb,{r:REG_NAME(outCity(cid).region_id),m:I?buyoutMonth(I.m):''})+'</div>'}
+  if(intel&&(lb==='of.intel.none'||lb==='of.intel.known')){const I=buyoutNextOf(outCity(cid).region_id);h+='<div class="tiny muted" style="margin-top:2px">'+UT(lb,{r:REG_NAME(outCity(cid).region_id),m:I?buyoutMonth(I.m,I.rid):''})+'</div>'}
   else if(intel&&!lb)h+='<div class="tiny muted" style="margin-top:2px">'+UT('of.intel.hint',{r:REG_NAME(outCity(cid).region_id)})+'</div>';
   if(tb&&tb!=='of.trip.busy')h+='<div class="tiny muted" style="margin-top:2px">'+UT(tb==='of.trip.need'?'of.card.low':tb,{a:fmt(ofTripCost(cid))})+'</div>';
   return h;

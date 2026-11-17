@@ -94,8 +94,8 @@ function dealerDo(cid,k){
   if(k==='buyoutIntel'){
     const I=buyoutIntelNext();if(!I)return UT('deal.buyoutIntel.none');
     buyoutDiscover(I.y,I.rid,I.m);setAff(r,Math.max(0,r.aff-REQ_AFF.normal));r.dealT=G.turn;
-    logRel(cid,UT('deal.buyoutIntel.log',{region:REG_NAME(I.rid),month:buyoutMonth(I.m),aff:REQ_AFF.normal}));
-    return UT('deal.buyoutIntel.ok',{name:nm,region:REG_NAME(I.rid),month:buyoutMonth(I.m),aff:REQ_AFF.normal});
+    logRel(cid,UT('deal.buyoutIntel.log',{region:REG_NAME(I.rid),month:buyoutMonth(I.m,I.rid),aff:REQ_AFF.normal}));
+    return UT('deal.buyoutIntel.ok',{name:nm,region:REG_NAME(I.rid),month:buyoutMonth(I.m,I.rid),aff:REQ_AFF.normal});
   }
   if(k==='cs_wait')return UT('deal.csWait.d');
   if(k.startsWith('cs_')&&!blackMarketOpen())return UT('deal.csWait.d');

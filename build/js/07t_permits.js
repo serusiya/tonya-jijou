@@ -45,7 +45,7 @@ function grantLic(k,rank){
 
 /* ---------- 交易許可：本業最貴的兩項貨 ---------- */
 /** 本業需交易許可的貨：[最貴, 第二貴]。 */
-function lockedTrade(sysKey){return commsOfSys(sysKey||G.sysKey).slice().sort((a,b)=>b.base-a.base).slice(0,2).map(c=>c.name)}
+function lockedTrade(sysKey){const L=commsOfSys(sysKey||G.sysKey);return L.slice().sort((a,b)=>b.base-a.base).slice(0,L.length<=3?1:2).map(c=>c.name)}   // 本業三項以下只鎖最貴的一項（酒問屋，第三百零一節）
 /** 這項貨能不能交易（非本業、或不在鎖定名單、或已取得許可）。 */
 function tradeOK(name){
   const c=COMM_MAP[name];if(!G||!c||c.sys!==G.sysKey)return true;
@@ -53,10 +53,13 @@ function tradeOK(name){
 }
 /** 本業中目前可交易的貨。 */
 const tradeComms=()=>ownComms().filter(c=>tradeOK(c.name));
+/** 許可剛下來的緩衝：前幾旬不判這項貨的穩定供貨（G.tradeT[貨]＝核發的旬；第三百一十二節）。 */
+const TRADE_GRACE=3;
+const tradeGrace=name=>!!(G&&G.tradeT&&G.tradeT[name]!==undefined&&G.turn-G.tradeT[name]<TRADE_GRACE);
 /** 開局交易許可：第六、七資源等級送所選行業第二貴貨物的許可。 */
-function startTrade(sysKey,startTier){return Number(startTier)>=5?[lockedTrade(sysKey)[1]]:[]}
+function startTrade(sysKey,startTier){const L=lockedTrade(sysKey);return Number(startTier)>=5?[L[1]||L[0]]:[]}   // 只鎖一項的行業送那一項
 /** 交易許可的請託名稱（帶上貨名）。 */
-const tradeFavorName=idx=>UT('lic.tradeFavorName',{a:COMM_MAP[lockedTrade()[idx]].short});
+const tradeFavorName=idx=>{const n=lockedTrade()[idx];return n?UT('lic.tradeFavorName',{a:COMM_MAP[n].short}):UT('lic.posFavors.3',{a:idx?UT('lic.posFavors'):UT('lic.posFavors.2')})};
 /** 尚未許可時的提示（大盤用）。 */
 function tradeLockMsg(name){const i=lockedTrade().indexOf(name);return UT('lic.tradeLockMsg.3',{a:COMM_MAP[name].short,b:i===0?UT('lic.tradeLockMsg'):UT('lic.tradeLockMsg.2')})}
 
@@ -72,7 +75,7 @@ function resolveFavor(f,n){
 /** 這位官員能辦的是否已經辦妥（許可等級已不低於他能核發的、交易許可已取得、一次性地區許可已持有）。 */
 function favorDone(f,n){
   if(f.lic)return licLv(f.lic)>=licGrantLv(n.pos.rank);
-  if(f.trade!==undefined)return (G.trade||[]).includes(lockedTrade()[f.trade]);
+  if(f.trade!==undefined){const nm=lockedTrade()[f.trade];return !nm||(G.trade||[]).includes(nm)}   // 這一行沒有這一級的鎖：當作已辦妥，不列出
   if(f.once)return regionHeld(f.k,n);
   if(f.k==='firebreak')return !!G.flags.firebreak;
   return false;
@@ -89,7 +92,7 @@ function favorPending(f){
 function grantFavorApp(A){
   if(A.lic)return UT('lic.grantFavorApp',{a:licFavorName(A.lic,A.rank||2),b:grantLic(A.lic,A.rank||2)});
   if(A.key==='firebreak'){G.flags.firebreak=true;return UT('lic.grantFavorApp.2')}
-  if(A.trade!==undefined){const nm=lockedTrade()[A.trade];G.trade=G.trade||[];if(!G.trade.includes(nm))G.trade.push(nm);return UT('lic.grantFavorApp.3',{a:COMM_MAP[nm].short})}
+  if(A.trade!==undefined){const nm=lockedTrade()[A.trade];G.trade=G.trade||[];if(!G.trade.includes(nm)){G.trade.push(nm);G.tradeT=G.tradeT||{};G.tradeT[nm]=G.turn}return UT('lic.grantFavorApp.3',{a:COMM_MAP[nm].short})}
   return null;
 }
 
@@ -124,7 +127,7 @@ function regLicCard(){
 /** 某職位能辦的請託：三系官署看系統別與官階（限定官階的只在該階），遠國奉行所看職位。回傳 [{name,desc}]。 */
 function posFavors(id){
   const p=OFF_POS[id];if(!p)return [];
-  return (FAVORS[p.court]||[]).filter(f=>!f.bandit&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
+  return (FAVORS[p.court]||[]).filter(f=>!(f.trade!==undefined&&G&&G.sysKey&&!lockedTrade()[f.trade])&&!f.bandit&&(!f.pos||f.pos.includes(id))&&p.rank>=f.rank&&(!f.exactRank||p.rank===f.rank)).map(f=>{
     let name=f.name;
     if(f.lic)name=licFavorName(f.lic,p.rank);
     else if(f.trade!==undefined)name=G&&G.sysKey?tradeFavorName(f.trade):UT('lic.posFavors.3',{a:f.trade?UT('lic.posFavors'):UT('lic.posFavors.2')});

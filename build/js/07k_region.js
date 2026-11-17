@@ -1,10 +1,11 @@
 'use strict';
 /* ★檔案總覽：地區官制（遠國奉行所）與海運、陸運許可
  * - 在各城官署之上多一級「地區官府」（官制資料見 officials.json 的 region 系統，10 個江戶風職位）。
- * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發；船奉行的朱印狀＝全地區通用；遠國奉行的通商特許＝該地區海陸皆通）。
- * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發；道中奉行的通行狀＝通用、航程 −1）。
+ * - 海路許可＝每個地區各自的「進港泊位許可」（津口番所役核發）。
+ * - 陸路許可＝本地區的「關所通行手形」（關所番頭核發）。
+ * - 朱印狀、五街道通行狀、地區通商特許狀已刪除（第一百四十二、二百五十六節）；舊存檔已取得的照舊有效（G.flags.road、charter）。
  * - 其餘請託：驛馬優先、產地買付便宜、船手護送、雜費減免狀、請巡見使美言。中央巡見使巡視時，風聲太緊會吊銷許可。
- * - 狀態：G.permits={sea:{regId|all:true},land:{…}}；G.flags.horse/escort/taxfree/cheap（剩餘旬數）、road/charter。 */
+ * - 狀態：G.permits={sea:{regId|all:true},land:{…}}；G.flags.horse/escort/taxfree/cheap（剩餘旬數）；road/charter 只剩舊存檔會有。 */
 /** 全部地區（id、名稱）。 */
 const REG_LIST=[...new Map(CITIES.map(c=>[c.region_id,{id:c.region_id,name:c.region_name}])).values()];
 const REG_NAME=id=>{const r=REG_LIST.find(x=>x.id===id);return r?r.name:id};
@@ -91,6 +92,7 @@ SHEETS.regional=()=>{
   const home=homeCity(),rid=UI.s.regSel||home.region_id;
   let h=UT('reg.h',{a:appsCard()});
   h+='<div style="margin:4px 0">'+REG_LIST.map(r=>'<span class="pill '+(r.id===rid?'on':'')+'" data-act="regSel" data-id="'+r.id+'">'+esc(r.name.slice(0,6))+(r.id===home.region_id?UT('reg.regional'):'')+'</span>').join('')+'</div>';
+  h+=UT('reg.mapLink',{id:esc(rid),a:esc(REG_NAME(rid))});   // 前往筆記的地圖頁（07p_wiki.js 的 ACT.goMap）
   if(rid!==home.region_id)h+=UT('letter.note');   // 外地只能寄信（07zz_letters.js）
   h+=regLicCard();
   const offs=Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&regOfNpc(n)===rid&&alive(n.cid)).sort((a,b)=>a.pos.rank-b.pos.rank);
@@ -138,9 +140,18 @@ function appsTick(log){
   });
   G.apps=L.filter(a=>!a.done);
 }
+/** 冷卻中的請託（第三百零九節）：官員身上的冷卻（r.cd）、新町取立、大工程失敗後的冷卻。回傳 [{name,who,left}]，剩餘旬數少的在前。 */
+function cdList(){
+  const out=[],favName=k=>{for(const L of Object.values(FAVORS)){const f=(L||[]).find(x=>x.k===k);if(f)return f.name||UT('fav.'+k)}return UT('fav.'+k)};
+  Object.entries(G.rel||{}).forEach(([cid,r])=>{if(!r||!r.cd||!alive(cid))return;Object.entries(r.cd).forEach(([k,t])=>{if(t>G.turn)out.push({name:favName(k),who:nameOf(cid),left:t-G.turn})})});
+  if(typeof newTownCool==='function'&&newTownCool())out.push({name:favName('newTown'),who:homeCity().name,left:NT().cd-G.turn+1});
+  const WN={port:'rport2',road:'rroad2',kokusan:'rkokusan'};
+  if(G.works&&G.works.cd)Object.entries(G.works.cd).forEach(([key,t])=>{if(!(t>=G.turn))return;const [k,rid]=key.split(':');if(WN[k])out.push({name:favName(WN[k]),who:REG_NAME(rid),left:t-G.turn+1})});
+  return out.sort((a,b)=>a.left-b.left);
+}
 function appsCard(){
-  const L=appsList();if(!L.length)return '';
+  const L=appsList(),C=cdList();if(!L.length&&!C.length)return '';
   return UT('reg.appsCard.2',{a:L.map(A=>{
     return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+UT('reg.appsCard',{a:esc(nameOf(A.cid)),b:A.left});
-  }).join('')})+'</div>';
+  }).join('')+(C.length?UT('reg.cdHead')+C.map(x=>UT('reg.cdRow',{a:esc(x.name),b:esc(x.who),c:x.left})).join(''):'')})+'</div>';
 }

@@ -58,7 +58,7 @@ function patronTick(log){
   // 交貨（到期那一次推進）
   S0.orders.filter(o=>o.due<=G.turn).forEach(o=>{
     S0.orders=S0.orders.filter(x=>x!==o);
-    const have=G.inv[o.name]||0,c=COMM_MAP[o.name],nm=nameOf(o.cid),r=R(o.cid);
+    const have=Math.max(0,(G.inv[o.name]||0)-kakeHeld(o.name)),c=COMM_MAP[o.name],nm=nameOf(o.cid),r=R(o.cid);
     if(have>=o.qty){
       const rev=Math.round(o.qty*o.unit);stockTake(o.name,o.qty,false);G.silver+=rev;G.lastRev+=rev;G.life.peak=Math.max(G.life.peak,G.silver);
       setAff(r,r.aff+P.doneAff);const f0=G.fame||0;addFame(rint(P.fame[0],P.fame[1]),'mid');const gf=Math.round(((G.fame||0)-f0)*10)/10;
@@ -89,7 +89,7 @@ FACE_TITLE.patron='pt.ask.t';
 FACE_EXT.patron=(e,name)=>{
   const o=e.o;if(!o||ptOrders().length>=PT().max||!tradeOK(o.name))return null;
   UI.s.ptOffer=o;const c=COMM_MAP[o.name],n=npc(o.cid),off=n&&n.role==='official';
-  const when=UT(o.k==='fest'?'pt.when.fest':'pt.when.year',{f:(homeCity().special_festival||{}).name||''});
+  const when=UT(o.k==='fest'?'pt.when.fest':o.k==='fast'?'pt.when.fast':'pt.when.year',{f:(homeCity().special_festival||{}).name||''});
   return {line:TX(off?'patron.official':'patron.guest',{g:c.short,w:when}),effect:UT('pt.ask.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),w:when,t:Math.max(1,o.due-1-G.turn)})+(o.big?UT('pt.ask.big'):''),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="ptTake">'+UT('btn.ptTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };

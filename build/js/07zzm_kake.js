@@ -26,7 +26,7 @@ function pactExtras(){
   const L=[];if(!G)return L;
   const T=G.tribute;if(T&&COMM_MAP[T.name])L.push({kind:'tribute',ref:T,cid:T.cid,name:T.name,qty:T.qty,due:G.turn+1>=T.due});
   const H=G.honjin;if(H&&COMM_MAP[H.name])L.push({kind:'honjin',ref:H,cid:H.cid,name:H.name,qty:H.qty,due:G.turn>=H.start,left:H.left});
-  const K=G.kyusai;if(K&&K.items)K.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'kyusai',ref:it,cid:K.cid,name:it.name,qty:it.qty,due:G.turn>=K.start,left:K.left})});   // 御救販售（07zzq_urge.js）
+  const K=G.kyusai;if(K&&K.items)K.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:K.kind==='riot'?'heika':'kyusai',ref:it,cid:K.cid,name:it.name,qty:it.qty,due:G.turn>=K.start,left:K.left})});   // 御救販售（07zzq_urge.js）
   const Y=G.yami;if(Y&&Y.items)Y.items.forEach(it=>{if(COMM_MAP[it.name])L.push({kind:'yami',ref:it,cid:Y.cid,name:it.name,qty:it.qty,due:G.turn>=Y.start,left:Y.left})});   // 闇商代出
   return L;
 }

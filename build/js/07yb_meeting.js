@@ -69,7 +69,7 @@ function meetVote(me){
 /** 投票定案。 */
 function meetVoteFinal(n,r,me,pol,tie){
   const M=meetNow();M.tieAsk=null;
-  const C=G.cartel,changed=pol!==cartelPolicy();C.policy=pol;if(changed)G.plan={};
+  const C=G.cartel,changed=pol!==cartelPolicy();C.policy=pol;if(changed){const S=G.sold||{},P={};Object.keys(S).forEach(k=>{if(S[k])P[k]=0});G.plan=P}   // 方針改了，出貨預設改照新配額；本旬已按過「出貨」的貨維持 0，推進時不再自動出一次
   M.voted=true;M.myVote=me||null;M.tally={n,r,me:me||null,policy:pol,tie,gm:tie?gmCid():null};
   meetResupply();
   return M.tally;

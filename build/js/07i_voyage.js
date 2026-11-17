@@ -71,7 +71,7 @@ function makeVoyageMix(its){
 }
 /** 可前往的目的地：海運＝雙方皆為港灣；陸運＝同地區且 2 旬內。商路頁只列已有許可的城市；full＝連無許可的也列（開局贈送與出發檢查用）。 */
 function destList(mode,full){
-  const a=homeCity(),own=tradeNameSet(),all=ownNameSet();
+  const a=homeCity(),own=ownNameSet(),all=ownNameSet();   // 沒有交易許可的本業貨也會買回來囤著（第三百一十二節）
   const ok0=mode==='sea'?(ct=>canSea(a)&&canSea(ct)):(ct=>canLand(a,ct)),ok=ct=>ok0(ct)&&(full||permitOf(mode,ct));
   return CITIES.filter(ct=>ct.id!==a.id&&ok(ct)).map(ct=>({ct,d:distTurns(a,ct,mode),
     own:cityProds(ct).filter(n=>own.has(n)&&COMM_MAP[n]),oth:cityProds(ct).filter(n=>!all.has(n)&&COMM_MAP[n]),blocked:buyoutDepartureBlocked(ct)}))
@@ -84,7 +84,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
   const cap=idleCaptains(mode,true).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:NM('crew',mode)})};
   const dest=CITY(destId),dl=destList(mode,true).find(x=>x.ct.id===destId);if(!dest||!dl)return {ok:false,msg:MSG('sendVoyage.3')};
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))})};
-  if(buyoutDepartureBlocked(dest))return {ok:false,msg:MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month)})};
+  if(buyoutDepartureBlocked(dest))return {ok:false,msg:MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month,dest.region_id)})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
   if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured})};
@@ -101,14 +101,14 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
 /** 歸來結算。 */
 function resolveVoyage(s,log){
   const mode=s.mode,cs=s.cs||50,budget=s.budget||0,back=!(s.out&&!budget),robbed=back&&banditRobs(mode),wreck=back&&(robbed||chance(s.risk)),keep=wreck?0.3:1;   // 卸留請負空手回來（委託金 0）時回程不擲   // 本地區賊亂期間回程一律被劫（07zv_bandit.js）
-  const dest=CITY(s.origId),own=tradeNameSet(),all=ownNameSet(),buyout=!!s.buyout;
+  const dest=CITY(s.origId),own=ownNameSet(),all=ownNameSet(),buyout=!!s.buyout;
   const prod=(dest?[...new Set(cityProdsBase(dest).concat(s.unl||[]))]:[]).filter(n=>COMM_MAP[n]);   // 國中物卸留以出發旬判定（s.unl）
   const ownP=buyout?[]:prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
   let spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
   let carry=null;                                       // 唐物藥種夾帶：先從委託金留出這筆錢，再做主要採買
   if(G.sysKey==='medicine'&&chance(ODDS.voyageKind.carry)){
-    const K=ODDS.voyageKind,it=pick(SMUG_ITEMS),unit=it.cost*(1-0.2*cs/100);
+    const K=ODDS.voyageKind,it=pick(SMUG_ITEMS.filter(i=>K.carryItems.includes(i.k))),unit=it.cost*(1-0.2*cs/100);
     const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
     if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
   }
@@ -117,7 +117,7 @@ function resolveVoyage(s,log){
   else if(ownP.length){kind=rnd()<ODDS.voyageKind.cross?'cross':'own';if(kind==='cross'&&!othP.length)kind='own'}
   else{                                                 // 目的地沒有本業貨：八成空手而回，兩成改買他行貨（當地也沒有他行貨就空手）
     kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
-    note=buyout?UT('voy.buyoutNote',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM),crew:NM('crew',mode),result:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')}):UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
+    note=buyout?UT('voy.buyoutNote',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM,s.buyoutRegion),crew:NM('crew',mode),result:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')}):UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
   }
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,robbed,buyout,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
   let refund=budget-fee,income=0;
@@ -170,7 +170,7 @@ function resolveVoyage(s,log){
   G.voyLog=G.voyLog||[];G.voyLog.unshift(E);if(G.voyLog.length>15)G.voyLog.pop();
   if(E.lossVal>0)lossNote('cargo',E.lossVal);        // 荷損御賑：一旬取損失最大的那隊（07zze_favor8.js）
   if(TURNRP){TURNRP.voy=TURNRP.voy||[];TURNRP.voy.push(E)}
-  if(buyout){buyoutDiscover(s.buyoutY,s.buyoutRegion,s.buyoutM);const b=NEWS('buyout.arrive',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM),crew:NM('crew',mode),name:s.captName});pushNews(b);log.push(b)}
+  if(buyout){buyoutDiscover(s.buyoutY,s.buyoutRegion,s.buyoutM);const b=NEWS('buyout.arrive',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM,s.buyoutRegion),crew:NM('crew',mode),name:s.captName});pushNews(b);log.push(b)}
   const t=NEWS('kind.8',{mode:NM('crew',mode),captName:s.captName,dest:E.dest,cross:(kind==='outOnly'?UT('r4.out.back'):kind==='own'?UT('voy.t'):kind==='cross'?UT('voy.t.2'):UT('voy.t.3')),sea:(wreck&&kind!=='empty'?UT('voy.t.6',{a:robbed&&mode==='sea'?UT('voy.tPirate'):mode==='sea'?UT('voy.t.4'):UT('voy.t.5')}):'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
@@ -189,7 +189,7 @@ function voyagePanel(){
   if(!caps.length)return '<div class="notice">'+(idleCaptains(mode,true).length?UT('voy.voyagePanel.3',{a:NM('crew',mode)}):UT('voy.voyagePanel.4',{a:NM('crew',mode),b:NM('crew',mode)}))+'</div>';
   const dl=destList(mode).slice(0,10),open=dl.filter(x=>!x.blocked);
   if(!dl.length)return '<div class="notice">'+(destList(mode,true).length?UT('voy.noPermitAll'):mode==='land'?UT('voy.voyagePanel.5'):UT('voy.voyagePanel.6'))+'</div>';
-  if(!open.length)return UT('voy.buyoutAllBlocked',{region:REG_NAME(dl[0].ct.region_id),month:buyoutMonth(G.month)});
+  if(!open.length)return UT('voy.buyoutAllBlocked',{region:REG_NAME(dl[0].ct.region_id),month:buyoutMonth(G.month,dl[0].ct.region_id)});
   if(!caps.some(e=>e.id===R_.capt))R_.capt=caps[0].id;
   if(!open.some(x=>x.ct.id===R_.dest))R_.dest=open[0].ct.id;
   const cash=Math.floor(G.silver-voyQTotal());
@@ -254,7 +254,7 @@ ACT.vAdd=()=>{
   if(!cap){toast(MSG('sendVoyage.2',{mode:NM('crew',mode)}));return}
   const dest=CITY(R_.dest);if(!dest||!destList(mode,true).some(x=>x.ct.id===R_.dest)){toast(MSG('sendVoyage.3'));return}
   if(!permitOf(mode,dest)){toast(MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))}),4200);return}
-  if(buyoutDepartureBlocked(dest)){toast(MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month)}),4200);return}
+  if(buyoutDepartureBlocked(dest)){toast(MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month,dest.region_id)}),4200);return}
   const b=Math.floor(R_.budget||0);if(!(b>=100)){toast(MSG('sendVoyage.5'));return}
   if(b>G.silver-voyQTotal()){toast(MSG('voyQ.short',{c:fmt(b+voyQTotal())}),4200);return}
   voyQ().push({capt:cap.id,mode,dest:dest.id,budget:b});sfx.tap();

@@ -97,18 +97,20 @@ const SYS=[
   {key:'mining',silver:10000,gold:15},
   {key:'textile',silver:11000,gold:20},
   {key:'medicine',silver:12500,gold:500},
-  {key:'luxury',silver:15500,gold:1000}
+  {key:'luxury',silver:15500,gold:1000},
+  {key:'sake',silver:0,gold:0},                   // 酒問屋（第三百零一節）：不帶資源等級，金額照分到的等級
+  {key:'pickle',silver:0,gold:0}                  // 醬漬問屋（第三百零二節）：與魚屋共用一個上牌位子
 ].map(s=>Object.assign(s,NAMES.sys[s.key]));
 const SYS_BY_KEY={};SYS.forEach(s=>SYS_BY_KEY[s.key]=s);
-/** 七個開局資源等級。資源與等級固定，行業則在每次新人生開始前重新洗牌分配。 */
-const START_TIERS=SYS.map((s,i)=>({i,silver:s.silver,gold:s.gold,perk:s.perk,res:s.res}));
+/** 七個開局資源等級。資源與等級固定，行業則在每次新人生開始前重新洗牌分配（八個行業抽七個上牌，第三百零一節）。 */
+const START_TIERS=SYS.slice(0,7).map((s,i)=>({i,silver:s.silver,gold:s.gold,perk:s.perk,res:s.res}));
 
 /* ---------- 物產資料加工 ---------- */
 /** 把原始 COMMS 資料加工成遊戲用的物品。
  *  name＝物品代號（prod_0101…，存檔、市場、庫存的鍵）；full＝全名、short＝短名（顯示用）；sys＝所屬流派；
  *  tags（資料檔）：staple 必需品、flam 易燃、fest 節慶搶手、riot 打毀指標、fire 火災漲價、grain 米麥、rice 米、typhoon 颱風、military 軍需。 */
 const COMM=COMMS.map((c,i)=>{
-  const tags=c.tags||[],staple=tags.includes('staple'),luxury=c.base_price>=1000;
+  const tags=c.tags||[],staple=tags.includes('staple'),luxury=c.base_price>=1000&&!tags.includes('normal');   // normal 標籤：單價高但仍算一般品（酒問屋按桶批發，第三百零一節）
   return {i,name:c.id,id:c.id,full:c.name,short:c.short_name||c.name,sys:c.sys,origin:c.origin_type,base:c.base_price/10,unit:c.unit,tags,
     staple,luxury,alpha:staple?1.8:(luxury?0.7:1.1),decay:c.decay,flam:tags.includes('flam'),
     kind:staple?'staple':(luxury?'luxury':'normal')};
@@ -123,7 +125,9 @@ const SEASON_COEF={
   grain:{spring:1.05,summer:1.08,autumn:0.85,winter:1.0},marine:{spring:1,summer:1.05,autumn:1.0,winter:1.1},
   timber:{spring:1.0,summer:0.95,autumn:1.0,winter:1.12},mining:{spring:1,summer:0.98,autumn:1.0,winter:1.06},
   textile:{spring:1.05,summer:1.02,autumn:1.0,winter:1.0},medicine:{spring:1.0,summer:1.1,autumn:1.0,winter:1.0},
-  luxury:{spring:1.0,summer:0.98,autumn:1.02,winter:1.05}
+  luxury:{spring:1.0,summer:0.98,autumn:1.02,winter:1.05},
+  sake:{spring:0.96,summer:1.0,autumn:1.03,winter:1.06},          // 冬釀春出：春天新酒多，秋冬存貨見底
+  pickle:{spring:1.02,summer:1.05,autumn:0.95,winter:1.0}         // 秋收醃漬，入夏存貨見底
 };
 
 /* ---------- 曆法（指數年：遊戲開始年 = 0 年，主角當時 20 歲） ---------- */
@@ -200,13 +204,15 @@ function toast(msg,ms=2600){
 const AP_MAX=5;
 /** 本旬剩餘行動點數（舊存檔無此欄位時補滿）。 */
 function apLeft(){if(G.ap===undefined)G.ap=AP_MAX;return G.ap}
+/** 本旬行動上限：照壓力狀態（從容 5、疲憊 4、心力交瘁與病倒 3；07zzi_stress.js 的 apMaxNow），畫面一律顯示這個數。 */
+const apCapNow=()=>typeof apMaxNow==='function'&&G?apMaxNow():AP_MAX;
 /** 消耗 1 點行動點數；不足時提示並回傳 false。所有「實際外出辦事」的動作應先呼叫它。 */
 function spendAP(){
-  if(apLeft()<=0){toast(MSG('ap.out',{m:AP_MAX}));return false}
+  if(apLeft()<=0){toast(MSG('ap.out',{m:apCapNow()}));return false}
   G.ap--;updateAP();return true;
 }
 /** 更新頂部『行動 x/5』顯示。 */
-function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent=UT('top.ap',{a,m:AP_MAX});e.className='ap'+(a<=1?' low':'')}}
+function updateAP(){const e=document.getElementById('d-ap');if(e){const a=G?apLeft():AP_MAX;e.textContent=UT('top.ap',{a,m:G?apCapNow():AP_MAX});e.className='ap'+(a<=1?' low':'')}}
 
 /* ---------- 知名度：做任何事都有一點，結識高階官吏更多；降低拜訪被拒的機率，也影響市佔率 ---------- */
 /** 永久知名度下限（新町取立、國產取立等；尚無時為 0）。 */

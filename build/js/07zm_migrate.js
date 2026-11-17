@@ -74,6 +74,7 @@ function migrateSave(){
   Object.values((G.world&&G.world.npcs)||{}).forEach(n=>{if(n.hiredBy){n.hired=false;delete n.hiredBy}});   // 舊版「另謀高就被同業聘走」的人放回人才池
   sanitizeIntros();                                 // 介紹人名單：去掉已不能當介紹人的人
   officialMigrate();                                // 已刪除的官職換新；本城缺的官署席位由名冊補上
+  if(!G.shipLock)G.shipLock={};                     // 停賣鎖（第二百九十九節）：舊存檔不預設鎖
   if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
   if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
   if(G.fameFloor===undefined)G.fameFloor=0;          // 永久知名度下限（新町取立、國產取立）

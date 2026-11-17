@@ -31,7 +31,7 @@ function repRow(icon,label,amt,max,cls){
 }
 /** 貨物收支：每項貨第一行列本旬淨收支；第二行靠右列「牌價 → 新牌價（漲跌）」，碰到底價時註明。盈利與零值紅色，虧損綠色。 */
 function goodsRows(T){
-  const tradable=tradeComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
+  const tradable=ownComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
   const L=(T.goods||[]).filter(x=>allowed.has(x.n)).sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d||((order.get(a.n)??999)-(order.get(b.n)??999))});
   if(!L.length)return UT('rep.goodsRows');
   const mx=Math.max(1,...L.map(x=>Math.max(x.rev||0,x.cost||0)));
