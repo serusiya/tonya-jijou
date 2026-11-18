@@ -780,10 +780,11 @@ const COSTS={
   whUp:{name:'增建倉庫',cur:'silver',amt:1500,per:'現有倉庫數'},
   charity:{name:'開倉施粥',cur:'silver',amt:120},
   guildBond:{name:'協議訂約金（付給大盤，退出或違約作廢）',cur:'silver',amt:1000},
-  dapanSettle1:{name:'與大盤和解（停貨一，含訂約金）',cur:'silver',amt:10000},
-  dapanSettle2:{name:'與大盤和解（停貨二，含訂約金）',cur:'silver',amt:20000},
+  dapanSettle1:{name:'與大盤和解（停貨一，全額為訂約金）',cur:'silver',amt:10000},
+  dapanSettle2:{name:'與大盤和解（停貨二，全額為訂約金）',cur:'silver',amt:20000},
   dapanKogi1:{name:'公儀調停（停貨一）',cur:'silver',amt:5000},
   dapanKogi2:{name:'公儀調停（停貨二）',cur:'silver',amt:8000},
+  bekkeOpen:{name:'開別家的資金',cur:'silver',amt:10000},
   /* —— 家族 —— */
   marryRival:{name:'聘禮：同行之女',cur:'silver',amt:400},
   marryOfficial:{name:'聘禮：官家之女',cur:'silver',amt:800},
@@ -998,6 +999,7 @@ const ODDS={
   ,patron:{name:'貴人訂貨（07zzu_patron.js）：好感門檻、同時最多幾張、上門提前幾旬（最近、最遠）、在上門期間每旬每位貴人上門的機率、各等級件數、大年倍數與間隔（年）、開價倍數（基準價）、交齊好感與知名度、失約扣好感、旅商轉手利潤（基準價的幾倍記進身代）',aff:80,max:8,lead:[3,6],p:0.35,qty:{4:[1,2],5:[2,3],6:[3,5]},bigMult:2,bigEvery:[3,5],price:[2.5,3.5],doneAff:10,fame:[2,3],failAff:30,resell:0.5}
   ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、最少件數、開價（基準價倍數，不低於平時牌價的幾倍）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:[1.6,2.0],warFloor:1.2,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
+  ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
   ,staffChat:{name:'店員閒聊與零用錢（07zzs_staffchat.js）：好感門檻（以下靠零用錢、以上靠閒聊）、好感增幅、貪欲高的門檻、往事最多記幾件、同一件最多提幾次、改講往事的機率',affAt:80,gain:[3,5],greed:70,memMax:6,memUse:2,memP:0.5}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
@@ -4120,11 +4122,42 @@ const UI_TXT={
   'dp.rvOff':'調貨（不肯）',
   'dp.rvOff.d':'大盤打過招呼，同業都不敢勻貨給你。',
   'dp.noBid':'大盤停貨中，菓子折標不得。',
-  'dp.settleNote':'這次例會加入協議，就能與大盤和解：和解金 {c}（含訂約金）。',
-  'dp.settleNoteMem':'你已在協議裡：重申守約、付和解金 {c}，就能與大盤和解。',
+  'dp.settleNote':'這次例會加入協議，就能與大盤和解：和解金 {c}，全額當作訂約金，日後違約被查獲就整筆沒收。',
+  'dp.settleNoteMem':'你已在協議裡：重申守約、付和解金 {c}，就能與大盤和解；這筆錢併進訂約金。',
   'btn.dpSettle':'重申守約並和解',
   'fav.kogi':'公儀調停',
-  'fav.kogi.d':'以監察市井物價、禁止私設壟斷為名，傳喚大盤問屋訓誡，當場解除停貨。'
+  'fav.kogi.d':'以監察市井物價、禁止私設壟斷為名，傳喚大盤問屋訓誡，當場解除停貨。',
+  /* 別家（07zzzzz_bekke，第三百二十、三百三十一節） */
+  'bk.firm':'{f}·別家',
+  'bk.cmd':'<div class="card" style="margin-top:6px;background:#fff8eb"><b class="small">🏮 出去開別家</b><div class="tiny muted" style="margin-top:2px">讓他用「{f}」的名號在本城另開一間：名號上的第二家，進出貨全由本家。開店資金 {c}。</div>',
+  'bk.lack':'還差：{a}',
+  'bk.need.share':'市佔還不到三成',
+  'bk.need.tenure':'他當大番頭還不滿一年',
+  'bk.need.cash':'現款不到 {a} 兩',
+  'btn.bekkeOpen':'出去開別家',
+  'bk.vote.t':'別家來問',
+  'bk.vote.line':'本家，這期例會，別家要投維持還是減供？',
+  'bk.vote.eff':'別家在協議裡，照您的意思投；不吩咐就照他自己的意思。',
+  'btn.bkVoteN':'投維持',
+  'btn.bkVoteR':'投減供',
+  'bk.elect.line':'本家，三月改選公會長，別家要投給誰？',
+  'bk.elect.eff':'照您的意思投；不吩咐的話，您是候選人就投您。',
+  'btn.bkElect':'投給{n}',
+  'bk.greet':'本家來了，有什麼吩咐？',
+  'bk.rv':'調貨：{a} × {b}',
+  'bk.rv.d':'先補缺貨；別家抽一成，約 {c} 兩。',
+  'bk.x':'收他行貨：{a} × {b}',
+  'bk.x.d':'別家照最好的成數收，抽一成，約得 {c} 兩。',
+  'bk.none':'眼下沒有要別家辦的事。',
+  /* 自家栽培店員的人物紀錄（07zzzzzz_kidrec） */
+  'kid.summary':'{a}歲進「{f}」當丁稚，從掃地跑腿學起，一步一步在店裡長大。',
+  'kid.age':'{a}歲',
+  'kid.ms.in':'進店當丁稚',
+  'kid.ms.inEv':'進「{f}」當丁稚。',
+  'kid.ms.up':'升任{k}',
+  'kid.ms.upEv':'在「{f}」升任{k}。',
+  'kid.ms.bk':'出去開別家',
+  'kid.ms.bkEv':'以「{b}」的名號在本城開張。'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -4667,7 +4700,15 @@ const MSG_TXT={
   'dp.kogi':'付了 {a} 兩。御目付傳喚大盤問屋訓誡，停貨當場解除。',
   'dp.voyBlock':'大盤在【{r}】下了大口買付，這段期間派人去也買不到貨。',
   'dp.noDeal':'大盤停貨中，同業不肯勻貨。',
-  'dp.noBuy':'大盤停貨中，相場進不了貨。'
+  'dp.noBuy':'大盤停貨中，相場進不了貨。',
+  /* 別家 */
+  'bk.open':'「{n}」出去開了「{f}」。',
+  'bk.cant':'開別家的條件還沒湊齊。',
+  'bk.rvOk':'向別家調了 {a} × {b}，付 {c} 兩。',
+  'bk.xOk':'別家收下 {a} × {b}，得 {c} 兩。',
+  'bk.gone':'這批貨已經不在了。',
+  'bk.voteOk':'別家會照您的意思投「{v}」。',
+  'bk.electOk':'別家會投給「{n}」。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -5128,7 +5169,11 @@ const NEWS_TXT={
   "dp.fail":"🏯【大盤】這一季貴號沒撐住，大盤問屋收了手，恢復供貨。",
   "dp.calm":"🏯【大盤】貴號出貨收斂了，大盤問屋恢復供貨。",
   "dp.settleN":"🏯【大盤】貴號在例會上與大盤和解，大盤恢復供貨。",
-  "dp.kogiN":"⚖️【公儀調停】御目付傳喚大盤問屋訓誡，大盤恢復供貨。"
+  "dp.kogiN":"⚖️【公儀調停】御目付傳喚大盤問屋訓誡，大盤恢復供貨。",
+  "bk.open":"🏮【別家】大番頭「{n}」以「{f}」的名號在本城開張；名號上多了一家，進出貨全由本家。",
+  "bk.hist":"「{f}」開了別家「{b}」",
+  "bk.dapan":"🏯【大盤】貴號在本城多了一家別家，大盤問屋從此不再過問，恢復供貨。",
+  "bk.heir":"🏮【別家】「{b}」由「{n}」接手，照舊聽本家吩咐。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -5151,8 +5196,8 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
-  market:["dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
+  firm:["bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  market:["bk.dapan","dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["dp.stop1","dp.stop2","komon.judge","komon.gmOut","urge.kyusaiFail","heika.Fail","urge.fine","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
@@ -5173,6 +5218,8 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月18日',items:[
+    '新增「別家」：成了大商之後，好感滿的大番頭可以出去用本家的名號開一間別家。別家是空殼，進出貨都由本家；它的協議立場永遠跟你相反，在協議裡就能多出貨，不在協議裡進貨也有折扣。開了別家，大盤就不再過問。',
+    '大盤制裁設定更新：在例會加入協議和解時，付的和解金全額當作訂約金。',
     '新增大盤制裁：開業兩年後，市佔做到兩成五以上、又一直足量出貨，大盤問屋會上門請你收手；不理就停貨，相場進不了貨，同業也不肯調貨。撐得住的成了大商、豪商；在例會加入協議付和解金，或請御目付調停，都能和解。',
     '市佔設定更新：市佔做到一成以上之後，看的是出貨與名聲，倉裡囤多少貨不再影響市佔；偶爾缺一次貨，市佔不會一下子掉很多。',
     '遷居設定更新：搬到新城三年後就能再遷居（原本五年）。',
@@ -5872,6 +5919,7 @@ function rivalSupply(c,m,first){
   let sum=own?base*(shares.others||0)/rivalPool*(normal?0.95+rnd()*0.05:R.lo+rnd()*(R.hi-R.lo)):base*R.otherShare*(0.95+rnd()*0.1),big=null;
   sc.forEach(r=>{
     if(suspended(npc(r.cid)))return;                // 株札暫扣：停業，不出貨（他的份額轉給你，見 supplyLine）
+    if(isBekke(r.cid))return;                       // 別家是空殼：他那一份由你出（07zzzzz_bekke）
     const w=own?(r.share||0)/rivalPool:(tot>0?r.score/tot:0);
     // 「維持」時仍不超過配額，但大多數同業會趨近足額出貨；「減供」沿用原本的均勻波動。
     let f=normal?1-(1-R.lo)*Math.pow(rnd(),R.normalPow):R.lo+rnd()*(R.hi-R.lo);
@@ -6273,7 +6321,7 @@ function msTick(log){
     m.tmp=0.5*m.tmp+0.5*(0.88+rnd()*0.24);
     m.fame=clamp(m.fame+(rnd()-0.48)*2.4,10,ODDS.fame.cap*0.95);
     if(m.evT>0){m.evT--;if(m.evT<=0)m.ev=1}
-    else if(!n.raided&&roll('rivalEvent')){
+    else if(!n.raided&&!isBekke(n)&&roll('rivalEvent')){
       const good=chance(ODDS.rivalEvent.good),bad=good?'':pick(['fire','theft','wreck']);m.ev=good?1.25:0.7;m.evT=3;   // 壞事分失火、遭竊、船貨遇難
       const fr=rivalEventHook(n,good,bad,log);                     // 好感 80 以上的同業：慰問、慶功宴（07zz_friends.js）
       if(fr||chance(ODDS.rivalEvent.news)){const t=NEWS(good?'rival.good':'rival.bad.'+bad,{n:nameOf(n.cid)});pushNews(t);log.push(t)}
@@ -11037,7 +11085,7 @@ function smugCaptain(){
 function assTargets(){
   const ok=n=>n&&alive(n.cid)&&!G.emps.some(x=>x.cid===n.cid);
   const foes=enemies().map(cid=>npc(cid)).filter(ok);
-  return foes.concat(rivalsHere().filter(n=>ok(n)&&!foes.includes(n)));
+  return foes.concat(rivalsHere().filter(n=>ok(n)&&!foes.includes(n)&&!isBekke(n)));
 }
 const assRank=n=>n.pos?n.pos.rank:(['rival','smuggler'].includes(n.role)?3:2);
 function assChance(e,n){const s=statsOfEmp(e),A_=ODDS.assassin;return clamp(A_.base+s.audacity_courage/A_.courageDiv+s.commerce_skill/A_.commerceDiv-assRank(n)*A_.perRank,A_.min,A_.max)}
@@ -11094,7 +11142,7 @@ function arsonHtml(e){
 ACT.arson=el=>{
   const e=G.emps.find(x=>x.id===el.dataset.id);if(!e||!arsonOK(e))return;
   if((G.exile||0)>0){toast(MSG('arson.exile'));return}
-  const rv=rivalsHere().filter(n=>alive(n.cid));if(!rv.length){toast(MSG('arson.noRival'));return}
+  const rv=rivalsHere().filter(n=>alive(n.cid)&&!isBekke(n));if(!rv.length){toast(MSG('arson.noRival'));return}
   if(!afford('arson')){toast(shortMsg('arson'));return}
   if(!spendAP())return;
   spend('arson');addStress('dirty',ODDS.stress.dirty);
@@ -11133,7 +11181,7 @@ const SCHEME={frame:{court:'judiciary',icon:'⚖️',name:UT('scheme.SCHEME')},s
 function schemeKind(n){const c=n&&n.pos&&n.pos.court;return c==='judiciary'?'frame':c==='administration'?'suppress':null}
 function schemeOK(cid){const n=npc(cid),k=schemeKind(n);return !!(k&&n.role==='official'&&n.pos.rank>=SPECIAL_RANK&&alive(cid)&&R(cid).bond&&R(cid).aff>=100&&!isEnemy(cid))}
 function schemeChance(n,k){const s=CH(n.cid).derived_stats,A_=ODDS[k];return clamp(A_.base+s.audacity_courage/A_.courageDiv+s.commerce_skill/A_.commerceDiv-A_.rank*A_.perRank,A_.min,A_.max)}
-const schemeTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!n.raided);
+const schemeTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!n.raided&&!isBekke(n));
 /** 拜訪請託中選了「栽贓／打壓」（好感 100、每位官員一次；行動點數已在拜訪時扣過）。 */
 function startScheme(cid){
   const n=npc(cid),k=schemeKind(n),S=SCHEME[k],off=nameOf(cid);
@@ -12890,6 +12938,7 @@ function meetVote(me){
   let n=0,r=0;const cast=v=>{if(v==='normal')n++;else r++};
   if(me)cast(me);
   rivalsHere().forEach(x=>{
+    if(isBekke(x)){if(G.bekke.inG)cast(meetEasyYear()?'normal':G.bekke.vote||(chance(MEET.restrictP)?'restrict':'normal'));return}   // 別家：在協議裡才有票，照你的意思投（07zzzzz_bekke）
     if(meetEasyYear()){cast('normal');return}
     if(me){const p=Math.min(MEET.followMax,MEET.followMax*R(x.cid).aff/100);cast(chance(p)?me:(me==='normal'?'restrict':'normal'))}
     else cast(chance(MEET.restrictP)?'restrict':'normal');
@@ -12934,7 +12983,7 @@ function rivalBid(n,lot){
 /** 開標。myBid＝你的出價（不出價 0）。得標金歸公會長（gmLotPaid）。 */
 function meetAuction(myBid){
   const M=meetNow();if(!M||M.res)return M&&M.res;
-  const lot=M.lot,bids=rivalsHere().filter(n=>n.cid!==gmCid()).map(n=>({cid:n.cid,b:rivalBid(n,lot),sh:((G.share&&G.share.rows||[]).find(x=>x.cid===n.cid)||{}).share||0})).filter(x=>x.b>0);
+  const lot=M.lot,bids=rivalsHere().filter(n=>n.cid!==gmCid()&&!isBekke(n)).map(n=>({cid:n.cid,b:rivalBid(n,lot),sh:((G.share&&G.share.rows||[]).find(x=>x.cid===n.cid)||{}).share||0})).filter(x=>x.b>0);
   M.bids={};bids.forEach(x=>{M.bids[x.cid]=x.b});
   bids.sort((a,b)=>b.b-a.b||b.sh-a.sh);
   const top=bids[0];let res;
@@ -13297,7 +13346,7 @@ ACT.gmArb=el=>{
 FACE_TITLE.gmLevy='gm.levy.title';
 FACE_EXT.gmLevy=(e,name)=>{
   const L=G.gmLevy;if(!L||L.turn!==e.turn)return null;
-  const A=ODDS.gm,cand=rivalsHere().filter(n=>alive(n.cid)&&!isEnemy(n.cid));
+  const A=ODDS.gm,cand=rivalsHere().filter(n=>alive(n.cid)&&!isEnemy(n.cid)&&!isBekke(n));
   let b='<button class="pixel-btn btn-sm btn-gold" style="width:100%" data-act="gmLevySelf" '+(G.silver<L.amt&&cand.length?'disabled':'')+'>'+UT('gm.levy.self',{a:fmt(L.amt)})+'</button><div class="tiny muted" style="margin:2px 0 6px">'+(G.silver<L.amt&&cand.length?UT('gm.levy.short'):UT('gm.levy.selfEff',{f:A.levyFame}))+'</div>';
   cand.forEach(n=>{const r=R(n.cid),full=r.aff>=100,half=Math.round(L.amt/2);
     b+='<div class="card" style="margin:3px 0"><div class="row"><span class="small"><b>'+esc(nameOf(n.cid))+'</b> <span class="tag '+affCls(r.aff)+'">'+affWord(r.aff)+'</span></span>'
@@ -13310,7 +13359,7 @@ FACE_EXT.gmLevy=(e,name)=>{
 const gmLevyShow=()=>{const L=G.gmLevy;if(!L)return;const e={type:'gmLevy',cid:L.cid,turn:L.turn};UI.showInfo(faceTitle(e),faceEventCard(e))};
 ACT.gmLevySelf=()=>{
   const L=G.gmLevy;if(!L){UI.hideInfo();return}
-  const cand=rivalsHere().filter(n=>alive(n.cid)&&!isEnemy(n.cid));
+  const cand=rivalsHere().filter(n=>alive(n.cid)&&!isEnemy(n.cid)&&!isBekke(n));
   if(G.silver<L.amt&&cand.length){toast(MSG('buyGoods.5',{cost:fmt(L.amt)}));return}
   G.gmLevy=null;payPublic('spend.gmLevy',L.amt);const f=addFame(ODDS.gm.levyFame,'major');
   toast(MSG('gm.levy.paid',{a:fmt(L.amt),f}),4200);sfx.coin();UI.hideInfo();UI.render();
@@ -13920,7 +13969,7 @@ function staffEventTick(log){
   }
   e.sevT=t;
   const S={empId:e.id,type,cost:rint(O.costMin,O.costMax),turn:t,done:false};
-  if(type==='poach'){const r=pick(rivalsHere());S.rival=r?r.cid:null}
+  if(type==='poach'){const L=rivalsHere().filter(n=>!isBekke(n)),r=L.length?pick(L):null;S.rival=r?r.cid:null}
   G.staffEv=S;queueHomeEvent({type:'staff',empId:e.id});   // 回府時（07zx_homeevt.js）
 }
 /** 人物事件卡的內容（07s_face_events.js 呼叫）。 */
@@ -15434,7 +15483,7 @@ REG_FAVOR.rrobbed=()=>fraudDo('land');
 
 /* ---------- 三、株札暫扣 ---------- */
 const suspended=n=>!!(n&&(n.suspUntil||-1)>=G.turn);
-const suspTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!suspended(n)&&!jailed(n));
+const suspTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!suspended(n)&&!jailed(n)&&!isBekke(n));
 /** 你從暫扣中的同業接下的市佔份額。 */
 function suspBonus(){
   const rows=(G.share&&G.share.rows)||[];let s=0;
@@ -15488,7 +15537,7 @@ REG_FAVOR.mono5=(n,arg)=>monoDo('mono5',arg);REG_FAVOR.mono6=(n,arg)=>monoDo('mo
     out.push({k:'sp_kessho',special:'kessho',name:UT('f8.kessho'),desc:UT('f8.kessho.d',{a:fmt(F8().kesshoGold)})});
   return out;
 }}
-const kesshoTargets=()=>rivalsHere().filter(n=>alive(n.cid));
+const kesshoTargets=()=>rivalsHere().filter(n=>alive(n.cid)&&!isBekke(n));
 function kesshoPick(cid){
   const L=kesshoTargets().slice().sort((a,b)=>isEnemy(b.cid)-isEnemy(a.cid));
   return portraitHtml(cid,56)+'<div class="notice tiny">'+UT('f8.kesshoPick',{a:fmt(F8().kesshoGold)})+'</div>'+L.map(n=>pickRow(cid,'sp_kessho',n.cid,esc(nameOf(n.cid))+(isEnemy(n.cid)?UT('f8.enemyTag'):'')+(G.gm&&G.gm.cid===n.cid?UT('f8.gmTag'):''))).join('');
@@ -17611,7 +17660,7 @@ function urgeGapRiot(){
 }
 /** 依缺口算出貨量：share＝分到的比例（全數承接＝1）。 */
 const urgeItems=(gaps,share)=>gaps.map(x=>({name:x.name,qty:Math.max(1,Math.min(x.gap,Math.round(x.gap*share)))}));
-const urgeShare=()=>(G.share&&G.share.me)||0;
+const urgeShare=()=>((G.share&&G.share.me)||0)+bekkeShare();   // 別家那一份算在你身上（07zzzzz_bekke）
 /** 收購價：看你跟出面官員的交情（好感 60 以上加兩成、30 以下打八折）。 */
 function urgeTier(cid){const a=(G.rel[cid]&&G.rel[cid].aff)||0,U=UG();return a>=U.affHi?'hi':a>=U.affMid?'mid':'lo'}
 /** 每次推進、季度人口結算之後（只在例會旬）：開始、延續或撤回人口督促；有督促、沒有在辦的分攤時傳喚。 */
@@ -17678,7 +17727,7 @@ SHEETS.urge=()=>{
   }else{
     const sh=urgeShare(),all=C.choice==='all',txt=L=>kyusaiItemsTxt(L);
     h+='<div class="tiny muted" style="margin-top:6px">'+UT('urge.alloc.lead',{t:UG().turns})+'</div><div class="card" style="margin-top:4px">';
-    rivalsHere().filter(n=>alive(n.cid)&&!suspended(n)).forEach(n=>{
+    rivalsHere().filter(n=>alive(n.cid)&&!suspended(n)&&!isBekke(n)).forEach(n=>{
       const r=(G.share&&G.share.rows||[]).find(x=>x.cid===n.cid),s2=r?r.share||0:0;
       h+='<div class="row tiny" style="margin-top:2px"><span>'+esc(nameOf(n.cid))+'</span><span>'+(all?UT('urge.alloc.all'):esc(txt(urgeItems(C.gaps,s2))))+'</span></div>';
     });
@@ -18843,7 +18892,7 @@ function dpSettle(join){
   if(!afford(k)){toast(MSG('dp.short',{a:fmt(a)}));return false}
   if(!C.paid){if(!spendAP())return false;C.paid=true}
   spend(k);
-  if(join){C.state='pledged';C.bond=costOf('guildBond');C.comp=Math.min(90,(C.comp||0)+3)}
+  if(join){C.state='pledged';C.bond=a;C.comp=Math.min(90,(C.comp||0)+3)}else C.bond=(C.bond||0)+a;   // 和解金全額記為訂約金：之後違約被查獲整筆沒收
   dpEnd();const t=NEWS('dp.settleN');pushNews(t);
   toast(MSG('dp.settle',{a:fmt(a)}),4200);sfx.coin();UI.render();refreshSheet();return true;
 }
@@ -18874,6 +18923,219 @@ REG_FAVOR.kogi=()=>{const k=dpKogiKey(),a=costOf(k);spend(k);dpEnd();pushNews(NE
   const s=dpSt();if(!s)return;const D=G.dapan;
   const t=s==='perm'?UT('dp.mk.perm'):s==='knock'?UT(D.acc?'dp.mk.knockAcc':'dp.mk.knock',{n:dpLeft()}):UT('dp.mk.stop',{n:dpLeft()});
   const v=$('#view-market');if(v)v.insertAdjacentHTML('afterbegin','<div class="notice" style="margin-bottom:6px">'+esc(t)+'</div>');
+}}
+
+/* ═════ [07zzzzz_bekke] ═════ */
+'use strict';
+/* =====================================================================
+ * 別家（DESIGN_NOTES 第三百二十節、第三百二十八節第十段、第三百三十一節）
+ *  - 開店：好感 100 的大番頭「吩咐差事」裡的「出去開別家」。要先有大商名號（沒有就不出現）；市佔 30%、大番頭任職滿一年、現款三萬兩，
+ *    名冊出身的大番頭才行；開店資金一萬兩。大番頭離開，成為本城同業「本家屋號·別家」，好感鎖 100（繼承人也是）。
+ *  - 市佔：你和別家合起來照原本的算法算（別家不算一般同業），再分成你三分之二、別家三分之一；穩定供貨線與相場進貨上限照合起來的算。
+ *    別家是空殼：不進貨、不出貨（rivalSupply 跳過），你出不夠全城就缺。
+ *  - 協議身份永遠跟你相反（G.bekke.inG）：你在協議內，超過配額算別家的、不判違約；你在協議外，別家在協議裡，你向大盤進貨九六折（聯合斷貨時沒有），
+ *    例會旬別家來問這期怎麼投。換邊：開張時、你在例會上加入或退出時立刻換；被查獲違約後要等下一次例會。
+ *  - 公會長改選：別家是投票人時來問要投給誰（你是候選人就預設投你）。菓子折別家不出價。
+ *  - 往來：拜訪跳過交涉直接開請託；調貨（不看協議，加一成）、收他行貨（照最好的成數抽一成）；不扣好感，冷卻照一般三旬。
+ *  - 名單排除：闕所、暗殺、放火、栽贓打壓、株札暫扣、同業事件、挖角、御用金攤派、督促分攤（他那一份算你）。
+ *  - 開了別家，大盤停止一切制裁、不再判定。遷居後一切重來（舊別家留在舊城）。
+ *  狀態 G.bekke{cid,city,inG,t,vote,elect}。數值 ODDS.bekke、COSTS.bekkeOpen；文字 bk.*。
+ * ===================================================================== */
+const BKO=()=>ODDS.bekke;
+function isBekke(x){const B=G&&G.bekke;if(!B||B.city!==G.cityId)return false;const c=typeof x==='string'?x:x&&x.cid;return !!c&&c===B.cid}
+const bekkeOn=()=>!!(G&&G.bekke&&G.bekke.city===G.cityId&&npc(G.bekke.cid)&&alive(G.bekke.cid));
+/** 別家的市佔＝你的一半（你與別家合起來的三分之一）。 */
+const bekkeShare=()=>bekkeOn()?((G.share&&G.share.me)||0)/2:0;
+const bekkeFirm=()=>UT('bk.firm',{f:(SYS_BY_KEY[G.sysKey]||{}).firm||G.firm});
+
+/* ---------- 市佔：別家不當一般同業算，合起來再分 ---------- */
+let BK_HIDE=false;
+{const _r=rivalsHere;rivalsHere=function(){const L=_r.apply(this,arguments);return BK_HIDE?L.filter(n=>!isBekke(n)):L}}
+{const _m=marketShares;marketShares=function(){
+  if(!bekkeOn())return _m.apply(this,arguments);
+  BK_HIDE=true;let S;try{S=_m.apply(this,arguments)}finally{BK_HIDE=false}
+  const tot=S.me||0,me=tot*2/3;
+  S.me=me;if(S.mine)S.mine.share=me;
+  S.rows.push({cid:G.bekke.cid,name:bekkeFirm(),stock:1,fame:0,ev:1,raided:false,score:0,share:tot/3,prev:null,bekke:true});
+  S.factor=clamp(1+3*(me-0.05),0.85,1.5);
+  return S;
+}}
+{const _s=suspBonus;suspBonus=function(){return _s.apply(this,arguments)+bekkeShare()}}   // 穩定供貨線、相場進貨上限都加上別家那一份
+
+/* ---------- 協議：一進一出 ---------- */
+{const _u=unitBuyCost;unitBuyCost=function(name){const p=_u.apply(this,arguments);return bekkeOn()&&G.bekke.inG&&!guildMember()&&!(G.cartel.sanction>0)?Math.max(p*BKO().disc,marketFloor(name)):p}}
+{const _e=evalCartel;evalCartel=function(log){
+  if(bekkeOn()&&!G.bekke.inG&&guildMember()){const Q=G.shipQuota||(G.shipQuota={});ownComms().forEach(c=>{Q[c.name]=1e9})}   // 超過配額的算別家名下出的
+  return _e.apply(this,arguments);
+}}
+{const _c=ACT.cartel;ACT.cartel=function(el){const r=_c.apply(this,arguments);if(bekkeOn())G.bekke.inG=!guildMember();return r}}
+{const _t=meetingTick;meetingTick=function(log){
+  const r=_t.apply(this,arguments);
+  const M=meetNow(),B=G.bekke;
+  if(bekkeOn()&&M&&M.mt===G.turn&&!M.bkAsked){
+    M.bkAsked=true;B.inG=!guildMember();B.vote=null;B.elect=null;
+    if(B.inG&&!meetEasyYear())queueFaceEvent({type:'bekkeVote',cid:B.cid,turn:G.turn});
+    const E=M.el;
+    if(E&&!E.done&&(E.voters||[]).includes(B.cid)){if(E.cands.includes('me'))E.votes[B.cid]='me';queueFaceEvent({type:'bekkeElect',cid:B.cid,turn:G.turn})}
+  }
+  return r;
+}}
+FACE_TITLE.bekkeVote='bk.vote.t';FACE_TITLE.bekkeElect='bk.vote.t';
+FACE_EXT.bekkeVote=e=>{
+  if(!bekkeOn()||!G.bekke.inG||e.cid!==G.bekke.cid)return null;const M=meetNow();if(!M||M.voted)return null;
+  return {line:UT('bk.vote.line'),effect:UT('bk.vote.eff'),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-green" data-act="bkVote" data-v="normal">'+UT('btn.bkVoteN')+'</button><button class="pixel-btn btn-sm btn-red" data-act="bkVote" data-v="restrict">'+UT('btn.bkVoteR')+'</button></div>'};
+};
+ACT.bkVote=el=>{if(bekkeOn()){G.bekke.vote=el.dataset.v==='restrict'?'restrict':'normal';toast(MSG('bk.voteOk',{v:policyName(G.bekke.vote)}))}UI.hideInfo()};
+FACE_EXT.bekkeElect=e=>{
+  const M=meetNow(),E=M&&M.el;if(!bekkeOn()||!E||E.done||e.cid!==G.bekke.cid)return null;
+  return {line:UT('bk.elect.line'),effect:UT('bk.elect.eff'),buttons:'<div class="grid2">'+E.cands.map(k=>'<button class="pixel-btn btn-sm btn-gold" data-act="bkElect" data-k="'+esc(k)+'">'+esc(UT('btn.bkElect',{n:gmName(k)}))+'</button>').join('')+'</div>'};
+};
+ACT.bkElect=el=>{
+  const M=meetNow(),E=M&&M.el,k=el.dataset.k;
+  if(bekkeOn()&&E&&!E.done&&E.cands.includes(k)){G.bekke.elect=k;E.votes[G.bekke.cid]=k;toast(MSG('bk.electOk',{n:gmName(k)}))}
+  UI.hideInfo();
+};
+{const _p=gmRivalPick;gmRivalPick=function(v,A,B){
+  if(isBekke(v)){const k=G.bekke.elect;if(k&&(k===A||k===B))return k;if(A==='me'||B==='me')return 'me'}
+  return _p.apply(this,arguments);
+}}
+
+/* ---------- 往來：拜訪跳過交涉、調貨、收他行貨 ---------- */
+let BK_VISIT=false;
+{const _v=ACT.visit;ACT.visit=function(el){BK_VISIT=!!(el&&isBekke(el.dataset.cid)&&el.dataset.err!=='1');return _v.apply(this,arguments)}}
+{const _b=battleStart;battleStart=function(cid){
+  if(BK_VISIT&&isBekke(cid)){
+    BK_VISIT=false;BT=null;musicWant('market');logRel(cid,UT('bk.greet'));
+    if(reqList(cid).length)UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,UT('bk.greet')));
+    else toast(UT('bk.greet')+UT('bk.none'),3600);
+    UI.render();refreshSheet();return;
+  }
+  BK_VISIT=false;return _b.apply(this,arguments);
+}}
+/** 別家收他行貨：照好感最高時的成數，量大照常打折，別家抽一成。 */
+function bekkeXQuote(name,q){const c=COMM_MAP[name];if(!c)return 0;const m=clamp(0.42+0.30*trustFactor(100),0.35,0.9);return Math.round(c.base*m*(1-Math.min(0.25,0.002*q))*q*BKO().xCut)}
+{const _d=dealerReqs;dealerReqs=function(cid){
+  if(!isBekke(cid))return _d.apply(this,arguments);
+  if(!dealReady(cid))return [];
+  const out=[],L=rivalLot(cid);
+  if(L)out.push({k:'bkv_'+L.n,name:UT('bk.rv',{a:L.c.short,b:L.q}),desc:UT('bk.rv.d',{c:fmt(Math.round(L.cost*BKO().rvMark))})});
+  Object.keys(G.xinv||{}).filter(k=>G.xinv[k]>0&&COMM_MAP[k]).forEach(k=>{const q=G.xinv[k];out.push({k:'bkx_'+k,name:UT('bk.x',{a:xName(k),b:q}),desc:UT('bk.x.d',{c:fmt(bekkeXQuote(k,q))})})});
+  return out;
+}}
+{const _d=dealerDo;dealerDo=function(cid,k){
+  if(!isBekke(cid)||typeof k!=='string')return _d.apply(this,arguments);
+  const r=R(cid);
+  if(k.startsWith('bkv_')){
+    const L=rivalLot(cid);if(!L||L.n!==k.slice(4))return UT('deal.dealerDo');
+    const cost=Math.round(L.cost*BKO().rvMark);if(G.silver<cost)return MSG('dp.short',{a:fmt(cost)});
+    G.silver-=cost;addStock(L.n,L.q,cost/L.q);stockAdd(L.n,L.q,false);r.dealT=G.turn;
+    const m=MSG('bk.rvOk',{a:L.c.short,b:L.q,c:fmt(cost)});logRel(cid,m);coinFx();return m;
+  }
+  if(k.startsWith('bkx_')){
+    const name=k.slice(4),q=(G.xinv||{})[name]||0;if(q<=0)return MSG('bk.gone');
+    const v=bekkeXQuote(name,q);G.silver+=v;delete G.xinv[name];r.dealT=G.turn;
+    const m=MSG('bk.xOk',{a:xName(name),b:q,c:fmt(v)});logRel(cid,m);coinFx();return m;
+  }
+  return _d.apply(this,arguments);
+}}
+{const _h=rivalEventHook;rivalEventHook=function(n){return isBekke(n)?null:_h.apply(this,arguments)}}
+/** 別家過世：繼承人接手，好感照樣鎖 100。 */
+{const _h=rivalHeirTick;rivalHeirTick=function(log){
+  const B=G.bekke,old=B&&B.city===G.cityId?npc(B.cid):null;
+  const r=_h.apply(this,arguments);
+  if(old&&old.heir&&B.cid===old.cid&&npc(old.heir)){
+    B.cid=old.heir;const rr=R(old.heir);rr.met=true;rr.seen=true;rr.bond=Object.assign({},rr.bond||{mult:1},{label:bekkeFirm(),introId:null});rr.lockAff=true;setAff(rr,100);addKnown(old.heir);
+    const t=NEWS('bk.heir',{b:bekkeFirm(),n:nameOf(old.heir)});pushNews(t);log.push(t);
+  }
+  return r;
+}}
+
+/* ---------- 大盤：有了別家就不再過問 ---------- */
+{const _e=dpEval;dpEval=function(){if(bekkeOn())return;return _e.apply(this,arguments)}}
+{const _t=dapanTick;dapanTick=function(){if(bekkeOn())return;return _t.apply(this,arguments)}}
+{const _m=moveDepart;moveDepart=function(){const r=_m.apply(this,arguments);G.bekke=null;return r}}   // 遷居：舊別家留在舊城（好感 100 照舊，照第二百六十四節成為外城友人），新城可以再開
+
+/* ---------- 開店：大番頭的心腹指令 ---------- */
+function bekkeLack(e){
+  const O=BKO(),L=[];
+  if(((G.share&&G.share.me)||0)<O.share)L.push(UT('bk.need.share'));
+  if(chiefTenure(e)<O.tenure)L.push(UT('bk.need.tenure'));
+  if(G.silver<O.cash)L.push(UT('bk.need.cash',{a:fmt(O.cash)}));
+  return L;
+}
+function bekkeHtml(e){
+  if(!e||e.rank!=='chief'||!(G.dpTitle>=1)||bekkeOn())return '';   // 沒有大商名號：還沒想到這一招
+  const L=bekkeLack(e);
+  return UT('bk.cmd',{f:esc(bekkeFirm()),c:costTxt('bekkeOpen')})+(L.length?'<div class="tiny" style="color:#b3261e;margin-top:2px">'+esc(UT('bk.lack',{a:L.join(NAMES_SEP)}))+'</div>':'')
+    +'<button class="pixel-btn btn-sm btn-gold" style="width:100%;margin-top:4px" data-act="bekkeOpen" data-id="'+e.id+'" '+(L.length?'disabled':'')+'>'+UT('btn.bekkeOpen')+'</button></div>';
+}
+{const _o=scOrders;scOrders=function(e){const h=_o.apply(this,arguments);return e&&e.rank==='chief'&&empAff(e)>=100?h+bekkeHtml(e):h}}
+ACT.bekkeOpen=el=>{
+  const e=G.emps.find(x=>x.id===el.dataset.id);if(!e||e.rank!=='chief'||empAff(e)<100||!(G.dpTitle>=1)||bekkeOn())return;
+  if(bekkeLack(e).length){toast(MSG('bk.cant'));return}
+  spend('bekkeOpen');
+  if(!e.cid)kidLeave(e);                            // 自家栽培的大番頭：用他的人物紀錄（07zzzzzz_kidrec）
+  const cid=e.cid||e.pid,n=npc(cid)||(G.world.npcs[cid]={cid,cityId:G.cityId,role:'rival',pos:null});
+  G.emps=G.emps.filter(x=>x!==e);
+  n.role='rival';n.cityId=G.cityId;n.hired=false;n.pos=null;delete n.raided;delete n.suspUntil;delete n.ms;delete n.heir;
+  const r=R(cid);r.met=true;r.seen=true;r.bond=Object.assign({},r.bond||{mult:1},{label:bekkeFirm(),introId:null});r.lockAff=true;setAff(r,100);addKnown(cid);
+  if(G.introId===cid)G.introId=null;
+  G.bekke={cid,city:G.cityId,inG:!guildMember(),t:G.turn,vote:null,elect:null};
+  if(G.dapan&&G.dapan.st){G.dapan.st=null;G.dapan.blk=null;pushNews(NEWS('bk.dapan'))}   // 大盤停止一切（第三百二十八節第十段）
+  G.share=marketShares();
+  const ct=homeCity();G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('bk.hist',{f:G.firm,b:bekkeFirm()})});
+  pushNews(NEWS('bk.open',{n:e.name,f:bekkeFirm()}));
+  toast(MSG('bk.open',{n:e.name,f:bekkeFirm()}),4200);sfx.coin();UI.hideInfo();UI.render();refreshSheet();
+};
+
+
+/* ═════ [07zzzzzz_kidrec] ═════ */
+'use strict';
+/* =====================================================================
+ * 自家栽培店員的人物紀錄（DESIGN_NOTES 第三百三十二節）
+ *  - 無名冊的店員（丁稚、三獻茶帶回的孩子）一進店就補一份人物紀錄 G.kidChars[pid]（pid＝'kid_'＋員工代號），員工記 e.pid。
+ *    讀檔與開局後放進人物表 CHAR_MAP（名冊 CHARS 本身不動，不會被挑去補人；新開一局清掉上一局的）。
+ *  - 只在開別家時用到：大番頭出去開別家，就用這份紀錄當他的人物身分（能力照他當下的數值寫進去）。
+ *    其他規則不變：能力照舊讀員工紀錄、照舊成長；辭退、潛逃照舊消失。
+ *  - 升遷時記一筆大事記；頭像沿用員工的外貌種子。
+ * ===================================================================== */
+const kidRecs=()=>G.kidChars||(G.kidChars={});
+function kidMs(c,title,ev){c.milestones=c.milestones||[];c.milestones.push({year:yearStr(G.year),age:UT('kid.age',{a:Math.max(0,G.year-c.birth_year)}),title,event:ev})}
+/** 取得（沒有就建立）某位無名冊店員的人物紀錄。 */
+function kidRec(e){
+  if(!G||!e||e.cid)return null;
+  const R_=kidRecs();if(e.pid&&R_[e.pid])return R_[e.pid];
+  const id='kid_'+e.id,rd=seeded(id),src=CHARS[Math.floor(rd()*CHARS.length)],b=e.age0!==undefined?e.age0:G.year-12,firm=(SYS_BY_KEY[G.sysKey]||{}).firm||G.firm;
+  const c={id,kid:true,seed:e.id,name:e.name,gender:'m',primary_trait:src.primary_trait,secondary_trait:src.secondary_trait,weakness:src.weakness,native_region:homeCity().region_id,
+    family_summary:UT('kid.summary',{a:Math.max(8,G.year-b),f:firm}),milestones:[],birth_year:b,death_year:b+55+Math.floor(rd()*25),derived_stats:Object.assign({},e.stats||{}),roles:[]};
+  kidMs(c,UT('kid.ms.in'),UT('kid.ms.inEv',{f:firm}));
+  R_[id]=c;CHAR_MAP[id]=c;e.pid=id;return c;
+}
+/** 人物表與存檔同步：清掉上一局留下的，補上這一局的；沒有紀錄的無名冊店員補上；已不在店也不在名冊上的刪掉。 */
+function kidSync(){
+  Object.keys(CHAR_MAP).forEach(k=>{if(k.startsWith('kid_'))delete CHAR_MAP[k]});
+  if(!G)return;
+  const R_=kidRecs(),keep=new Set();
+  (G.emps||[]).forEach(e=>{if(!e.cid){const c=kidRec(e);if(c)keep.add(c.id)}});
+  Object.keys(R_).forEach(k=>{if(G.world&&G.world.npcs&&G.world.npcs[k])keep.add(k)});
+  Object.keys(R_).forEach(k=>{if(keep.has(k))CHAR_MAP[k]=R_[k];else delete R_[k]});
+}
+{const _h=hireEmp;hireEmp=function(cid){const e=_h.apply(this,arguments);if(e&&!e.cid)kidRec(e);return e}}
+{const _n=newGame;newGame=function(){const r=_n.apply(this,arguments);kidSync();return r}}
+{const _m=migrateSave;migrateSave=function(){const r=_m.apply(this,arguments);kidSync();return r}}
+{const _p=promoteEmp;promoteEmp=function(id){const r=_p.apply(this,arguments);const e=r&&r.ok&&G.emps.find(x=>x.id===id);if(e&&!e.cid){const c=kidRec(e);if(c)kidMs(c,UT('kid.ms.up',{k:rankName(e.rank)}),UT('kid.ms.upEv',{f:(SYS_BY_KEY[G.sysKey]||{}).firm||G.firm,k:rankName(e.rank)}))}return r}}
+/** 出去開別家：把當下的能力與年紀寫進紀錄，之後照名冊人物的規則走。 */
+function kidLeave(e){
+  const c=kidRec(e);if(!c)return null;
+  c.derived_stats=Object.assign({},statsOfEmp(e));if(e.age0!==undefined)c.birth_year=e.age0;c.roles=['rival'];
+  kidMs(c,UT('kid.ms.bk'),UT('kid.ms.bkEv',{b:bekkeFirm()}));CHAR_MAP[c.id]=c;return c;
+}
+/** 頭像：沿用店員時的外貌種子。 */
+{const _p=portraitHtml;portraitHtml=function(cid,px){
+  const c=CH(cid);if(!c||!c.kid)return _p.apply(this,arguments);
+  const n=npc(cid),age=Math.max(14,ageOf(cid)),role=n?n.role:'guest',key=['edo3kid',cid,Math.floor(age/8),role].join('|');
+  const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw({seed:c.seed,gender:'m',age,role,rank:0,st:c.derived_stats}));
+  const size=px||48;return '<img class="pt" src="'+url+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
 }}
 
 'use strict';
