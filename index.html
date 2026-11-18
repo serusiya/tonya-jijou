@@ -1001,6 +1001,7 @@ const ODDS={
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
+  ,goyo:{name:'帝都御用品（07zzzzzzz_kenjo，第三百三十四節）：最多選幾項、相場進貨上限（本城需求的幾成，再乘番頭加成）',max:2,buy:0.1}
   ,staffChat:{name:'店員閒聊與零用錢（07zzs_staffchat.js）：好感門檻（以下靠零用錢、以上靠閒聊）、好感增幅、貪欲高的門檻、往事最多記幾件、同一件最多提幾次、改講往事的機率',affAt:80,gain:[3,5],greed:70,memMax:6,memUse:2,memP:0.5}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
@@ -4197,7 +4198,19 @@ const UI_TXT={
   'kj.page.miss':'還沒有',
   'kj.page.orig':'產地：{a}',
   'kj.page.noOrig':'這一局沒有產地',
-  'kj.page.note':'每一行的奢侈品各一件湊成一組；本業的、委託採買帶回的他行貨、密庫裡的珍陀酒都算。'
+  'kj.page.note':'每一行的奢侈品各一件湊成一組；本業的、委託採買帶回的他行貨、密庫裡的珍陀酒都算。',
+  /* 帝都御用品（第三百三十四節） */
+  'gy.title':'挑選御用品',
+  'gy.lead':'帝都認可了貴號獻上的名品。從已獻上的各行裡，最多挑 {n} 樣當「御用品」，在相場照本業的奢侈品買賣，也能接貴人的訂單。',
+  'gy.leadMove':'到了新城，可以重新挑選御用品（最多 {n} 樣）。',
+  'gy.own':'本業',
+  'gy.pt':'有訂單',
+  'gy.on':'已選',
+  'gy.note':'換掉的貨，倉裡剩下的變成他行貨，只能交給旅商人代售；行情重新算。選上的貨預設停賣，要賣時在相場解開。',
+  'gy.none':'還沒有可選的貨。',
+  'btn.gyOk':'就這樣',
+  'gy.page':'御用品：{a}',
+  'gy.pageNone':'御用品：還沒選'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -4748,7 +4761,10 @@ const MSG_TXT={
   'bk.xOk':'別家收下 {a} × {b}，得 {c} 兩。',
   'bk.gone':'這批貨已經不在了。',
   'bk.voteOk':'別家會照您的意思投「{v}」。',
-  'bk.electOk':'別家會投給「{n}」。'
+  'bk.electOk':'別家會投給「{n}」。',
+  'gy.full':'御用品最多 {n} 樣，先取消一樣。',
+  'gy.ptLock':'這項貨還有貴人的訂單沒交，不能換掉。',
+  'gy.ok':'御用品：{a}。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -5264,6 +5280,7 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月18日',items:[
+    '帝都獻上設定更新：每獻上一組，可以從已獻上的各行名品裡挑兩樣當「御用品」，在相場照本業的奢侈品買賣，也能接貴人的訂單；遷居到新城時可以重選。選上珍陀酒時，走私來的珍陀酒也能上架。',
     '新增帝都獻上：名聲到了一定程度，普請方的大官會來說帝都在廣蒐天下名品；每一行的上等貨各湊一件成一組，他來城時會上門收。獻上四組起，每年正月會有港口開始出產還沒獻上的珍品；獻上五組，就能遷居京畿。進度記在筆記「紀錄」的「帝都獻上」頁。',
     '地區特色：京畿的貨不易壞、少失火，船馬都裝得多，人口只會增加不會減少。',
     '新增「別家」：成了大商之後，好感滿的大番頭可以出去用本家的名號開一間別家。別家是空殼，進出貨都由本家；它的協議立場永遠跟你相反，在協議裡就能多出貨，不在協議裡進貨也有折扣。開了別家，大盤就不再過問。',
@@ -5825,7 +5842,7 @@ const diffNow=()=>(G&&ODDS.guildPolicy.diffNormal[G.diff])?G.diff:'hard';
 /** 維持期的比例：依難度（第二百八十二節）。 */
 const normalRatioNow=()=>ODDS.guildPolicy.diffNormal[diffNow()];
 /** 本期有效配額：協議會員依自己的穩定供貨線乘本期比例；未參加協議者沒有上限，預設仍照穩定供貨線出貨。 */
-const quotaOf=name=>sakeBanned(name)?0:monoItem(name)?supplyLine(name):guildMember()?Math.max(0,Math.round(supplyLine(name)*policySupplyRatio())):supplyLine(name);   // 專賣的貨不適用協議配額
+const quotaOf=name=>isGoyo(name)?0:sakeBanned(name)?0:monoItem(name)?supplyLine(name):guildMember()?Math.max(0,Math.round(supplyLine(name)*policySupplyRatio())):supplyLine(name);   // 專賣的貨不適用協議配額
 
 /** 建立各物品市場資料（需求、供給、事件倍率、進貨壓力）與開局庫存。 */
 function initMarket(){
@@ -5838,6 +5855,9 @@ function initMarket(){
 }
 /** 本業物品清單。 */
 const ownComms=()=>commsOfSys(G.sysKey);
+/** 相場上買賣的貨：本業＋帝都御用品（07zzzzzzz_kenjo，第三百三十四節）。協議、市佔、穩定供貨仍只看本業（ownComms）。 */
+const mkComms=()=>ownComms().concat(goyoComms());
+const mkTrade=()=>tradeComms().concat(goyoComms());
 /** 目前庫存總量。 */
 const xinvQty=()=>Object.values(G.xinv||{}).reduce((a,b)=>a+b,0);
 const invUsed=()=>Object.values(G.inv).reduce((a,b)=>a+b,0)+xinvQty()+lodgeQty();   // 朋友寄放的貨也佔倉位（07zz_friends.js）
@@ -5956,7 +5976,8 @@ function luxTick(c,m,first){
  *  - 非本業參考行情仍沿用需求×0.58 的基準供給。 */
 function rivalSupply(c,m,first){
   const R=ODDS.rivalShip,own=c.sys===G.sysKey,normal=own&&cartelPolicy()==='normal',rv=rivalsHere();
-  if(own&&(monoItem(c.name)||sakeBanned(c.name)))return 0;   // 禁酒令：本城同業也不能出清酒（07zzy_sake.js）                // 專賣株：本城同業與零星商家都不能出這項貨（07zze_favor8.js）
+  if(own&&(monoItem(c.name)||sakeBanned(c.name)))return 0;
+  if(isGoyo(c.name))return Math.round(m.D*R.base*(0.95+rnd()*0.1));   // 御用品：他行問屋的基準供給，不超賣、不參加協議   // 禁酒令：本城同業也不能出清酒（07zzy_sake.js）                // 專賣株：本城同業與零星商家都不能出這項貨（07zze_favor8.js）
   if(own)shareFactor();
   const shares=own?G.share:marketShares(),sc=shares.rows;
   const rivalShare=own&&tradeOK(c.name)?Math.max(0,1-(shares.me||0)):1;   // 你沒有交易許可的貨，同業補上你的份，照全城需求出貨（第二百四十九節）
@@ -5994,7 +6015,7 @@ function snapMarket(){
     const c=COMM_MAP[name],close=priceNow(name,m.shipped),closeBase=priceNow(name,m.shipped,true),closeRelief=reliefIndex(name,m.shipped);
     m.close=close;m.closeBase=closeBase;m.closeRelief=closeRelief;m.snap={d:demandEff(c,m),d0:demandEff(c,m,true),dn:m.D*(c.sys===G.sysKey?shareFactor():1),so:supplyEff(c,m),my:m.shipped};   // dn：平常需求（不含節慶等加倍與奢侈品冷熱），季度人口用
     m.depPast=(Array.isArray(m.depPast)?m.depPast:[]).concat([{total:m.depTotal||0,known:m.depKnown||0,dapan:m.depDapan||0}]).slice(-ODDS.dapanDependency.win);
-    if(TURNRP&&c.sys===G.sysKey){const floor=marketFloor(name),next=Math.max(close,floor);TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next,floored:close<=floor})}
+    if(TURNRP&&(c.sys===G.sysKey||isGoyo(name))){const floor=marketFloor(name),next=Math.max(close,floor);TURNRP.market=TURNRP.market||[];TURNRP.market.push({n:c.short,quote:marketQuote(name),close,next,floored:close<=floor})}
   });
 }
 /** 每旬換季刷新：上旬收市成為本旬牌價，再刷新需求、事件倍率、他家供給與進貨壓力；曲線只記收市價。 */
@@ -6044,7 +6065,8 @@ function settleSaleQuote(name,qty){
   return {price:p,tot,mult,revenue:Math.round(qty*p*mult),perUnit:p*mult};
 }
 /** 每旬向大盤進貨上限：參加協議者＝（本城需求×你的市佔率＋協議配額）×人手倍數；未參加者只有（本城需求×你的市佔率）×人手倍數。無條件捨去，至少 1；委託採買不受限。 */
-const buyLimit=name=>{if(sakeBanned(name))return 0;const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return kyusaiBonus(name)+Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
+const buyLimit=name=>{if(sakeBanned(name))return 0;if(isGoyo(name))return Math.max(1,Math.floor((G.mk[name].D||0)*ODDS.goyo.buy*buyLimitMult()));   // 御用品：沒有市佔與配額，照本城需求的固定比例
+  const sh=((G.share&&G.share.me)||0.05)+suspBonus(),base=(G.mk[name].D||0)*sh+(guildMember()?quotaOf(name):0);return kyusaiBonus(name)+Math.max(1,Math.floor(base*buyLimitMult()*(reliefImportOn()?ODDS.relief.importMult:1)*(monoItem(name)?ODDS.f8.monoBuyX:1)))};   // 株札暫扣的份額、專賣株進貨上限加倍（07zze_favor8.js）
 /** 本旬還能向大盤進多少。 */
 const buyLeft=name=>Math.max(0,buyLimit(name)-((G.bought&&G.bought[name])||0));
 /** 已下單、下一旬才到貨的總量。 */
@@ -8593,7 +8615,7 @@ function chg(name){const h=G.mk[name].hist;if(h.length<2)return 0;return (h[h.le
 const cartelStanceTxt=()=>UT('mk.stance.'+G.cartel.state);
 /** 大盤畫面：本旬買賣總表（最上方）、貨物選項、行情、本旬買賣（出貨與進貨合併，下方是這項貨的折線圖）、市佔率、公會、合約、主食行情。 */
 function renderMarket(){
-  const own=ownComms();
+  const own=mkComms();
   if(!UI.s.focus||!G.mk[UI.s.focus]||!own.some(c=>c.name===UI.s.focus))UI.s.focus=(own.find(c=>tradeOK(c.name))||own[0]).name;
   const name=UI.s.focus,c=COMM_MAP[name],m=G.mk[name],have=G.inv[name]||0;
   UI.s.ship=planOf(name);
@@ -8642,7 +8664,7 @@ function nextStock(name,ship,buy){
   return Math.max(0,n-Math.round(n*decayNow(c,m)));
 }
 /** 本旬預定出貨的總量與預估入帳（推進一旬時先出貨、後進貨，所以進貨可以用到這些倉位與貨款）。 */
-function shipPlanTotals(){let q=0,rev=0;tradeComms().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
+function shipPlanTotals(){let q=0,rev=0;mkTrade().forEach(c=>{const v=planOf(c.name);if(v>0){q+=v;rev+=quoteSale(c.name,v).revenue}});return {q,rev}}
 /** 【本旬買賣】單項貨的出貨與進貨：頂端顯示協議配額，下面是兩個滑桿。 */
 function tradeCard(name){
   const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=riotLevelLive();
@@ -8668,7 +8690,7 @@ function tradeCard(name){
 }
 /** 【本旬買賣總表】所有本業貨這一旬的出貨、進貨與下旬開頭；點一列切換到那項貨。 */
 function planCard(){
-  const L=ownComms();let rev=0,cost=0;
+  const L=mkComms();let rev=0,cost=0;
   let h='<div class="card" id="order-card" style="background:#fff8eb"><b class="small">'+UT('mk.plan.title')+'</b><div class="row" style="margin:4px 0;gap:4px;justify-content:flex-start">'+['planMax','planQuota','planClear'].map(k=>'<button class="pixel-btn btn-sm" data-act="'+k+'">'+UT('btn.'+k)+'</button>').join('')+'</div>'+((G.exile||0)>0?'<div class="tiny muted">'+UT('mk.plan.away')+'</div>':'');
   h+=L.map(c=>{const n=c.name,s=planOf(n),b=buyPlanOf(n);rev+=s>0?quoteSale(n,s).revenue:0;cost+=Math.round(unitBuyCost(n)*b);
     return '<div class="row small" data-act="focus" data-n="'+esc(n)+'" style="margin-top:3px;cursor:pointer'+(n===UI.s.focus?';font-weight:bold;color:#9b2c3a':'')+'"><span>'+esc(c.short)+(shipLocked(n)?UT('mk.lock.chip'):'')+'</span><span>'+UT('mk.plan.row',{s,b,n:nextStock(n,s,b)})+'</span></div>'}).join('')||'<div class="tiny muted">'+UT('mk.plan.none')+'</div>';
@@ -8704,7 +8726,7 @@ const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
 function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=shipLocked(n)||sakeBanned(n)?0:clamp(v,0,kakeFree(n));UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
 /** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為協議配額，出貨不動）、清除（只清進貨）。 */
-function planAllBuy(f){const L=tradeComms(),keep={};ownComms().forEach(c=>{if(!tradeOK(c.name)&&G.buyPlan&&G.buyPlan[c.name]!==undefined)keep[c.name]=G.buyPlan[c.name]});G.buyPlan=keep;L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
+function planAllBuy(f){const L=mkTrade(),keep={};ownComms().forEach(c=>{if(!tradeOK(c.name)&&G.buyPlan&&G.buyPlan[c.name]!==undefined)keep[c.name]=G.buyPlan[c.name]});G.buyPlan=keep;L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
 ACT.planQuota=()=>{let short=0;planAllBuy(n=>quotaOf(n));tradeComms().forEach(c=>{if((G.buyPlan[c.name]||0)<quotaOf(c.name))short++});
   toast(MSG(short?'plan.quotaShort':'plan.quota'));UI.render()};
@@ -8714,7 +8736,7 @@ ACT.focus=el=>{UI.s.focus=el.dataset.n;renderMarket();sfx.tap()};
 /** 進貨計畫：滑桿設定的本旬進貨量，推進一旬時自動下單。 */
 function maxBuy(name,ui){
   const u=unitBuyCost(name)||1;let oq=0,oc=0;
-  ownComms().forEach(c=>{const k=c.name;if(k===name)return;const q=buyRaw(k);oq+=q;oc+=Math.round(unitBuyCost(k)*q)});
+  mkComms().forEach(c=>{const k=c.name;if(k===name)return;const q=buyRaw(k);oq+=q;oc+=Math.round(unitBuyCost(k)*q)});
   let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty(),cash=G.silver;
   if(ui){                                           // 畫面試算：推進一旬時先出貨、後進貨，出貨空出的倉位與入帳都算進來
     const T=shipPlanTotals();wh+=T.q;cash+=T.rev;
@@ -8728,9 +8750,9 @@ function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math
 function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(buyRaw(name),0,maxBuy(name,true))}
 function autoBuy(log){
   const plan={},got=[],kept=[],cut=[],touched=new Set(Object.keys(G.buyPlan||{}));
-  ownComms().forEach(c=>{const v=buyRaw(c.name);if(v>0)plan[c.name]=v});
+  mkComms().forEach(c=>{const v=buyRaw(c.name);if(v>0)plan[c.name]=v});
   G.buyPlan=Object.assign({},plan);                     // 只留還沒下單的計畫：maxBuy 會替它們保留倉位與現款
-  ownComms().forEach(c=>{
+  mkComms().forEach(c=>{
     const want=plan[c.name]||0;if(want<=0)return;
     delete G.buyPlan[c.name];                           // 下單前先移出計畫：下了單的量已算進待到貨訂單量、也已扣現款，不能再保留一次
     const q=Math.min(want,maxBuy(c.name));if(q<want)cut.push(c.short+'×'+(want-q));if(q>0){const r=buyGoods(c.name,q);if(r.ok){(touched.has(c.name)?got:kept).push(c.short+'×'+q);if(TURNRP){TURNRP.buy=TURNRP.buy||{};const o=TURNRP.buy[c.short]||(TURNRP.buy[c.short]={q:0,cost:0});o.q+=q;o.cost+=r.cost}}}   // 旬報：大盤進貨逐項記錄
@@ -8846,8 +8868,8 @@ function autoShip(log){
   G.sold=G.sold||{};G.plan=G.plan||{};
   const rep={rev:0,ship:[],market:[],marketDate:dateStr(),fame:0,publicSpend:Object.assign({},G.publicSpend||{})};
   G.publicSpend={};
-  const own=tradeComms();let short=[],squeeze=[],judged=0,allMet=true;          // 未取得交易許可的貨不算進穩定供貨線
-  G.shipQuota={};ownComms().forEach(c=>{G.shipQuota[c.name]=quotaOf(c.name)});   // 出貨當下的配額：違約判定（evalCartel）在日期前進後才做，專賣株、株札暫扣剛好到期時不能改用到期後的配額
+  const own=mkTrade();let short=[],squeeze=[],judged=0,allMet=true;          // 未取得交易許可的貨不算進穩定供貨線
+  G.shipQuota={};mkComms().forEach(c=>{G.shipQuota[c.name]=quotaOf(c.name)});   // 出貨當下的配額：違約判定（evalCartel）在日期前進後才做，專賣株、株札暫扣剛好到期時不能改用到期後的配額
   own.forEach(c=>{
     const quota=quotaOf(c.name),have=G.inv[c.name]||0;
     const q=planOf(c.name);let shipped=0;
@@ -9626,7 +9648,7 @@ function repRow(icon,label,amt,max,cls){
 }
 /** 貨物收支：每項貨第一行列本旬淨收支；第二行靠右列「牌價 → 新牌價（漲跌）」，碰到底價時註明。盈利與零值紅色，虧損綠色。 */
 function goodsRows(T){
-  const tradable=ownComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
+  const tradable=mkComms(),allowed=new Set(tradable.map(c=>c.short)),order=new Map(tradable.map((c,i)=>[c.short,i]));
   const L=(T.goods||[]).filter(x=>allowed.has(x.n)).sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d||((order.get(a.n)??999)-(order.get(b.n)??999))});
   if(!L.length)return UT('rep.goodsRows');
   const mx=Math.max(1,...L.map(x=>Math.max(x.rev||0,x.cost||0)));
@@ -18328,7 +18350,7 @@ const ptOrders=()=>ptState().orders;
 /** 某年月旬的旬數。 */
 const ptTurnOf=(y,m,c)=>G.turn+(y-G.year)*36+(m-G.month)*3+(c-G.cycle);
 /** 能接單的奢侈品（本業、有交易許可）。 */
-const ptGoods=()=>tradeComms().filter(c=>c.luxury);
+const ptGoods=()=>tradeComms().filter(c=>c.luxury).concat(goyoComms());   // 帝都御用品也接（第三百三十四節）
 /** 排今年與明年的兩段（節慶、歲末）：一月的節慶要在前一年就排，上門期才來得及。 */
 function ptPlan(){
   const S=ptState(),P=PT();if(S.y===G.year)return;
@@ -18683,7 +18705,7 @@ const sakeBanned=name=>name===SAKE_SEI&&sakeOn()&&sakeBanNow();
 /** 禁酒令還剩幾旬。 */
 const sakeBanLeft=()=>sakeBanNow()?G.sakeBan.until-G.turn+1:0;
 /** 私運珍陀酒算不算正貨：酒問屋、已取得珍陀酒的交易許可。 */
-const wineLegal=()=>sakeOn()&&tradeOK(SAKE_WINE);
+const wineLegal=()=>(sakeOn()&&tradeOK(SAKE_WINE))||goyoHas(SAKE_WINE);   // 選上珍陀酒當御用品也算（第三百三十四節）
 const sakeState=()=>G.sake||(G.sake={});
 
 /** 密庫裡的私運珍陀酒搬上架（放得下的部分）；回傳搬了幾箱。 */
@@ -19308,6 +19330,99 @@ function kenjoHtml(){
   return '<div style="margin:4px 0">'+REC_TABS.map(k=>'<span class="pill '+(k==='kenjo'?'on':'')+'" data-act="recTab" data-k="'+k+'">'+UT('rec.tab.'+k)+'</span>').join('')+'</div>'+kenjoHtml();
 }}
 {const _f=setFame;setFame=function(){const r=_f.apply(this,arguments);if(G&&(G.fame||0)>=KJO().fame)kjS().reach=true;return r}}   // 知名度一碰到 150 就記下（之後掉下來也不收回）
+
+
+/* ═════ [07zzzzzzzz_goyo] ═════ */
+'use strict';
+/* =====================================================================
+ * 帝都御用品（DESIGN_NOTES 第三百一十九節第六段、第三百三十四節；帝都獻上第二期）
+ *  - 從已獻上的各組奢侈品裡最多選 2 項（ODDS.goyo.max，本業的不能選）：上交當下（帝都回信下方）與遷居抵達時（旬報後）選或換。
+ *  - 選上的貨進相場（mkComms／mkTrade）：向大盤照牌價進貨（上限＝本城需求一成乘番頭加成）、在相場出貨；冷熱、大單、地板照奢侈品；
+ *    預設停賣；不算穩定供貨、市佔、協議配額（配額 0、evalCartel 只看本業）；同業出貨照需求的五成八基準、不超賣；開放貴人訂貨。
+ *  - 他行貨裡的選上的貨每旬搬進相場庫存；換掉的貨，庫存變回他行貨、行情清掉。還有貴人訂單沒交的不能換掉。
+ *  - 選上珍陀酒：比照酒問屋的洋酒上架，密庫的私運珍陀酒搬上架成正貨（07zzy_sake 的 wineLegal）。
+ *  - 轉行後重疊：選上的貨成了新本業，自動退出御用名額；新本業那一組交過的話，開業就給那一組全部奢侈品的交易許可。
+ *  狀態 G.goyo{sel[]}。數值 ODDS.goyo；文字 gy.*。
+ * ===================================================================== */
+const goyoSel=()=>(G&&G.goyo&&G.goyo.sel)||[];
+function goyoComms(){if(!G)return [];return goyoSel().map(n=>COMM_MAP[n]).filter(c=>c&&c.sys!==G.sysKey)}
+const isGoyo=name=>!!G&&goyoSel().includes(name)&&!!COMM_MAP[name]&&COMM_MAP[name].sys!==G.sysKey;
+const goyoHas=isGoyo;
+/** 可以選的貨：已獻上各組的奢侈品（本業的除外）。 */
+function goyoCands(){const D=(G.kenjo&&G.kenjo.done)||{};return kjGroups().filter(g=>D[g.k]).flatMap(g=>g.items)}
+/** 替一項御用品建立相場行情（照開局的方式：上旬收市＝目前行情）。 */
+function goyoMkInit(n){
+  const c=COMM_MAP[n],city=homeCity();
+  const m=G.mk[n]={D:cityD(city,c),so:0,ev:1,shipped:0,hist:[],price:0,quote:0,quoteBase:0,quoteRelief:0,lastClose:0,close:null,closeBase:null,closeRelief:null,press:1,depPast:[],depTotal:0,depKnown:0,depDapan:0,past:[]};
+  luxTick(c,m,true);m.so=rivalSupply(c,m,true);m.wcap=itemCap(n);
+  const floor=marketFloor(n),q=marketIndex(n),qb=marketIndex(n,true),qr=reliefIndex(n,0);
+  m.quoteFloor=q<=floor;m.quote=Math.max(q,floor);m.quoteBase=Math.max(qb,floor);m.quoteRelief=Math.max(qr,floor);m.price=m.quote;m.lastClose=q;m.prevQuote=m.quote;m.hist.push(Math.round(m.quote*10)/10);
+}
+/** 他行貨裡的御用品搬進相場庫存。 */
+function goyoSweep(){goyoComms().forEach(c=>{const n=c.name,q=(G.xinv&&G.xinv[n])||0;if(q>0){delete G.xinv[n];stockAdd(n,q,false)}if(!G.mk[n])goyoMkInit(n)})}
+const goyoPtBusy=n=>(G.patron&&ptOrders().some(o=>o.name===n));
+/** 改選：換掉的變回他行貨、行情清掉；新選的建行情、預設停賣、他行貨搬上來。 */
+function goyoSet(list){
+  const old=goyoSel().slice(),nw=list.filter(n=>COMM_MAP[n]&&COMM_MAP[n].sys!==G.sysKey).slice(0,ODDS.goyo.max);
+  old.filter(n=>!nw.includes(n)).forEach(n=>{
+    const c=COMM_MAP[n];if(!c||c.sys===G.sysKey)return;
+    const q=G.inv[n]||0;if(q>0){stockTake(n,q,false);G.xinv=G.xinv||{};G.xinv[n]=(G.xinv[n]||0)+q}
+    delete G.mk[n];if(G.avgCost)delete G.avgCost[n];if(G.plan)delete G.plan[n];if(G.buyPlan)delete G.buyPlan[n];if(G.shipLock)delete G.shipLock[n];
+  });
+  G.goyo={sel:nw};
+  nw.filter(n=>!old.includes(n)).forEach(n=>{G.shipLock=G.shipLock||{};G.shipLock[n]=true});
+  goyoSweep();
+}
+/** 選貨畫面（上交時接在帝都回信下方、遷居抵達時單獨跳出）。 */
+function goyoPickHtml(lead){
+  const L=goyoCands(),T=UI.s.gyTmp||(UI.s.gyTmp=goyoSel().filter(n=>COMM_MAP[n]&&COMM_MAP[n].sys!==G.sysKey));
+  if(!L.length)return '<div class="notice tiny">'+UT('gy.none')+'</div>';
+  let h='<div class="card" style="margin-top:6px;background:#fff8eb"><b class="small">👑 '+UT('gy.title')+'</b><div class="tiny muted" style="margin-top:2px">'+UT(lead||'gy.lead',{n:ODDS.goyo.max})+'</div>';
+  h+='<div style="margin-top:4px">'+L.map(c=>{const own=c.sys===G.sysKey,on=T.includes(c.name),lock=on&&goyoPtBusy(c.name)&&goyoSel().includes(c.name);
+    return '<span class="pill '+(on?'on':'')+'" '+(own?'style="opacity:.45"':'data-act="goyoTog" data-n="'+esc(c.name)+'"')+'>'+esc(c.short)+(own?'·'+UT('gy.own'):lock?'·'+UT('gy.pt'):'')+'</span>'}).join(' ')+'</div>';
+  h+='<div class="tiny muted" style="margin-top:4px">'+UT('gy.note')+'</div><button class="pixel-btn btn-sm btn-gold" style="width:100%;margin-top:4px" data-act="goyoOk">'+UT('btn.gyOk')+'</button></div>';
+  return h;
+}
+let GY_VIEW=null;                                   // 目前的選貨視窗：{t 標題, pre 前面的內容, lead}
+function goyoShow(){if(GY_VIEW)UI.showInfo(GY_VIEW.t,GY_VIEW.pre+goyoPickHtml(GY_VIEW.lead))}
+ACT.goyoTog=el=>{
+  const n=el.dataset.n,T=UI.s.gyTmp||(UI.s.gyTmp=goyoSel().slice());
+  if(T.includes(n)){if(goyoSel().includes(n)&&goyoPtBusy(n)){toast(MSG('gy.ptLock'));return}T.splice(T.indexOf(n),1)}
+  else{if(T.length>=ODDS.goyo.max){toast(MSG('gy.full',{n:ODDS.goyo.max}));return}T.push(n)}
+  sfx.tap();goyoShow();
+};
+ACT.goyoOk=()=>{
+  const T=(UI.s.gyTmp||goyoSel()).slice();UI.s.gyTmp=null;GY_VIEW=null;
+  goyoSet(T);toast(MSG('gy.ok',{a:goyoComms().map(c=>c.short).join(NAMES_SEP)||'—'}),3600);save();UI.hideInfo();UI.render();
+};
+/* 上交時：帝都回信下方接選貨 */
+{const _g=ACT.kjGive;ACT.kjGive=function(el){
+  const n0=kjCount();_g.apply(this,arguments);
+  if(kjCount()>n0&&goyoCands().length){const body=$('#info-body');UI.s.gyTmp=null;GY_VIEW={t:UT('kj.letter'),pre:body?body.innerHTML:'',lead:'gy.lead'};goyoShow()}
+}}
+/* 遷居：轉行重疊退出名額、新本業那一組交過就給許可、新城重建行情，抵達後旬報後選貨 */
+{const _m=moveDepart;moveDepart=function(){
+  const r=_m.apply(this,arguments);
+  if(G.goyo)G.goyo.sel=goyoSel().filter(n=>COMM_MAP[n]&&COMM_MAP[n].sys!==G.sysKey);
+  if(G.kenjo&&G.kenjo.done&&G.kenjo.done[G.sysKey]){G.trade=G.trade||[];commsOfSys(G.sysKey).filter(c=>c.luxury).forEach(c=>{if(!G.trade.includes(c.name))G.trade.push(c.name)})}
+  goyoComms().forEach(c=>{goyoMkInit(c.name);G.shipLock=G.shipLock||{};G.shipLock[c.name]=true});
+  if(goyoCands().length)queueFaceEvent({type:'goyoPick',turn:G.turn});
+  return r;
+}}
+FACE_TITLE.goyoPick='gy.title';
+{const _f=faceEventCard;faceEventCard=function(e){
+  if(!e||e.type!=='goyoPick')return _f.apply(this,arguments);
+  if(!goyoCands().length)return null;UI.s.gyTmp=null;GY_VIEW={t:UT('gy.title'),pre:'',lead:'gy.leadMove'};
+  return goyoPickHtml('gy.leadMove');
+}}
+/* 每旬：他行貨裡的御用品搬上來 */
+{const _k=kenjoTick;kenjoTick=function(){goyoSweep();return _k.apply(this,arguments)}}
+/* 進度頁多一行：目前的御用品 */
+{const _h=kenjoHtml;kenjoHtml=function(){
+  const h=_h.apply(this,arguments);if(!G.kenjo||!G.kenjo.on||!kjCount())return h;
+  const L=goyoComms().map(c=>c.short);
+  return h.replace('</div>','</div><div class="tiny" style="margin-top:3px">👑 '+esc(L.length?UT('gy.page',{a:L.join(NAMES_SEP)}):UT('gy.pageNone'))+'</div>');
+}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
