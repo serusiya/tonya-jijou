@@ -1002,6 +1002,7 @@ const ODDS={
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
   ,goyo:{name:'帝都御用品（07zzzzzzz_kenjo，第三百三十四節）：最多選幾項、相場進貨上限（本城需求的幾成，再乘番頭加成）',max:2,buy:0.1}
+  ,reassign:{name:'改派（07zz_reassign，第三百三十六節）：好感門檻、冷卻旬數、上岸直接當番頭所需年資；能力門檻沿用 enlist.stat',aff:50,cool:9,bantoTenure:24}
   ,staffChat:{name:'店員閒聊與零用錢（07zzs_staffchat.js）：好感門檻（以下靠零用錢、以上靠閒聊）、好感增幅、貪欲高的門檻、往事最多記幾件、同一件最多提幾次、改講往事的機率',affAt:80,gain:[3,5],greed:70,memMax:6,memUse:2,memP:0.5}
   ,chanceMeet:{name:'拜訪巧遇（07zza_chancemeet.js）：機率、好感增幅、優先挑同類的機率',p:0.1,gainMin:5,gainMax:10,sameKind:0.7}
   ,escort:{name:'陪同·朋友請你引薦官員（07zzb_escort.js）：機率、冷卻、官員官階上限與好感門檻、朋友與官員好感增減、婉拒與失約扣好感、貪欲門檻、牽連機率與旬數、風聲',p:0.2,cd:12,maxRank:3,offAff:60,friendHi:10,friendLo:5,offHiMin:2,offHiMax:3,offBad:5,offCost:1,decline:10,skip:5,greedy:65,riskP:0.25,riskMin:6,riskMax:18,riskHeat:1}
@@ -2678,7 +2679,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。船長、飛腳到外地採買，有時會替你牽線認識當地的商人；這些外城友人見不到面，平日靠書信往來（每封用一次行動），交情深了可以寫信探聽他那個地區下一次的大口買付，也可以去他那裡作客（寄信、作客都在主畫面的「外城出遊」），他也會來訪，或來信訂貨，請你派人整批送去。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
-  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿；手代顧店頭，出貨價好一些；番頭管採購，能向相場多進貨；大番頭總管全店，還會替你問候人脈。船長、飛腳負責商路，保鏢守倉庫、護你出門。店員會長進，也會動手腳，偶爾還會惹上麻煩；平常待他們好，比事後查帳有用：交情淺時給點零用錢，交情深了要常找來閒聊，閒聊時也會聊起以前的事；真正的心腹，閒聊時才會說出肯替你做的事。每種人手都只能先雇一名，要多雇，得先向官府申請許可；熟識的人才，也可以請介紹人作保延攬進店。',
+  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿；手代顧店頭，出貨價好一些；番頭管採購，能向相場多進貨；大番頭總管全店，還會替你問候人脈。船長、飛腳負責商路，保鏢守倉庫、護你出門。手代、番頭與船長、飛腳可以互相改派，船長的船跟著人走。店員會長進，也會動手腳，偶爾還會惹上麻煩；平常待他們好，比事後查帳有用：交情淺時給點零用錢，交情深了要常找來閒聊，閒聊時也會聊起以前的事；真正的心腹，閒聊時才會說出肯替你做的事。每種人手都只能先雇一名，要多雇，得先向官府申請許可；熟識的人才，也可以請介紹人作保延攬進店。',
   'wiki.WIKI_GUIDE.15':'🏛️ 官府',
   'wiki.WIKI_GUIDE.16':'城裡的官員分普請方、勘定方、吟味方三系，上面還有管整個地區的遠國奉行所。倉地、船株、人別帳、商株、海陸運入許可，都要經他們點頭；三系的資格要從低階官員辦起，一級一級往上，高官不越級。交情夠深，還能請他們幫忙：倉庫失火、遭竊，或貨在路上出事，當旬可以申報；高官更能替你開立新町、發專賣株、暫扣同業的株札，甚至把同業判闕所。官員各有性格與弱點，有人好打點，也有人會反過來勒索。',
   'wiki.WIKI_GUIDE.17':'🏮 節慶',
@@ -2899,7 +2900,8 @@ const UI_TXT={
   'music.sw.3':'{a}：{b}',
   'music.audioSettingsHtml':'音樂',
   'music.audioSettingsHtml.2':'音效',
-  'music.audioSettingsHtml.3':'<div class="card"><b class="small">🎵 聲音</b><div class="row" style="gap:6px;margin-top:5px">{a}{b}',
+  'music.audioSettingsHtml.3':'<div class="card"><b class="small">🎵 聲音</b><div class="row" style="gap:6px;margin-top:5px">{a}{b}{c}',
+  'music.audioSettingsHtml.6':'人聲',
   'music.audioSettingsHtml.4':'<div class="row small" style="gap:6px;margin-top:6px"><span>音量</span><input type="range" min="0" max="100" value="{a}',
   'music.audioSettingsHtml.5':'<div class="tiny muted" style="margin-top:3px">主畫面《市井囃子》、拜訪《登門囃子》、人生終章《暖簾囃子》。設定只存在這台裝置的瀏覽器。</div></div>',
   /* —— 07x_dealers.js —— */
@@ -4210,7 +4212,22 @@ const UI_TXT={
   'gy.none':'還沒有可選的貨。',
   'btn.gyOk':'就這樣',
   'gy.page':'御用品：{a}',
-  'gy.pageNone':'御用品：還沒選'
+  'gy.pageNone':'御用品：還沒選',
+  'btn.reassign':'改派',
+  're.title':'改派：{n}',
+  're.lead':'人手不夠時調動職務。年資照算，不算升遷；{n} 旬內不能再調。',
+  're.opt':'改當{r}',
+  're.ship.pay':'造船 {a} 兩',
+  're.ship.own':'自己的船還在',
+  're.ship.keep':'船留著，日後調回可用',
+  're.no.slot':'{r}沒有空額',
+  're.no.stat':'{s}不足 {v}',
+  're.no.aff':'好感未滿 {v}',
+  're.no.cool':'剛調過職，還要 {n} 旬',
+  're.no.busy':'人在外頭，回來再說',
+  're.no.tenure':'番頭要任職滿 {n} 旬',
+  're.no.silver':'現款不夠造船',
+  're.wage':'月例 {a} 兩／旬'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -4764,7 +4781,10 @@ const MSG_TXT={
   'bk.electOk':'別家會投給「{n}」。',
   'gy.full':'御用品最多 {n} 樣，先取消一樣。',
   'gy.ptLock':'這項貨還有貴人的訂單沒交，不能換掉。',
-  'gy.ok':'御用品：{a}。'
+  'gy.ok':'御用品：{a}。',
+  're.done':'{n}改當{r}。',
+  're.doneShip':'{n}改當{r}，造了一艘船（{a} 兩）。',
+  're.doneDock':'{n}上岸改當{r}，船留在碼頭。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -5280,6 +5300,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月18日',items:[
+    '拜訪時出價猜中對方的心思，對方會臉紅，猜中越多次越紅；三回合都沒猜中，對方的頭像會變灰。',
+    '新增人聲：點主畫面的人、給店員零用錢、閒聊時，他們會應聲或道謝；每個人嗓子不同。推進一旬有打更梆子，委託採買出發時有海螺或馬蹄鈴聲。設定裡多了「人聲」開關。',
+    '新增「改派」：手代、番頭可以改當船長或飛腳，船長、飛腳也能上岸進店裡做事，要有足夠的本事和交情。船長的船跟著人走，上岸後再調回來不用再造船。',
     '帝都獻上設定更新：每獻上一組，可以從已獻上的各行名品裡挑兩樣當「御用品」，在相場照本業的奢侈品買賣，也能接貴人的訂單；遷居到新城時可以重選。選上珍陀酒時，走私來的珍陀酒也能上架。',
     '新增帝都獻上：名聲到了一定程度，普請方的大官會來說帝都在廣蒐天下名品；每一行的上等貨各湊一件成一組，他來城時會上門收。獻上四組起，每年正月會有港口開始出產還沒獻上的珍品；獻上五組，就能遷居京畿。進度記在筆記「紀錄」的「帝都獻上」頁。',
     '地區特色：京畿的貨不易壞、少失火，船馬都裝得多，人口只會增加不會減少。',
@@ -7674,7 +7697,7 @@ function sceneStart(){
   cv.addEventListener('click',ev=>{
     const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*320,y=(ev.clientY-r.top)/r.height*180;
     let best=null,bd=18;SCENE.ents.forEach(e=>{const d=Math.hypot(e.x-x,(e.y-11)-y);if(d<bd){bd=d;best=e}});
-    if(best){sfx.tap();const m=sceneMember(best);if(m)openChat(m)}
+    if(best){const m=sceneMember(best);if(!(m&&typeof voScene==='function'&&voScene(m)))sfx.tap();if(m)openChat(m)}
     else if(x>=93&&x<=219&&y>=20&&y<=106){sfx.tap();UI.go('estate')}
     else if(y>=54&&y<=106&&((x>=28&&x<=80)||(G.wh.n>=2&&x>=220&&x<=272)||(G.wh.n>=3&&x>=268&&x<=320))){sfx.tap();UI.openSheet('warehouse')}
   });
@@ -8139,9 +8162,18 @@ function ptDraw(o){
     R(17,30,2,3,'#ebe7dd');R(29,30,2,3,'#ebe7dd');H(19,28,32,'#ebe7dd');H(20,27,33,'#ebe7dd');H(21,26,34,'#dcd7ca');H(22,25,35,'#dcd7ca');H(23,24,36,'#cbc5b6')}
 
   R(16,16,2,2,sk.hi);R(15,19,1,3,sk.hi);R(0,0,48,1,ptShade(bg,-42));R(0,47,48,1,ptShade(bg,-42));
+  if(o.blush)ptBlush(c,eyeY,o.blush);
   return cv.toDataURL('image/png');
 }
 
+/** 臉紅（拜訪猜中，第三百三十八節）：lv 1 兩頰淡紅；lv 2 更紅，加三道斜線。照原本的膚色混色，五官不動。 */
+function ptBlush(c,eyeY,lv){
+  const pink=[232,96,96],deep=[200,70,72];
+  const paint=(x,y,t,col)=>{const d=c.getImageData(x,y,1,1).data,m=[0,1,2].map(i=>Math.round(d[i]+((col||pink)[i]-d[i])*t));c.fillStyle='rgb('+m.join(',')+')';c.fillRect(x,y,1,1)};
+  const cheeks=[[14,19],[28,33]];
+  cheeks.forEach(([a,b])=>{for(let x=a;x<=b;x++)for(let y=eyeY+3;y<=eyeY+4;y++)paint(x,y,(lv>=2?0.52:0.4)*((x===a||x===b)?0.55:1))});
+  if(lv>=2)cheeks.forEach(([a])=>[a+1,a+3].forEach(x=>{paint(x,eyeY+4,0.75,deep);paint(x+1,eyeY+3,0.75,deep)}));
+}
 /** 將十六進位色調亮／調暗。 */
 function ptShade(hex,amt){
   const n=parseInt(hex.slice(1),16),r=Math.max(0,Math.min(255,(n>>16)+amt)),g=Math.max(0,Math.min(255,((n>>8)&255)+amt)),b=Math.max(0,Math.min(255,(n&255)+amt));
@@ -8157,16 +8189,17 @@ function portraitFigure(kind,seed,px){
 }
 
 /** 依人物 cid 取頭像；每八歲更新年齡層，換裝與職位同步更新。 */
-function portraitHtml(cid,px){
-  const ch=CH(cid);if(!ch)return '';
+function portraitHtml(cid,px,opt){
+  const ch=CH(cid);if(!ch)return '';const blush=opt&&opt.blush||0,gray=opt&&opt.gray;
   const n=npc(cid),age=Math.max(10,ageOf(cid)),emp=G.emps.find(e=>e.cid===cid);
   const role=emp?emp.rank:(n?n.role:'guest');
   const o={seed:cid,gender:ch.gender,age,role,rank:n&&n.pos?n.pos.rank:0,court:n&&n.pos?n.pos.court:null,oiran:role==='oiran',st:ch.derived_stats};
   if(emp&&RANK_LOOK[emp.rank])o.cloth=RANK_LOOK[emp.rank].cloth;
-  const key=['edo3',cid,Math.floor(age/8),role,o.rank,o.court||'',o.cloth||''].join('|');
+  if(blush)o.blush=blush;
+  const key=['edo3',cid,Math.floor(age/8),role,o.rank,o.court||'',o.cloth||''].join('|')+(blush?'|b'+blush:'');
   const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw(o));
   const size=px||48;
-  return '<img class="pt" src="'+url+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
+  return '<img class="pt" src="'+url+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true"'+(gray?' style="filter:grayscale(1);opacity:.7"':'')+'>';
 }
 
 /** 無名冊少年員工：同一員工外貌固定，升職時換上對應衣裝。 */
@@ -9303,7 +9336,7 @@ function renderEstate(){
     const ls=G.emps.filter(e=>e.rank===rk);
     return ls.map(e=>{
       if(e.flag&&!e.caught)e.caught=e.flag;                                  // 舊存檔：已查出的私吞改為待處置
-      return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+UT('ppl.renderEstate.17',{a:portraitEmp(e,56),b:rankName(e.rank),c:esc(e.name)})+'</b> '+staffTags(e)+'<div class="tiny muted">'+UT('ppl.renderEstate.18',{a:e.cid?'':UT('ppl.renderEstate.16'),b:e.wage,c:staffTenure(e),d:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='chief'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
+      return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+UT('ppl.renderEstate.17',{a:portraitEmp(e,56),b:rankName(e.rank),c:esc(e.name)})+'</b> '+staffTags(e)+'<div class="tiny muted">'+UT('ppl.renderEstate.18',{a:e.cid?'':UT('ppl.renderEstate.16'),b:e.wage,c:staffTenure(e),d:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='chief'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+reBtn(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
   const apBtn=' '+UT('ppl.apprenticeBtn',{a:UT('btn.apprentice',{c:costBtn('apprentice')})});   // 招丁稚放在物色右邊
@@ -11136,7 +11169,7 @@ function dockCrewHtml(){
     if(!cs.length)return h+'<div class="notice tiny">'+none+'</div>'+(rk==='captain'?smuggleButton():'');
     return h+(rk==='captain'?smuggleButton():'')+cs.map(e=>{
       const busy=G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id);
-      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+UT('loyal.block',{a:portraitEmp(e,56),b:rankName(rk),c:esc(e.name)})+'</b> '+UT('loyal.block.2',{a:busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>',b:e.wage,c:staffTenure(e)})+'</div>'+UT('loyal.block.3',{a:staffTags(e),b:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e,'dock')+'<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">'+auditBtns(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
+      return '<div class="card'+(busy?' locked':'')+'" style="display:flow-root">'+UT('loyal.block',{a:portraitEmp(e,56),b:rankName(rk),c:esc(e.name)})+'</b> '+UT('loyal.block.2',{a:busy?'<span class="tag gray">'+away+'</span>':'<span class="tag green">'+home+'</span>',b:e.wage,c:staffTenure(e)})+'</div>'+UT('loyal.block.3',{a:staffTags(e),b:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e,'dock')+'<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap">'+auditBtns(e)+reBtn(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fireDock" data-id="'+e.id+'">'+UT('btn.fireDock')+'</button></div></div>';
     }).join('');
   };
   return block('captain','⚓',UT('loyal.dockCrewHtml'),UT('loyal.dockCrewHtml.2'),UT('loyal.dockCrewHtml.3'))+block('courier','🐎',UT('loyal.dockCrewHtml.4'),UT('loyal.dockCrewHtml.5'),UT('loyal.dockCrewHtml.6'));
@@ -12222,7 +12255,7 @@ function battleStart(cid,giftKey){
 /** 對話框內容。 */
 function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
-  let h='<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
+  let h='<div style="display:flow-root">'+portraitHtml(cid,56,{blush:B.hits>=2?2:B.hits})+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?UT('bt.battleHtml'):left===2?UT('bt.battleHtml.2'):UT('bt.battleHtml.3'))+(B.spent?UT('bt.battleHtml.4',{a:fmt(B.spent)}):'')+'</div>';
   if(B.ordRound!==B.round){B.ordRound=B.round;B.order=stressTier()>=1?shuffle([0,1,2]):[0,1,2]}   // 疲憊以上：每回合小中大的位置打亂（07zzi_stress.js）
   const LB=[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')];
@@ -12256,7 +12289,7 @@ function battleEnd(){
   if(!win&&B.round>=3&&B.hits===0){                                 // 走完三回合、一次都沒猜中：不善言辭
     r.snubUntil=G.turn+1;r.lastOk=false;logRel(cid,UT('bt.battleEnd.2',{a:B.spent?UT('bt.battleEnd',{a:B.spent}):''}));sfx.bad();
     const ef=escortFail(cid,'snub');                                 // 同行朋友的引見落空（07zzb_escort.js）
-    UI.render();refreshSheet();UI.hideInfo();toast(btSay(cid,'snub')+ef,4600);BT=null;return;
+    UI.render();refreshSheet();UI.showInfo(UT('bt.battleShow',{a:nameOf(cid)}),'<div style="display:flow-root">'+portraitHtml(cid,56,{gray:true})+'<div class="small">'+esc(btSay(cid,'snub')+ef)+'</div></div>');BT=null;return;   // 不善言辭：頭像變灰（第三百三十八節）
   }
   let gain=(win?10+btBondBonus(r)+Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):Math.floor(5*B.dmg/B.hp))+B.hits;
   gain=Math.max(0,Math.min(gain,100-r.aff));
@@ -12502,7 +12535,7 @@ function partyDraw(){
  *  - 樂器：koto 箏、kotoLow 低音箏、shami 三味線、fue 笛、taiko 大太鼓、shime 締太鼓、ka 鼓邊、kane 鉦。
  *  - 曲目：market《市井囃子》（主畫面，陽音階）、visit《登門囃子》（拜訪戰鬥，都節音階）、title《暖簾囃子》（人生終章，箏引子＋兩首動機）、trip《道中囃子》（外城出遊，G 調陽音階、跳步節奏、伴奏減半）；皆依祭典囃子形式編排，非特定曲目。
  *  - 播放採預排：每 25 毫秒把接下來 0.25 秒內的音符排進時間軸，循環播放；換曲時淡出淡入。
- *  - 設定（音樂開關、音效開關、音量）存在本機瀏覽器（AUDIO_KEY），屬個人偏好，不寫進存檔。
+ *  - 設定（音樂開關、音效開關、人聲開關〔07w2_voice〕、音量）存在本機瀏覽器（AUDIO_KEY），屬個人偏好，不寫進存檔。
  *  - 手機瀏覽器要在使用者點擊之後才能出聲：開局／繼續人生時開始播放，之後任何點擊都會喚醒。 */
 const AUDIO_KEY='tonya_jijou_audio';
 /** 音訊設定：music 音樂開關、sfx 音效開關、vol 音量 0～100。 */
@@ -12693,11 +12726,163 @@ document.addEventListener('pointerdown',()=>{if(AC&&AC.state==='suspended'&&!doc
 /* ======================= 設定面板（選單最上方） ======================= */
 function audioSettingsHtml(){
   const sw=(k,on,lb)=>'<button class="pixel-btn btn-sm '+(on?'btn-gold':'')+'" data-act="audioToggle" data-k="'+k+'" style="flex:1">'+UT('music.sw.3',{a:lb,b:on?UT('music.sw'):UT('music.sw.2')})+'</button>';
-  return UT('music.audioSettingsHtml.3',{a:sw('music',AUDIO.music,UT('music.audioSettingsHtml')),b:sw('sfx',AUDIO.sfx,UT('music.audioSettingsHtml.2'))})+'</div>'+UT('music.audioSettingsHtml.4',{a:AUDIO.vol})+'" data-audio="vol" style="flex:1"><b id="audio-vol">'+AUDIO.vol+'</b></div>'+UT('music.audioSettingsHtml.5');
+  return UT('music.audioSettingsHtml.3',{a:sw('music',AUDIO.music,UT('music.audioSettingsHtml')),b:sw('sfx',AUDIO.sfx,UT('music.audioSettingsHtml.2')),c:sw('voice',AUDIO.voice!==false,UT('music.audioSettingsHtml.6'))})+'</div>'+UT('music.audioSettingsHtml.4',{a:AUDIO.vol})+'" data-audio="vol" style="flex:1"><b id="audio-vol">'+AUDIO.vol+'</b></div>'+UT('music.audioSettingsHtml.5');
 }
 ACT.audioToggle=el=>{const k=el.dataset.k;AUDIO[k]=!AUDIO[k];audioSave();audioApply();musicSync();if(AUDIO.sfx)sfx.tap();refreshSheet()};
 document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.audio==='vol'){AUDIO.vol=+e.target.value;const v=$('#audio-vol');if(v)v.textContent=AUDIO.vol;audioApply();audioSave()}});
 audioApply();
+
+/* ═════ [07w2_voice] ═════ */
+/* 人聲與兩項器物聲（第三百三十七節）：全部 WebAudio 即時合成，不用音檔。
+ *  - 人聲：共振峰合成的擬聲（聽語氣、不聽字）。點主畫面人物、給零用錢、閒聊時出聲。
+ *    每個人一副固定的嗓子（由店員 id、家人編號當種子決定音高、口腔大小、粗細、語速）；每職位三、四種應聲隨機挑。
+ *    受設定「人聲」開關（AUDIO.voice）控制，與音效開關分開；音量照共用音量。
+ *  - 器物聲：推進一旬的打更梆子、委託採買出發的海螺（海路）與馬蹄加鈴（陸路）；受音效開關控制。 */
+if(AUDIO.voice===undefined)AUDIO.voice=true;
+const VO={out:null,rev:null,nb:null,gw:null};
+/** 輸出鏈：音量 → 壓縮 → 喇叭，另接一個合成殘響。 */
+function voReady(){
+  if(!AC)return false;if(AC.state==='suspended')AC.resume();
+  if(!VO.out){
+    const comp=AC.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.connect(AC.destination);
+    VO.out=AC.createGain();VO.out.connect(comp);
+    const len=Math.floor(AC.sampleRate*2),ir=AC.createBuffer(2,len,AC.sampleRate);
+    for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2)}
+    VO.rev=AC.createConvolver();VO.rev.buffer=ir;const rg=AC.createGain();rg.gain.value=0.35;VO.rev.connect(rg);rg.connect(VO.out);
+    VO.nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=VO.nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const n=40,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)im[k]=1/Math.pow(k,1.35);VO.gw=AC.createPeriodicWave(re,im);
+  }
+  VO.out.gain.value=0.75*Math.min(1.6,SFX_VOL);
+  return true;
+}
+const voR=(a,b)=>a+Math.random()*(b-a);
+function voOut(node,rev){node.connect(VO.out);if(rev){const g=AC.createGain();g.gain.value=rev;node.connect(g);g.connect(VO.rev)}}
+function voEnv(t,a,d,v,hold){const g=AC.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+a);if(hold)g.gain.setValueAtTime(v,t+a+hold);g.gain.exponentialRampToValueAtTime(0.0001,t+a+(hold||0)+d);return g}
+function voOsc(type,f,t,dur){const o=AC.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);o.start(t);o.stop(t+dur+0.05);return o}
+function voNoise(t,dur){const s=AC.createBufferSource();s.buffer=VO.nb;s.loop=true;s.start(t,Math.random()*1.5);s.stop(t+dur+0.05);return s}
+function voFilt(type,f,q){const b=AC.createBiquadFilter();b.type=type;b.frequency.value=f;b.Q.value=q||1;return b}
+function voPing(t,f,dec,v,type,rev){const o=voOsc(type||'sine',f,t,dec),g=voEnv(t,0.002,dec,v);o.connect(g);voOut(g,rev)}
+function voNhit(t,ft,f,q,dec,v,rev){const n=voNoise(t,dec),b=voFilt(ft,f,q),g=voEnv(t,0.001,dec,v);n.connect(b);b.connect(g);voOut(g,rev)}
+
+/* ---------- 人聲 ---------- */
+const VO_VOW={a:[800,1200,2600],i:[300,2250,3000],e:[480,1900,2550],o:[500,850,2600],u:[350,750,2400],n:[260,1500,2600]};
+/** 各類人的基本嗓子：f0 音高、fs 口腔倍率、rough 粗、breath 氣音、v 音量。 */
+const VO_SPK={
+  apprentice:{f0:270,fs:1.22,v:0.5,breath:0.02},clerk:{f0:165,fs:1.0,v:0.5,breath:0.02},banto:{f0:135,fs:0.97,v:0.5,breath:0.02},
+  chief:{f0:100,fs:0.93,v:0.55,breath:0.03},captain:{f0:118,fs:0.95,v:0.6,rough:0.6,breath:0.04},courier:{f0:185,fs:1.03,v:0.55,breath:0.03},
+  guard:{f0:95,fs:0.92,v:0.55,rough:0.3,breath:0.05},wife:{f0:235,fs:1.17,v:0.42,breath:0.06},conc:{f0:265,fs:1.2,v:0.4,breath:0.07},
+  kidS:{f0:360,fs:1.35,v:0.45,breath:0.03},kidL:{f0:290,fs:1.25,v:0.45,breath:0.03}
+};
+/** 各類人的應聲（[母音, 長度, 音高倍率, 子音]），隨機挑一種。 */
+const VO_WORDS={
+  apprentice:[[['a',.07,1.12,'h'],['i',.09,.95]],[['a',.05,1.1,'h'],['i',.05,1.0],['a',.05,1.12,'h'],['i',.08,.95]],[['e',.12,1.3]],[['n',.08,1.0],['n',.12,1.25]]],
+  clerk:[[['o',.11,1.05,'h'],['e',.09,.92,'d']],[['a',.08,1.0,'h'],['i',.1,.92]],[['o',.07,1.0],['a',.07,1.05,'d'],['i',.07,1.0],['a',.12,.9,'d']]],
+  banto:[[['a',.09,1.0,'h'],['i',.1,.9]],[['n',.08,1.0],['a',.08,1.0,'h'],['i',.1,.88]],[['o',.1,1.0],['u',.14,.9]]],
+  chief:[[['n',.12,1.0],['n',.12,1.08],['n',.14,.88]],[['u',.1,1.0,'h'],['n',.18,.9]],[['o',.1,1.0],['i',.16,.86]]],
+  captain:[[['o',.08,1.25],['o',.16,.95]],[['o',.08,1.1],['a',.14,1.2]],[['a',.1,1.15,'h'],['a',.08,.9]]],
+  courier:[[['e',.07,1.1,'d'],['i',.13,.95,'d']],[['a',.05,1.15,'h'],['i',.07,1.0]],[['i',.06,1.0],['e',.1,1.1,'d']]],
+  guard:[[['n',.06,1.05,'h'],['n',.12,.85]],[['n',.14,.9]],[['o',.12,.9]]],
+  wife:[[['a',.1,1.05,'h'],['i',.14,.97]],[['a',.08,1.0],['a',.12,1.1,'d']],[['n',.1,1.0],['n',.14,1.1]]],
+  conc:[[['n',.1,.95],['n',.12,1.05],['a',.16,1.15]],[['a',.08,1.1],['a',.16,1.25,'d']],[['o',.12,1.0],['o',.16,1.15]]],
+  kidS:[[['a',.09,1.0,'d'],['a',.14,1.18]],[['a',.1,1.2],['a',.1,1.0,'d'],['a',.1,1.2,'d']],[['e',.12,1.3,'h']]],
+  kidL:[[['e',.08,1.0,'d'],['e',.12,1.12]],[['a',.08,1.0,'h'],['i',.12,.95]],[['n',.12,1.05]]]
+};
+/** 道謝的母音序列（收到零用錢），尾音上揚。 */
+const VO_THX={apprentice:'aiao',clerk:'ooie',banto:'aiao',chief:'uo',captain:'oaa',courier:'aiai',guard:'uo',wife:'aiao',conc:'ooie',kidS:'aaa',kidL:'aiao'};
+const VO_STERN=['chief','guard'];
+function voSeedR(seed){let x=0;for(const c of String(seed))x=(x*31+c.charCodeAt(0))>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let t=x;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+/** 某人的嗓子：role 決定類別，seed 決定個人差異；female 時音高與口腔改用女聲。 */
+function voVoice(role,seed,female){
+  const b=VO_SPK[role]||VO_SPK.clerk,r=voSeedR(role+'|'+seed);
+  const base=female&&!['wife','conc','kidS','kidL'].includes(role)?Object.assign({},b,{f0:VO_SPK.wife.f0*(b.f0/165)**0.3,fs:VO_SPK.wife.fs,rough:0,breath:0.06}):b;
+  return Object.assign({},base,{f0:base.f0*(0.86+r()*0.28),fs:base.fs*(0.94+r()*0.12),rough:(base.rough||0)+(r()<0.3?r()*0.4:0),breath:(base.breath||0.02)*(0.6+r()*1.2),vib:(base.vib||0.012)*(0.7+r()*0.9),tempo:0.85+r()*0.35});
+}
+/** 共振峰合成一段聲音；segs:[{v,d,p,c,g}]，回傳結束時間。 */
+function voSpeak(sp,segs,t0){
+  const t=t0===undefined?AC.currentTime+0.01:t0;
+  const total=segs.reduce((a,s)=>a+s.d,0)+0.05;
+  const src=AC.createOscillator();src.setPeriodicWave(VO.gw);
+  const pre=AC.createGain();
+  if(sp.rough){const sh=AC.createWaveShaper(),c=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;c[i]=Math.tanh(x*(1+sp.rough*4))}sh.curve=c;src.connect(sh);sh.connect(pre)}else src.connect(pre);
+  const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=voR(5,6.5);lg.gain.value=sp.f0*(sp.vib||0.012);lfo.connect(lg);lg.connect(src.frequency);lfo.start(t);lfo.stop(t+total+0.1);
+  const fb=[0,1,2].map(i=>voFilt('bandpass',VO_VOW[segs[0].v][i]*sp.fs,[6,9,12][i]));
+  const fg=[1,0.45,0.18].map(v=>{const g=AC.createGain();g.gain.value=v;return g});
+  const mix=AC.createGain();fb.forEach((b,i)=>{pre.connect(b);b.connect(fg[i]);fg[i].connect(mix)});
+  if(sp.breath){const n=voNoise(t,total),bg=AC.createGain();bg.gain.value=sp.breath;n.connect(bg);fb.forEach(b=>bg.connect(b))}
+  const amp=AC.createGain();amp.gain.setValueAtTime(0.0001,t);mix.connect(amp);voOut(amp,0.12);
+  const V=sp.v||0.5;let tt=t;
+  src.frequency.setValueAtTime(sp.f0*(segs[0].p||1),t);
+  segs.forEach((s,k)=>{
+    const f=VO_VOW[s.v];
+    fb.forEach((b,i)=>b.frequency.linearRampToValueAtTime(f[i]*sp.fs,tt+Math.min(0.04,s.d*0.5)));
+    if(s.c==='h'){const n=voNoise(tt,0.06),hb=voFilt('bandpass',1800*sp.fs,1),hg=voEnv(tt,0.005,0.05,0.18*V);n.connect(hb);hb.connect(hg);voOut(hg)}
+    if(k===0)amp.gain.exponentialRampToValueAtTime(V,tt+(s.c==='h'?0.05:0.02));
+    else if(s.c==='d'){amp.gain.linearRampToValueAtTime(V*0.15,tt+0.012);amp.gain.linearRampToValueAtTime(V,tt+0.035)}
+    else amp.gain.linearRampToValueAtTime(V*(s.g||1),tt+0.03);
+    src.frequency.linearRampToValueAtTime(sp.f0*(s.p||1),tt+s.d);
+    const nas=s.v==='n';fg[1].gain.linearRampToValueAtTime(nas?0.08:0.45,tt+0.03);fg[2].gain.linearRampToValueAtTime(nas?0.03:0.18,tt+0.03);
+    tt+=s.d;
+  });
+  amp.gain.exponentialRampToValueAtTime(0.0001,tt+0.06);
+  src.start(t);src.stop(tt+0.12);
+  return tt;
+}
+const voSegs=(L,sp)=>L.map(([v,d,p,c])=>({v,d:d*(sp.tempo||1),p,c}));
+/** 應聲。 */
+function voWord(role,sp){const L=pick(VO_WORDS[role]||VO_WORDS.clerk);sp=Object.assign({},sp,{f0:sp.f0*voR(0.96,1.04)});return voSpeak(sp,voSegs(L,sp))}
+/** 笑兩三聲。 */
+function voLaugh(sp,t){const n=Math.floor(voR(2,4)),L=[];for(let i=0;i<n;i++)L.push({v:Math.random()<.7?'a':'e',d:voR(.06,.08)*(sp.tempo||1),p:1.25-i*0.08,c:'h',g:0.8});return voSpeak(Object.assign({},sp,{breath:(sp.breath||0.02)+0.05}),L,t)}
+/** 道謝，有時帶笑（大番頭、保鏢不笑）。 */
+function voThanksSay(role,sp){
+  const vs=VO_THX[role]||VO_THX.clerk,L=[];
+  for(let i=0;i<vs.length;i++){const last=i===vs.length-1;L.push({v:vs[i],d:(last?voR(.12,.16):voR(.06,.08))*(sp.tempo||1),p:last?voR(1.12,1.25):voR(.98,1.08),c:i?'d':'h'})}
+  const t=voSpeak(sp,L);if(Math.random()<0.55&&!VO_STERN.includes(role))voLaugh(sp,t+0.08);
+}
+/** 店員的類別與嗓子。 */
+function voEmp(e){
+  if(!e)return null;const role=VO_SPK[e.rank]?e.rank:'clerk',c=e.cid?CH(e.cid):(e.pid?CH(e.pid):null);
+  return {role,sp:voVoice(role,e.id,!!(c&&c.gender==='f'))};
+}
+/** 主畫面點到的人（sceneMember 的回傳）。 */
+function voMember(m){
+  if(!m)return null;
+  if(m.kind==='emp')return voEmp(chatSelf(m));
+  if(m.id==='wife'){const sp=G.family.spouse;return {role:'wife',sp:voVoice('wife',sp?sp.name:'wife')}}
+  if(m.id.startsWith('conc_'))return {role:'conc',sp:voVoice('conc',m.id)};
+  if(m.id.startsWith('kid_')){const k=G.family.kids.find(x=>'kid_'+x.id===m.id);const role=k&&kidAge(k)>=12?'kidL':'kidS';const sp=voVoice(role,m.id);if(k&&k.gender==='f')sp.f0*=1.12;return {role,sp}}
+  return null;
+}
+/** 人聲出得了聲嗎（開關與音訊環境）。 */
+const voOn=()=>AUDIO.voice&&AUDIO.vol>0&&voReady();
+/** 點主畫面人物：出聲成功回傳 true（呼叫端就不再播點擊聲）。 */
+function voScene(m){if(!voOn())return false;const x=voMember(m);if(!x)return false;try{voWord(x.role,x.sp)}catch(err){return false}return true}
+/** 給零用錢：道謝。 */
+function voThanks(e){if(!voOn())return;const x=voEmp(e);if(x)try{voThanksSay(x.role,x.sp)}catch(err){}}
+/** 閒聊：應聲或道謝隨機一種。 */
+function voChat(e){if(!voOn())return;const x=voEmp(e);if(!x)return;try{Math.random()<0.6?voWord(x.role,x.sp):voThanksSay(x.role,x.sp)}catch(err){}}
+
+/* ---------- 器物聲（受音效開關控制） ---------- */
+const sfxOk=()=>soundOn&&AUDIO.vol>0&&voReady();
+/** 推進一旬：打更梆子兩下。 */
+function sfxTurn(){if(!sfxOk())return;const t=AC.currentTime+0.02;[0,0.35].forEach(d=>{voPing(t+d,760,0.16,0.45,'sine',0.2);voPing(t+d,1900,0.05,0.12);voNhit(t+d,'bandpass',1200,3,0.03,0.25)})}
+/** 海路出發：海螺。 */
+function sfxHorn(){
+  if(!sfxOk())return;const t=AC.currentTime+0.02;
+  const o=voOsc('sawtooth',180,t,1.4),l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=4.5;lg.gain.value=3;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+1.5);
+  o.frequency.linearRampToValueAtTime(205,t+0.3);o.frequency.linearRampToValueAtTime(196,t+1.3);
+  const b=voFilt('lowpass',900,3),g=voEnv(t,0.3,0.35,0.3,0.7);o.connect(b);b.connect(g);voOut(g,0.4);
+}
+/** 陸路出發：馬蹄加鈴。 */
+function sfxHoof(delay){
+  if(!sfxOk())return;const t=AC.currentTime+0.02+(delay||0);
+  for(let i=0;i<8;i++){const tt=t+i*0.19+(i%2)*0.06;voNhit(tt,'bandpass',650,4,0.05,0.5,0.05);voPing(tt,330,0.05,0.2);if(i%3===0)[2600,3900].forEach(f=>voPing(t+i*0.19,f,0.3,0.06,'sine',0.2))}
+}
+{const _f=playFx;playFx=function(kind,cap,sub,done,ms){if(kind==='time'&&!FX.busy)try{sfxTurn()}catch(e){}return _f.apply(this,arguments)}}
+{const _f=ACT.vGoAll;ACT.vGoAll=function(){
+  const before=new Set(G.ships.map(s=>s.id));const r=_f.apply(this,arguments);
+  const nw=G.ships.filter(s=>!before.has(s.id));
+  try{const sea=nw.some(s=>s.mode==='sea'),land=nw.some(s=>s.mode==='land');if(sea)sfxHorn();if(land)sfxHoof(sea?1.2:0)}catch(e){}
+  return r}}
 
 /* ═════ [07x_dealers] ═════ */
 'use strict';
@@ -14426,6 +14611,66 @@ ACT.branchRefuse=()=>{
   B.refused++;let msg=MSG('branch.refused',{n:B.name});
   if(B.refused>=ODDS.branch.refuse){B.closed=true;pushNews(NEWS('branch.closed',{b:branchName()}));msg=MSG('branch.closed',{n:B.name})}
   UI.hideInfo();toast(msg,4600);UI.render();
+};
+
+/* ═════ [07zz_reassign] ═════ */
+/* 改派（第三百三十六節）：手代、番頭改當船長或飛腳；船長、飛腳上岸當手代或番頭。
+ * 能力門檻沿用延攬（ODDS.enlist.stat）；好感 ≥ ODDS.reassign.aff；改派後 cool 旬內不能再調。
+ * 船跟著人：第一次當船長付造船費，之後 e.ship=true，上岸再調回不用再付。年資（since）照算，改派不算升遷。 */
+const RE_FROM_IN=['clerk','banto'],RE_FROM_DOCK=['captain','courier'];
+/** 這個人能改派到哪些職位（不論條件是否滿足）。 */
+const reTargets=e=>RE_FROM_IN.includes(e.rank)?RE_FROM_DOCK:RE_FROM_DOCK.includes(e.rank)?RE_FROM_IN:[];
+/** 有沒有自己的船。 */
+const reHasShip=e=>!!e.ship||e.rank==='captain';
+/** 人在外頭：在途採買、走私、出運清單、借出、受傷、入獄。 */
+function reBusy(e){
+  return G.ships.some(s=>s.capt===e.id)||(G.smug||[]).some(v=>v.capt===e.id)||(G.voyQueue||[]).some(q=>q.capt===e.id)
+    ||(G.lent&&G.lent.empId===e.id)||empLent(e)||jailedEmp(e);
+}
+/** 新職位的工錢（照聘用公式）。 */
+const reWage=(e,rk)=>Math.round(RANK_WAGE[rk]*(e.cid?(0.8+CH(e.cid).derived_stats.commerce_skill/150):1));
+/** 改派到 rk 的阻擋理由；可以改派回傳 ''。 */
+function reBlock(e,rk){
+  const O=ODDS.reassign,s=statsOfEmp(e),need=(ODDS.enlist.stat||{})[rk]||{};
+  if(e.reT!==undefined&&G.turn-e.reT<O.cool)return UT('re.no.cool',{n:O.cool-(G.turn-e.reT)});
+  if(reBusy(e))return UT('re.no.busy');
+  if(empAff(e)<O.aff)return UT('re.no.aff',{v:O.aff});
+  if(!slotFree(rk))return UT('re.no.slot',{r:rankName(rk)});
+  for(const [k,v] of Object.entries(need))if((s[k]||0)<v)return UT('re.no.stat',{s:statName(k),v});
+  if(rk==='banto'&&RE_FROM_DOCK.includes(e.rank)&&G.turn-e.since<O.bantoTenure)return UT('re.no.tenure',{n:O.bantoTenure});
+  if(rk==='captain'&&!reHasShip(e)&&G.silver<shipCost())return UT('re.no.silver');
+  return '';
+}
+/** 店員卡、碼頭卡上的「改派」按鈕。 */
+function reBtn(e){
+  if(!reTargets(e).length)return '';
+  return '<button class="pixel-btn btn-sm" data-act="reOpen" data-id="'+e.id+'">'+UT('btn.reassign')+'</button>';
+}
+/** 改派視窗。 */
+function reHtml(e){
+  let h='<p class="small">'+UT('re.lead',{n:ODDS.reassign.cool})+'</p><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">';
+  reTargets(e).forEach(rk=>{
+    const why=reBlock(e,rk);
+    let sub=UT('re.wage',{a:reWage(e,rk)});
+    if(rk==='captain')sub+='；'+(reHasShip(e)?UT('re.ship.own'):UT('re.ship.pay',{a:fmt(shipCost())}));
+    if(e.rank==='captain')sub+='；'+UT('re.ship.keep');
+    h+='<button class="pixel-btn'+(why?'':' btn-gold')+'" style="padding:8px;text-align:left"'+(why?' disabled':'')+' data-act="reGo" data-id="'+e.id+'" data-rk="'+rk+'"><b>'+UT('re.opt',{r:rankName(rk)})+'</b><div class="tiny">'+(why?esc(why):sub)+'</div></button>';
+  });
+  return h+'</div>';
+}
+ACT.reOpen=el=>{const e=G.emps.find(x=>x.id===el.dataset.id);if(!e)return;UI.showInfo(UT('re.title',{n:esc(e.name)}),reHtml(e));sfx.tap()};
+ACT.reGo=el=>{
+  const e=G.emps.find(x=>x.id===el.dataset.id),rk=el.dataset.rk;if(!e||!reTargets(e).includes(rk))return;
+  const why=reBlock(e,rk);if(why){toast(why);return}
+  const from=e.rank;let msg;
+  if(rk==='captain'&&!reHasShip(e)){const a=spendAmt('shipBuild',shipCost());msg=MSG('re.doneShip',{n:e.name,r:rankName(rk),a:fmt(a)})}
+  if(from==='captain')e.ship=true;
+  if(rk==='captain')e.ship=true;
+  e.rank=rk;e.wage=reWage(e,rk);e.reT=G.turn;
+  if(RE_FROM_IN.includes(rk))e.promotedAt=G.turn;                 // 上岸後下一次升遷從改派起算
+  if(!msg)msg=from==='captain'?MSG('re.doneDock',{n:e.name,r:rankName(rk)}):MSG('re.done',{n:e.name,r:rankName(rk)});
+  if(G.voyQueue)voyQPrune();
+  UI.hideInfo();toast(msg,3600);sfx.coin();UI.render();refreshSheet();
 };
 
 /* ═════ [07zz_enlist] ═════ */
@@ -18332,6 +18577,11 @@ ACT.staffOrder=el=>{const e=G.emps.find(x=>x.id===el.dataset.id);if(!e||!scSworn
 {const _f=fraudDo;fraudDo=function(){const h0=new Map(G.emps.map(e=>[e,e.hurtUntil||0]));const r=_f.apply(this,arguments);G.emps.forEach(e=>{if(h0.has(e)&&(e.hurtUntil||0)>h0.get(e))scMem(e,'fraud')});return r}}
 {const _f=resolveVoyage;resolveVoyage=function(s){const top=G.voyLog&&G.voyLog[0];const r=_f.apply(this,arguments);const E=G.voyLog&&G.voyLog[0];if(E&&E!==top&&E.wreck){const e=G.emps.find(x=>x.id===s.capt);if(e)scMem(e,'wreck')}return r}}
 
+/* ═════ [07w3_voicehook] ═════ */
+/* 給零用錢、閒聊時的人聲（07e_visit.js〔07w2_voice〕）；ACT.allow、ACT.staffChat 在本檔才定義完，接點放這裡。 */
+{const _f=ACT.allow;ACT.allow=function(el){const e=G.emps.find(x=>x.id===el.dataset.id),b=e&&e.allowT;const r=_f.apply(this,arguments);if(e&&e.allowT===G.turn&&b!==G.turn)setTimeout(()=>voThanks(e),120);return r}}
+{const _f=ACT.staffChat;ACT.staffChat=function(el){const e=G.emps.find(x=>x.id===el.dataset.id),b=e&&e.chatT;const r=_f.apply(this,arguments);if(e&&e.chatT===G.turn&&b!==G.turn)voChat(e);return r}}
+
 /* ═════ [07zzu_patron] ═════ */
 'use strict';
 /* ★檔案總覽：貴人訂貨（奢侈品的訂單；DESIGN_NOTES 第二百六十九、二百七十五節）
@@ -19202,11 +19452,12 @@ function kidLeave(e){
   kidMs(c,UT('kid.ms.bk'),UT('kid.ms.bkEv',{b:bekkeFirm()}));CHAR_MAP[c.id]=c;return c;
 }
 /** 頭像：沿用店員時的外貌種子。 */
-{const _p=portraitHtml;portraitHtml=function(cid,px){
+{const _p=portraitHtml;portraitHtml=function(cid,px,opt){
   const c=CH(cid);if(!c||!c.kid)return _p.apply(this,arguments);
-  const n=npc(cid),age=Math.max(14,ageOf(cid)),role=n?n.role:'guest',key=['edo3kid',cid,Math.floor(age/8),role].join('|');
-  const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw({seed:c.seed,gender:'m',age,role,rank:0,st:c.derived_stats}));
-  const size=px||48;return '<img class="pt" src="'+url+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true">';
+  const blush=opt&&opt.blush||0,gray=opt&&opt.gray;
+  const n=npc(cid),age=Math.max(14,ageOf(cid)),role=n?n.role:'guest',key=['edo3kid',cid,Math.floor(age/8),role].join('|')+(blush?'|b'+blush:'');
+  const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw({seed:c.seed,gender:'m',age,role,rank:0,st:c.derived_stats,blush}));
+  const size=px||48;return '<img class="pt" src="'+url+'" width="'+size+'" height="'+size+'" alt="" aria-hidden="true"'+(gray?' style="filter:grayscale(1);opacity:.7"':'')+'>';
 }}
 
 
