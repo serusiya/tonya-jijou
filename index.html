@@ -4042,6 +4042,8 @@ const UI_TXT={
   'gov.s.eff':'訂 {g}，每旬 {q}，連 {l} 旬，每件 {u} 兩（共約 {a} 兩），下一旬起交。由本店負責備貨；哪一旬交不齊就失約。',
   'gov.w.eff':'訂 {g} × {q}，每件 {u} 兩（共約 {a} 兩），{t} 旬後一次交清。由本店負責備貨；交不齊就失約，誤了軍需，名聲傷得重。',
   'btn.govTake':'接下注文',
+  'gov.stock':'倉裡現有{g} × {n}。',
+  'gov.stockHeld':'倉裡現有{g} × {n}，其中 {h} 已留給其他合約。',
   'gov.full':'手上已經有一張官府的注文了。',
   'gov.s.taken':'接下「{n}」的注文：{g} 每旬 {q}，連 {l} 旬。',
   'gov.w.taken':'接下「{n}」的軍需注文：{g} × {q}，{t} 旬後交清。',
@@ -5309,6 +5311,7 @@ const CHANGELOG=[
     '公會長向三系官員報告菓子折，等同一次拜訪：不認識的就此結識，好感照出價與猜中加；談得順、交情夠時可以接著開口請託；三回合都沒猜中，就被嫌不善言辭。報告的按鈕移到那位官員的人物欄下方。',
     '行業設定更新：陶磁雅玩的蒔繪改成日用的漆器，價錢較低；材木的生漆換成常用的柳杉，杉檜改稱檜材並降價，檜皮也降價。',
     '相場設定更新：停賣中的貨，按「照配額」不會替它排進貨，要進貨請自己調。',
+    '官府注文設定更新：接單後下一旬才開始交貨（原本接單當旬就要備貨），軍需大單照說的旬數交清；接單時會列出倉裡現有多少貨（貴人訂貨、定約掛賣也一樣）。',
     '修改背景資料',
   ]},
   {date:'2026年11月18日',items:[
@@ -17306,12 +17309,15 @@ function kakeReq(cid){
 }
 {const _d=dealerReqs;dealerReqs=function(cid){const L=_d.apply(this,arguments),n=npc(cid);if(n&&n.role==='guest'&&dealReady(cid)){const r=kakeReq(cid);if(r)return [r].concat(L)}return L}}
 /** 方案選單（src：req＝拜訪請託、home＝主動上門）。 */
+/** 接單參考：倉裡現有多少這項貨（其他合約已留的另外註明）。掛賣、貴人訂貨、官府注文共用（第三百四十六、三百四十七節）。 */
+function stockRefTxt(name){const c=COMM_MAP[name],n=(G.inv||{})[name]||0,h=Math.min(n,kakeHeld(name));return h>0?UT('gov.stockHeld',{g:c.short,n,h}):UT('gov.stock',{g:c.short,n})}
 function kakePickHtml(cid,src){
   const O=kakeOffer(cid);if(!O)return '<div class="notice">'+UT('kake.none')+'</div>';
   UI.s.kakeOffer=O;
   const c=COMM_MAP[O.name],K=KK(),big=O.plans[0].total>=K.bigTotal;
   let h='<div class="card" style="display:flow-root">'+portraitHtml(cid,56)+'<div><b>'+esc(nameOf(cid))+'</b> <span class="tag gray">'+esc(ROLE_LABEL.guest||'')+'</span></div><div class="small" style="margin:5px 0">「'+esc(TX('kake.pitch',{shop:kakeShop(cid),g:c.short}))+esc(TX(big?'kake.scale.big':'kake.scale.small'))+'」</div></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('kake.pick.note',{g:esc(c.short),p:fmt1(marketQuote(O.name)),t:K.turns})+'</div>';
+  h+='<div class="tiny" style="margin:2px 0;color:#27407a">'+esc(stockRefTxt(O.name))+'</div>';   // 倉裡現有量（第三百四十七節）
   O.plans.forEach(p=>{
     h+='<div class="card" style="margin-top:4px"><div class="row"><b class="small">'+UT('kake.plan.'+p.k)+'</b><b style="color:#9b2c3a">'+UT('kake.plan.per',{q:p.qty,u:fmt1(p.unit)})+'</b></div>'
       +'<div class="tiny muted" style="margin:3px 0">'+UT('kake.plan.sum',{q:p.qty*K.turns,a:fmt(p.total),d:fmt(p.dep),r:fmt(p.total-p.dep)})+'</div>'
@@ -18723,7 +18729,7 @@ FACE_EXT.patron=(e,name)=>{
   const o=e.o;if(!o||ptOrders().length>=PT().max||!tradeOK(o.name))return null;
   UI.s.ptOffer=o;const c=COMM_MAP[o.name],n=npc(o.cid),off=n&&n.role==='official';
   const when=UT(o.k==='fest'?'pt.when.fest':o.k==='fast'?'pt.when.fast':'pt.when.year',{f:(homeCity().special_festival||{}).name||''});
-  return {line:TX(off?'patron.official':'patron.guest',{g:c.short,w:when}),effect:UT('pt.ask.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),w:when,t:Math.max(1,o.due-1-G.turn)})+(o.big?UT('pt.ask.big'):''),
+  return {line:TX(off?'patron.official':'patron.guest',{g:c.short,w:when}),effect:UT('pt.ask.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),w:when,t:Math.max(1,o.due-1-G.turn)})+(o.big?UT('pt.ask.big'):'')+stockRefTxt(o.name),   // 倉裡現有量（第三百四十七節）
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="ptTake">'+UT('btn.ptTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 ACT.ptTake=()=>{
@@ -18849,18 +18855,20 @@ function govTick(log){
 /* 軍需事件：記下這一旬（govTick 再決定有沒有人開口） */
 {const E=EVENTS.find(e=>e.k==='military');if(E){const _f=E.f;E.f=function(){const t=_f.apply(this,arguments);if(govOn())govState().warT=G.turn;return t}}}
 /* ---------- 上門的視窗 ---------- */
+/** 接單參考：倉裡現有多少這項貨（其他合約已留的另外註明；第三百四十六節）。 */
+const govStockTxt=name=>stockRefTxt(name);   // 與掛賣、貴人訂貨共用（07l_trips.js）
 FACE_TITLE.govS='gov.s.t';
 FACE_TITLE.govW='gov.w.t';
 FACE_EXT.govS=(e)=>{
   const o=e.o;if(!o||govOrders().some(x=>x.kind==='govS')||!tradeOK(o.name)||!govOfficialOK(o.cid,['administration','finance']))return null;
   UI.s.govOffer=o;const c=COMM_MAP[o.name],ct=npc(o.cid).pos.court;
-  return {line:TX(ct==='finance'?'gov.finance':'gov.admin',{g:c.short}),effect:UT('gov.s.eff',{g:c.short,q:o.qty,l:o.left,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.left*o.unit))}),
+  return {line:TX(ct==='finance'?'gov.finance':'gov.admin',{g:c.short}),effect:UT('gov.s.eff',{g:c.short,q:o.qty,l:o.left,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.left*o.unit))})+govStockTxt(o.name),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="govTake">'+UT('btn.govTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 FACE_EXT.govW=(e)=>{
   const o=e.o;if(!o||!tradeOK(o.name)||!govOfficialOK(o.cid,['administration']))return null;
   UI.s.govOffer=o;const c=COMM_MAP[o.name];
-  return {line:TX('gov.war',{g:c.short}),effect:UT('gov.w.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),t:o.turns}),
+  return {line:TX('gov.war',{g:c.short}),effect:UT('gov.w.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),t:o.turns})+govStockTxt(o.name),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="govTake">'+UT('btn.govTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 ACT.govTake=()=>{
@@ -18868,8 +18876,8 @@ ACT.govTake=()=>{
   if(moving()){toast(UT('mv.noNew'));return UI.hideInfo()}
   if(o.kind==='govS'&&govOrders().some(x=>x.kind==='govS')){toast(UT('gov.full'));return UI.hideInfo()}
   const c=COMM_MAP[o.name],id=G.turn+'_'+Math.floor(rnd()*1e5);
-  if(o.kind==='govS')govOrders().push({id,kind:'govS',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,left:o.left,start:G.turn+1,filled:0});
-  else govOrders().push({id,kind:'govW',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,due:G.turn+o.turns,filled:0});
+  if(o.kind==='govS')govOrders().push({id,kind:'govS',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,left:o.left,start:G.turn+2,filled:0});   // 交貨在日期前進之後判定：+2 才是「下一旬推進時交第一批」，與定約掛賣一致（第三百四十六節）
+  else govOrders().push({id,kind:'govW',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,due:G.turn+o.turns+1,filled:0});   // 同上：照畫面寫的旬數交清
   logRel(o.cid,UT('gov.log.take',{g:c.short,q:o.qty}));
   toast(UT(o.kind==='govS'?'gov.s.taken':'gov.w.taken',{n:nameOf(o.cid),g:c.short,q:o.qty,l:o.left,t:o.turns}),4600);sfx.tap();UI.hideInfo();UI.render();
 };
