@@ -441,15 +441,15 @@ const NAMES={
   licRank:['','一階','二階','三階','四階','五階','六階'],
   /* 七大問屋流派 */
   sys:{
-    timber:{family:'三河',name:'材木問屋',firm:'三河屋',style:'豪賭型',tip:'賭火災與山洪，可翻十倍，也可能燒光。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
-    grain:{family:'鴻池',name:'米問屋',firm:'鴻池屋',style:'政治壓力型',tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
-    marine:{family:'紀伊國',name:'魚鹽問屋',firm:'紀伊國屋',style:'高損耗快周轉',tip:'醃魚怕熱，入夏損耗快，必須快進快出。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
-    mining:{family:'住友',name:'金物鐵石問屋',firm:'住友屋',style:'重貨高價型',tip:'金銀單價極高，礦錠沉重難運；靠作坊與官府的訂單吃飯，逢軍需，藩裡會來找你。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
-    textile:{family:'越後',name:'木棉生絲問屋',firm:'越後屋',style:'守成經營型',tip:'產地稀少，靠協議與相場穩住生意。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
-    medicine:{family:'大和',name:'唐物藥種問屋',firm:'大和屋',style:'走私型',tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的商株御免；私房錢稍多。'},
-    luxury:{family:'京',name:'陶磁雅玩問屋',firm:'京屋',style:'公關型',tip:'賣品味與人情，名士與花街是商路。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'},
-    pickle:{family:'野田',name:'醬漬問屋',firm:'野田屋',style:'應時囤貨型',tip:'味噌醃菜天天上桌，量大利薄。',perk:'',res:''},
-    sake:{family:'灘',name:'酒問屋',firm:'灘屋',style:'新手入門型',tip:'只批清酒、燒酎，單價高好上手。',perk:'',res:''}
+    timber:{family:'三河',name:'材木問屋',firm:'三河屋',style:'穩紮穩打',tip:'建材人人要用，慢慢做得起來；逢大火更搶手。',perk:'白手起家',res:'沒有介紹人、沒有夥計，從零開始。'},
+    grain:{family:'鴻池',name:'米問屋',firm:'鴻池屋',style:'靠民生吃飯',tip:'薄利多銷，主食漲價易生暴動。',perk:'有人引薦',res:'一位介紹人。'},
+    marine:{family:'紀伊國',name:'魚鹽問屋',firm:'紀伊國屋',style:'靠民生吃飯',tip:'鹽魚天天要用，鹽貴易生暴動；醃魚怕熱。',perk:'夥計初備',res:'介紹人；手代、丁稚各一名。'},
+    mining:{family:'住友',name:'金物鐵石問屋',firm:'住友屋',style:'吃官府飯',tip:'貨重利薄，靠作坊與官府的訂單吃飯。',perk:'成家立業',res:'介紹人；手代、丁稚；妻子與幼兒。'},
+    textile:{family:'越後',name:'木棉生絲問屋',firm:'越後屋',style:'穩紮穩打',tip:'產地稀少，照規矩經營，慢慢做得起來。',perk:'船隊在手',res:'介紹人；手代、丁稚；妻小；船長一名、本地區海運許可、一趟在途的委託採買。'},
+    medicine:{family:'大和',name:'唐物藥種問屋',firm:'大和屋',style:'刀口上的利',tip:'香辛藥材暴利，船隊常夾帶唐船私貨。',perk:'名聲在外、手頭寬裕',res:'以上全部；名望三階、第二貴貨的商株御免；私房錢稍多。'},
+    luxury:{family:'京',name:'陶磁雅玩問屋',firm:'京屋',style:'做貴人生意',tip:'日常生意小，靠上等貨與貴人訂單。',perk:'家大業大',res:'以上全部；大番頭一名；名望四階，私房錢充裕。'},
+    pickle:{family:'野田',name:'醬漬問屋',firm:'野田屋',style:'靠民生吃飯',tip:'味噌醃菜天天上桌；逢齋戒醬菜搶手。',perk:'',res:''},
+    sake:{family:'灘',name:'酒問屋',firm:'灘屋',style:'刀口上的利',tip:'貨少好上手；有了許可，私運洋酒也能上架。',perk:'',res:''}
   },
   /* 主角、子女的名字候選 */
   given:['甚左衛門','藤兵衛','彌七郎','傳右衛門','平次郎','利兵衛','宗右衛門','嘉兵衛','太郎左衛門','宗兵衛','清十郎','與三郎'],
@@ -853,6 +853,7 @@ function shortMsg(k,mul){
  *  修正來源（風聲 heat、知名度 fame、保鏢、仇人…）仍由各系統代入。
  * ===================================================================== */
 const ODDS={
+  retail:{name:'零售商上門抱怨貨色（第三百四十九節）：每旬機率（上一旬有出日常貨才擲）；賠償金額範圍（兩，取整到十）；賠或不理時市佔成長倍率增減的百分點；不理時知名度扣分',p:0.02,amt:[50,200],share:[1,3],fame:[1,3]},
   bz:{name:'商人番付與花邊八卦（07zzf_banzuke.js）',top:10,guests:[6,8],
     rv:{init:[3,8],g0:0.025,share:0.3,noise:0.03,min:0.4,max:50,heir:0.8,ev:{fire:-0.15,theft:-0.05,wreck:-0.08,caught:-0.1,susp:-0.06,haul:0.05,lot:-0.02,gm:0.02}},
     gs:{init:[1,5],min:0.2,max:30,fame:0.6,fameDrift:4,dealFame:[1,2],
@@ -1467,6 +1468,20 @@ const LINES={
     come:['路過貴地，哪有不來看看老朋友的道理。帶了點土產，不成敬意。','好些日子沒見了！趁著來這邊辦事，特地繞過來坐坐。','貴號的生意越做越大了，我在家鄉都聽得到名聲。'],
     back:['這幾日招待不周，下回可得多住些時候。','難得來一趟，話還沒說夠呢。路上小心，常來信。','往後有什麼要我在這邊張羅的，儘管開口。'],
     cm:['見信安好。這邊「{g}」一時缺貨，想請貴號撥一批過來，價錢不會虧待。','近來「{g}」在敝地很走俏，本地卻沒有出產。貴號若有餘貨，煩請派人送一趟。','有位老主顧急著要「{g}」，我頭一個想到貴號。若能應允，感激不盡。']
+  },
+  /* 零售商上門抱怨貨色（07o_industry.js〔07zzzzzzzzz_retail〕，第三百四十九節）：shop＝各行業向你批貨的零售商；given＝隨機人名；line 依貨的毛病分四種 */
+  retail:{
+    shop:{
+      grain:['搗米屋','米屋','餅屋'],marine:['魚棚','棒手振','乾物屋'],pickle:['漬物屋','煮賣屋','八百屋'],timber:['材木小売','大工','桶屋'],mining:['金物屋','鍛冶屋','荒物屋'],
+      textile:['古著屋','吳服店','太物屋'],medicine:['藥種屋','生藥屋','賣藥商'],luxury:['瀨戶物屋','荒物屋','紙屋'],sake:['居酒屋','酒小売','煮賣屋']
+    },
+    given:['八兵衛','六助','喜三郎','與吉','源七','忠助','久藏','金次','長兵衛','善六','佐吉','茂兵衛','阿竹','阿松'],
+    line:{
+      rot:['上回批的{g}，一開桶就壞了大半，這叫我怎麼賣？','貴號的{g}才擺兩天就發臭，客人都退回來了。'],
+      damp:['上回那批{g}受了潮、生了蟲，賣相全毀了。','貴號的{g}捆得不牢，運到半路就散了一地，好些都不能用了。'],
+      brk:['上回批的{g}，開箱就裂了好幾件，這要怎麼交代？','貴號的{g}包得馬虎，一路磕磕碰碰，像樣的沒剩幾件。'],
+      rust:['上回的{g}成色不對，擱沒幾天就鏽了一層。','貴號的{g}裡摻了次貨，作坊那邊一用就知道。']
+    }
   },
   /* 定約掛賣（07zzm_kake.js）：shop＝各行業下游的作坊；pitch 談合約；scale 依規模補一句；ask 主動上門 */
   kake:{
@@ -2675,7 +2690,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.3':'📅 時間與行動',
   'wiki.WIKI_GUIDE.4':'一個月分上、中、下三旬。每旬有幾點行動，出門拜訪、請託、辦事都要用掉一點；用完或不想動了，就「推進一旬」。推進時，排好的出貨與進貨會自動辦理，旬報會告訴你這一旬的收支與大事。遊戲每旬自動存在這個瀏覽器，換裝置時可以在設定裡匯出存檔。',
   'wiki.WIKI_GUIDE.5':'📊 相場買賣',
-  'wiki.WIKI_GUIDE.6':'每旬相場掛出固定牌價，進貨照牌價算；出貨要等全城都出完貨、收市價揭曉後才結算，這個收市價就是下一旬的牌價。全城出貨越多，價格越低，壓價的影響還會留上一陣子：必需品退得快，奢侈品退得慢。所以分批出貨，比一次倒完划算。相場每旬肯批給你的貨不多，光靠相場進出大約只是打平，真正的利潤在商路。本業最貴的兩樣貨，要先向勘定方取得「商株御免」才能買賣。城裡的貨夠用，人口會慢慢增加；全城長期缺貨，人就會流失——協議減供時城裡容易吃緊。市佔要靠實際出貨撐著，囤貨不賣，老主顧也會跑掉。生意做出一點名堂以後，城裡的旅商人會替作坊來談「定約掛賣」：先立約收手付，連著九旬每旬交一批貨，價錢說定就不改，交完才收掛金。這些貨不算本城出貨，不受配額限制，也不壓行情；只是要派番頭經手，交不出貨就是失約，掛金也可能收不回來。',
+  'wiki.WIKI_GUIDE.6':'每旬相場掛出固定牌價，進貨照牌價算；出貨要等全城都出完貨、收市價揭曉後才結算，這個收市價就是下一旬的牌價。全城出貨越多，價格越低，壓價的影響還會留上一陣子：必需品退得快，奢侈品退得慢。所以分批出貨，比一次倒完划算。相場每旬肯批給你的貨不多，光靠相場進出大約只是打平，真正的利潤在商路。本業最貴的兩樣貨，要先向勘定方取得「商株御免」才能買賣。城裡的貨夠用，人口會慢慢增加；全城長期缺貨，人就會流失——協議減供時城裡容易吃緊。市佔要靠實際出貨撐著，囤貨不賣，老主顧也會跑掉。停賣中的貨，按「照配額」不會替它進貨，要囤貨請自己調。生意做出一點名堂以後，城裡的旅商人會替作坊來談「定約掛賣」：先立約收手付，連著九旬每旬交一批貨，價錢說定就不改，交完才收掛金。這些貨不算本城出貨，不受配額限制，也不壓行情；只是要派番頭經手，交不出貨就是失約，掛金也可能收不回來。',
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但菓子折的得標金要分成三份，向三系的六階大人分頭報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
@@ -2689,9 +2704,15 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.17':'🏮 節慶',
   'wiki.WIKI_GUIDE.18':'每座城一年有一次節慶，那一旬全城買氣大旺，還能出門逛祭典：可能撿到好東西、巧遇貴人，也可能遇上扒手。每年也有一旬某藩大名行列過境，事先沒有消息；那一旬本業的貨特別好賣，出門也不怕歹人。',
   'wiki.WIKI_GUIDE.19':'⚠️ 風險與事件',
-  'wiki.WIKI_GUIDE.20':'倉庫會失火、遭竊、受潮；主食比平常貴一截、又一連好幾旬，市民會鬧「打毀」；走私被查獲要罰銀、遠島，甚至處刑。走私出過事，船長們會好幾旬不敢出海。同行也會造謠、栽贓、縱火，你也可以反擊。每年某個地區會鬧海賊或山賊，輪到本地區時，船隊馬幫出不了門。跟官員走得太近、勾結的事做多了，風聲傳出去，欽差與巡見使就會找上門。',
+  'wiki.WIKI_GUIDE.20':'倉庫會失火、遭竊、受潮；主食比平常貴一截、又一連好幾旬，市民會鬧「打毀」；走私被查獲要罰銀、遠島，甚至處刑。走私出過事，船長們會好幾旬不敢出海。同行也會造謠、栽贓、縱火，你也可以反擊。每年某個地區會鬧海賊或山賊，輪到本地區時，船隊馬幫出不了門。米鹽連著幾旬居高不下，街頭會先傳出騷動的風聲，這時開倉施粥能稍稍壓下怨氣。跟官員走得太近、勾結的事做多了，風聲傳出去，欽差與巡見使就會找上門；壞事做多了，傳說中的木戶黃門也會找上門來替天行道。',
   'wiki.WIKI_GUIDE.21':'💎 奢侈品',
   'wiki.WIKI_GUIDE.22':'每個行業最多只有一兩種奢侈品。它們的買家來去無常：可能整整幾年沒有人問津，然後某一天大名與豪商一擁而上，一次買光。囤貨要付保管費與冒失竊的風險，賭的就是那一天的到來。奢侈品不算在每旬的穩定供貨裡，冷清時不出貨也不要緊；開業時奢侈品都先停賣，要賣再到相場按「恢復出貨」。不想賣的貨，出貨拉到零就能停賣，之後每旬都不出。\n真正吃三年的是大官貴人的訂單：本城四階以上的大人、番付上有名的旅商，交情夠深的，會在節慶與歲末前上門訂貨，開價是平常的好幾倍；手上要有貨，才接得下。',
+  'wiki.g.stress':'😮‍💨 身心與出遊',
+  'wiki.g.stress.b':'每用一點行動都會累一點。累了，行動就少，談生意時也容易失手；再撐下去會病倒。家人在家、辦宴會、逢節慶都能喘口氣，也可以從主畫面「外城出遊」去寺社參拜、泡溫泉。',
+  'wiki.g.big':'🏯 做大以後',
+  'wiki.g.big.b':'開業兩年後，生意做到全城兩成五以上、又一直足量出貨，大盤問屋會上門請你收手；不理就停貨，相場進不了貨，同業也不肯調貨。撐得住的成了大商、豪商。成了大商之後，交情滿了的大番頭可以出去用本家的名號開一間別家，從此大盤不再理你；不想纏鬥，也可以搬家。',
+  'wiki.g.move':'🧳 遷居與帝都獻上',
+  'wiki.g.move.b':'外城友人交情到了極點，可以約他替你在那裡安排落腳，搬家時可以順便轉行。倉裡的貨與本城的許可都帶不走，搬到新城三年後才能再搬。每個地區各有地利，搬過去就跟著換。\n名聲到了一定程度，普請方的大官會來說帝都在廣蒐天下名品：每一行的上等貨各湊一件成一組，湊齊就上門收。獻上一組，就能從獻過的名品裡挑兩樣當御用品，在相場買賣；獻滿四組，港口會開始出產還沒獻過的名品；獻滿五組，才能遷入帝都京畿圈。',
   'wiki.WIKI_GUIDE.23':'🌸 花街與名流',
   'wiki.WIKI_GUIDE.24':'吉原花街是人脈的重地：花魁是紅顏知己，也是消息來源；包場夜宴更能廣結官商。往來要有分寸，否則風評與家庭都會受影響；一旬裡指名太多位，身子也會吃不消。',
   'wiki.WIKI_GUIDE.25':'🏯 人生終章',
@@ -2705,10 +2726,14 @@ const UI_TXT={
   'mk.help.buy':'進貨量略增',
   'mk.help.keep':'，損耗略減',
   'wiki.h':'<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>',
-  'wiki.wikiGuide':'🏪 七種問屋流派',
-  'wiki.wikiGuide.2':'{a}</div><div class="text-meta muted">起手：{b}',
-  'wiki.wikiGuide.3':'<div class="text-meta muted">流派決定本業貨品與玩法側重；七個資源等級的內容固定，行業會在每次重新開一世時隨機分配。開局畫面越往下，起手資源越多。</div>{a}',
-  'wiki.wikiGuide.4':'每一世隨機分配',
+  'wiki.wikiGuide':'🏪 各行業與玩法',
+  'wiki.wikiGuide.3':'<div class="text-meta muted">行業決定本業的貨與吃飯的門道。開局畫面的七個起手資源固定，越往下越多；行業則在每次重新開一世時隨機分配。魚鹽問屋與醬漬問屋，每一世只會遇到其中一行。</div>{a}',
+  'wiki.grp':'<div style="margin-top:6px"><b>{t}</b> <span class="tag gray">{n}</span><div class="text-brief">{b}</div></div>',
+  'wiki.grp.riot':'米鹽醬菜是民生必需，量大利薄，自己出貨就壓得動價錢。出得太少，米鹽一貴就鬧打毀；出得太多，又賺不到錢。醬漬問屋另有公方的齋戒令，那段日子醬菜特別搶手。',
+  'wiki.grp.smug':'唐物藥種的船隊常順手夾帶唐船私貨。酒問屋拿到南蠻酒的許可後，私運的洋酒也能上架；凶年禁酒時，清酒只能走黑市。利大，風聲也大。',
+  'wiki.grp.patron':'日常的碗盤紙張生意不大，真正的買賣在玻璃器、太刀這些上等貨：囤著等大單湧入，或結交大官貴人，接下他們的節禮訂單。',
+  'wiki.grp.gov':'銅鐵硫磺便宜又沉重，相場生意小；靠作坊的定約掛賣與官府注文吃飯，逢軍需還有大單。',
+  'wiki.grp.plain':'沒有特別的門道。照規矩進貨出貨、經營商路，慢慢做一定起得來。逢大火，建材會一時搶手。',
   'wiki.wikiOffice':'🎖️ 六階官階',
   'wiki.wikiOffice.2':'<div class="text-meta muted">官階越高，權力越大，也越難結交。</div>{a}',
   'wiki.wikiOffice.3':'📜 請託規則',
@@ -3155,6 +3180,7 @@ const UI_TXT={
   'gm.log.levy':'被公會長派去繳御用金',
   'spend.gmFine':'菓子折未報告罰款',
   'spend.gmLevy':'御用金',
+  'spend.retail':'零售商賠償',
   'spend.gmMediate':'調停同業糾紛',
   'gmeet.meetTalkHtml':'仇人',
   'gmeet.meetTalkHtml.2':'同業',
@@ -4042,6 +4068,12 @@ const UI_TXT={
   'gov.s.eff':'訂 {g}，每旬 {q}，連 {l} 旬，每件 {u} 兩（共約 {a} 兩），下一旬起交。由本店負責備貨；哪一旬交不齊就失約。',
   'gov.w.eff':'訂 {g} × {q}，每件 {u} 兩（共約 {a} 兩），{t} 旬後一次交清。由本店負責備貨；交不齊就失約，誤了軍需，名聲傷得重。',
   'btn.govTake':'接下注文',
+  'rt.t':'🧺 零售商上門',
+  'rt.tag':'零售商',
+  'rt.who':'{s}的{n}',
+  'rt.eff':'要求賠 {a} 兩。賠他：老主顧更肯向你批貨。不理：老主顧流失一些，知名度 −1～3。',
+  'btn.rtPay':'賠他（{a} 兩）',
+  'btn.rtRefuse':'不理他',
   'gov.stock':'倉裡現有{g} × {n}。',
   'gov.stockHeld':'倉裡現有{g} × {n}，其中 {h} 已留給其他合約。',
   'gov.full':'手上已經有一張官府的注文了。',
@@ -4420,6 +4452,9 @@ const MSG_TXT={
   'gm.levy.assignHalf':'「{n}」交不出全額，你分攤了 {a} 兩，知名度 −{f}；他從此記恨你（好感 −{d}）。',
   'gm.bribe.took':'收下「{n}」送來的 {a} 兩。',
   'gm.bribe.refused':'婉拒了「{n}」的心意。',
+  'rt.paid':'賠了 {a} 兩，{w}滿意地走了。',
+  'rt.refused':'{w}悻悻然走了，看樣子要到處說貴號的不是。',
+  'rt.short':'現款不夠，賠不起。',
   'gm.fined':'以傷害百姓利益論處，罰 {a} 兩。',
   'f8.short':'公款不足 {a} 兩。',
   'f8.shortGold':'私房錢不足 {a} 兩。',
@@ -4915,6 +4950,8 @@ const NEWS_TXT={
   "pt.done":"🎁【貴人訂貨】{g} × {q} 交到「{n}」府上，收 {a} 兩，知名度 +{f}。",
   "pt.fail":"🎁【貴人訂貨】答應「{n}」的 {g} × {q} 沒備齊（只有 {h}），失約，好感 -{a}。",
   "pt.bigRumor":"🎁【街談】聽說今年城裡的貴人們手頭寬裕，節禮要辦得格外體面。",
+  "rt.paidN":"🧺【零售】{w}上門抱怨{g}的貨色，賠了 {a} 兩了事。",
+  "rt.refusedN":"🧺【零售】{w}上門抱怨{g}的貨色，你沒理他；他逢人便說貴號的不是。",
   "gov.s.give":"🏯【官府注文】{g} × {q} 送到「{n}」那裡，收 {a} 兩，還剩 {l} 旬。",
   "gov.s.done":"🏯【官府注文】「{n}」的注文交完了：{g} × {q}，收 {a} 兩，好感 +{f}。",
   "gov.s.fail":"🏯【官府注文】這旬該交「{n}」的 {g} × {q}，只備得 {h}，收 {b} 兩，失約，好感 -{a}。",
@@ -5312,6 +5349,7 @@ const CHANGELOG=[
     '行業設定更新：陶磁雅玩的蒔繪改成日用的漆器，價錢較低；材木的生漆換成常用的柳杉，杉檜改稱檜材並降價，檜皮也降價。',
     '相場設定更新：停賣中的貨，按「照配額」不會替它排進貨，要進貨請自己調。',
     '官府注文設定更新：接單後下一旬才開始交貨（原本接單當旬就要備貨），軍需大單照說的旬數交清；接單時會列出倉裡現有多少貨（貴人訂貨、定約掛賣也一樣）。',
+    '新增零售商：出貨時店門口會有零售商來批貨；偶爾也有零售商上門抱怨貨色、要求賠錢，賠了老主顧更肯向你批貨，不理就流失一些、名聲也受損。',
     '修改背景資料',
   ]},
   {date:'2026年11月18日',items:[
@@ -8439,12 +8477,25 @@ function yardCart(flow,idx,delay){
 /** 推進荷車、馬隊、飛腳。 */
 function yardStep(now,dt){
   const P=YARD.plan,calm=!(typeof daimyoScene==='function'&&daimyoScene()),fest=typeof festScene==='function'&&festScene();
-  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500}
-  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null}
-  if(calm&&P&&!YARD.carts.length&&now>=YARD.nextCart){
-    const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
-    if(flows.length){const f=flows[YARD.flow++%flows.length],k=f==='in'?P.inN:P.outN;for(let i=0;i<k;i++)YARD.carts.push(yardCart(f,i,i*5200))}
-    YARD.nextCart=now+(16000+Math.random()*8000)*(fest?2:1);
+  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500;YARD.nextShop=now+2000;YARD.gap=0}
+  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null;YARD.shop=[]}
+  /* 一次只演一組路過的人（第三百五十節）：荷車、零售商、馬隊、飛腳輪流；院子空下來稍等一下，再挑等最久的那一組上場 */
+  const busy=YARD.carts.length||YARD.horses.length||YARD.runner||(YARD.shop||[]).length;
+  if(busy)YARD.gap=now+1500;
+  if(calm&&P&&!busy&&now>=(YARD.gap||0)){
+    const cand=[];
+    if((P.inN||P.outN)&&now>=YARD.nextCart)cand.push(['cart',YARD.nextCart]);
+    if(P.outN&&now>=YARD.nextShop)cand.push(['shop',YARD.nextShop]);
+    if(P.land&&now>=YARD.nextHorse)cand.push(['horse',YARD.nextHorse]);
+    if(P.letter&&now>=YARD.nextRunner)cand.push(['runner',YARD.nextRunner]);
+    cand.sort((a,b)=>a[1]-b[1]);const g=cand.length?cand[0][0]:null;
+    if(g==='cart'){
+      const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
+      const f=flows[YARD.flow++%flows.length],k=f==='in'?P.inN:P.outN;for(let i=0;i<k;i++)YARD.carts.push(yardCart(f,i,i*5200));
+      YARD.nextCart=now+(16000+Math.random()*8000)*(fest?2:1);
+    }else if(g==='shop'){shopSpawn(Math.min(3,P.outN));YARD.nextShop=now+(14000+Math.random()*8000)*(fest?0.7:1)}
+    else if(g==='horse'){YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000}
+    else if(g==='runner'){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
   }
   YARD.carts.forEach(c=>{
     if(c.wait>0){c.wait-=dt;return}
@@ -8455,12 +8506,8 @@ function yardStep(now,dt){
     c.ft+=dt;if(c.ft>165){c.ft=0;c.frame++}
   });
   YARD.carts=YARD.carts.filter(c=>!c.done);
-  if(calm&&P&&P.land&&!YARD.horses.length&&now>=YARD.nextHorse){
-    YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000;
-  }
   YARD.horses.forEach(h=>{h.x+=14*dt/1000;h.ft=(h.ft||0)+dt;if(h.ft>200){h.ft=0;h.frame=(h.frame||0)+1}});
   YARD.horses=YARD.horses.filter(h=>h.x<380);
-  if(calm&&P&&P.letter&&!YARD.runner&&now>=YARD.nextRunner){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
   const r=YARD.runner;
   if(r){const v=55*dt/1000;if(r.seg===0){r.y+=v;if(r.y>=156){r.y=156;r.seg=1}}else r.x-=v;r.ft+=dt;if(r.ft>90){r.ft=0;r.frame++}if(r.x<-20)YARD.runner=null}
 }
@@ -8546,6 +8593,51 @@ function yardPeople(now,dt){
   const r=YARD.runner;if(r)out.push({y:r.y,draw:c=>drawPerson(c,r.x,r.y,Object.assign({frame:r.frame,moving:true,faceLeft:r.seg===1},RANK_LOOK.courier,{variant:7}))});
   return out;
 }
+/* ---------- 店頭的零售商人（第三百四十九節）：上一旬有出貨，就有一組零售商走到店門口批貨再離開；人數照出貨貨值，最多三位。何時上場由 yardStep 統一排（一次只演一組，第三百五十節） ---------- */
+YARD.shop=[];YARD.nextShop=0;
+/** 零售商的外觀與手上的貨（依行業）。 */
+const SHOP_LOOK={
+  marine:{cloth:'#4f6e8e',hat:'#c8b48a',prop:'pole'},pickle:{cloth:'#7a5a3a',prop:'tub'},grain:{cloth:'#8a7a4a',prop:'sack'},
+  sake:{cloth:'#4a3a5a',prop:'barrel'},timber:{cloth:'#6a4a2a',hat:'#8a6a3a',prop:'plank'},textile:{cloth:'#2f4f7f',prop:'cloth'}
+};
+/** 派出一組零售商（n 位，依序間隔約四秒出發）。 */
+function shopSpawn(n){
+  for(let i=0;i<n;i++){
+    const left=Math.random()<0.5,door=118+Math.random()*18,edge=left?-12:332,lane=156;
+    YARD.shop.push({pts:[[edge,lane],[door,lane],[door,117],[door,lane],[edge,lane]],seg:0,x:edge,y:lane,dir:left?1:-1,delay:i*4000,wait:0,carry:false,frame:0,ft:0,v:Math.floor(Math.random()*8)});
+  }
+}
+function shopStep(now,dt){
+  YARD.shop.forEach(s=>{
+    if(s.delay>0){s.delay-=dt;return}
+    if(s.wait>0){s.wait-=dt;if(s.wait<=0)s.carry=true;return}
+    const [tx,ty]=s.pts[s.seg+1]||s.pts[s.seg],dx=tx-s.x,dy=ty-s.y,d=Math.hypot(dx,dy),v=24*dt/1000;
+    if(d<=v){s.x=tx;s.y=ty;s.seg++;if(s.seg===2)s.wait=1800;if(s.seg>=s.pts.length-1)s.done=true;return}
+    s.x+=dx/d*v;s.y+=dy/d*v;if(Math.abs(dx)>0.5)s.dir=dx>0?1:-1;
+    s.ft+=dt;if(s.ft>150){s.ft=0;s.frame++}
+  });
+  YARD.shop=YARD.shop.filter(s=>!s.done);
+}
+/** 手上的貨：扁擔與竹籠、木桶、米袋、酒樽、木料、反物、木箱。 */
+function shopProp(c,x,y,dir,prop){
+  const B=(dx,dy,w,h,col)=>R_(c,x+dx,y+dy,w,h,col);x=Math.round(x);y=Math.round(y);
+  if(prop==='pole'){B(-10,-16,21,1,'#8a6a3a');[-10,8].forEach(dx=>{B(dx,-15,1,5,'#6b5a3a');B(dx+2,-15,1,5,'#6b5a3a');B(dx-1,-10,5,4,'#b89a5a');B(dx,-9,3,1,'#7a8a9a')});return}
+  if(prop==='tub'){B(dir*5-3,-11,6,5,'#8a5a2e');B(dir*5-3,-10,6,1,'#3b2a1c');B(dir*5-3,-8,6,1,'#3b2a1c');return}
+  if(prop==='sack'){B(-dir*2-3,-23,7,5,'#d8c27a');B(-dir*2-2,-23,1,5,'#9c8443');B(-dir*2+2,-23,1,5,'#9c8443');return}
+  if(prop==='barrel'){B(-dir*2-3,-24,7,6,'#e9dcb4');B(-dir*2-3,-22,7,1,'#8a6a3a');B(-dir*2-3,-20,7,1,'#8a6a3a');B(-dir*2,-22,2,2,'#b3261e');return}
+  if(prop==='plank'){B(-dir*10,-20,22,2,'#9a6a3a');B(dir>0?-10:10,-20,2,2,'#d9b07a');return}
+  if(prop==='cloth'){B(dir*4-3,-13,6,3,'#2f4f7f');B(dir*4-3,-15,6,2,'#a83a3a');return}
+  B(dir*5-3,-12,6,5,'#c9a46a');B(dir*5-3,-10,6,1,'#7a5a32');B(dir*5,-12,1,5,'#7a5a32');
+}
+{const _y=yardPeople;yardPeople=function(now,dt){
+  const out=_y.apply(this,arguments);shopStep(now,dt);
+  const L=SHOP_LOOK[G.sysKey]||{cloth:'#5a5a4a',prop:'box'};
+  YARD.shop.forEach(s=>{if(s.delay>0)return;out.push({y:s.y,draw:c=>{
+    const mv=!(s.wait>0),o={frame:mv?s.frame:0,moving:mv,faceLeft:s.dir<0,pt:now,variant:s.v,cloth:L.cloth,cloth2:'#e8dcc4'};if(L.hat)o.hat=L.hat;
+    drawPerson(c,s.x,s.y,o);if(s.carry)shopProp(c,s.x,s.y,s.dir,L.prop);
+  }})});
+  return out;
+}}
 
 'use strict';
 /* ★檔案總覽：主介面（首頁、大盤、商路）
@@ -11418,7 +11510,9 @@ const WIKI_REQ=UT('wiki.WIKI_REQ');
 /** 玩法簡介：[標題, 內文 HTML]（敘事式說明，不列公式）。 */
 const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE'),UT('wiki.WIKI_GUIDE.2')],
+  null,                                                    // 這裡插入「各行業與玩法」（wikiGuide，第三百四十八節）
   [UT('wiki.WIKI_GUIDE.3'),UT('wiki.WIKI_GUIDE.4')],
+  [UT('wiki.g.stress'),UT('wiki.g.stress.b')],
   [UT('wiki.WIKI_GUIDE.5'),UT('wiki.WIKI_GUIDE.6')],
   [UT('wiki.WIKI_GUIDE.7'),UT('wiki.WIKI_GUIDE.8')],
   [UT('wiki.WIKI_GUIDE.9'),UT('wiki.WIKI_GUIDE.10')],
@@ -11428,9 +11522,13 @@ const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE.17'),UT('wiki.WIKI_GUIDE.18')],
   [UT('wiki.WIKI_GUIDE.19'),UT('wiki.WIKI_GUIDE.20')],
   [UT('wiki.WIKI_GUIDE.21'),UT('wiki.WIKI_GUIDE.22')],
+  [UT('wiki.g.big'),UT('wiki.g.big.b')],
+  [UT('wiki.g.move'),UT('wiki.g.move.b')],
   [UT('wiki.WIKI_GUIDE.23'),UT('wiki.WIKI_GUIDE.24')],
   [UT('wiki.WIKI_GUIDE.25'),UT('wiki.WIKI_GUIDE.26')]
 ];
+/** 各行業與玩法：照玩法分組（第三百四十八節）；行業名稱取 NAMES.sys。 */
+const WIKI_GROUPS=[['riot',['grain','marine','pickle']],['smug',['medicine','sake']],['patron',['luxury']],['gov',['mining']],['plain',['textile','timber']]];
 /** 筆記頂端的「名冊／百科／地圖／紀錄」切換。 */
 function notesTabsHtml(){
   const t=UI.s.notesTab||'book';
@@ -11454,8 +11552,8 @@ function wikiRegions(){
 }
 function wikiGuide(){
   let h=UT('wiki.h');
-  h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]).replace(/\n/g,'<br>'))).join('');
-  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(UT('wiki.wikiGuide.4'))})+'</div></div>').join('')}));
+  const grp=UT('wiki.wikiGuide.3',{a:WIKI_GROUPS.map(([k,L])=>UT('wiki.grp',{t:esc(SYS_BY_KEY[L[0]].style),n:esc(L.map(x=>SYS_BY_KEY[x].name).join(NAMES_SEP)),b:esc(UT('wiki.grp.'+k))})).join('')});
+  h+=WIKI_GUIDE.map((g,i)=>g?wikiBox('g'+i,g[0],esc(g[1]).replace(/\n/g,'<br>')):wikiBox('gsys',UT('wiki.wikiGuide'),grp)).join('');
   return h;
 }
 function wikiOffice(){
@@ -19730,6 +19828,65 @@ FACE_TITLE.goyoPick='gy.title';
   const L=goyoComms().map(c=>c.short);
   return h.replace('</div>','</div><div class="tiny" style="margin-top:3px">👑 '+esc(L.length?UT('gy.page',{a:L.join(NAMES_SEP)}):UT('gy.pageNone'))+'</div>');
 }}
+
+/* ═════ [07zzzzzzzzz_retail] ═════ */
+'use strict';
+/* ★零售商上門抱怨貨色（DESIGN_NOTES 第三百四十九節）
+ * - 每旬推進時，上一旬（這次推進）有出日常貨（必需品、一般品）才擲，機率 ODDS.retail.p，各行業一樣。
+ * - 零售商不是名冊人物：屋號（LINES.retail.shop）與人名（LINES.retail.given）隨機，頭像照商人外貌隨機生成，只出現這一次。
+ * - 來訪視窗（旬報後）：賠他＝付現款 50～200 兩，市佔成長倍率加 1～3 個百分點（同一次穩定供貨）；
+ *   不理（或直接關掉）＝市佔成長倍率減 1～3 個百分點，知名度 −1～3（同一次供貨不足）。
+ * - 事件資料只在 G.faceEvents 裡，處理完就消失；不另存欄位。 */
+const RTO=()=>ODDS.retail;
+/** 貨的毛病：易壞的發臭、陶磁雅玩破損、礦產生鏽，其餘受潮。 */
+const rtKind=c=>c.sys==='luxury'?'brk':c.sys==='mining'?'rust':c.decay>=0.015?'rot':'damp';
+function retailTick(){
+  const rep=TURNRP;if(!rep||!rep.ship||!rep.ship.length||G.ended)return;
+  const shipped=new Set(rep.ship.filter(x=>x.q>0).map(x=>x.n));
+  const L=mkTrade().filter(c=>!c.luxury&&shipped.has(c.short));if(!L.length)return;
+  if(!chance(RTO().p))return;
+  const c=pick(L),A=RTO().amt,amt=Math.round(rint(A[0],A[1])/10)*10;
+  const shop=pick(Ls('retail.shop.'+G.sysKey)||Ls('retail.shop.grain')),gv=Ls('retail.given'),gi=Math.floor(rnd()*gv.length);
+  queueFaceEvent({type:'retail',name:c.name,amt,shop,given:gv[gi],f:gi>=gv.length-2,seed:rint(1,1e9),line:pick(Ls('retail.line.'+rtKind(c))),turn:G.turn});
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);retailTick();return r}}   // 排在每旬推進的後段（出貨已結算）
+let RT_CUR=null;
+const rtWho=e=>UT('rt.who',{s:e.shop,n:e.given});
+/** 零售商頭像：商人外貌，依事件種子固定。 */
+function rtPortrait(e,px){
+  const st={commerce_skill:40+e.seed%40,integrity_loyalty:30+(e.seed>>3)%50,greed_index:30+(e.seed>>5)%50,audacity_courage:30+(e.seed>>7)%50,diplomacy_charm:30+(e.seed>>9)%50,betrayal_risk:20+(e.seed>>11)%40};
+  const age=25+(e.seed>>13)%35,key='edo3rt|'+e.seed;
+  const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw({seed:'rt'+e.seed,gender:e.f?'f':'m',age,role:'guest',rank:0,st}));
+  return '<img class="pt" src="'+url+'" width="'+(px||56)+'" height="'+(px||56)+'" alt="" aria-hidden="true" style="float:left;margin-right:6px">';
+}
+FACE_TITLE.retail='rt.t';
+{const _f=faceEventCard;faceEventCard=function(e){
+  if(!e||e.type!=='retail')return _f.apply(this,arguments);
+  const c=COMM_MAP[e.name];if(!c)return null;
+  RT_CUR=e;e.done=false;
+  const poor=G.silver<e.amt;
+  const buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="rtPay" '+(poor?'disabled':'')+'>'+UT('btn.rtPay',{a:fmt(e.amt)})+'</button><button class="pixel-btn btn-sm" data-act="rtRefuse">'+UT('btn.rtRefuse')+'</button></div>';
+  return '<div class="card warn" id="rt-card" style="display:flow-root">'+rtPortrait(e,56)+'<div><b style="font-size:17px">'+esc(rtWho(e))+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(UT('rt.tag')),b:esc(e.line.replace(/\{g\}/g,c.short)),c:esc(UT('rt.eff',{a:fmt(e.amt)}))})+'</div>'+buttons+'</div>';
+}}
+/** 市佔成長倍率增減（百分點，1～3）。 */
+function rtShare(sign){const S=RTO().share,x=rint(S[0],S[1]);if(G.mybias===undefined)G.share=marketShares();G.mybias=clamp((G.mybias||1)*(1+sign*0.01*x),0.2,4);G.share=null}
+function rtResolve(pay){
+  const e=RT_CUR;if(!e||e.done)return;
+  const c=COMM_MAP[e.name],w=rtWho(e);
+  if(pay){
+    if(G.silver<e.amt){toast(MSG('rt.short'));return false}
+    e.done=true;payPublic('spend.retail',e.amt);rtShare(1);
+    pushNews(NEWS('rt.paidN',{w,g:c.short,a:fmt(e.amt)}));toast(MSG('rt.paid',{a:fmt(e.amt),w}),3600);sfx.coin();
+  }else{
+    e.done=true;rtShare(-1);const F=RTO().fame;setFame((G.fame||0)-rint(F[0],F[1]));
+    pushNews(NEWS('rt.refusedN',{w,g:c.short}));toast(MSG('rt.refused',{w}),3600);sfx.bad();
+  }
+  RT_CUR=null;save();UI.render();return true;
+}
+ACT.rtPay=()=>{if(rtResolve(true)!==false)UI.hideInfo()};
+ACT.rtRefuse=()=>{rtResolve(false);UI.hideInfo()};
+/* 直接關掉視窗＝不理 */
+{const _h=UI.hideInfo;UI.hideInfo=function(){if(RT_CUR&&!RT_CUR.done&&document.getElementById('rt-card'))rtResolve(false);return _h.apply(this,arguments)}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
