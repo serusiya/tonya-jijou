@@ -1897,6 +1897,10 @@ const UI_TXT={
   'visit.knockSecret':'叩、叩……',
   /* —— 頂欄、首頁、相場、商路、說明視窗（06_ui） —— */
   'top.age':'{n} {a} 歲',
+  'top.t.big':'大商',
+  'top.t.gou':'豪商',
+  'top.j.gm':'公會長',
+  'top.tagSep':'·',
   'top.amt':'{a} 兩',
   'top.debt':'欠{a}·{w}',
   'top.debtIn':'{n}旬',
@@ -3098,7 +3102,6 @@ const UI_TXT={
   'gm.bondArb':'請公會長評理糾紛',
   'gm.bondLevy':'被公會長派繳御用金',
   'gm.gain':'（好感 +{g}）',
-  'gm.topTag':'·會長',
   'gm.fameNote':'<div class="tiny" style="margin-top:6px">身為公會長，城裡人人敬你三分：在任期間名望視同四階，卸任後恢復。</div>',
   'gm.info':'公會長',
   'gm.info.none':'改選中',
@@ -3115,8 +3118,9 @@ const UI_TXT={
   'gm.title.administration':'城代家老',
   'gm.title.finance':'御金奉行',
   'gm.title.judiciary':'御目付',
-  'gm.report.tag':'⚖️ 待報告：菓子折',
-  'gm.report.note':'本期得標金 {a} 兩，分三份送進去，還有 {n} 位要報告。這是公務，一定接見；話要說完，中途告辭以失職論處。',
+  'gm.report.tag':'⚖️ 待報告菓子折：',
+  'gm.report.note':'得標金 {a} 兩，還有 {n} 位要報告。公務一定接見；話要說完，中途告辭以失職論處。',
+  'gm.bondLabelReport':'報告得標金時結識',
   'gm.report.btn':'前去報告',
   'gm.bribe.title':'🧧 公會改選',
   'gm.bribe.eff':'收下：私房錢 +{a} 兩。推辭也不傷和氣；開會時投誰，照你的意思。',
@@ -5299,6 +5303,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月19日',items:[
+    '修正遠國奉行所的官職出缺後一直沒人補的問題：現在有缺就會補上新官。',
+    '畫面最上方：有了大商、豪商名號或當上公會長時，左邊改寫名號與職務，不再寫姓名與年齡；知名度欄不再加註會長。',
+    '公會長向三系官員報告菓子折，等同一次拜訪：不認識的就此結識，好感照出價與猜中加；談得順、交情夠時可以接著開口請託；三回合都沒猜中，就被嫌不善言辭。報告的按鈕移到那位官員的人物欄下方。',
+  ]},
   {date:'2026年11月18日',items:[
     '拜訪時出價猜中對方的心思，對方會臉紅，猜中越多次越紅；三回合都沒猜中，對方的頭像會變灰。',
     '新增人聲：點主畫面的人、給店員零用錢、閒聊時，他們會應聲或道謝；每個人嗓子不同。推進一旬有打更梆子，委託採買出發時有海螺或馬蹄鈴聲。設定裡多了「人聲」開關。',
@@ -5624,6 +5633,7 @@ function tourNext(n){for(let k=1;k<=3;k++){const m=(G.month-1+k)%12+1;if(tourHer
 /** 每旬：補上本城官署空缺；每月上旬一則巡察消息（本月抵達的系統、上月在城而本月已離城的系統），不寫姓名。 */
 function tourTick(log){
   officialMigrate();                              // 本城官署若有空缺（病故、遭害而無人遞補），由名冊補上
+  if(typeof regionRefill==='function')regionRefill();   // 遠國奉行所缺人也補（07b_trade.js，第三百四十一節）
   if(G.cycle!==1)return;
   const prev=(G.month+10)%12+1,tour=Object.values(G.world.npcs).filter(n=>touring(n)&&alive(n.cid));
   const courts=f=>CITY_COURTS.filter(k=>tour.some(n=>n.pos.court===k&&f(n))).map(k=>COURTS[k].name).join(NAMES_SEP);
@@ -8580,10 +8590,18 @@ UI.render=function(){
   const kg=kakeGaps().length>0;                  // 定約掛賣本旬還缺貨：兩個「推進一旬」按鈕亮紅點（07zzm_kake.js）
   $$('#b-next,.home-next').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();b.classList.toggle('kgap',kg);if(kg){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
+/** 頂部左欄的稱號與職務（第三百四十節）：有就取代姓名與年齡；稱號在前紅色，職務在後綠色。新的稱號、職務加在這裡。 */
+function topTagsHtml(){
+  const T=[],J=[];
+  if((G.dpTitle||0)>=2)T.push(UT('top.t.gou'));else if((G.dpTitle||0)>=1)T.push(UT('top.t.big'));
+  if(typeof gmIsMe==='function'&&gmIsMe())J.push(UT('top.j.gm'));
+  if(!T.length&&!J.length)return '';
+  return T.map(t=>'<span style="color:#ff6b5e">'+esc(t)+'</span>').concat(J.map(j=>'<span style="color:#5ce68b">'+esc(j)+'</span>')).join(UT('top.tagSep'));
+}
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
   $('#d-date').textContent=dateStr();
-  $('#d-age').textContent=UT('top.age',{n:G.me.given,a:myAge()});
+  {const tg=topTagsHtml(),el=$('#d-age');if(tg)el.innerHTML=tg;else el.textContent=UT('top.age',{n:G.me.given,a:myAge()})}
   $('#d-silver').textContent=UT('top.amt',{a:fmt(G.silver)});
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent=UT('top.debt',{a:fmt(tot),w:near?UT('top.debtIn',{n:near}):UT('top.debtNow')});e.title=UT('top.debtTip',{a:fmt(tot),w:near?UT('top.debtTipIn',{n:near}):UT('top.debtNow')});e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
@@ -10823,6 +10841,22 @@ function addRegionOfficials(W,used,pool){
       c=shuffle(c).sort((a,b)=>(b.native_region===rg.id)-(a.native_region===rg.id));
       const o=c[0];if(!o)return;used.add(o.id);
       W.npcs[o.id]={cid:o.id,cityId:cap.id,role:'official',pos:{court:'region',rank:p.rank,posId:p.id}};
+    });
+  });
+}
+/** 每旬：遠國奉行所缺人就補（第三百四十一節）。五個地區各十個官職，缺幾位補幾位；人選照開局的規則：名冊裡年長的官員、同地區出身優先，用完放寬年齡。 */
+function regionRefill(){
+  if(!G||!G.world)return;
+  const poss=OFFICIALS.systems.region.positions,all=Object.values(G.world.npcs);
+  REG_LIST.forEach(rg=>{
+    const cap=capitalOf(rg.id);if(!cap)return;
+    poss.forEach(p=>{
+      if(all.some(n=>n.pos&&n.pos.court==='region'&&n.pos.posId===p.id&&regOfNpc(n)===rg.id&&alive(n.cid)))return;
+      const free=a=>CHARS.filter(c=>!G.world.npcs[c.id]&&c.birth_year<=G.year-a&&c.death_year>G.year+2&&hasRole(c,'official'));
+      let pool=free(30);if(!pool.length)pool=free(18);
+      if(!pool.length){const far=all.filter(n=>n.role==='official'&&n.pos&&n.pos.court!=='region'&&n.cityId!==G.cityId&&alive(n.cid));if(far.length){const n=pick(far);n.cityId=cap.id;n.pos={court:'region',rank:p.rank,posId:p.id}}return}   // 名冊也用完：從外地調一位官員來補
+      const home=pool.filter(c=>c.native_region===rg.id),c=pick(home.length?home:pool);
+      const n=G.world.npcs[c.id]={cid:c.id,cityId:cap.id,role:'official',pos:{court:'region',rank:p.rank,posId:p.id}};all.push(n);
     });
   });
 }
@@ -13529,7 +13563,7 @@ const gmRemindHtml=()=>UT('gm.remind.body',{a:fmt(G.gmDue.amt),list:gmPlanTxt(G.
 
 /* ---------- 名望視同四階、頂欄 ---------- */
 {const _f=fameTier;fameTier=function(){return gmIsMe()?4:_f()}}
-{const _u=updateFame;updateFame=function(){_u();const e=document.getElementById('d-rep');if(e&&G&&gmIsMe())e.textContent+=UT('gm.topTag')}}
+// 公會長的頂部標示改在左欄（06_ui.js 的 topTagsHtml，第三百四十節）
 {const _fi=ACT.fameInfo;ACT.fameInfo=function(){_fi.apply(this,arguments);if(G&&gmIsMe()){const b=$('#info-body');if(b)b.insertAdjacentHTML('beforeend',UT('gm.fameNote'))}}}
 
 /* ---------- 同業公會長不超賣；你被查獲違約就下台 ---------- */
@@ -13737,8 +13771,9 @@ ACT.gmCanvass=el=>{
 function gmBattleEnd(){
   const B=BT;B.done=true;musicWant('market');
   const cid=B.cid,r=R(cid),win=B.dmg>=B.hp;
-  let gain=(win?10+btBondBonus(r):Math.floor(5*B.dmg/B.hp))+B.hits;gain=Math.max(0,Math.min(gain,100-r.aff));
-  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=true;
+  const rep=B.mode==='report',snub=rep&&!win&&B.round>=3&&B.hits===0;   // 報告等同一次拜訪（第三百三十九節）：溢出加成、不善言辭
+  let gain=snub?0:(win?10+btBondBonus(r)+(rep?Math.min(5,Math.floor((B.dmg-B.hp)/B.hp*10)):0):Math.floor(5*B.dmg/B.hp))+B.hits;gain=Math.max(0,Math.min(gain,100-r.aff));
+  setAff(r,clamp(r.aff+gain,0,100));r.lastOk=!snub;if(snub)r.snubUntil=G.turn+1;
   let msg;
   if(B.mode==='canvass'){
     const M=meetNow(),E=M&&M.el;
@@ -13753,6 +13788,12 @@ function gmBattleEnd(){
       else{const f=gmPartFine(D,k);payPublic('spend.gmFine',f);msg=TX('gm.reportFail')+MSG('gm.fined',{a:fmt(f)});const t=NEWS('gm.finePart',{a:fmt(f),t:t0});pushNews(t);GM_LOG.push(t)}
     }
     logRel(cid,UT(pass?'gm.log.reportOk':'gm.log.reportFail',{a:B.spent}));
+    msg+=UT('gm.gain',{g:gain});
+    BT=null;if(win)sfx.gift();else if(snub)sfx.bad();
+    refreshSheet();UI.render();
+    if(snub){UI.showInfo(UT('bt.battleShow',{a:nameOf(cid)}),'<div style="display:flow-root">'+portraitHtml(cid,56,{gray:true})+'<div class="small">'+esc(btSay(cid,'snub'))+'</div><div class="notice tiny" style="margin-top:6px">'+esc(msg)+'</div></div>');return}
+    if(win&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg));return}
+    UI.hideInfo();toast(msg,4600);return;
   }
   BT=null;UI.hideInfo();toast(msg,4600);if(win)sfx.gift();
   refreshSheet();UI.render();
@@ -13767,12 +13808,13 @@ const gmReportTarget=cid=>{const k=gmReportCourt(cid);return !!(k&&tourHere(npc(
 {const _pb=personBlock;personBlock=function(cid,ctx){
   const h=_pb.apply(this,arguments);
   if(!gmReportTarget(cid))return h;
-  return '<div class="card warn"><b class="small">'+UT('gm.report.tag')+'</b><div class="tiny" style="margin:3px 0">'+UT('gm.report.note',{a:fmt(G.gmDue.amt),n:gmPartsLeft(G.gmDue).length})+'</div><button class="pixel-btn btn-sm btn-gold" data-act="gmReport" data-cid="'+cid+'">'+UT('gm.report.btn')+'</button></div>'+h;
+  return h+'<div class="card warn tiny" style="margin:3px 0"><div class="row"><span>'+UT('gm.report.tag')+UT('gm.report.note',{a:fmt(G.gmDue.amt),n:gmPartsLeft(G.gmDue).length})+'</span><span style="white-space:nowrap"><button class="pixel-btn btn-sm btn-gold" data-act="gmReport" data-cid="'+cid+'">'+UT('gm.report.btn')+'</button></span></div></div>';   // 放在人物卡下方，與索賄承諾同一處（第三百三十九節）
 }}
 ACT.gmReport=el=>{
   const cid=el.dataset.cid;if(!gmReportTarget(cid))return;
   if(apLeft()<=0){toast(MSG('go.2'));return}
   if(!spendAP())return;
+  gmMeet(cid,'gm.bondLabelReport');                 // 報告等同一次拜訪：不認識的也就此結識
   battleStart(cid,null);
   BT.mode='report';BT.court=gmReportCourt(cid);BT.mult=1;BT.open=TX('gm.reportOpen');
   battleShow();
