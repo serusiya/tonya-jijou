@@ -998,7 +998,7 @@ const ODDS={
   ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,spoil:{name:'庫存損耗的季節起伏：七月最高、一月最低，中間逐月過渡，一年平均照各貨的損耗率；amp＝起伏幅度（醃魚三分之一＝每旬 5%～10%；糧穀與油三成；清酒一半＝每旬約 0.8%～2.3%）；沒列的貨四季一樣',peak:7,amp:{prod_0801:0.5,prod_0902:1/3,prod_0205:1/3,prod_0101:0.3,prod_0102:0.3,prod_0103:0.3,prod_0104:0.3,prod_0105:0.3,prod_0106:0.3}}
   ,patron:{name:'貴人訂貨（07zzu_patron.js）：好感門檻、同時最多幾張、上門提前幾旬（最近、最遠）、在上門期間每旬每位貴人上門的機率、各等級件數、大年倍數與間隔（年）、開價倍數（基準價）、交齊好感與知名度、失約扣好感、旅商轉手利潤（基準價的幾倍記進身代）',aff:80,max:8,lead:[3,6],p:0.35,qty:{4:[1,2],5:[2,3],6:[3,5]},bigMult:2,bigEvery:[3,5],price:[2.5,3.5],doneAff:10,fame:[2,3],failAff:30,resell:0.5}
-  ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、最少件數、開價（基準價倍數，不低於平時牌價的幾倍）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:[1.6,2.0],warFloor:1.2,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
+  ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、件數上限（本城每旬需求的幾倍，warCap）、最少件數、開價（依官階：基準價倍數，不低於平時牌價的幾倍；越高階越好，第三百五十一節）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:{4:[1.6,2.0],5:[2.0,2.4],6:[2.4,2.8]},warFloor:{4:1.2,5:1.5,6:1.8},warCap:12,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
@@ -4284,7 +4284,6 @@ const MSG_TXT={
   /* —— buyGoods —— */
   'buyGoods.1':'請輸入進貨數量',
   'buyGoods.2':'倉庫容量不足（已存 {invUsed}，已下單待到貨 {pendingQty}，倉庫共可放 {invCap}）',
-  'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含已下單待到貨）。還能進 {itemRoom} 單位。',
   'buyGoods.4':'本旬向相場進「{name}」最多 {buyLimit} 單位（依市占率、協議參加狀態與番頭、大番頭人手而定），還能進 {buyLeft} 單位。未參加協議沒有協議配額加給；要大量進貨請到商路委託船長或飛腳採買。',
   'buyGoods.5':'現款不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
@@ -5342,6 +5341,10 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月20日',items:[
+    '倉庫設定更新：每項貨不再有存量上限，只要倉庫放得下就能放。',
+    '官府注文設定更新：軍需大單由越高階的官員開口，出價越好；大單的份量也放寬了。',
+  ]},
   {date:'2026年11月19日',items:[
     '修正遠國奉行所的官職出缺後一直沒人補的問題：現在有缺就會補上新官。',
     '畫面最上方：有了大商、豪商名號或當上公會長時，左邊改寫名號與職務，不再寫姓名與年齡；知名度欄不再加註會長。',
@@ -5969,7 +5972,8 @@ function dapanDependency(){
 }
 /** 倉庫總容量。 */
 const invCap=()=>G.wh.n*G.wh.cap;
-/* 單項貨品庫存上限：約為本城需求的 5～10 倍（越耐放倍數越高，易腐品 5 倍） */
+/* 訂單上限（原「單項庫存上限」）：約為本城需求的 5～10 倍（越耐放倍數越高，易腐品 5 倍）。
+   第三百五十一節起只用來決定一張訂單的件數（軍需大單、上貢、官府小單、掛賣、注文）與大盤進貨壓力；玩家倉庫不再限制每項貨的存量，只看倉庫總容量。 */
 /** 單項庫存上限倍率（需求的 5～10 倍；易腐的更低）。 */
 function capMult(name){return clamp(10-COMM_MAP[name].decay*200,5,10)}
 /** 某物品庫存上限＝本城需求×倍率。 */
@@ -5977,7 +5981,7 @@ function itemCap(name){const m=G.mk[name];return Math.max(5,Math.round((m?m.D:ci
 /** 某物品已向大盤下單、尚未到貨的數量。委任採買的品項與數量在歸來時才決定，不列入。 */
 const itemOnOrder=name=>(G.orders||[]).filter(o=>o.name===name).reduce((a,o)=>a+o.qty,0);
 /** 某物品還能再放多少（同時受單項上限與倉庫容量限制）。 */
-const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOrder(name),invCap()-invUsed()-pendingQty()));
+const itemRoom=name=>Math.max(0,invCap()-invUsed()-pendingQty());   // 只看倉庫總容量（第三百五十一節）
 
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
@@ -6153,7 +6157,6 @@ function buyGoods(name,qty,manual){
   qty=Math.floor(qty);if(qty<=0)return {ok:false,msg:MSG('buyGoods.1')};   // 沒有交易許可的貨也能進貨囤著，只是不能賣（第三百一十二節）
   if(!G.orders)G.orders=[];
   if(invUsed()+pendingQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),pendingQty:pendingQty(),invCap:invCap()})};
-  if(qty>itemRoom(name))return {ok:false,msg:MSG('buyGoods.3',{name:COMM_MAP[name].short,capMult:fmt1(capMult(name)),itemCap:itemCap(name),itemRoom:itemRoom(name)})};
   const mk=G.mk[name];
   if(qty>buyLeft(name))return {ok:false,msg:MSG('buyGoods.4',{name:COMM_MAP[name].short,buyLimit:buyLimit(name),buyLeft:buyLeft(name),mult:fmt1(buyLimitMult())})};
   const cost=Math.round(unitBuyCost(name)*qty);
@@ -6177,7 +6180,7 @@ const avgCostOf=name=>(G.avgCost&&G.avgCost[name]>0)?G.avgCost[name]:unitBuyCost
 function receiveOrders(log){
   G.arrived=[];
   (G.orders||[]).forEach(o=>{
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(o.name)-(G.inv[o.name]||0))),q=Math.min(o.qty,room);
+    const room=Math.max(0,invCap()-invUsed()),q=Math.min(o.qty,room);
     if(q>0)addStock(o.name,q,o.cost/Math.max(1,o.qty));
     stockAdd(o.name,q,true);G.arrived.push({name:o.name,qty:q,cost:o.cost,lost:o.qty-q});
     overflowAdd(o.name,o.qty-q,o.cost/Math.max(1,o.qty),true);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
@@ -8890,7 +8893,7 @@ function maxBuy(name,ui){
   let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty(),cash=G.silver;
   if(ui){                                           // 畫面試算：推進一旬時先出貨、後進貨，出貨空出的倉位與入帳都算進來
     const T=shipPlanTotals();wh+=T.q;cash+=T.rev;
-    room=Math.max(0,Math.min(itemCap(name)-Math.max(0,(G.inv[name]||0)-planOf(name))-itemOnOrder(name),wh));
+    room=Math.max(0,wh);
   }
   return Math.max(0,Math.min(buyLeft(name),room,wh-oq,Math.floor((cash-oc)/u)));
 }
@@ -10617,7 +10620,7 @@ function resolveVoyage(s,log){
        剩下的錢與運量再依權重分給其他還能買的貨（直到錢、運量或倉位用完）。
        單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
     const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],si=originSupplyForShip(s,dest,n),pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.5,0.95)*(s.cheap?0.9:1)*originSupplyPrice(si);
-      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Math.max(0,itemCap(n)-(G.inv[n]||0)),q:0}});
+      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Infinity,q:0}});   // 不設單項上限，只受倉位 wh 限制（第三百五十一節）
     let money=spend,load=1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);
     const mix=makeVoyageMix(act);
     if(mix.kind!=='single')L.push(UT('voy.mix.'+mix.kind,{name:mix.main?mix.main.c.short:''}));
@@ -13060,7 +13063,7 @@ function rivalGap(n){
   return Math.max(0,quotaOf(n)+kk+cm-(G.inv[n]||0));
 }
 /** 同業調貨：本旬這位同業能調給你的貨，沒有就回傳 null（第二百四十六節）。
- *  有缺口的貨裡挑缺口金額最大的一項；都沒缺就隨機。數量 30～50、金額上限 3,000～4,000 兩取較少者，再受倉位、單項上限與現款限制。
+ *  有缺口的貨裡挑缺口金額最大的一項；都沒缺就隨機。數量 30～50、金額上限 3,000～4,000 兩取較少者，再受倉位與現款限制。
  *  同一人同一旬第一次開出的貨與份量記在 G.rvLot，重開視窗不換；之後拜訪別的同業時再依當下的缺口重新挑。 */
 function rivalLot(cid){
   const L=tradeComms();if(!L.length)return null;
@@ -15124,7 +15127,7 @@ function stashTick(log){
   if(S){
     let moved=0;
     S.items.forEach(x=>{
-      const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.q,room);
+      const room=Math.max(0,invCap()-invUsed()),q=Math.min(x.q,room);
       if(q>0){if(x.unit>0)addStock(x.name,q,x.unit);stockAdd(x.name,q,x.dapan);x.q-=q;moved+=q}
     });
     S.items=S.items.filter(x=>x.q>0);
@@ -15184,7 +15187,7 @@ ACT.swapYes=()=>{
   const o=G.swapOffer;G.swapOffer=null;if(!o||!((G.xinv||{})[o.give]>=o.gq)){UI.hideInfo();return}
   const c=COMM_MAP[o.get],W=ODDS.swap;
   G.xinv[o.give]-=o.gq;if(G.xinv[o.give]<=0)delete G.xinv[o.give];
-  let room=Math.max(0,invCap()-invUsed());if(o.own)room=Math.min(room,Math.max(0,itemCap(o.get)-(G.inv[o.get]||0)));
+  let room=Math.max(0,invCap()-invUsed());
   let q=Math.min(o.getq,room);const full=o.getq-q;
   let poor=0;if(o.poor&&q>0){poor=Math.round(q*(W.poorMin+rnd()*(W.poorMax-W.poorMin)));q-=poor}
   if(q>0){
@@ -15406,7 +15409,7 @@ function consignTick(log){
   G.consign=L.filter(x=>{
     if(G.turn<x.due)return true;
     const c=COMM_MAP[x.name];if(!c)return false;
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.qty,room);
+    const room=Math.max(0,invCap()-invUsed()),q=Math.min(x.qty,room);
     if(q>0){addStock(x.name,q,x.cost/x.qty);stockAdd(x.name,q,false)}
     overflowAdd(x.name,x.qty-q,x.cost/x.qty,false);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
     const t=NEWS('rfav.arrive.'+x.kind,{g:c.short,q,l:x.qty-q>0?UT('rfav.lost',{n:x.qty-q}):''});pushNews(t);log.push(t);
@@ -17213,7 +17216,7 @@ function sumoAfter(){
 function rushOffer(){
   const O=ODDS.trip.rush,cs=plainComms();if(!cs.length)return null;
   const c=pick(cs),p=quoteNow(c.name)*O.price;
-  const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(c.name)-(G.inv[c.name]||0)));
+  const room=Math.max(0,invCap()-invUsed());
   const q=Math.floor(Math.min(rint(O.qty[0],O.qty[1]),room,Math.max(0,G.silver)/p));
   if(q<O.minQty)return null;
   return {name:c.name,q,amt:Math.max(1,Math.round(p*q)),val:Math.round(quoteNow(c.name)*q)};
@@ -17265,7 +17268,7 @@ function tripEnc2(k,E){
       html=tripCard(P.img,P.nm,P.tag,TX('trip.artisan.paid'),UT('trip.artisan.yesEff',{a:P.amt,g:c.short}))}
     else html=tripCard(P.img,P.nm,P.tag,TX('trip.artisan.no'),'');
   }else if(P.kind==='rush'){const L=P.lot,c=COMM_MAP[L.name],R_=O.rush;
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(L.name)-(G.inv[L.name]||0)));
+    const room=Math.max(0,invCap()-invUsed());
     if(yes&&G.silver>=L.amt&&room>=L.q){
       payPublic('spend.rush',L.amt);addStock(L.name,L.q,L.amt/L.q);stockAdd(L.name,L.q,false);
       if(chance(R_.blackP))G.rushLot={name:L.name,q:L.q,val:L.val,due:chance(R_.foundP)?G.turn+rint(1,R_.within):0,end:G.turn+R_.within};   // 贓貨：買下當下不知道
@@ -17318,7 +17321,7 @@ function tripEvTick(log){
     if(!c||(A.stop&&A.sent>=A.stop)){G.artisan=null;put(NEWS('artisan.fail'))}
     else{
       const want=Math.max(1,Math.round(rint(O.artisan.val[0],O.artisan.val[1])/quoteNow(A.name)));
-      const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(A.name)-(G.inv[A.name]||0))),q=Math.min(want,room);
+      const room=Math.max(0,invCap()-invUsed()),q=Math.min(want,room);
       if(q>0){addStock(A.name,q,A.unit);stockAdd(A.name,q,false)}
       put(NEWS('artisan.send',{g:c.short,q,l:want-q>0?UT('rfav.lost',{n:want-q}):''}));
       A.sent++;A.left--;if(A.left<=0){G.artisan=null;put(NEWS('artisan.done'))}
@@ -18849,8 +18852,8 @@ ACT.ptTake=()=>{
  *   總值約 2,000～5,000 兩，三、四旬分批交（下一旬起每旬一批），價錢是接單當旬牌價加兩成。交完好感 +5。
  *   哪一旬交不齊就失約：該旬有多少交多少、照價入帳，好感 −30、知名度 −2，合約結束。
  * - 軍需大單（上貢類）：軍需事件那一次，約一半機會有一位普請方四階以上、好感 ≥60 的官員開口；一年最多兩張。
- *   每張總值依官階（四階約 8,000～15,000、五階 15,000～25,000、六階 25,000～40,000 兩），件數不超過單項庫存上限；
- *   開價基準價一倍六到兩倍，但不低於不含軍需漲幅的平時牌價加兩成；四到六旬後一次交清。
+ *   每張總值依官階（四階約 8,000～15,000、五階 15,000～25,000、六階 25,000～40,000 兩），件數不超過本城需求的 12 倍（ODDS.gov.warCap，第三百五十二節）；
+ *   開價依官階：四階基準價一倍六到兩倍（不低於平時牌價加兩成）、五階兩倍到兩倍四（不低於一倍半）、六階兩倍四到兩倍八（不低於一倍八）；四到六旬後一次交清。
  *   交齊：好感 +10、知名度 +2；交不齊：失約，好感 −30、知名度 −5。
  * - 兩種都由本店負責：不佔番頭、不受總資產限制、不算本城出貨、不加市佔；列在相場「📦 合約」卡（軍需單可以提早填貨）。
  * - 官員死去、關押或離城：他經手的單作廢，已交的照算。遷居籌備期間不上門。
@@ -18883,9 +18886,10 @@ function govSmallOffer(cid){
 /** 軍需大單的開價。 */
 function govWarOffer(cid){
   const P=GV(),cs=tradeComms().filter(c=>commTag(c,'military'));if(!cs.length)return null;
-  const c=pick(cs),cap=itemCap(c.name),m=G.mk[c.name]||{},V=P.warVal[Math.min(6,npc(cid).pos.rank)]||P.warVal[4];
+  const c=pick(cs),cap=Math.max(1,Math.round((G.mk[c.name]?G.mk[c.name].D:cityD(homeCity(),c))*P.warCap)),m=G.mk[c.name]||{},V=P.warVal[Math.min(6,npc(cid).pos.rank)]||P.warVal[4];
   const calm=marketQuote(c.name)/Math.max(0.01,m.ev||1);   // 不含軍需漲幅的平時牌價
-  const unit=Math.round(Math.max(c.base*(P.warPrice[0]+rnd()*(P.warPrice[1]-P.warPrice[0])),calm*P.warFloor)*10)/10;
+  const rk=Math.min(6,Math.max(4,npc(cid).pos.rank)),WP=P.warPrice[rk]||P.warPrice[4],WF=P.warFloor[rk]||P.warFloor[4];   // 開價依官階：五、六階不常在城，出價較好（第三百五十一節）
+  const unit=Math.round(Math.max(c.base*(WP[0]+rnd()*(WP[1]-WP[0])),calm*WF)*10)/10;
   const qty=Math.min(cap,Math.max(P.warMin,Math.round(rint(V[0],V[1])/unit)));
   if(qty<1)return null;
   return {kind:'govW',cid,name:c.name,qty,unit,turns:rint(P.warTurns[0],P.warTurns[1])};
