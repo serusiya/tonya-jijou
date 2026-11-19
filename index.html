@@ -929,7 +929,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽力影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
-  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、只夾帶哪幾樣（珍陀酒、珈琲豆、黑糖）',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryItems:['wine','glass','cloth']},
+  voyageKind:{name:'委託採買：夾帶他行貨的機率（第三百五十三節；有沒有本業貨都一樣，不再整船改買他行貨）、夾帶最多用掉委託金與單趟運量的比例；唐物藥種夾帶違禁品的機率、數量、只夾帶哪幾樣（珍陀酒、珈琲豆、黑糖）',cross:0.2,xShare:0.2,xLoad:0.2,carry:0.2,carryMin:3,carryMax:5,carryItems:['wine','glass','cloth']},
   originSupply:{name:'每城、每項貨、每月固定的產地供貨指數；分類產量與同月同城後續商隊會折減可供量',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06,production:{staple:1.15,normal:0.85,luxury:0.35},repeat:{staple:0.8,normal:0.6,luxury:0.4}},
   voyageMix:{name:'多項本業貨的委託採買分配：少數均衡，多數偏重或集中於一項',balanced:0.10,biased:0.60,biasedMin:0.60,biasedMax:0.75,focusMin:0.75,focusMax:0.90,supplyPow:1.5,pricePow:2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
@@ -2482,7 +2482,7 @@ const UI_TXT={
   'voy.sendVoyage':'入津御免',
   'voy.sendVoyage.2':'關所通行手形',
   'voy.resolveVoyage':'此地',
-  'voy.resolveVoyage.2':'改買了別行的貨。',
+  'voy.resolveVoyage.2':'只順手帶回一點別行的貨。',
   'voy.resolveVoyage.3':'只好空手而回。',
   'voy.resolveVoyage.4':'【{a}】沒有出產你本業的貨，{b}{c}',
   'voy.buyoutNote':'【{region}】{month}正逢大口買付，本業貨早被別家問屋買走，{crew}{result}',
@@ -5023,8 +5023,8 @@ const NEWS_TXT={
   "kind.1":"前往【{dest}】採買。{note}",
   "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約相場基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
-  "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
-  "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
+  "kind.4":"順手夾帶便宜的「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
+  "kind.5":"看中便宜的「{short}」，但倉庫放不下，沒有帶回。",
   "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找闇商人，也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
@@ -5344,6 +5344,7 @@ const CHANGELOG=[
   {date:'2026年11月20日',items:[
     '倉庫設定更新：每項貨不再有存量上限，只要倉庫放得下就能放。',
     '官府注文設定更新：軍需大單由越高階的官員開口，出價越好；大單的份量也放寬了。',
+    '委託採買設定更新：船長、飛腳不再整趟改買別行的貨，改為偶爾順手夾帶一點。',
   ]},
   {date:'2026年11月19日',items:[
     '修正遠國奉行所的官職出缺後一直沒人補的問題：現在有缺就會補上新官。',
@@ -10603,11 +10604,15 @@ function resolveVoyage(s,log){
     const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
     if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
   }
-  let kind,note='';
+  let kind,note='';const VK=ODDS.voyageKind;let xc=false,xMoney=0;
   if(s.out&&!budget)kind='outOnly';                      // 卸留請負：只交貨、不採買
-  else if(ownP.length){kind=rnd()<ODDS.voyageKind.cross?'cross':'own';if(kind==='cross'&&!othP.length)kind='own'}
-  else{                                                 // 目的地沒有本業貨：八成空手而回，兩成改買他行貨（當地也沒有他行貨就空手）
-    kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
+  else{
+    xc=othP.length>0&&rnd()<VK.cross;                   // 夾帶他行貨（第三百五十三節）：兩成機率，最多用委託金與運量各兩成；不再整船改買他行貨
+    if(xc)xMoney=Math.floor(spend*VK.xShare);
+    if(ownP.length)kind='own';
+  }
+  if(!kind){                                            // 目的地沒有本業貨：夾帶到他行貨就帶回那一點（kind 記 cross），否則空手而回
+    kind=xc?'cross':'empty';
     note=buyout?UT('voy.buyoutNote',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM,s.buyoutRegion),crew:NM('crew',mode),result:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')}):UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
   }
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,robbed,buyout,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
@@ -10621,7 +10626,7 @@ function resolveVoyage(s,log){
        單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
     const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],si=originSupplyForShip(s,dest,n),pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.5,0.95)*(s.cheap?0.9:1)*originSupplyPrice(si);
       return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Infinity,q:0}});   // 不設單項上限，只受倉位 wh 限制（第三百五十一節）
-    let money=spend,load=1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);
+    let money=spend-xMoney,load=xc?1-VK.xLoad:1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);   // 夾帶他行貨時，先留出那份委託金與艙位
     const mix=makeVoyageMix(act);
     if(mix.kind!=='single')L.push(UT('voy.mix.'+mix.kind,{name:mix.main?mix.main.c.short:''}));
     for(let round=0;round<12&&act.length&&wh>0&&load>1e-6;round++){
@@ -10641,10 +10646,11 @@ function resolveVoyage(s,log){
     });
     if(bought+lost>0)L.push(wreck?NEWS('voy.resolveVoyage.5',{i:voyIcon(mode,robbed),a:wn,b:lost,c:bought}):NEWS('voy.resolveVoyage.6',{a:bought}));
     else L.push(NEWS('kind.3',{short:first.short}));
-  }else if(kind==='cross'){
+  }
+  if(xc&&(kind==='own'||kind==='cross')){              // 夾帶他行貨：委託金與運量各最多兩成
     const c=COMM_MAP[pick(othP)],si=originSupplyForShip(s,dest,c.name),pf=clamp(0.40-0.15*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.18,0.5)*(s.cheap?0.9:1)*originSupplyPrice(si),unit=c.base*pf;
     const room=Math.max(0,invCap()-invUsed());
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),originSupplyCap(c.name,mode,si,s.supplyRank||1),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;E.lossVal=(E.lossVal||0)+(q-got)*c.base;
+    const q=Math.max(0,Math.min(Math.floor(xMoney/unit),Math.floor(capOf(c.name,mode)*VK.xLoad),originSupplyCap(c.name,mode,si,s.supplyRank||1),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;E.lossVal=(E.lossVal||0)+(q-got)*c.base;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
       const supply=originSupplyBand(si);L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost),supply}));E.items.push({n:c.short,q,unit,cost,lost:q-got,supply});
       L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{i:voyIcon(mode,robbed),a:wn,b:q-got}):'')+got)}))}
