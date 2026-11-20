@@ -154,7 +154,7 @@ function sumoAfter(){
 function rushOffer(){
   const O=ODDS.trip.rush,cs=plainComms();if(!cs.length)return null;
   const c=pick(cs),p=quoteNow(c.name)*O.price;
-  const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(c.name)-(G.inv[c.name]||0)));
+  const room=Math.max(0,invCap()-invUsed());
   const q=Math.floor(Math.min(rint(O.qty[0],O.qty[1]),room,Math.max(0,G.silver)/p));
   if(q<O.minQty)return null;
   return {name:c.name,q,amt:Math.max(1,Math.round(p*q)),val:Math.round(quoteNow(c.name)*q)};
@@ -206,7 +206,7 @@ function tripEnc2(k,E){
       html=tripCard(P.img,P.nm,P.tag,TX('trip.artisan.paid'),UT('trip.artisan.yesEff',{a:P.amt,g:c.short}))}
     else html=tripCard(P.img,P.nm,P.tag,TX('trip.artisan.no'),'');
   }else if(P.kind==='rush'){const L=P.lot,c=COMM_MAP[L.name],R_=O.rush;
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(L.name)-(G.inv[L.name]||0)));
+    const room=Math.max(0,invCap()-invUsed());
     if(yes&&G.silver>=L.amt&&room>=L.q){
       payPublic('spend.rush',L.amt);addStock(L.name,L.q,L.amt/L.q);stockAdd(L.name,L.q,false);
       if(chance(R_.blackP))G.rushLot={name:L.name,q:L.q,val:L.val,due:chance(R_.foundP)?G.turn+rint(1,R_.within):0,end:G.turn+R_.within};   // 贓貨：買下當下不知道
@@ -259,7 +259,7 @@ function tripEvTick(log){
     if(!c||(A.stop&&A.sent>=A.stop)){G.artisan=null;put(NEWS('artisan.fail'))}
     else{
       const want=Math.max(1,Math.round(rint(O.artisan.val[0],O.artisan.val[1])/quoteNow(A.name)));
-      const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(A.name)-(G.inv[A.name]||0))),q=Math.min(want,room);
+      const room=Math.max(0,invCap()-invUsed()),q=Math.min(want,room);
       if(q>0){addStock(A.name,q,A.unit);stockAdd(A.name,q,false)}
       put(NEWS('artisan.send',{g:c.short,q,l:want-q>0?UT('rfav.lost',{n:want-q}):''}));
       A.sent++;A.left--;if(A.left<=0){G.artisan=null;put(NEWS('artisan.done'))}
@@ -327,12 +327,13 @@ function kakeOffer(cid){
   const K=KK(),cs=kakeItems(),n=npc(cid);if(!cs.length||!n)return null;
   const c=cs[Math.floor(seeded('kake|'+cid+'|'+G.turn)()*cs.length)],quote=marketQuote(c.name);
   const cap=Math.max(1,Math.floor(itemCap(c.name)*K.capHalf)),worth=bzInit(n).bzw*kakeK('worthCap'),base=kakeAssets()*kakeK('frac');
-  const plans=[];let prev=Infinity;
+  const plans=[];let prev=Infinity,q0=0;const P0=K.plans[0];
   for(const P of K.plans){
     const unit=Math.max(0.1,Math.round(quote*P.p*10)/10);
-    let q=Math.round(Math.min(base*P.q,worth)/K.turns/unit);
-    if(!plans.length)q=Math.max(1,q);
-    q=Math.min(q,cap,prev-1);if(q<1)break;
+    let q;
+    if(!plans.length)q0=q=Math.max(1,Math.min(cap,Math.round(Math.min(base*P.q,worth)/K.turns/unit)));   // 量最多的一檔先套旅商身家與每旬份量兩道上限
+    else q=Math.floor(q0*P.q/P0.q);                // 其餘照數量倍率往下打折，三檔保持差距（第三百五十八節）
+    q=Math.min(q,prev-1);if(q<1)break;
     const total=Math.round(unit*q*K.turns);
     plans.push({k:P.k,unit,qty:q,total,dep:Math.round(total*K.dep)});prev=q;
   }
@@ -348,12 +349,15 @@ function kakeReq(cid){
 }
 {const _d=dealerReqs;dealerReqs=function(cid){const L=_d.apply(this,arguments),n=npc(cid);if(n&&n.role==='guest'&&dealReady(cid)){const r=kakeReq(cid);if(r)return [r].concat(L)}return L}}
 /** 方案選單（src：req＝拜訪請託、home＝主動上門）。 */
+/** 接單參考：倉裡現有多少這項貨（其他合約已留的另外註明）。掛賣、貴人訂貨、官府注文共用（第三百四十六、三百四十七節）。 */
+function stockRefTxt(name){const c=COMM_MAP[name],n=(G.inv||{})[name]||0,h=Math.min(n,kakeHeld(name));return h>0?UT('gov.stockHeld',{g:c.short,n,h}):UT('gov.stock',{g:c.short,n})}
 function kakePickHtml(cid,src){
   const O=kakeOffer(cid);if(!O)return '<div class="notice">'+UT('kake.none')+'</div>';
   UI.s.kakeOffer=O;
   const c=COMM_MAP[O.name],K=KK(),big=O.plans[0].total>=K.bigTotal;
   let h='<div class="card" style="display:flow-root">'+portraitHtml(cid,56)+'<div><b>'+esc(nameOf(cid))+'</b> <span class="tag gray">'+esc(ROLE_LABEL.guest||'')+'</span></div><div class="small" style="margin:5px 0">「'+esc(TX('kake.pitch',{shop:kakeShop(cid),g:c.short}))+esc(TX(big?'kake.scale.big':'kake.scale.small'))+'」</div></div>';
   h+='<div class="tiny muted" style="margin:4px 0">'+UT('kake.pick.note',{g:esc(c.short),p:fmt1(marketQuote(O.name)),t:K.turns})+'</div>';
+  h+='<div class="tiny" style="margin:2px 0;color:#27407a">'+esc(stockRefTxt(O.name))+'</div>';   // 倉裡現有量（第三百四十七節）
   O.plans.forEach(p=>{
     h+='<div class="card" style="margin-top:4px"><div class="row"><b class="small">'+UT('kake.plan.'+p.k)+'</b><b style="color:#9b2c3a">'+UT('kake.plan.per',{q:p.qty,u:fmt1(p.unit)})+'</b></div>'
       +'<div class="tiny muted" style="margin:3px 0">'+UT('kake.plan.sum',{q:p.qty*K.turns,a:fmt(p.total),d:fmt(p.dep),r:fmt(p.total-p.dep)})+'</div>'
@@ -735,7 +739,7 @@ function chumonCard(){
     const have=kakeFree(o.name),ok=have>=o.qty;
     h+='<div style="margin-top:4px">'+caps.map(e=>'<span class="pill '+(e.id===S.capt?'on':'')+'" data-act="cmCapt" data-o="'+o.id+'" data-id="'+e.id+'">'+esc(e.name)+'</span>').join('')+'</div>';
     if(!ok)h+='<div class="tiny" style="color:#b3392b;margin-top:4px">'+UT('cm.card.noStock',{g:c.short,q:o.qty,h:have})+'</div>';
-    const maxB=Math.floor(Math.max(0,G.silver-voyQTotal())/50)*50,bMax=maxB>=100?maxB:0;
+    const maxB=Math.floor(Math.min(5000,Math.max(0,G.silver-voyQTotal()))/50)*50,bMax=maxB>=100?maxB:0;   // 回程委託金上限同委託採買 5,000 兩（第三百五十七節）
     S.budget=clamp(Math.floor((S.budget||0)/50)*50,0,bMax);if(S.budget>0&&S.budget<100)S.budget=100;
     h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.budget')+'</span><b id="cm-b-v'+i+'">'+UT('r4.card.budgetVal',{a:fmt(S.budget)})+'</b></div>';
     h+=stepRow('<input id="cm-b'+i+'" type="range" min="0" max="'+Math.max(50,bMax)+'" value="'+S.budget+'" step="50" data-chg="cmBudget" data-o="'+o.id+'" data-lbl="cm-b-v'+i+'" data-snap="100" data-prev="'+S.budget+'" data-unit="'+esc(UT('r4.card.budgetVal',{a:'#'}))+'"'+(bMax<100?' disabled':'')+'>','cm-b'+i,bMax<100||S.budget<=0,bMax<100||S.budget>=bMax);

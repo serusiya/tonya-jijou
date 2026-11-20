@@ -302,3 +302,17 @@ input[type=range]:focus-visible{box-shadow:0 0 0 2px rgba(229,169,59,.6)}
 .qwrap .qover{position:absolute;top:50%;height:6px;margin-top:-3px;background:#000;display:none;pointer-events:none;animation:qBlink .9s steps(1,end) infinite}
 @keyframes qBlink{0%{opacity:1}50%{opacity:.15}}
 input.qslider{position:relative}
+/* 取得名號的演出（第三百五十六節）：轉黑 0.8 秒 → 名號 1.5 秒 → 原因 → 效果 → 關閉按鈕；不能略過 */
+#title-fx{position:fixed;inset:0;z-index:97;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;background:#000;opacity:0;transition:opacity .8s;text-align:center;color:#eee}
+#title-fx.on{opacity:1}
+#title-fx .tf-name{font-size:68px;font-weight:bold;letter-spacing:8px;opacity:0;transform:scale(.92)}
+#title-fx .tf-why,#title-fx .tf-eff{max-width:420px;font-size:16px;line-height:1.7;opacity:0}
+#title-fx .tf-eff{color:#cfc6b4;font-size:14px}
+#title-fx .tf-btn{opacity:0;pointer-events:none;margin-top:10px;min-width:120px}
+#title-fx.on .tf-name{animation:tfIn 1.5s ease-out .8s forwards}
+#title-fx.on .tf-why{animation:tfFade .9s ease-out 2.5s forwards}
+#title-fx.on .tf-eff{animation:tfFade .9s ease-out 3.4s forwards}
+#title-fx.on .tf-btn{animation:tfFade .5s ease-out 4.4s forwards}
+#title-fx.ready .tf-btn{pointer-events:auto}
+@keyframes tfIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes tfFade{from{opacity:0}to{opacity:1}}

@@ -441,21 +441,24 @@ function drawScene(now){
   const dmy=daimyoScene();if(dmy)dmySync(now);                                        // 大名行列過境當旬（05g_daimyoscene.js）
   drawTree(c,12,58,season(),now);drawTree(c,308,62,season(),now);
   drawHouse(c,102,40,now,season());
+  villaDraw(c,now);                                                                    // 別邸、店面翻修、竹架、撒年糕（05i_villa）
   const slots=[[34,75],[226,75],[274,75]];
   for(let i=0;i<Math.min(G.wh.n,slots.length);i++){const [x,y]=slots[i];drawKura(c,x,y,i===0);}
   yardBack(c,now,dt);                                                                  // 焦痕與煙、烏鴉、貓（05h_yard）
   if(season()==='winter')R_(c,0,108,320,3,'#fff8');
   if(fest){drawNobori(c,now);drawLanterns(c,now)}
-  const list=SCENE.ents.map(e=>({y:e.y,draw:c=>{
+  const quiet=villaQuiet();                                                            // 別邸夜宴（沒放花火）：街上只留保鏢巡視（05i_villa）
+  const list=(quiet?SCENE.ents.filter(e=>e.kind==='guard'||e.rank==='guard').slice(0,2):SCENE.ents).map(e=>({y:e.y,draw:c=>{
     const L=entLook(e),nod=e.bowT>0?Math.sin(e.bowT/380*Math.PI)*0.45:0;
     drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0,moving:e.moving,faceLeft:e.dir<0,pose:e.pose,pt:e.pt,bow:nod},L,{small:L.small||e.kind==='kid'&&e.age<12}));
     if(e.pose==='sweep')yardBroom(c,e);                                               // 冬天掃雪（05h_yard）
   }}));
-  yardPeople(now,dt).forEach(x=>list.push(x));                                        // 荷車、馬隊、飛腳（05h_yard）
-  if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
-  if(dmy)dmyPeople(now,dt).forEach(x=>list.push(x));
+  if(!quiet)yardPeople(now,dt).forEach(x=>list.push(x));                             // 荷車、馬隊、飛腳（05h_yard）
+  if(!quiet)villaPeople(now).forEach(x=>list.push(x));                               // 落成撒年糕的街坊（05i_villa）
+  if(fest&&!quiet){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
+  if(dmy&&!quiet)dmyPeople(now,dt).forEach(x=>list.push(x));
   list.sort((a,b)=>a.y-b.y).forEach(x=>x.draw(c));
-  drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);
+  drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);{const hb=hanabiLv();if(hb){c.fillStyle='#08102cd0';c.fillRect(0,0,320,180)}villaNight(c,now,hb);if(hb){hanabiDraw(c,now,hb);doorLanterns(c)}}   // 別邸夜宴、川開花火（05i_villa、05j_hanabi）
   // 庫存提示牌
   c.fillStyle='#1a1612cc';c.fillRect(2,166,96,12);c.fillStyle='#f4ece1';c.font='8px DotGothic16,monospace';c.textBaseline='top';
   c.fillText(UT('scene.store',{n:G.wh.n,u:invUsed(),c:invCap()}),5,168);
@@ -1198,12 +1201,25 @@ function yardCart(flow,idx,delay){
 /** 推進荷車、馬隊、飛腳。 */
 function yardStep(now,dt){
   const P=YARD.plan,calm=!(typeof daimyoScene==='function'&&daimyoScene()),fest=typeof festScene==='function'&&festScene();
-  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500}
-  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null}
-  if(calm&&P&&!YARD.carts.length&&now>=YARD.nextCart){
-    const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
-    if(flows.length){const f=flows[YARD.flow++%flows.length],k=f==='in'?P.inN:P.outN;for(let i=0;i<k;i++)YARD.carts.push(yardCart(f,i,i*5200))}
-    YARD.nextCart=now+(16000+Math.random()*8000)*(fest?2:1);
+  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500;YARD.nextShop=now+2000;YARD.gap=0}
+  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null;YARD.shop=[]}
+  /* 一次只演一組路過的人（第三百五十節）：荷車、零售商、馬隊、飛腳輪流；院子空下來稍等一下，再挑等最久的那一組上場 */
+  const busy=YARD.carts.length||YARD.horses.length||YARD.runner||(YARD.shop||[]).length;
+  if(busy)YARD.gap=now+1500;
+  if(calm&&P&&!busy&&now>=(YARD.gap||0)){
+    const cand=[];
+    if((P.inN||P.outN)&&now>=YARD.nextCart)cand.push(['cart',YARD.nextCart]);
+    if(P.outN&&now>=YARD.nextShop)cand.push(['shop',YARD.nextShop]);
+    if(P.land&&now>=YARD.nextHorse)cand.push(['horse',YARD.nextHorse]);
+    if(P.letter&&now>=YARD.nextRunner)cand.push(['runner',YARD.nextRunner]);
+    cand.sort((a,b)=>a[1]-b[1]);const g=cand.length?cand[0][0]:null;
+    if(g==='cart'){
+      const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
+      const f=flows[YARD.flow++%flows.length],k=f==='in'?P.inN:P.outN;for(let i=0;i<k;i++)YARD.carts.push(yardCart(f,i,i*5200));
+      YARD.nextCart=now+(16000+Math.random()*8000)*(fest?2:1);
+    }else if(g==='shop'){shopSpawn(Math.min(3,P.outN));YARD.nextShop=now+(14000+Math.random()*8000)*(fest?0.7:1)}
+    else if(g==='horse'){YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000}
+    else if(g==='runner'){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
   }
   YARD.carts.forEach(c=>{
     if(c.wait>0){c.wait-=dt;return}
@@ -1214,12 +1230,8 @@ function yardStep(now,dt){
     c.ft+=dt;if(c.ft>165){c.ft=0;c.frame++}
   });
   YARD.carts=YARD.carts.filter(c=>!c.done);
-  if(calm&&P&&P.land&&!YARD.horses.length&&now>=YARD.nextHorse){
-    YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000;
-  }
   YARD.horses.forEach(h=>{h.x+=14*dt/1000;h.ft=(h.ft||0)+dt;if(h.ft>200){h.ft=0;h.frame=(h.frame||0)+1}});
   YARD.horses=YARD.horses.filter(h=>h.x<380);
-  if(calm&&P&&P.letter&&!YARD.runner&&now>=YARD.nextRunner){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
   const r=YARD.runner;
   if(r){const v=55*dt/1000;if(r.seg===0){r.y+=v;if(r.y>=156){r.y=156;r.seg=1}}else r.x-=v;r.ft+=dt;if(r.ft>90){r.ft=0;r.frame++}if(r.x<-20)YARD.runner=null}
 }
@@ -1304,4 +1316,141 @@ function yardPeople(now,dt){
   YARD.horses.forEach(h=>out.push({y:h.y,draw:c=>{yardHorseDraw(c,h);if(h.k===0)drawPerson(c,h.x+18,h.y,Object.assign({frame:h.frame||0,moving:true},YARD_LOOK,{hat:'#8a6a3a'}))}}));
   const r=YARD.runner;if(r)out.push({y:r.y,draw:c=>drawPerson(c,r.x,r.y,Object.assign({frame:r.frame,moving:true,faceLeft:r.seg===1},RANK_LOOK.courier,{variant:7}))});
   return out;
+}
+/* ---------- 店頭的零售商人（第三百四十九節）：上一旬有出貨，就有一組零售商走到店門口批貨再離開；人數照出貨貨值，最多三位。何時上場由 yardStep 統一排（一次只演一組，第三百五十節） ---------- */
+YARD.shop=[];YARD.nextShop=0;
+/** 零售商的外觀與手上的貨（依行業）。 */
+const SHOP_LOOK={
+  marine:{cloth:'#4f6e8e',hat:'#c8b48a',prop:'pole'},pickle:{cloth:'#7a5a3a',prop:'tub'},grain:{cloth:'#8a7a4a',prop:'sack'},
+  sake:{cloth:'#4a3a5a',prop:'barrel'},timber:{cloth:'#6a4a2a',hat:'#8a6a3a',prop:'plank'},textile:{cloth:'#2f4f7f',prop:'cloth'}
+};
+/** 派出一組零售商（n 位，依序間隔約四秒出發）。 */
+function shopSpawn(n){
+  for(let i=0;i<n;i++){
+    const left=Math.random()<0.5,door=118+Math.random()*18,edge=left?-12:332,lane=156;
+    YARD.shop.push({pts:[[edge,lane],[door,lane],[door,117],[door,lane],[edge,lane]],seg:0,x:edge,y:lane,dir:left?1:-1,delay:i*4000,wait:0,carry:false,frame:0,ft:0,v:Math.floor(Math.random()*8)});
+  }
+}
+function shopStep(now,dt){
+  YARD.shop.forEach(s=>{
+    if(s.delay>0){s.delay-=dt;return}
+    if(s.wait>0){s.wait-=dt;if(s.wait<=0)s.carry=true;return}
+    const [tx,ty]=s.pts[s.seg+1]||s.pts[s.seg],dx=tx-s.x,dy=ty-s.y,d=Math.hypot(dx,dy),v=24*dt/1000;
+    if(d<=v){s.x=tx;s.y=ty;s.seg++;if(s.seg===2)s.wait=1800;if(s.seg>=s.pts.length-1)s.done=true;return}
+    s.x+=dx/d*v;s.y+=dy/d*v;if(Math.abs(dx)>0.5)s.dir=dx>0?1:-1;
+    s.ft+=dt;if(s.ft>150){s.ft=0;s.frame++}
+  });
+  YARD.shop=YARD.shop.filter(s=>!s.done);
+}
+/** 手上的貨：扁擔與竹籠、木桶、米袋、酒樽、木料、反物、木箱。 */
+function shopProp(c,x,y,dir,prop){
+  const B=(dx,dy,w,h,col)=>R_(c,x+dx,y+dy,w,h,col);x=Math.round(x);y=Math.round(y);
+  if(prop==='pole'){B(-10,-16,21,1,'#8a6a3a');[-10,8].forEach(dx=>{B(dx,-15,1,5,'#6b5a3a');B(dx+2,-15,1,5,'#6b5a3a');B(dx-1,-10,5,4,'#b89a5a');B(dx,-9,3,1,'#7a8a9a')});return}
+  if(prop==='tub'){B(dir*5-3,-11,6,5,'#8a5a2e');B(dir*5-3,-10,6,1,'#3b2a1c');B(dir*5-3,-8,6,1,'#3b2a1c');return}
+  if(prop==='sack'){B(-dir*2-3,-23,7,5,'#d8c27a');B(-dir*2-2,-23,1,5,'#9c8443');B(-dir*2+2,-23,1,5,'#9c8443');return}
+  if(prop==='barrel'){B(-dir*2-3,-24,7,6,'#e9dcb4');B(-dir*2-3,-22,7,1,'#8a6a3a');B(-dir*2-3,-20,7,1,'#8a6a3a');B(-dir*2,-22,2,2,'#b3261e');return}
+  if(prop==='plank'){B(-dir*10,-20,22,2,'#9a6a3a');B(dir>0?-10:10,-20,2,2,'#d9b07a');return}
+  if(prop==='cloth'){B(dir*4-3,-13,6,3,'#2f4f7f');B(dir*4-3,-15,6,2,'#a83a3a');return}
+  B(dir*5-3,-12,6,5,'#c9a46a');B(dir*5-3,-10,6,1,'#7a5a32');B(dir*5,-12,1,5,'#7a5a32');
+}
+{const _y=yardPeople;yardPeople=function(now,dt){
+  const out=_y.apply(this,arguments);shopStep(now,dt);
+  const L=SHOP_LOOK[G.sysKey]||{cloth:'#5a5a4a',prop:'box'};
+  YARD.shop.forEach(s=>{if(s.delay>0)return;out.push({y:s.y,draw:c=>{
+    const mv=!(s.wait>0),o={frame:mv?s.frame:0,moving:mv,faceLeft:s.dir<0,pt:now,variant:s.v,cloth:L.cloth,cloth2:'#e8dcc4'};if(L.hat)o.hat=L.hat;
+    drawPerson(c,s.x,s.y,o);if(s.carry)shopProp(c,s.x,s.y,s.dir,L.prop);
+  }})});
+  return out;
+}}
+
+/* ═════ [05i_villa] ═════ */
+/* ======================= 別邸：店頂加蓋一層紙窗格子樓（第三百六十節） =======================
+ *  有別邸（G.villa.lv≥1）時，原本屋頂的上兩層屋瓦換成一層細木格子後面是紙窗的樓（參考金澤茶屋街二樓），有自己的瓦頂。
+ *  格子顏色照階段：1 木頭色 → 2 紅殼紅 → 3 銀灰 → 4 亮金（屋脊兩端加小金鯱）。
+ *  施工中（G.villa.work）搭竹架、兩名木匠在屋頂敲打；落成那一旬（joto）東家在屋頂撒年糕，門前街坊跳著接；
+ *  設宴那一旬（feastT）整個畫面轉成夜晚，紙窗透出金黃色的光與坐著的人影（villaNight，疊在色調之後）。 */
+const VILLA_FX={mochi:[],next:0};
+const VILLA_COL=[null,{f:'#7a5434',d:'#4b3428',l:'#9a7048',n:'#4b3020'},{f:'#a8322a',d:'#6e1f1a',l:'#c9524a',n:'#6e1f1a'},{f:'#8a9099',d:'#555b63',l:'#a9aeb5',n:'#4a4f56'},{f:'#f2c84b',d:'#b8862a',l:'#fff0a0',n:'#8a6420'}];
+/** 加蓋的那一層（x、y 同 drawHouse）。 */
+function villaStorey(c,x,y,lv){
+  const C=VILLA_COL[lv],tile='#26303a',tileHi='#3b4854';
+  R_(c,x+4,y-21,98,19,C.d);R_(c,x+6,y-19,94,15,'#efe6cf');
+  for(let i=0;i<32;i++)R_(c,x+6+i*3,y-19,1,15,C.f);
+  R_(c,x+6,y-19,94,1,C.d);R_(c,x+6,y-5,94,1,C.d);
+  [x+4,x+36,x+68,x+100].forEach(px=>R_(c,px,y-21,2,19,C.d));
+  R_(c,x+4,y-3,98,1,C.l);
+  R_(c,x-1,y-25,108,4,tile);R_(c,x+8,y-28,90,3,tile);R_(c,x+30,y-30,46,2,'#2b211d');
+  for(let i=0;i<18;i++)R_(c,x+i*6,y-25,1,4,tileHi);
+  if(lv>=4){R_(c,x+28,y-32,3,3,'#f2c84b');R_(c,x+75,y-32,3,3,'#f2c84b')}   // 金鯱
+  if(season()==='winter'){R_(c,x-1,y-26,108,1,'#fff');R_(c,x+8,y-29,90,1,'#fff')}
+}
+function villaDraw(c,t){
+  const V=G&&G.villa;if(!V)return;
+  const x=102,y=40,lv=V.lv||0;
+  if(lv>=1)villaStorey(c,x,y,lv);
+  const top=lv>=1?y-25:y-14;   // 屋頂上站人的高度
+  if(V.work){
+    [x-4,x+30,x+76,x+110].forEach(px=>R_(c,px,top-6,1,y+58-(top-6),'#b8a35c'));
+    [top-4,y+6,y+30].forEach(py=>R_(c,x-4,py,115,1,'#a8924f'));
+    drawPerson(c,x+34,top,{small:true,pose:'knock',pt:t,cloth:'#55606e',cloth2:'#e8dcc4',variant:1});
+    drawPerson(c,x+70,top,{small:true,pose:'knock',pt:t+250,cloth:'#6d5744',cloth2:'#e8dcc4',variant:2,faceLeft:true});
+    R_(c,x+30,y+56,14,3,'#a37b4f');R_(c,x+31,y+54,12,2,'#b98c5a');   // 木料
+  }
+  if(V.joto===G.turn&&!V.work&&lv>=1){
+    drawPerson(c,x+52,top,{small:true,pose:'wave',pt:t,cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true});
+    if(t>=VILLA_FX.next){VILLA_FX.mochi.push({x:x+52,y:top-14,vx:(Math.random()-0.5)*50,vy:-30-Math.random()*20,t0:t});VILLA_FX.next=t+260+Math.random()*300}
+    VILLA_FX.mochi=VILLA_FX.mochi.filter(m=>t-m.t0<2600);
+    VILLA_FX.mochi.forEach(m=>{const s=(t-m.t0)/1000,px=m.x+m.vx*s,py=m.y+m.vy*s+60*s*s;if(py<150)R_(c,px,py,2,2,'#fbf7ee')});
+  }
+}
+/** 設宴那一旬：轉成夜晚，紙窗透出金黃色的光與人影。畫在色調之後。 */
+function villaNight(c,t,dark){
+  const V=G&&G.villa;if(!V||!(V.lv>=1)||V.work||V.feastT!==G.turn)return;
+  const x=102,y=40,C=VILLA_COL[V.lv];
+  if(!dark){c.fillStyle='#08102ccc';c.fillRect(0,0,320,180)}   // 放花火的那一旬已經轉暗，不再疊一層
+  {const g=c.createRadialGradient(x+53,y-10,6,x+53,y-10,70);g.addColorStop(0,'#ffb43a55');g.addColorStop(1,'#ffb43a00');c.fillStyle=g;c.fillRect(x-30,y-50,170,90)}
+  R_(c,x+6,y-19,94,15,'#ffd35e');
+  for(let i=0;i<24;i++)R_(c,x+6+i*4,y-19,1,15,'#d9952e');
+  const n=Math.min(5,V.lv+1),GX=[13,31,49,67,85],sx='#5a3408';
+  for(let i=0;i<n;i++){const hx=x+GX[i]+Math.round(Math.sin(t/800+i*1.7)*1.5);R_(c,hx+2,y-17,5,5,sx);R_(c,hx+3,y-18,3,1,sx);R_(c,hx+1,y-12,7,1,sx);R_(c,hx,y-11,9,6,sx);R_(c,hx-1,y-8,11,3,sx);if(i%2)R_(c,hx+9,y-14+Math.round(Math.sin(t/300+i)),2,4,sx)}
+  R_(c,x+6,y-19,94,1,C.n);R_(c,x+6,y-5,94,1,C.n);[x+4,x+36,x+68,x+100].forEach(px=>R_(c,px,y-21,2,19,C.n));
+  if(!dark)doorLanterns(c);
+}
+/** 夜裡門口兩盞燈籠。 */
+function doorLanterns(c){const x=102,y=40;[[x+1,y+36],[x+105,y+36]].forEach(([lx,ly])=>{R_(c,lx,ly,5,8,'#ffb03a');c.fillStyle='#ffb03a33';c.beginPath();c.arc(lx+2.5,ly+4,11,0,6.3);c.fill()})}
+/** 別邸夜宴那一旬、又沒放花火：天黑了，院子和街上只留保鏢巡視（最多兩名；沒僱保鏢就沒人）。 */
+function villaQuiet(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.feastT===G.turn&&!(typeof hanabiLv==='function'&&hanabiLv()))}
+/** 落成那一旬門前的街坊（跳著接年糕）；畫進院子的人物排序。 */
+function villaPeople(now){
+  const V=G&&G.villa;if(!V||V.joto!==G.turn||V.work||!(V.lv>=1))return [];
+  const P=[[96,128],[110,134],[124,126],[140,132],[156,128],[170,135],[88,138]];
+  return P.map(([px,py],i)=>({y:py,draw:c=>drawPerson(c,px,py,{pose:'hop',pt:now+i*170,variant:i,faceLeft:i%2===0,small:i===3})}));
+}
+
+/* ═════ [05j_hanabi] ═════ */
+/* ======================= 川開大花火（第三百六十四節） =======================
+ *  放花火那一旬（hanabiLv()>0）整個畫面轉成夜晚；小＝主屋右側零星小花火，中＝左右兩側較大，大＝兩側加從左下發射、拖亮尾巴劃拋物線越過主屋、在右邊天空炸開的雙層大玉。 */
+const HB_FX={fw:[],sh:[],next:0,nextArc:0};
+const HB_COL=['#ff6b6b','#ffd166','#6bd3ff','#c77dff','#9cff6b','#ffffff'];
+function hbBurst(x,y,r,col,n,t0){HB_FX.fw.push({x,y,r,col,n,t0})}
+function hanabiDraw(c,now,lv){
+  const pk=()=>HB_COL[Math.floor(Math.random()*HB_COL.length)];
+  if(now>=HB_FX.next){
+    (lv===1?['R']:['L','R']).forEach(sd=>{if(Math.random()<0.8){const x=sd==='L'?20+Math.random()*70:230+Math.random()*70;hbBurst(x,12+Math.random()*30,lv>=2?20:13,pk(),lv>=2?16:11,now+Math.random()*400)}});
+    HB_FX.next=now+(lv===1?1500:lv===2?1000:800)+Math.random()*600;
+  }
+  if(lv>=3&&now>=HB_FX.nextArc){HB_FX.sh.push({t0:now,dur:1600,tx:200+Math.random()*90,ty:10+Math.random()*16,col:pk()});HB_FX.nextArc=now+2200+Math.random()*900}
+  HB_FX.sh=HB_FX.sh.filter(s=>{
+    const a=(now-s.t0)/s.dur;if(a>=1){hbBurst(s.tx,s.ty,34,s.col,26,now);hbBurst(s.tx,s.ty,18,'#fff6c0',14,now);return false}
+    const x0=10,y0=104,H=46;
+    for(let k=0;k<14;k++){const b=Math.max(0,a-k*0.015),xx=x0+(s.tx-x0)*b,yy=y0+(s.ty-y0)*b-H*Math.sin(Math.PI*b);c.globalAlpha=1-k/14;R_(c,xx,yy,k<2?2:1.5,k<2?2:1.5,k<2?'#fff':'#ffcf70')}
+    c.globalAlpha=1;return true;
+  });
+  HB_FX.fw=HB_FX.fw.filter(f=>now-f.t0<1800);
+  HB_FX.fw.forEach(f=>{
+    if(now<f.t0)return;const a=(now-f.t0)/1800,r=3+Math.min(1,a*2.2)*f.r;c.globalAlpha=Math.max(0,1-a);
+    for(let i=0;i<f.n;i++){const th=i/f.n*Math.PI*2;R_(c,f.x+Math.cos(th)*r,f.y+Math.sin(th)*r+a*a*10,1.5,1.5,f.col);if(f.r>20)R_(c,f.x+Math.cos(th)*r*0.6,f.y+Math.sin(th)*r*0.6+a*a*8,1,1,f.col)}
+    if(a<0.1){c.fillStyle=f.col+'44';c.beginPath();c.arc(f.x,f.y,f.r*0.8,0,6.3);c.fill()}
+    c.globalAlpha=1;
+  });
 }

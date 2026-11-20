@@ -91,7 +91,7 @@ FACE_EXT.patron=(e,name)=>{
   const o=e.o;if(!o||ptOrders().length>=PT().max||!tradeOK(o.name))return null;
   UI.s.ptOffer=o;const c=COMM_MAP[o.name],n=npc(o.cid),off=n&&n.role==='official';
   const when=UT(o.k==='fest'?'pt.when.fest':o.k==='fast'?'pt.when.fast':'pt.when.year',{f:(homeCity().special_festival||{}).name||''});
-  return {line:TX(off?'patron.official':'patron.guest',{g:c.short,w:when}),effect:UT('pt.ask.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),w:when,t:Math.max(1,o.due-1-G.turn)})+(o.big?UT('pt.ask.big'):''),
+  return {line:TX(off?'patron.official':'patron.guest',{g:c.short,w:when}),effect:UT('pt.ask.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),w:when,t:Math.max(1,o.due-1-G.turn)})+(o.big?UT('pt.ask.big'):'')+stockRefTxt(o.name),   // 倉裡現有量（第三百四十七節）
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="ptTake">'+UT('btn.ptTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 ACT.ptTake=()=>{
@@ -113,8 +113,8 @@ ACT.ptTake=()=>{
  *   總值約 2,000～5,000 兩，三、四旬分批交（下一旬起每旬一批），價錢是接單當旬牌價加兩成。交完好感 +5。
  *   哪一旬交不齊就失約：該旬有多少交多少、照價入帳，好感 −30、知名度 −2，合約結束。
  * - 軍需大單（上貢類）：軍需事件那一次，約一半機會有一位普請方四階以上、好感 ≥60 的官員開口；一年最多兩張。
- *   每張總值依官階（四階約 8,000～15,000、五階 15,000～25,000、六階 25,000～40,000 兩），件數不超過單項庫存上限；
- *   開價基準價一倍六到兩倍，但不低於不含軍需漲幅的平時牌價加兩成；四到六旬後一次交清。
+ *   每張總值依官階（四階約 8,000～15,000、五階 15,000～25,000、六階 25,000～40,000 兩），件數不超過本城需求的 12 倍（ODDS.gov.warCap，第三百五十二節）；
+ *   開價依官階：四階基準價一倍六到兩倍（不低於平時牌價加兩成）、五階兩倍到兩倍四（不低於一倍半）、六階兩倍四到兩倍八（不低於一倍八）；四到六旬後一次交清。
  *   交齊：好感 +10、知名度 +2；交不齊：失約，好感 −30、知名度 −5。
  * - 兩種都由本店負責：不佔番頭、不受總資產限制、不算本城出貨、不加市佔；列在相場「📦 合約」卡（軍需單可以提早填貨）。
  * - 官員死去、關押或離城：他經手的單作廢，已交的照算。遷居籌備期間不上門。
@@ -147,9 +147,10 @@ function govSmallOffer(cid){
 /** 軍需大單的開價。 */
 function govWarOffer(cid){
   const P=GV(),cs=tradeComms().filter(c=>commTag(c,'military'));if(!cs.length)return null;
-  const c=pick(cs),cap=itemCap(c.name),m=G.mk[c.name]||{},V=P.warVal[Math.min(6,npc(cid).pos.rank)]||P.warVal[4];
+  const c=pick(cs),cap=Math.max(1,Math.round((G.mk[c.name]?G.mk[c.name].D:cityD(homeCity(),c))*P.warCap)),m=G.mk[c.name]||{},V=P.warVal[Math.min(6,npc(cid).pos.rank)]||P.warVal[4];
   const calm=marketQuote(c.name)/Math.max(0.01,m.ev||1);   // 不含軍需漲幅的平時牌價
-  const unit=Math.round(Math.max(c.base*(P.warPrice[0]+rnd()*(P.warPrice[1]-P.warPrice[0])),calm*P.warFloor)*10)/10;
+  const rk=Math.min(6,Math.max(4,npc(cid).pos.rank)),WP=P.warPrice[rk]||P.warPrice[4],WF=P.warFloor[rk]||P.warFloor[4];   // 開價依官階：五、六階不常在城，出價較好（第三百五十一節）
+  const unit=Math.round(Math.max(c.base*(WP[0]+rnd()*(WP[1]-WP[0])),calm*WF)*10)/10;
   const qty=Math.min(cap,Math.max(P.warMin,Math.round(rint(V[0],V[1])/unit)));
   if(qty<1)return null;
   return {kind:'govW',cid,name:c.name,qty,unit,turns:rint(P.warTurns[0],P.warTurns[1])};
@@ -217,18 +218,20 @@ function govTick(log){
 /* 軍需事件：記下這一旬（govTick 再決定有沒有人開口） */
 {const E=EVENTS.find(e=>e.k==='military');if(E){const _f=E.f;E.f=function(){const t=_f.apply(this,arguments);if(govOn())govState().warT=G.turn;return t}}}
 /* ---------- 上門的視窗 ---------- */
+/** 接單參考：倉裡現有多少這項貨（其他合約已留的另外註明；第三百四十六節）。 */
+const govStockTxt=name=>stockRefTxt(name);   // 與掛賣、貴人訂貨共用（07l_trips.js）
 FACE_TITLE.govS='gov.s.t';
 FACE_TITLE.govW='gov.w.t';
 FACE_EXT.govS=(e)=>{
   const o=e.o;if(!o||govOrders().some(x=>x.kind==='govS')||!tradeOK(o.name)||!govOfficialOK(o.cid,['administration','finance']))return null;
   UI.s.govOffer=o;const c=COMM_MAP[o.name],ct=npc(o.cid).pos.court;
-  return {line:TX(ct==='finance'?'gov.finance':'gov.admin',{g:c.short}),effect:UT('gov.s.eff',{g:c.short,q:o.qty,l:o.left,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.left*o.unit))}),
+  return {line:TX(ct==='finance'?'gov.finance':'gov.admin',{g:c.short}),effect:UT('gov.s.eff',{g:c.short,q:o.qty,l:o.left,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.left*o.unit))})+govStockTxt(o.name),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="govTake">'+UT('btn.govTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 FACE_EXT.govW=(e)=>{
   const o=e.o;if(!o||!tradeOK(o.name)||!govOfficialOK(o.cid,['administration']))return null;
   UI.s.govOffer=o;const c=COMM_MAP[o.name];
-  return {line:TX('gov.war',{g:c.short}),effect:UT('gov.w.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),t:o.turns}),
+  return {line:TX('gov.war',{g:c.short}),effect:UT('gov.w.eff',{g:c.short,q:o.qty,u:fmt1(o.unit),a:fmt(Math.round(o.qty*o.unit)),t:o.turns})+govStockTxt(o.name),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="govTake">'+UT('btn.govTake')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.ptPass')+'</button></div>'};
 };
 ACT.govTake=()=>{
@@ -236,8 +239,8 @@ ACT.govTake=()=>{
   if(moving()){toast(UT('mv.noNew'));return UI.hideInfo()}
   if(o.kind==='govS'&&govOrders().some(x=>x.kind==='govS')){toast(UT('gov.full'));return UI.hideInfo()}
   const c=COMM_MAP[o.name],id=G.turn+'_'+Math.floor(rnd()*1e5);
-  if(o.kind==='govS')govOrders().push({id,kind:'govS',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,left:o.left,start:G.turn+1,filled:0});
-  else govOrders().push({id,kind:'govW',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,due:G.turn+o.turns,filled:0});
+  if(o.kind==='govS')govOrders().push({id,kind:'govS',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,left:o.left,start:G.turn+2,filled:0});   // 交貨在日期前進之後判定：+2 才是「下一旬推進時交第一批」，與定約掛賣一致（第三百四十六節）
+  else govOrders().push({id,kind:'govW',cid:o.cid,name:o.name,qty:o.qty,unit:o.unit,due:G.turn+o.turns+1,filled:0});   // 同上：照畫面寫的旬數交清
   logRel(o.cid,UT('gov.log.take',{g:c.short,q:o.qty}));
   toast(UT(o.kind==='govS'?'gov.s.taken':'gov.w.taken',{n:nameOf(o.cid),g:c.short,q:o.qty,l:o.left,t:o.turns}),4600);sfx.tap();UI.hideInfo();UI.render();
 };

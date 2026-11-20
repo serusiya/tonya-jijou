@@ -260,6 +260,7 @@ function peopleTick(log){
   peopleMoveTick(log);
   Object.entries(G.rel).forEach(([cid,r])=>{
     r.promises.forEach(p=>{
+      if(!p.done&&G.turn>p.due&&!p.late&&p.fall){p.late=true;const t=fallLate(cid,r);pushNews(t);log.push(t);return}   // 政敵事件的壓驚錢逾期（第三百五十五節）
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;setAff(r,Math.max(0,r.aff-10));logRel(cid,MSG('log.late',{t:p.text}));const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
   });

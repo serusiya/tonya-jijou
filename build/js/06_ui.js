@@ -47,22 +47,26 @@ UI.render=function(){
   const kg=kakeGaps().length>0;                  // 定約掛賣本旬還缺貨：兩個「推進一旬」按鈕亮紅點（07zzm_kake.js）
   $$('#b-next,.home-next').forEach(b=>{const old=b.querySelector('.nav-dot');if(old)old.remove();b.classList.toggle('kgap',kg);if(kg){const d=document.createElement('i');d.className='nav-dot';b.appendChild(d)}});
 };
-/** 頂部左欄的稱號與職務（第三百四十節）：有就取代姓名與年齡；稱號在前紅色，職務在後綠色。新的稱號、職務加在這裡。 */
-function topTagsHtml(){
-  const T=[],J=[];
+/** 頂部左欄的稱號與職務（第三百四十、三百五十六節）：有就取代姓名與年齡；京商金色排最前，稱號紅色，職務綠色。gap＝中間空一小格（擠不下一行時 updateTop 改成不空）。新的稱號、職務加在這裡。 */
+function topTagsHtml(gap=true){
+  const K=[],T=[],J=[];
+  if(typeof kyoOn==='function'&&kyoOn())K.push(UT('top.t.kyo'));
   if((G.dpTitle||0)>=2)T.push(UT('top.t.gou'));else if((G.dpTitle||0)>=1)T.push(UT('top.t.big'));
   if(typeof gmIsMe==='function'&&gmIsMe())J.push(UT('top.j.gm'));
-  if(!T.length&&!J.length)return '';
-  return T.map(t=>'<span style="color:#ff6b5e">'+esc(t)+'</span>').concat(J.map(j=>'<span style="color:#5ce68b">'+esc(j)+'</span>')).join(UT('top.tagSep'));
+  const L=K.map(t=>[t,TITLE_COL.kyo]).concat(T.map(t=>[t,TITLE_COL.red]),J.map(t=>[t,TITLE_COL.green]));
+  if(!L.length)return '';
+  return L.map(([t,c])=>'<span style="color:'+c+'">'+esc(t)+'</span>').join(gap?'<span style="display:inline-block;width:0.35em"></span>':'');
 }
+/** 名號顏色：頂部欄與取得名號的演出共用。 */
+const TITLE_COL={kyo:'#ffe680',red:'#ff6b5e',green:'#5ce68b'};
 /** 更新頂部資訊（日期、現款、私房錢、知名度、行動點數）。 */
 function updateTop(){
   $('#d-date').textContent=dateStr();
-  {const tg=topTagsHtml(),el=$('#d-age');if(tg)el.innerHTML=tg;else el.textContent=UT('top.age',{n:G.me.given,a:myAge()})}
-  $('#d-silver').textContent=UT('top.amt',{a:fmt(G.silver)});
+  {const tg=topTagsHtml(),el=$('#d-age');if(tg){el.innerHTML=tg;if(el.offsetHeight>(parseFloat(getComputedStyle(el).lineHeight)||20)*1.5)el.innerHTML=topTagsHtml(false)}else el.textContent=UT('top.age',{n:G.me.given,a:myAge()})}   // 擠到第二行就不空格
+  $('#d-silver').textContent=fmt(G.silver);
   $('#d-silver').style.color=G.silver<0?'#ff7a7a':'#fff';
   {const D=(G.debts||[]).filter(d=>!d.paid),e=$('#d-debt');if(e){if(D.length){const tot=D.reduce((a,d)=>a+d.amt,0),near=Math.max(0,Math.min(...D.map(d=>d.due-G.turn)));e.textContent=UT('top.debt',{a:fmt(tot),w:near?UT('top.debtIn',{n:near}):UT('top.debtNow')});e.title=UT('top.debtTip',{a:fmt(tot),w:near?UT('top.debtTipIn',{n:near}):UT('top.debtNow')});e.style.color=near<=2?'#ff9a7a':'';e.classList.remove('hidden')}else e.classList.add('hidden')}}
-  $('#d-gold').textContent=UT('top.amt',{a:Math.round(G.gold)});
+  $('#d-gold').textContent=fmt(Math.round(G.gold));
   updateAP();updateFame();
   { const a=$('#d-ap'); if(a&&(G.exile||0)>0) a.textContent=UT('top.exile',{n:G.exile}); else if(a&&visitAway()) a.textContent=UT('top.away',{n:G.away.until-G.turn+1}); else if(a&&(G.injured||0)>0) a.textContent=UT(G.injKind==='sick'?'top.sick':'top.injured',{n:G.injured}); }
   setTicker();
@@ -234,9 +238,10 @@ const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
 function setShipPlan(v){const n=UI.s.focus;G.plan=G.plan||{};G.plan[n]=shipLocked(n)||sakeBanned(n)?0:clamp(v,0,kakeFree(n));UI.s.ship=G.plan[n];if(G.sold)delete G.sold[n]}
 /** 總表按鈕：最大（每項進貨排到上限，出貨不動）、照配額（每項進貨設為協議配額，出貨不動）、清除（只清進貨）。 */
-function planAllBuy(f){const L=mkTrade(),keep={};ownComms().forEach(c=>{if(!tradeOK(c.name)&&G.buyPlan&&G.buyPlan[c.name]!==undefined)keep[c.name]=G.buyPlan[c.name]});G.buyPlan=keep;L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
+/** 一鍵排進貨。hold：這些貨保留玩家自己排的量、不重排（停賣中的貨按「照配額」時，第三百四十五節）。 */
+function planAllBuy(f,hold){const keep={};ownComms().forEach(c=>{if(!tradeOK(c.name)&&G.buyPlan&&G.buyPlan[c.name]!==undefined)keep[c.name]=G.buyPlan[c.name]});if(hold)mkTrade().forEach(c=>{if(hold(c.name)&&G.buyPlan&&G.buyPlan[c.name]!==undefined)keep[c.name]=G.buyPlan[c.name]});const L=mkTrade().filter(c=>!(c.name in keep));G.buyPlan=keep;L.forEach(c=>{G.buyPlan[c.name]=0});let tot=0;L.forEach(c=>{const q=Math.max(0,Math.min(f(c.name),maxBuy(c.name,true)));G.buyPlan[c.name]=q;tot+=q});return tot}
 ACT.planMax=()=>{const t=planAllBuy(n=>Infinity);toast(t?MSG('buyMax.ok',{tot:t}):MSG('buyMax.none'));UI.render()};
-ACT.planQuota=()=>{let short=0;planAllBuy(n=>quotaOf(n));tradeComms().forEach(c=>{if((G.buyPlan[c.name]||0)<quotaOf(c.name))short++});
+ACT.planQuota=()=>{let short=0;planAllBuy(n=>shipLocked(n)?0:quotaOf(n),shipLocked);tradeComms().forEach(c=>{if(!shipLocked(c.name)&&(G.buyPlan[c.name]||0)<quotaOf(c.name))short++});   // 停賣中的貨不排進貨，保留玩家手動的量（第三百四十五節）
   toast(MSG(short?'plan.quotaShort':'plan.quota'));UI.render()};
 ACT.planClear=()=>{G.buyPlan={};tradeComms().forEach(c=>{G.buyPlan[c.name]=0});toast(MSG('plan.clear'));UI.render()};
 /** 選取大盤物品。 */
@@ -248,13 +253,13 @@ function maxBuy(name,ui){
   let room=itemRoom(name),wh=invCap()-invUsed()-pendingQty(),cash=G.silver;
   if(ui){                                           // 畫面試算：推進一旬時先出貨、後進貨，出貨空出的倉位與入帳都算進來
     const T=shipPlanTotals();wh+=T.q;cash+=T.rev;
-    room=Math.max(0,Math.min(itemCap(name)-Math.max(0,(G.inv[name]||0)-planOf(name))-itemOnOrder(name),wh));
+    room=Math.max(0,wh);
   }
   return Math.max(0,Math.min(buyLeft(name),room,wh-oq,Math.floor((cash-oc)/u)));
 }
 /** 這項貨本旬的進貨設定（未夾上限）：你動過就照你的；沒動過時預設 0，遠島期間（主人不在）照協議配額。 */
 const awayMode=()=>(G.exile||0)>0||visitAway();   // 遠島，或出門到外城友人家作客（07zzn_outfriend.js）
-function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return awayMode()?quotaOf(name):0}
+function buyRaw(name){const v=(G.buyPlan||{})[name];if(v!==undefined)return Math.max(0,v||0);return awayMode()&&!shipLocked(name)?quotaOf(name):0}   // 不在店裡時照配額進貨，停賣中的貨不進（第三百四十五節）
 function buyPlanOf(name){G.buyPlan=G.buyPlan||{};return clamp(buyRaw(name),0,maxBuy(name,true))}
 function autoBuy(log){
   const plan={},got=[],kept=[],cut=[],touched=new Set(Object.keys(G.buyPlan||{}));

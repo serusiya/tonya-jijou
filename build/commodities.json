@@ -248,11 +248,11 @@
  },
  {
   "id": "prod_0301",
-  "name": "吉野巨杉與木曾檜木",
-  "short_name": "杉檜",
+  "name": "木曾檜尺寸材",
+  "short_name": "檜材",
   "system": "山林竹木與山野特產系統 (Timber & Forest Resources)",
   "origin_type": "山林",
-  "base_price": 850,
+  "base_price": 600,
   "unit": "大方材十根 (直徑兩尺長三丈)",
   "elasticity": null,
   "cartel_speculation": null,
@@ -263,7 +263,10 @@
    "flam",
    "fire"
   ],
-  "decay": 0.01
+  "decay": 0.01,
+  "old_names": [
+   "吉野巨杉與木曾檜木"
+  ]
  },
  {
   "id": "prod_0302",
@@ -287,21 +290,25 @@
  },
  {
   "id": "prod_0303",
-  "name": "天然精製生漆",
-  "short_name": "生漆",
+  "name": "柳杉角材與杉板",
+  "short_name": "柳杉",
   "system": "山林竹木與山野特產系統 (Timber & Forest Resources)",
   "origin_type": "山林",
-  "base_price": 380,
-  "unit": "密封陶罐 (約10升)",
+  "base_price": 200,
+  "unit": "杉角材一束 (柱材與板材)",
   "elasticity": null,
   "cartel_speculation": null,
   "decay_rate": null,
   "season_peak": "",
   "sys": "timber",
   "tags": [
-   "flam"
+   "flam",
+   "fire"
   ],
-  "decay": 0.01
+  "decay": 0.01,
+  "old_names": [
+   "天然精製生漆"
+  ]
  },
  {
   "id": "prod_0304",
@@ -328,7 +335,7 @@
   "short_name": "檜皮",
   "system": "山林竹木與山野特產系統 (Timber & Forest Resources)",
   "origin_type": "山林",
-  "base_price": 720,
+  "base_price": 500,
   "unit": "檜皮大束 (約百斤)",
   "elasticity": null,
   "cartel_speculation": null,
@@ -696,12 +703,12 @@
  },
  {
   "id": "prod_0701",
-  "name": "輪島蒔繪金銀泥漆器",
-  "short_name": "蒔繪",
+  "name": "會津塗日用漆器",
+  "short_name": "漆器",
   "system": "城市精工與奢華雅玩系統 (Urban Craftsmanship & Luxury System)",
   "origin_type": "城市少量手工業",
-  "base_price": 900,
-  "unit": "精裝重箱一組 (三層蒔繪描金食盒)",
+  "base_price": 300,
+  "unit": "漆碗膳具一組",
   "elasticity": null,
   "cartel_speculation": null,
   "decay_rate": null,
@@ -710,7 +717,10 @@
   "tags": [
    "flam"
   ],
-  "decay": 0.01
+  "decay": 0.01,
+  "old_names": [
+   "輪島蒔繪金銀泥漆器"
+  ]
  },
  {
   "id": "prod_0702",

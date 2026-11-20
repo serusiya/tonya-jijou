@@ -5,7 +5,7 @@
  *  - 不在協議裡（沒參加或違約被查獲後）：同業不肯調貨；仲買人銷貨、旅商人代售壓價，開口時多一句被排擠的話（第二百四十七節）。
  *  - 同業巨賈「調貨」：本旬缺口金額最大的一項本業貨（都沒缺就隨機；同一人同一旬固定），數量 30～50、金額上限 3,000～4,000 兩（不超過倉位、庫存上限與現款；第二百四十六節），照大盤市價（未參加協議價）付現款，當場入倉。
  *  - 掮客「銷貨」：庫存單位數最多的本業貨（同量取基準價最高），以大盤市價七折賣出，最多 10 單位、金額最多約 400～500 兩（庫存不夠就全賣），收入進現款；不算出貨，不影響行情、配額與市佔率。
- *  - 經營好手「臨時打工」：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成（不佔名額、不付月例）。
+ *  - 經營好手「臨時打工」：開口那一旬的結算裡，以他的商才算三名番頭的加成（進貨上限、進貨價；不算手代，第三百六十五節；不佔名額、不付月例）。
  *  - 座客商人「代售」：倉庫裡的他行貨物，一次一項、整批全收；價格約為基準價的 54%～87%（看這位商人的好感），量大再打折。收入進現款。
  *  - 私梟「脫手」：密庫裡的走私貨，一次一項、整批全收；照本旬黑市行情與數量折扣計價，收入進私房錢；不加風聲（第二百三十六節）。
  *  - 私梟落網：風聲偏緊（> 3）時，近 36 旬替你脫過手的私梟每旬有機率落網（下獄 36 旬）；落網後依忠誠與交情決定會不會供出你。 */
@@ -33,7 +33,7 @@ function rivalGap(n){
   return Math.max(0,quotaOf(n)+kk+cm-(G.inv[n]||0));
 }
 /** 同業調貨：本旬這位同業能調給你的貨，沒有就回傳 null（第二百四十六節）。
- *  有缺口的貨裡挑缺口金額最大的一項；都沒缺就隨機。數量 30～50、金額上限 3,000～4,000 兩取較少者，再受倉位、單項上限與現款限制。
+ *  有缺口的貨裡挑缺口金額最大的一項；都沒缺就隨機。數量 30～50、金額上限 3,000～4,000 兩取較少者，再受倉位與現款限制。
  *  同一人同一旬第一次開出的貨與份量記在 G.rvLot，重開視窗不換；之後拜訪別的同業時再依當下的缺口重新挑。 */
 function rivalLot(cid){
   const L=tradeComms();if(!L.length)return null;
@@ -872,7 +872,7 @@ function gmBattleEnd(){
     BT=null;if(win)sfx.gift();else if(snub)sfx.bad();
     refreshSheet();UI.render();
     if(snub){UI.showInfo(UT('bt.battleShow',{a:nameOf(cid)}),'<div style="display:flow-root">'+portraitHtml(cid,56,{gray:true})+'<div class="small">'+esc(btSay(cid,'snub'))+'</div><div class="notice tiny" style="margin-top:6px">'+esc(msg)+'</div></div>');return}
-    if(win&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg));return}
+    if(win&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),requestHtml(cid,msg,btBlush(B)));return}
     UI.hideInfo();toast(msg,4600);return;
   }
   BT=null;UI.hideInfo();toast(msg,4600);if(win)sfx.gift();
@@ -896,7 +896,7 @@ ACT.gmReport=el=>{
   if(!spendAP())return;
   gmMeet(cid,'gm.bondLabelReport');                 // 報告等同一次拜訪：不認識的也就此結識
   battleStart(cid,null);
-  BT.mode='report';BT.court=gmReportCourt(cid);BT.mult=1;BT.open=TX('gm.reportOpen');
+  BT.mode='report';BT.court=gmReportCourt(cid);BT.mult=1;BT.giftOk=false;BT.open=TX('gm.reportOpen');
   battleShow();
 };
 

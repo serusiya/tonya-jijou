@@ -2182,8 +2182,8 @@ const UI_TXT={
   /* —— 店員職能、地圖題簽 —— */
   'duty.apprentice':'跑腿：每名丁稚每旬可代你送 1 趟禮金（中等的一份），不扣行動點數，好感 +4～8；只能派給交情未滿 60 的人，也不能代你請託。',
   'duty.clerk':'店頭：出貨成交價略增（最多 4%，商才越高越多），穩定供貨線略降。手代超過四名時，多出來的人照料庫存，損耗與倉儲保險減少（最多三成）。',
-  'duty.banto':'採購：每旬相場進貨上限加大（商才越高越多）。',
-  'duty.chief':'總管：也算一名番頭，相場進貨上限加大；每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。',
+  'duty.banto':'採購：每旬相場進貨上限加大，向大盤進貨的價錢也壓低一點（商才越高越多，進貨價最多低 4%）。',
+  'duty.chief':'總管：也算一名番頭，相場進貨上限加大、進貨價壓低；每旬七成機率自動登門問候一到三位交情未滿 60 的人（可能結識新朋友），也偶有意外之財；也壓低其他店員私吞，查帳更準。',
   'map.regionSuffix':'圈',
   'map.title':'{r}',
   'rmap.reg.reg_north':'北境',
@@ -2794,9 +2794,8 @@ const UI_TXT={
   'wiki.notesTabsHtml.3':'📒 紀錄',
   'wiki.notesTabsHtml.4':'🗺️ 地圖',
   'mk.help':'🤝 {n}本旬來幫忙，{a}{b}',
-  'mk.help.inc':'收入、進貨量略增',
+  'mk.help.cheap':'進貨量略增、進貨價略降',
   'mk.help.buy':'進貨量略增',
-  'mk.help.keep':'，損耗略減',
   'wiki.h':'<div class="notice tiny">這裡是遊戲的百科。點標題展開說明。</div>',
   'wiki.wikiGuide':'🏪 各行業與玩法',
   'wiki.wikiGuide.3':'<div class="text-meta muted">行業決定本業的貨與吃飯的門道。開局畫面的七個起手資源固定，越往下越多；行業則在每次重新開一世時隨機分配。魚鹽問屋與醬漬問屋，每一世只會遇到其中一行。</div>{a}',
@@ -3024,7 +3023,7 @@ const UI_TXT={
   'deal.buyoutIntel.log':'探得【{region}】{month}的大口買付風聲，好感 -{aff}。',
   'deal.buyoutIntel.ok':'「{name}」壓低聲音說：【{region}】下一次大口買付在{month}。屆時別派人去產地採買。（好感 -{aff}）',
   'deal.dealerReqs.5':'臨時打工一旬',
-  'deal.dealerReqs.6':'他來店裡幫忙到這一旬結算：進貨上限變高、出貨價略增、穩定供貨線略降（算兩名番頭、兩名手代）；店裡的手代空出手來照料庫存，損耗與倉儲保險跟著減少。',
+  'deal.dealerReqs.6':'他來店裡幫忙到這一旬結算：進貨上限變高、進貨價略降（算三名番頭）；不頂替手代，穩定供貨線與出貨價不變。',
   'deal.dealerReqs.7':'代售：{a} × {b}',
   'deal.dealerReqs.8':'他找熟識的店家整批收下，約可得 {a} 兩（基準價的 {b}% 上下）。',
   'deal.dealerReqs.9':'脫手：{a} × {b}',
@@ -5443,6 +5442,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月21日',items:[
+    '店員設定更新：番頭（含大番頭）會壓低向大盤進貨的價錢，最多低 4%，跟手代提高出貨價對齊。',
+    '請託設定更新：差配人來店裡臨時打工改算三名番頭，進貨上限提高、進貨價略降；不再頂替手代，已排好的出貨量不會因此變成超額。',
+    '修改背景資料',
+  ]},
   {date:'2026年11月20日',items:[
     '倉庫設定更新：每項貨不再有存量上限，只要倉庫放得下就能放。',
     '官府注文設定更新：軍需大單由越高階的官員開口，出價越好；大單的份量也放寬了。',
@@ -6237,7 +6241,7 @@ function refreshMarket(first){
   });
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
-const empBuyMult=()=>ODDS.rivalShip.buyMult;
+const empBuyMult=()=>ODDS.rivalShip.buyMult*(1-bantoBonus());   // 番頭（含大番頭、臨時打工）壓低進貨價，最多 4%（第三百六十五節）
 /** 大盤進貨單價＝本旬固定牌價（不計奢侈品冷熱）×進貨係數（參加協議 0.93、未參加 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
@@ -7854,15 +7858,16 @@ function drawScene(now){
   yardBack(c,now,dt);                                                                  // 焦痕與煙、烏鴉、貓（05h_yard）
   if(season()==='winter')R_(c,0,108,320,3,'#fff8');
   if(fest){drawNobori(c,now);drawLanterns(c,now)}
-  const list=SCENE.ents.map(e=>({y:e.y,draw:c=>{
+  const quiet=villaQuiet();                                                            // 別邸夜宴（沒放花火）：街上只留保鏢巡視（05i_villa）
+  const list=(quiet?SCENE.ents.filter(e=>e.kind==='guard'||e.rank==='guard').slice(0,2):SCENE.ents).map(e=>({y:e.y,draw:c=>{
     const L=entLook(e),nod=e.bowT>0?Math.sin(e.bowT/380*Math.PI)*0.45:0;
     drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0,moving:e.moving,faceLeft:e.dir<0,pose:e.pose,pt:e.pt,bow:nod},L,{small:L.small||e.kind==='kid'&&e.age<12}));
     if(e.pose==='sweep')yardBroom(c,e);                                               // 冬天掃雪（05h_yard）
   }}));
-  yardPeople(now,dt).forEach(x=>list.push(x));
-  villaPeople(now).forEach(x=>list.push(x));                                          // 落成撒年糕的街坊（05i_villa）                                        // 荷車、馬隊、飛腳（05h_yard）
-  if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
-  if(dmy)dmyPeople(now,dt).forEach(x=>list.push(x));
+  if(!quiet)yardPeople(now,dt).forEach(x=>list.push(x));                             // 荷車、馬隊、飛腳（05h_yard）
+  if(!quiet)villaPeople(now).forEach(x=>list.push(x));                               // 落成撒年糕的街坊（05i_villa）
+  if(fest&&!quiet){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
+  if(dmy&&!quiet)dmyPeople(now,dt).forEach(x=>list.push(x));
   list.sort((a,b)=>a.y-b.y).forEach(x=>x.draw(c));
   drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);{const hb=hanabiLv();if(hb){c.fillStyle='#08102cd0';c.fillRect(0,0,320,180)}villaNight(c,now,hb);if(hb){hanabiDraw(c,now,hb);doorLanterns(c)}}   // 別邸夜宴、川開花火（05i_villa、05j_hanabi）
   // 庫存提示牌
@@ -8824,6 +8829,8 @@ function villaNight(c,t,dark){
 }
 /** 夜裡門口兩盞燈籠。 */
 function doorLanterns(c){const x=102,y=40;[[x+1,y+36],[x+105,y+36]].forEach(([lx,ly])=>{R_(c,lx,ly,5,8,'#ffb03a');c.fillStyle='#ffb03a33';c.beginPath();c.arc(lx+2.5,ly+4,11,0,6.3);c.fill()})}
+/** 別邸夜宴那一旬、又沒放花火：天黑了，院子和街上只留保鏢巡視（最多兩名；沒僱保鏢就沒人）。 */
+function villaQuiet(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.feastT===G.turn&&!(typeof hanabiLv==='function'&&hanabiLv()))}
 /** 落成那一旬門前的街坊（跳著接年糕）；畫進院子的人物排序。 */
 function villaPeople(now){
   const V=G&&G.villa;if(!V||V.joto!==G.turn||V.work||!(V.lv>=1))return [];
@@ -10503,26 +10510,26 @@ const DUTY_DESC={};RANKS.concat(SPECIAL).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e)).length;   // 關押中的店員不算（07zt_staffevents.js）
 const empsOf=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e));
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
-/** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
+/** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算三名番頭的加成（進貨上限、進貨價；不算手代，第三百六十五節）；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
-/** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
-function tellerBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
+/** 手代：出貨加成（最多 +4%）。 */
+function tellerBonus(){return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0))}
+/** 番頭（含大番頭）：大盤進貨價折扣（最多 4%，算法同手代的出貨加成）；臨時打工算三名番頭（第三百六十五節）。 */
+function bantoBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:3*(0.005+0.01*t/100)))}
 /** 大盤進貨上限倍數（乘在「需求×市佔率＋參加協議者的協議配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
-const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
+const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:3*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算三名番頭
 /** 手代：穩定供貨線折減。 */
-const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('clerk')+(tempHelp()===null?0:2)));
+const supplyCut=()=>1-Math.min(0.2,0.05*nEmp('clerk'));   // 臨時打工不算手代，不動穩定供貨線（第三百六十五節）
 /** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。回傳乘數。
- *  差配人臨時打工頂替兩名手代的櫃上工作，空出的店裡手代去照料庫存：打工那一旬算「店裡手代＋2」（DESIGN_NOTES 第二百十三節）。
- *  損耗與倉儲保險在日期推進後才結算，所以上一旬（剛結束的那一旬）有人打工也算。 */
+ *  （原本差配人臨時打工算店裡手代＋2，第二百十三節；第三百六十五節起打工只算番頭，不影響照料庫存。） */
 const KEEP_FROM=4,KEEP_PER=0.05,KEEP_MAX=0.3;
-const keepHelp=()=>!!(G.tempHelp&&(G.tempHelp.turn===G.turn||G.tempHelp.turn===G.turn-1));
-const keeperN=help=>nEmp('clerk')+(help?2:0);
-const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN(keepHelp())-KEEP_FROM));
+const keeperN=()=>nEmp('clerk');   // 臨時打工不算手代（第三百六十五節）
+const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN()-KEEP_FROM));
 /** 相場面板：本旬有人打工時的說明（收入加成已滿就不寫收入；照料人數不到第 5 名就不寫損耗）。 */
 function tempHelpNote(){
   const t=tempHelp();if(t===null||!G.tempHelp)return '';
-  const inc=tellerBonus()-tellerBonus(true)>0.0001,keep=keeperN(true)>KEEP_FROM&&keeperN(false)-KEEP_FROM<KEEP_MAX/KEEP_PER;
-  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(inc?'mk.help.inc':'mk.help.buy'),b:keep?UT('mk.help.keep'):''});
+  const cheap=bantoBonus()-bantoBonus(true)>0.0001;
+  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(cheap?'mk.help.cheap':'mk.help.buy'),b:''});
 }
 /** 大番頭：壓低其他店員私吞的係數。 */
 function guardF(e){
@@ -13261,7 +13268,7 @@ function sfxHoof(delay){
  *  - 不在協議裡（沒參加或違約被查獲後）：同業不肯調貨；仲買人銷貨、旅商人代售壓價，開口時多一句被排擠的話（第二百四十七節）。
  *  - 同業巨賈「調貨」：本旬缺口金額最大的一項本業貨（都沒缺就隨機；同一人同一旬固定），數量 30～50、金額上限 3,000～4,000 兩（不超過倉位、庫存上限與現款；第二百四十六節），照大盤市價（未參加協議價）付現款，當場入倉。
  *  - 掮客「銷貨」：庫存單位數最多的本業貨（同量取基準價最高），以大盤市價七折賣出，最多 10 單位、金額最多約 400～500 兩（庫存不夠就全賣），收入進現款；不算出貨，不影響行情、配額與市佔率。
- *  - 經營好手「臨時打工」：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成（不佔名額、不付月例）。
+ *  - 經營好手「臨時打工」：開口那一旬的結算裡，以他的商才算三名番頭的加成（進貨上限、進貨價；不算手代，第三百六十五節；不佔名額、不付月例）。
  *  - 座客商人「代售」：倉庫裡的他行貨物，一次一項、整批全收；價格約為基準價的 54%～87%（看這位商人的好感），量大再打折。收入進現款。
  *  - 私梟「脫手」：密庫裡的走私貨，一次一項、整批全收；照本旬黑市行情與數量折扣計價，收入進私房錢；不加風聲（第二百三十六節）。
  *  - 私梟落網：風聲偏緊（> 3）時，近 36 旬替你脫過手的私梟每旬有機率落網（下獄 36 旬）；落網後依忠誠與交情決定會不會供出你。 */

@@ -11,7 +11,9 @@ const WIKI_REQ=UT('wiki.WIKI_REQ');
 /** 玩法簡介：[標題, 內文 HTML]（敘事式說明，不列公式）。 */
 const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE'),UT('wiki.WIKI_GUIDE.2')],
+  null,                                                    // 這裡插入「各行業與玩法」（wikiGuide，第三百四十八節）
   [UT('wiki.WIKI_GUIDE.3'),UT('wiki.WIKI_GUIDE.4')],
+  [UT('wiki.g.stress'),UT('wiki.g.stress.b')],
   [UT('wiki.WIKI_GUIDE.5'),UT('wiki.WIKI_GUIDE.6')],
   [UT('wiki.WIKI_GUIDE.7'),UT('wiki.WIKI_GUIDE.8')],
   [UT('wiki.WIKI_GUIDE.9'),UT('wiki.WIKI_GUIDE.10')],
@@ -21,9 +23,13 @@ const WIKI_GUIDE=[
   [UT('wiki.WIKI_GUIDE.17'),UT('wiki.WIKI_GUIDE.18')],
   [UT('wiki.WIKI_GUIDE.19'),UT('wiki.WIKI_GUIDE.20')],
   [UT('wiki.WIKI_GUIDE.21'),UT('wiki.WIKI_GUIDE.22')],
+  [UT('wiki.g.big'),UT('wiki.g.big.b')],
+  [UT('wiki.g.move'),UT('wiki.g.move.b')],
   [UT('wiki.WIKI_GUIDE.23'),UT('wiki.WIKI_GUIDE.24')],
   [UT('wiki.WIKI_GUIDE.25'),UT('wiki.WIKI_GUIDE.26')]
 ];
+/** 各行業與玩法：照玩法分組（第三百四十八節）；行業名稱取 NAMES.sys。 */
+const WIKI_GROUPS=[['riot',['grain','marine','pickle']],['smug',['medicine','sake']],['patron',['luxury']],['gov',['mining']],['plain',['textile','timber']]];
 /** 筆記頂端的「名冊／百科／地圖／紀錄」切換。 */
 function notesTabsHtml(){
   const t=UI.s.notesTab||'book';
@@ -47,8 +53,8 @@ function wikiRegions(){
 }
 function wikiGuide(){
   let h=UT('wiki.h');
-  h+=WIKI_GUIDE.map((g,i)=>wikiBox('g'+i,g[0],esc(g[1]).replace(/\n/g,'<br>'))).join('');
-  h+=wikiBox('gsys',UT('wiki.wikiGuide'),UT('wiki.wikiGuide.3',{a:SYS.map(s=>'<div style="margin-top:5px"><b>'+esc(s.name)+'</b> <span class="tag gray">'+esc(s.style)+'</span><div class="text-brief">'+UT('wiki.wikiGuide.2',{a:esc(s.tip),b:esc(UT('wiki.wikiGuide.4'))})+'</div></div>').join('')}));
+  const grp=UT('wiki.wikiGuide.3',{a:WIKI_GROUPS.map(([k,L])=>UT('wiki.grp',{t:esc(SYS_BY_KEY[L[0]].style),n:esc(L.map(x=>SYS_BY_KEY[x].name).join(NAMES_SEP)),b:esc(UT('wiki.grp.'+k))})).join('')});
+  h+=WIKI_GUIDE.map((g,i)=>g?wikiBox('g'+i,g[0],esc(g[1]).replace(/\n/g,'<br>')):wikiBox('gsys',UT('wiki.wikiGuide'),grp)).join('');
   return h;
 }
 function wikiOffice(){

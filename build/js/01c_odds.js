@@ -6,6 +6,7 @@
  *  修正來源（風聲 heat、知名度 fame、保鏢、仇人…）仍由各系統代入。
  * ===================================================================== */
 const ODDS={
+  retail:{name:'零售商上門抱怨貨色（第三百四十九節）：每旬機率（上一旬有出日常貨才擲）；賠償金額範圍（兩，取整到十）；賠或不理時市佔成長倍率增減的百分點；不理時知名度扣分',p:0.02,amt:[50,200],share:[1,3],fame:[1,3]},
   bz:{name:'商人番付與花邊八卦（07zzf_banzuke.js）',top:10,guests:[6,8],
     rv:{init:[3,8],g0:0.025,share:0.3,noise:0.03,min:0.4,max:50,heir:0.8,ev:{fire:-0.15,theft:-0.05,wreck:-0.08,caught:-0.1,susp:-0.06,haul:0.05,lot:-0.02,gm:0.02}},
     gs:{init:[1,5],min:0.2,max:30,fame:0.6,fameDrift:4,dealFame:[1,2],
@@ -22,6 +23,7 @@ const ODDS={
   officialTransfer:{name:'本城官員與外地官員互調（每旬）',p:0.10},
   residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）',p:0.10},
   fallScapegoat:{name:'官員受你牽連（好感<10）把罪責推給你',p:0.6},
+  fall:{name:'政敵拿你與交好官員的往來做文章（第三百五十五節）：當下好感扣幾成；壓驚錢逾期再扣幾成',cut:0.3,lateCut:0.3},
   thiefRepel:{name:'盜賊夜探，保鏢≥2 名當場擊退',p:0.7},
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
@@ -81,7 +83,7 @@ const ODDS={
   /* —— 海陸運（遇險率隨旬數累積，受船長膽力影響）—— */
   crewRisk:{name:'船長／飛腳能力換算遇險倍率',base:1.3,perCourage:0.006,commerceDiv:500,min:0.7,max:1.3},
   voyageRisk:{name:'委託採買每旬遇險率',sea:0.03,land:0.022,guardLand:0.004,min:0.03,max:0.35,escortMul:0.5},
-  voyageKind:{name:'委託採買買什麼：跨行貨機率（其餘買本業貨）；目的地沒有本業貨時改買他行貨的機率（其餘空手而回）；唐物藥種夾帶違禁品的機率、數量、只夾帶哪幾樣（珍陀酒、珈琲豆、黑糖）',cross:0.2,noOwnCross:0.2,carry:0.2,carryMin:3,carryMax:5,carryItems:['wine','glass','cloth']},
+  voyageKind:{name:'委託採買：夾帶他行貨的機率（第三百五十三節；有沒有本業貨都一樣，不再整船改買他行貨）、夾帶最多用掉委託金與單趟運量的比例；唐物藥種夾帶違禁品的機率、數量、只夾帶哪幾樣（珍陀酒、珈琲豆、黑糖）',cross:0.2,xShare:0.2,xLoad:0.2,carry:0.2,carryMin:3,carryMax:5,carryItems:['wine','glass','cloth']},
   originSupply:{name:'每城、每項貨、每月固定的產地供貨指數；分類產量與同月同城後續商隊會折減可供量',min:0.60,max:1.40,priceSlope:0.30,priceMin:0.85,priceMax:1.15,priceJitter:0.06,production:{staple:1.15,normal:0.85,luxury:0.35},repeat:{staple:0.8,normal:0.6,luxury:0.4}},
   voyageMix:{name:'多項本業貨的委託採買分配：少數均衡，多數偏重或集中於一項',balanced:0.10,biased:0.60,biasedMin:0.60,biasedMax:0.75,focusMin:0.75,focusMax:0.90,supplyPow:1.5,pricePow:2},
   smugRisk:{name:'走私船每旬遇險率',p:0.04,min:0.03,max:0.45},
@@ -150,9 +152,11 @@ const ODDS={
   ,wife:{name:'夫人事件（07zzh_wife.js）：壞事每年發生率、成親後幾旬才開始、一生上限；幫夫人添丁加成與當年上限；連續幾次視而不見離家、離家扣知名度；欺負店員被逼退時其他店員好感、視而不見後揩油大膽旬數；爭執站夫人大番頭好感、站大番頭好感；擋下官員好感；捧場倍率與旬數；娘家消息降風聲',badP:0.6,badAfter:18,badMax:3,birthUp:0.12,birthCap:0.3,leaveAfter:2,leaveFame:5,bullyOthers:2,boldTurns:9,quarrelAff:15,chiefUp:5,flameAff:15,fansMult:1.5,fansTurns:2,heatCut:1}
   ,spoil:{name:'庫存損耗的季節起伏：七月最高、一月最低，中間逐月過渡，一年平均照各貨的損耗率；amp＝起伏幅度（醃魚三分之一＝每旬 5%～10%；糧穀與油三成；清酒一半＝每旬約 0.8%～2.3%）；沒列的貨四季一樣',peak:7,amp:{prod_0801:0.5,prod_0902:1/3,prod_0205:1/3,prod_0101:0.3,prod_0102:0.3,prod_0103:0.3,prod_0104:0.3,prod_0105:0.3,prod_0106:0.3}}
   ,patron:{name:'貴人訂貨（07zzu_patron.js）：好感門檻、同時最多幾張、上門提前幾旬（最近、最遠）、在上門期間每旬每位貴人上門的機率、各等級件數、大年倍數與間隔（年）、開價倍數（基準價）、交齊好感與知名度、失約扣好感、旅商轉手利潤（基準價的幾倍記進身代）',aff:80,max:8,lead:[3,6],p:0.35,qty:{4:[1,2],5:[2,3],6:[3,5]},bigMult:2,bigEvery:[3,5],price:[2.5,3.5],doneAff:10,fame:[2,3],failAff:30,resell:0.5}
-  ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、最少件數、開價（基準價倍數，不低於平時牌價的幾倍）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:[1.6,2.0],warFloor:1.2,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
+  ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、件數上限（本城每旬需求的幾倍，warCap）、最少件數、開價（依官階：基準價倍數，不低於平時牌價的幾倍；越高階越好，第三百五十一節）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:{4:[1.6,2.0],5:[2.0,2.4],6:[2.4,2.8]},warFloor:{4:1.2,5:1.5,6:1.8},warCap:12,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
+  ,hanabi:{name:'川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節）：大番頭提議的現款門檻、三檔出資、知名度（大事件）、七月中旬全城買氣加成',need:50000,cost:[1000,3000,5000],fame:[1,2,3],demand:[0.1,0.2,0.3]}
+  ,villa:{name:'別邸（07zzzzzzzzzzz_villa，第三百六十節）：興建與三次改建的現款門檻、每次費用、別邸設宴費用與好感倍數（依階段）、客人最低官階、外地遠國奉行所官員來的機率、整場風聲',need:[100000,150000,200000,250000],cost:8000,feast:[500,750,1000,1250],mult:[1,1.3,1.6,1.9],rank:4,far:0.1,heat:0.1}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
   ,goyo:{name:'帝都御用品（07zzzzzzz_kenjo，第三百三十四節）：最多選幾項、相場進貨上限（本城需求的幾成，再乘番頭加成）',max:2,buy:0.1}
   ,reassign:{name:'改派（07zz_reassign，第三百三十六節）：好感門檻、冷卻旬數、上岸直接當番頭所需年資；能力門檻沿用 enlist.stat',aff:50,cool:9,bantoTenure:24}

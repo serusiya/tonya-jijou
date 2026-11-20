@@ -6,10 +6,21 @@
  *  人物開口說的話在 01d_lines.js；按鈕與選項在 01e_ui_text.js；費用在 01b_costs.js。
  * ===================================================================== */
 const MSG_TXT={
+  /* —— 川開大花火（第三百六十四節） —— */
+  'hb.short':'現款不足，這一檔要 {a} 兩。',
+  'hb.paid':'出資 {a} 兩，七月中旬川開放花火。',
+  /* —— 別邸（07zzzzzzzzzzz_villa，第三百六十節） —— */
+  'villa.need':'現款要滿 {a} 兩才能動工。',
+  'villa.start':'工匠上了店頂，別邸下一旬落成。',
+  'villa.reStart':'別邸開始改建，下一旬完工。',
+  'villa.feastDone':'這一旬已經在別邸設過宴了。',
+  'villa.short':'現款不足，別邸設宴要 {a} 兩。',
+  'villa.none':'本城眼下沒有四階以上的官員請得來。',
+  'villa.fx':'貴客登上店頂別邸……',
+  'villa.fxTitle':'別邸設宴',
   /* —— buyGoods —— */
   'buyGoods.1':'請輸入進貨數量',
   'buyGoods.2':'倉庫容量不足（已存 {invUsed}，已下單待到貨 {pendingQty}，倉庫共可放 {invCap}）',
-  'buyGoods.3':'「{name}」庫存已達上限（單項最多 {itemCap} 單位，含已下單待到貨）。還能進 {itemRoom} 單位。',
   'buyGoods.4':'本旬向相場進「{name}」最多 {buyLimit} 單位（依市占率、協議參加狀態與番頭、大番頭人手而定），還能進 {buyLeft} 單位。未參加協議沒有協議配額加給；要大量進貨請到商路委託船長或飛腳採買。',
   'buyGoods.5':'現款不足，需 {cost} 兩',
   'buyGoods.6':'下單 {qty} 單位「{name}」，付 {cost} 兩，下一旬到貨',
@@ -177,6 +188,9 @@ const MSG_TXT={
   'gm.levy.assignHalf':'「{n}」交不出全額，你分攤了 {a} 兩，知名度 −{f}；他從此記恨你（好感 −{d}）。',
   'gm.bribe.took':'收下「{n}」送來的 {a} 兩。',
   'gm.bribe.refused':'婉拒了「{n}」的心意。',
+  'rt.paid':'賠了 {a} 兩，{w}滿意地走了。',
+  'rt.refused':'{w}悻悻然走了，看樣子要到處說貴號的不是。',
+  'rt.short':'現款不夠，賠不起。',
   'gm.fined':'以傷害百姓利益論處，罰 {a} 兩。',
   'f8.short':'公款不足 {a} 兩。',
   'f8.shortGold':'私房錢不足 {a} 兩。',
@@ -338,6 +352,9 @@ const MSG_TXT={
   /* —— 往來實錄：官場 —— */
   'log.inspection':'中央巡按突查，因與你往來受牽連，彼此交情受損。',
   'log.fall':'受你牽連遭上司申斥，好感 -{d}。',
+  'log.fallAsk':'要你三旬內進獻壓驚錢 {a} 兩。',
+  'log.fallLate':'等不到壓驚錢，好感 -{d}。',
+  'promise.fall':'「{n}」替你挨了上司的罵，暗示三旬內需進獻壓驚錢 {a} 兩',
   'log.scapegoat':'為求自保，把罪責推到你頭上。',
   'urge.kyusaiNone':'眼下沒有可以接的御救販售。',
   'urge.kyusaiOk':'接下御救販售：下旬起每旬交出 {a}，共 {t} 旬，官府照當旬牌價付現款。',

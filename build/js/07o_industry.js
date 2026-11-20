@@ -227,10 +227,10 @@ function dpEval(log){
   if(D.n<P.turns)return;
   if(!(sh>=P.share&&D.all)){put(NEWS('dp.fail'));dpEnd();return}
   if(D.st==='stop1'){
-    if((G.dpTitle||0)<1){G.dpTitle=1;dpHist('dp.bigHist')}
+    if((G.dpTitle||0)<1){G.dpTitle=1;dpHist('dp.bigHist');titleGain('big')}
     put(NEWS('dp.big',{f:G.firm}));dpStart('stop2',log);
   }else{
-    if((G.dpTitle||0)<2){G.dpTitle=2;dpHist('dp.gouHist')}
+    if((G.dpTitle||0)<2){G.dpTitle=2;dpHist('dp.gouHist');titleGain('gou')}
     D.st='perm';D.n=0;put(NEWS('dp.gou',{f:G.firm}));
   }
 }
@@ -604,6 +604,7 @@ ACT.kjGive=el=>{
   if(c0<O.newOrigin&&c1>=O.newOrigin)parts.push('<div class="notice tiny">'+esc(UT('kj.m4'))+'</div>');
   if(c0<O.kinki&&c1>=O.kinki){
     parts.push('<div class="notice tiny">'+esc(UT('kj.m5'))+'</div>');pushNews(NEWS('kj.m5N'));
+    if(!G.kyoTitle){G.kyoTitle=true;titleGain('kyo')}   // 京商名號（第三百五十六節）
     const own=outFriends().filter(cid=>{const n=npc(cid);return n&&CITY(n.cityId)&&CITY(n.cityId).region_id==='reg_central'});
     if(own.length)own.forEach(cid=>setAff(R(cid),100));
     else{
@@ -615,9 +616,10 @@ ACT.kjGive=el=>{
   sfx.coin();save();UI.render();
   UI.showInfo(UT('kj.letter'),parts.join(''));
 };
-/* 交滿五組：京畿可以遷入 */
+/* 交滿五組取得京商名號：京畿可以遷入。舊存檔已交滿五組的視同有名號。 */
+const kyoOn=()=>!!G&&(!!G.kyoTitle||kjCount()>=KJO().kinki);
 {const _m=moveAskBlock;moveAskBlock=function(cid){
-  const r=_m.apply(this,arguments);if(r!=='mv.b.central'||kjCount()<KJO().kinki)return r;
+  const r=_m.apply(this,arguments);if(r!=='mv.b.central'||!kyoOn())return r;
   const ct=outCity(cid);
   if(G.moveLast!==undefined&&G.turn<G.moveLast+MVO().cool)return 'mv.b.cool';
   if(!moveSysList(ct).length)return 'mv.b.prod';
@@ -741,3 +743,234 @@ FACE_TITLE.goyoPick='gy.title';
   const L=goyoComms().map(c=>c.short);
   return h.replace('</div>','</div><div class="tiny" style="margin-top:3px">👑 '+esc(L.length?UT('gy.page',{a:L.join(NAMES_SEP)}):UT('gy.pageNone'))+'</div>');
 }}
+
+/* ═════ [07zzzzzzzzz_retail] ═════ */
+'use strict';
+/* ★零售商上門抱怨貨色（DESIGN_NOTES 第三百四十九節）
+ * - 每旬推進時，上一旬（這次推進）有出日常貨（必需品、一般品）才擲，機率 ODDS.retail.p，各行業一樣。
+ * - 零售商不是名冊人物：屋號（LINES.retail.shop）與人名（LINES.retail.given）隨機，頭像照商人外貌隨機生成，只出現這一次。
+ * - 來訪視窗（旬報後）：賠他＝付現款 50～200 兩，市佔成長倍率加 1～3 個百分點（同一次穩定供貨）；
+ *   不理（或直接關掉）＝市佔成長倍率減 1～3 個百分點，知名度 −1～3（同一次供貨不足）。
+ * - 事件資料只在 G.faceEvents 裡，處理完就消失；不另存欄位。 */
+const RTO=()=>ODDS.retail;
+/** 貨的毛病：易壞的發臭、陶磁雅玩破損、礦產生鏽，其餘受潮。 */
+const rtKind=c=>c.sys==='luxury'?'brk':c.sys==='mining'?'rust':c.decay>=0.015?'rot':'damp';
+function retailTick(){
+  const rep=TURNRP;if(!rep||!rep.ship||!rep.ship.length||G.ended)return;
+  const shipped=new Set(rep.ship.filter(x=>x.q>0).map(x=>x.n));
+  const L=mkTrade().filter(c=>!c.luxury&&shipped.has(c.short));if(!L.length)return;
+  if(!chance(RTO().p))return;
+  const c=pick(L),A=RTO().amt,amt=Math.round(rint(A[0],A[1])/10)*10;
+  const shop=pick(Ls('retail.shop.'+G.sysKey)||Ls('retail.shop.grain')),gv=Ls('retail.given'),gi=Math.floor(rnd()*gv.length);
+  queueFaceEvent({type:'retail',name:c.name,amt,shop,given:gv[gi],f:gi>=gv.length-2,seed:rint(1,1e9),line:pick(Ls('retail.line.'+rtKind(c))),turn:G.turn});
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);retailTick();return r}}   // 排在每旬推進的後段（出貨已結算）
+let RT_CUR=null;
+const rtWho=e=>UT('rt.who',{s:e.shop,n:e.given});
+/** 零售商頭像：商人外貌，依事件種子固定。 */
+function rtPortrait(e,px){
+  const st={commerce_skill:40+e.seed%40,integrity_loyalty:30+(e.seed>>3)%50,greed_index:30+(e.seed>>5)%50,audacity_courage:30+(e.seed>>7)%50,diplomacy_charm:30+(e.seed>>9)%50,betrayal_risk:20+(e.seed>>11)%40};
+  const age=25+(e.seed>>13)%35,key='edo3rt|'+e.seed;
+  const url=PT_CACHE[key]||(PT_CACHE[key]=ptDraw({seed:'rt'+e.seed,gender:e.f?'f':'m',age,role:'guest',rank:0,st}));
+  return '<img class="pt" src="'+url+'" width="'+(px||56)+'" height="'+(px||56)+'" alt="" aria-hidden="true" style="float:left;margin-right:6px">';
+}
+FACE_TITLE.retail='rt.t';
+{const _f=faceEventCard;faceEventCard=function(e){
+  if(!e||e.type!=='retail')return _f.apply(this,arguments);
+  const c=COMM_MAP[e.name];if(!c)return null;
+  RT_CUR=e;e.done=false;
+  const poor=G.silver<e.amt;
+  const buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="rtPay" '+(poor?'disabled':'')+'>'+UT('btn.rtPay',{a:fmt(e.amt)})+'</button><button class="pixel-btn btn-sm" data-act="rtRefuse">'+UT('btn.rtRefuse')+'</button></div>';
+  return '<div class="card warn" id="rt-card" style="display:flow-root">'+rtPortrait(e,56)+'<div><b style="font-size:17px">'+esc(rtWho(e))+'</b> <span class="tag gray">'+UT('face.faceEventCard.12',{a:esc(UT('rt.tag')),b:esc(e.line.replace(/\{g\}/g,c.short)),c:esc(UT('rt.eff',{a:fmt(e.amt)}))})+'</div>'+buttons+'</div>';
+}}
+/** 市佔成長倍率增減（百分點，1～3）。 */
+function rtShare(sign){const S=RTO().share,x=rint(S[0],S[1]);if(G.mybias===undefined)G.share=marketShares();G.mybias=clamp((G.mybias||1)*(1+sign*0.01*x),0.2,4);G.share=null}
+function rtResolve(pay){
+  const e=RT_CUR;if(!e||e.done)return;
+  const c=COMM_MAP[e.name],w=rtWho(e);
+  if(pay){
+    if(G.silver<e.amt){toast(MSG('rt.short'));return false}
+    e.done=true;payPublic('spend.retail',e.amt);rtShare(1);
+    pushNews(NEWS('rt.paidN',{w,g:c.short,a:fmt(e.amt)}));toast(MSG('rt.paid',{a:fmt(e.amt),w}),3600);sfx.coin();
+  }else{
+    e.done=true;rtShare(-1);const F=RTO().fame;setFame((G.fame||0)-rint(F[0],F[1]));
+    pushNews(NEWS('rt.refusedN',{w,g:c.short}));toast(MSG('rt.refused',{w}),3600);sfx.bad();
+  }
+  RT_CUR=null;save();UI.render();return true;
+}
+ACT.rtPay=()=>{if(rtResolve(true)!==false)UI.hideInfo()};
+ACT.rtRefuse=()=>{rtResolve(false);UI.hideInfo()};
+/* 直接關掉視窗＝不理 */
+{const _h=UI.hideInfo;UI.hideInfo=function(){if(RT_CUR&&!RT_CUR.done&&document.getElementById('rt-card'))rtResolve(false);return _h.apply(this,arguments)}}
+
+/* ═════ [07zzzzzzzzzz_title] ═════ */
+/* ======================= 取得名號的演出（第三百五十六節） =======================
+ *  - 名號：大商、豪商（大盤，07zzzz_dapan）、京商（帝都獻上交滿五組，07zzzzzzz_kenjo）；職務：公會長（07yc_gm，新就任才演，連任不演）。
+ *  - titleGain(k) 記進 G.titleQ；下一次關閉說明視窗（旬報、獻上回信、拉票戰鬥）時先演名號，演完再接原本的後續（人物事件等）。
+ *  - 演出：畫面轉黑 → 中央浮出大字名號（京商金、大商豪商紅、公會長綠）→ 取得原因 → 效果說明 → 關閉按鈕。不能略過，沒有音效。
+ *  狀態 G.titleQ=[k,…]。文字 tt.*。 */
+function titleGain(k){if(!G)return;(G.titleQ=G.titleQ||[]).push(k)}
+{const _g=gmInstall;gmInstall=function(k){const was=typeof gmIsMe==='function'&&gmIsMe();const r=_g.apply(this,arguments);if(k==='me'&&!was)titleGain('gm');return r}}
+const TITLE_KIND={kyo:'kyo',big:'red',gou:'red',gm:'green'};
+var TITLE_ON=false;
+/** 演一個名號；done＝關閉後接著做的事。 */
+function titlePlay(k,done){
+  TITLE_ON=true;
+  const col=TITLE_COL[TITLE_KIND[k]]||TITLE_COL.red,yago=typeof moveYago==='function'?moveYago():'';
+  let el=$('#title-fx');if(!el){el=document.createElement('div');el.id='title-fx';document.body.appendChild(el)}
+  el.innerHTML='<div class="tf-name" style="color:'+col+';text-shadow:0 0 14px '+col+'99,0 0 2px #000">'+esc(UT('tt.'+k))+'</div>'
+    +'<div class="tf-why">'+esc(UT('tt.'+k+'.why',{f:yago}))+'</div>'
+    +'<div class="tf-eff">'+esc(UT('tt.'+k+'.eff'))+'</div>'
+    +'<button class="pixel-btn btn-sm tf-btn" data-act="titleClose">'+UT('btn.titleClose')+'</button>';
+  el.classList.remove('on','ready');el.style.display='flex';void el.offsetWidth;el.classList.add('on');
+  clearTimeout(TITLE_T);TITLE_T=setTimeout(()=>el.classList.add('ready'),4600);   // 按鈕淡入後才能按
+  TITLE_DONE=done||null;
+}
+var TITLE_DONE=null,TITLE_T=0;
+ACT.titleClose=()=>{
+  const el=$('#title-fx');if(el&&!el.classList.contains('ready'))return;   // 不能略過
+  if(el){el.classList.remove('on','ready');el.style.display='none';el.innerHTML=''}
+  TITLE_ON=false;const f=TITLE_DONE;TITLE_DONE=null;
+  if(!titleNext(f)&&f)setTimeout(f,0);
+};
+/** 有待演的名號就演一個（演完再看下一個），回傳是否有演。 */
+function titleNext(after){
+  const Q=G&&G.titleQ;if(!Q||!Q.length||TITLE_ON)return false;
+  const k=Q.shift();save();titlePlay(k,after);return true;
+}
+{const _h=UI.hideInfo;UI.hideInfo=function(){
+  if(!G||!G.titleQ||!G.titleQ.length||TITLE_ON)return _h.apply(this,arguments);
+  const f=INFO_AFTER;INFO_AFTER=null;_h.apply(this,arguments);   // 先關視窗，名號演完再接原本的後續
+  titleNext(f);
+}}
+
+/* ═════ [07zzzzzzzzzzz_villa] ═════ */
+/* ======================= 別邸（店頂庭園）與店舖改建（第三百六十節） =======================
+ *  - 現款第一次達到 10 萬兩：大番頭上門建議興建（旬報後來訪）；不答應時私宅頁「設宴」上方常駐別邸卡。沒有大番頭也照樣出現卡。
+ *  - 興建與三次改建各 8,000 兩（現款）；門檻看按下時的現款：10 萬、15 萬、20 萬、25 萬。施工一旬，下一次推進落成，落成那一旬屋頂撒年糕。
+ *  - 別邸設宴：一旬一次、扣 1 行動；費用 500／750／1,000／1,250；本城四階以上官員隨機 1～4 位（不認識的當場結識），
+ *    約一成多來一位外地遠國奉行所官員（不佔名額）。好感每位 +4～8 乘倍數 1／1.3／1.6／1.9；整場風聲 +0.1。
+ *  - 遷居：別邸不能帶走，新城從頭來（大番頭會再建議）。
+ *  狀態 G.villa{lv,asked,seen,work:{lv,t},joto,feastT}；數值 ODDS.villa；文字 villa.*。畫面在 05_scene.js〔05i_villa〕。 */
+const VLO=()=>ODDS.villa;
+const villaS=()=>G.villa||(G.villa={lv:0,asked:false,seen:false,work:null,joto:-1,feastT:-1});
+const villaLv=()=>(G&&G.villa&&G.villa.lv)||0;
+const villaChief=()=>(G.emps||[]).find(e=>e.rank==='chief'&&!jailedEmp(e)&&!empLent(e));
+/** 下一階的門檻與費用；已到頂回傳 null。 */
+function villaNext(){const V=villaS(),O=VLO(),k=V.lv;if(k>=O.need.length)return null;return {lv:k+1,need:O.need[k],cost:O.cost}}
+const villaFeastCost=()=>VLO().feast[Math.max(0,villaLv()-1)];
+function villaTick(log){
+  if(!G||G.ended)return;
+  const V=villaS();
+  if(V.work&&G.turn>V.work.t){                     // 施工一旬後落成
+    V.lv=V.work.lv;V.work=null;V.joto=G.turn;
+    const t=NEWS(V.lv===1?'villa.doneN':'villa.reN',{f:moveYago(),a:UT('villa.lv.'+V.lv)});pushNews(t);log.push(t);
+    const ct=homeCity();G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS(V.lv===1?'villa.histN':'villa.reHistN',{f:moveYago()})});
+  }
+  if(G.silver>=VLO().need[0])V.seen=true;
+  if(!V.asked&&V.lv===0&&!V.work&&G.silver>=VLO().need[0]){const b=villaChief();if(b){V.asked=true;queueFaceEvent({type:'villaAsk',empId:b.id,turn:G.turn})}}
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);villaTick(log);return r}}
+FACE_TITLE.villaAsk='villa.ask.t';
+FACE_EXT.villaAsk=()=>{
+  const V=villaS();if(V.lv>0||V.work)return null;
+  return {line:TX('villa.ask'),effect:UT('villa.ask.eff',{c:fmt(VLO().cost)}),
+    buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="villaBuild" data-face="1">'+UT('btn.villaBuild',{c:fmt(VLO().cost)})+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.villaLater')+'</button></div>'};
+};
+ACT.villaBuild=el=>{
+  const V=villaS(),N=villaNext();if(!N||V.work)return;
+  if(G.silver<N.need){toast(MSG('villa.need',{a:fmt(N.need)}));return}
+  payPublic('spend.villa',N.cost);V.work={lv:N.lv,t:G.turn};V.seen=true;
+  pushNews(NEWS(N.lv===1?'villa.startN':'villa.reStartN',{f:moveYago()}));
+  sfx.coin();toast(MSG(N.lv===1?'villa.start':'villa.reStart'),4200);save();
+  if(el&&el.dataset.face)UI.hideInfo();
+  UI.render();sceneSync&&sceneSync(true);
+};
+/** 私宅頁「設宴」上方的別邸卡。 */
+function villaCard(){
+  const V=G&&G.villa;if(!V||(!V.seen&&!V.lv&&!V.work))return '';
+  const N=villaNext(),lv=V.lv;
+  let h='<div class="card"><b>'+UT('villa.card.t')+'</b>';
+  if(V.work)h+='<div class="tiny muted" style="margin-top:2px">'+UT(V.work.lv===1?'villa.card.work':'villa.card.reWork')+'</div>';
+  else if(!lv)h+='<div class="tiny muted" style="margin-top:2px">'+UT('villa.card.none')+'</div>';
+  else h+='<div class="tiny muted" style="margin-top:2px">'+UT('villa.card.lv',{a:UT('villa.lv.'+lv),n:lv,c:fmt(villaFeastCost())})+'</div>';
+  if(lv&&!V.work){
+    const done=V.feastT===G.turn;
+    h+='<button class="pixel-btn btn-sm btn-gold" style="margin-top:4px;width:100%" data-act="villaFeast"'+(done?' disabled':'')+'>'+(done?UT('btn.feastDone'):UT('btn.villaFeast',{c:fmt(villaFeastCost())}))+'</button>';
+  }
+  if(N&&!V.work){
+    const ok=G.silver>=N.need;
+    h+='<div class="tiny" style="margin-top:6px">'+UT(N.lv===1?'villa.card.build':'villa.card.re',{a:UT('villa.lv.'+N.lv),need:fmt(N.need),c:fmt(N.cost)})+'</div>'
+      +'<button class="pixel-btn btn-sm" style="margin-top:3px;width:100%" data-act="villaBuild"'+(ok?'':' disabled')+'>'+(ok?UT(N.lv===1?'btn.villaBuild':'btn.villaRe',{c:fmt(N.cost)}):UT('btn.villaNeed',{a:fmt(N.need)}))+'</button>';
+  }
+  return h+'</div>';
+}
+{const _b=banquetCard;banquetCard=function(){return villaCard()+_b.apply(this,arguments)}}
+/** 別邸設宴。 */
+ACT.villaFeast=()=>{
+  const V=villaS(),lv=V.lv;if(!lv||V.work)return;
+  if(V.feastT===G.turn){toast(MSG('villa.feastDone'));return}
+  const cost=villaFeastCost();if(G.silver<cost){toast(MSG('villa.short',{a:fmt(cost)}));return}
+  const pool=cityNpcs(G.cityId).filter(n=>n.role==='official'&&n.pos&&n.pos.court!=='region'&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!awayNow(n)&&!isEnemy(n.cid));
+  if(!pool.length){toast(MSG('villa.none'));return}
+  if(!spendAP())return;
+  V.feastT=G.turn;payPublic('spend.villaFeast',cost);addHeat(VLO().heat);
+  const guests=shuffle(pool.slice()).slice(0,lv);
+  if(chance(VLO().far)){const F=Object.values(G.world.npcs).filter(n=>foreignReg(n)&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!isEnemy(n.cid));if(F.length)guests.push(pick(F))}
+  const mult=VLO().mult[lv-1];
+  playFx('walk',MSG('villa.fx'),MSG('villa.fxTitle'),()=>{
+    let h='<div class="notice tiny">'+esc(TX('villa.open'))+'</div>';
+    const lines=shuffle(Ls('villa.thank').slice());
+    guests.forEach((n,k)=>{
+      const r=R(n.cid),far=foreignReg(n),gain=Math.max(1,Math.round(rint(ERRAND_GAIN[0],ERRAND_GAIN[1])*mult)),fresh=!r.bond;
+      if(fresh){r.bond={mult:0.8,label:UT('villa.bond'),introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8)}}
+      addKnown(n.cid);setAff(r,clamp(r.aff+gain,0,100));logRel(n.cid,UT('villa.log',{a:gain}));
+      h+='<div class="card" style="display:flow-root">'+portraitHtml(n.cid,40)+'<b>'+esc(nameOf(n.cid))+'</b> <span class="tag gray">'+esc(posTitle(n))+'</span> <span class="tag red">'+UT('villa.gain',{a:gain})+'</span>'
+        +(fresh?' <span class="tag gold">'+UT('villa.fresh')+'</span>':'')+(far?' <span class="tag navy">'+UT('villa.far')+'</span>':'')
+        +'<div class="small" style="margin-top:3px">'+esc(lines[k%lines.length])+'</div></div>';
+    });
+    sfx.gift();save();UI.showInfo(UT('villa.result',{a:guests.length}),h);UI.render();sceneSync&&sceneSync(true);
+  },1000);
+};
+/* 遷居：別邸不能帶走，新城從頭來 */
+{const _m=moveClearCity;moveClearCity=function(){const r=_m.apply(this,arguments);G.villa=null;return r}}
+
+/* ═════ [07zzzzzzzzzzzz_hanabi] ═════ */
+/* ======================= 川開大花火（第三百五十九節第三段、第三百六十四節） =======================
+ *  - 每年七月上旬，現款 ≥ 5 萬兩、有大番頭時，大番頭在旬報後上門提議出資：小 1,000／中 3,000／大 5,000 兩，或不辦。沒有大番頭那一年不辦。
+ *  - 七月中旬放花火：知名度 +1／+2／+3（大事件），全城買氣 +10%／+20%／+30%（只那一旬，`sumoMult` 外層），瓦版、城史各一則。
+ *  - 畫面在 05_scene.js〔05j_hanabi〕：那一旬轉成夜晚；小＝主屋右側小花火，中＝兩側，大＝兩側加從左邊發射、拋物線到右邊炸開的大玉。
+ *  狀態 G.hanabi{y,lv,done}；數值 ODDS.hanabi；文字 hb.*。 */
+const HBO=()=>ODDS.hanabi;
+/** 本旬是放花火的那一旬：回傳檔次 1～3，沒有就 0。 */
+const hanabiLv=()=>{const H=G&&G.hanabi;return H&&H.y===G.year&&H.lv>0&&G.month===7&&G.cycle===2?H.lv:0};
+function hanabiTick(log){
+  if(!G||G.ended)return;
+  const H=G.hanabi;
+  if(G.month===7&&G.cycle===1&&G.silver>=HBO().need&&(!H||H.y!==G.year)){
+    const b=villaChief();G.hanabi={y:G.year,lv:0,done:false};
+    if(b)queueFaceEvent({type:'hanabiAsk',empId:b.id,turn:G.turn});
+  }
+  const lv=hanabiLv();
+  if(lv&&!G.hanabi.done){
+    G.hanabi.done=true;const ct=homeCity(),f=addFame(HBO().fame[lv-1],'major');
+    const t=NEWS('hb.showN',{f:moveYago(),c:ct.name,a:fmt(HBO().cost[lv-1]),b:f});pushNews(t);log.push(t);
+    G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('hb.histN',{f:moveYago(),a:fmt(HBO().cost[lv-1])})});
+  }
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);hanabiTick(log);return r}}
+{const _s=sumoMult;sumoMult=function(c){const lv=hanabiLv();return _s.apply(this,arguments)*(lv?1+HBO().demand[lv-1]:1)}}   // 放花火那一旬全城買氣
+FACE_TITLE.hanabiAsk='hb.ask.t';
+FACE_EXT.hanabiAsk=()=>{
+  const H=G.hanabi;if(!H||H.y!==G.year||H.lv>0)return null;
+  const O=HBO(),btn=i=>{const ok=G.silver>=O.cost[i];return '<button class="pixel-btn btn-sm'+(i===2?' btn-gold':'')+'" data-act="hanabiPick" data-lv="'+(i+1)+'"'+(ok?'':' disabled')+'>'+UT('btn.hanabi.'+(i+1),{a:fmt(O.cost[i])})+'</button>'};
+  return {line:TX('hanabi.ask'),effect:UT('hb.ask.eff'),
+    buttons:'<div class="grid2">'+btn(0)+btn(1)+'</div><div class="grid2" style="margin-top:4px">'+btn(2)+'<button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.hanabiNo')+'</button></div>'};
+};
+ACT.hanabiPick=el=>{
+  const H=G.hanabi,lv=+el.dataset.lv,O=HBO();if(!H||H.y!==G.year||H.lv>0||!(lv>=1&&lv<=3))return;
+  const amt=O.cost[lv-1];if(G.silver<amt){toast(MSG('hb.short',{a:fmt(amt)}));return}
+  payPublic('spend.hanabi',amt);H.lv=lv;
+  pushNews(NEWS('hb.payN',{f:moveYago(),a:fmt(amt)}));
+  sfx.coin();toast(MSG('hb.paid',{a:fmt(amt)}),4200);save();UI.hideInfo();UI.render();
+};

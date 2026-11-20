@@ -300,7 +300,7 @@ function stashTick(log){
   if(S){
     let moved=0;
     S.items.forEach(x=>{
-      const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.q,room);
+      const room=Math.max(0,invCap()-invUsed()),q=Math.min(x.q,room);
       if(q>0){if(x.unit>0)addStock(x.name,q,x.unit);stockAdd(x.name,q,x.dapan);x.q-=q;moved+=q}
     });
     S.items=S.items.filter(x=>x.q>0);
@@ -360,7 +360,7 @@ ACT.swapYes=()=>{
   const o=G.swapOffer;G.swapOffer=null;if(!o||!((G.xinv||{})[o.give]>=o.gq)){UI.hideInfo();return}
   const c=COMM_MAP[o.get],W=ODDS.swap;
   G.xinv[o.give]-=o.gq;if(G.xinv[o.give]<=0)delete G.xinv[o.give];
-  let room=Math.max(0,invCap()-invUsed());if(o.own)room=Math.min(room,Math.max(0,itemCap(o.get)-(G.inv[o.get]||0)));
+  let room=Math.max(0,invCap()-invUsed());
   let q=Math.min(o.getq,room);const full=o.getq-q;
   let poor=0;if(o.poor&&q>0){poor=Math.round(q*(W.poorMin+rnd()*(W.poorMax-W.poorMin)));q-=poor}
   if(q>0){
@@ -528,7 +528,7 @@ const consignLandOk=()=>!canSea(homeCity())||homeCity().type==='waterland';
 function regOffer(n,kind){
   G.regOffer=G.regOffer||{};const key=n.cid+'|'+kind,o=G.regOffer[key];
   if(o&&o.turn===G.turn&&COMM_MAP[o.name])return o;
-  const L=tradeComms();if(!L.length)return null;
+  const L=tradeComms().filter(c=>!c.luxury);if(!L.length)return null;   // 捎帶、本陣御用達都不收奢侈品（第三百五十四節）
   const rd=seeded(n.cid+'|'+kind+'|'+G.turn),price=c=>marketQuote(c.name,true);
   let c;
   if(kind==='honjin')c=L[Math.floor(rd()*L.length)];
@@ -582,7 +582,7 @@ function consignTick(log){
   G.consign=L.filter(x=>{
     if(G.turn<x.due)return true;
     const c=COMM_MAP[x.name];if(!c)return false;
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(x.name)-(G.inv[x.name]||0))),q=Math.min(x.qty,room);
+    const room=Math.max(0,invCap()-invUsed()),q=Math.min(x.qty,room);
     if(q>0){addStock(x.name,q,x.cost/x.qty);stockAdd(x.name,q,false)}
     overflowAdd(x.name,x.qty-q,x.cost/x.qty,false);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
     const t=NEWS('rfav.arrive.'+x.kind,{g:c.short,q,l:x.qty-q>0?UT('rfav.lost',{n:x.qty-q}):''});pushNews(t);log.push(t);
@@ -709,7 +709,7 @@ function ujobCard(){
   const maxQ=Math.max(0,Math.min(G.inv[J.name]||0,left,capOf(J.name,J.mode)));
   S.qty=clamp(Math.floor(S.qty||maxQ),0,maxQ);S.budget=clamp(Math.floor((S.budget||0)/50)*50,0,Math.max(0,Math.floor(G.silver-voyQTotal())));
   h+='<div style="margin-top:4px">'+caps.map(e=>'<span class="pill '+(e.id===S.capt?'on':'')+'" data-act="ujCapt" data-id="'+e.id+'">'+esc(e.name)+'</span>').join('')+'</div>';
-  const maxB=Math.floor(Math.max(0,G.silver-voyQTotal())/50)*50,bMax=maxB>=100?maxB:0;if(S.budget>bMax)S.budget=bMax;if(S.budget>0&&S.budget<100)S.budget=100;
+  const maxB=Math.floor(Math.min(5000,Math.max(0,G.silver-voyQTotal()))/50)*50,bMax=maxB>=100?maxB:0;   // 回程委託金上限同委託採買 5,000 兩（第三百五十七節）if(S.budget>bMax)S.budget=bMax;if(S.budget>0&&S.budget<100)S.budget=100;
   h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.qty',{h:G.inv[J.name]||0,m:maxQ})+'</span><b id="uj-q-v">'+S.qty+'</b></div>';
   h+=stepRow('<input id="uj-q" type="range" min="0" max="'+Math.max(1,maxQ)+'" value="'+S.qty+'" step="1" data-chg="ujQty" data-lbl="uj-q-v"'+(maxQ<1?' disabled':'')+'>','uj-q',maxQ<1||S.qty<=0,maxQ<1||S.qty>=maxQ);
   h+='<div class="row small" style="margin-top:4px"><span>'+UT('r4.card.budget')+'</span><b id="uj-b-v">'+UT('r4.card.budgetVal',{a:fmt(S.budget)})+'</b></div>';

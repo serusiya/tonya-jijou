@@ -117,7 +117,8 @@ function dapanDependency(){
 }
 /** 倉庫總容量。 */
 const invCap=()=>G.wh.n*G.wh.cap;
-/* 單項貨品庫存上限：約為本城需求的 5～10 倍（越耐放倍數越高，易腐品 5 倍） */
+/* 訂單上限（原「單項庫存上限」）：約為本城需求的 5～10 倍（越耐放倍數越高，易腐品 5 倍）。
+   第三百五十一節起只用來決定一張訂單的件數（軍需大單、上貢、官府小單、掛賣、注文）與大盤進貨壓力；玩家倉庫不再限制每項貨的存量，只看倉庫總容量。 */
 /** 單項庫存上限倍率（需求的 5～10 倍；易腐的更低）。 */
 function capMult(name){return clamp(10-COMM_MAP[name].decay*200,5,10)}
 /** 某物品庫存上限＝本城需求×倍率。 */
@@ -125,7 +126,7 @@ function itemCap(name){const m=G.mk[name];return Math.max(5,Math.round((m?m.D:ci
 /** 某物品已向大盤下單、尚未到貨的數量。委任採買的品項與數量在歸來時才決定，不列入。 */
 const itemOnOrder=name=>(G.orders||[]).filter(o=>o.name===name).reduce((a,o)=>a+o.qty,0);
 /** 某物品還能再放多少（同時受單項上限與倉庫容量限制）。 */
-const itemRoom=name=>Math.max(0,Math.min(itemCap(name)-(G.inv[name]||0)-itemOnOrder(name),invCap()-invUsed()-pendingQty()));
+const itemRoom=name=>Math.max(0,invCap()-invUsed()-pendingQty());   // 只看倉庫總容量（第三百五十一節）
 
 /** 本旬有效需求（含節慶與市佔率係數）。 */
 /** 奢侈品需求冷熱倍率：久無買家時極低，大單湧入時暴增；非奢侈品或舊存檔為 1。 */
@@ -268,7 +269,7 @@ function refreshMarket(first){
   });
 }
 /** 進貨價係數（相對市價）：ODDS.rivalShip.buyMult（產地直採已取消）。 */
-const empBuyMult=()=>ODDS.rivalShip.buyMult;
+const empBuyMult=()=>ODDS.rivalShip.buyMult*(1-bantoBonus());   // 番頭（含大番頭、臨時打工）壓低進貨價，最多 4%（第三百六十五節）
 /** 大盤進貨單價＝本旬固定牌價（不計奢侈品冷熱）×進貨係數（參加協議 0.93、未參加 1），遇公會斷貨×1.4，再乘進貨壓力。 */
 function unitBuyCost(name){
   const m=G.mk[name];
@@ -301,7 +302,6 @@ function buyGoods(name,qty,manual){
   qty=Math.floor(qty);if(qty<=0)return {ok:false,msg:MSG('buyGoods.1')};   // 沒有交易許可的貨也能進貨囤著，只是不能賣（第三百一十二節）
   if(!G.orders)G.orders=[];
   if(invUsed()+pendingQty()+qty>invCap())return {ok:false,msg:MSG('buyGoods.2',{invUsed:invUsed(),pendingQty:pendingQty(),invCap:invCap()})};
-  if(qty>itemRoom(name))return {ok:false,msg:MSG('buyGoods.3',{name:COMM_MAP[name].short,capMult:fmt1(capMult(name)),itemCap:itemCap(name),itemRoom:itemRoom(name)})};
   const mk=G.mk[name];
   if(qty>buyLeft(name))return {ok:false,msg:MSG('buyGoods.4',{name:COMM_MAP[name].short,buyLimit:buyLimit(name),buyLeft:buyLeft(name),mult:fmt1(buyLimitMult())})};
   const cost=Math.round(unitBuyCost(name)*qty);
@@ -325,7 +325,7 @@ const avgCostOf=name=>(G.avgCost&&G.avgCost[name]>0)?G.avgCost[name]:unitBuyCost
 function receiveOrders(log){
   G.arrived=[];
   (G.orders||[]).forEach(o=>{
-    const room=Math.max(0,Math.min(invCap()-invUsed(),itemCap(o.name)-(G.inv[o.name]||0))),q=Math.min(o.qty,room);
+    const room=Math.max(0,invCap()-invUsed()),q=Math.min(o.qty,room);
     if(q>0)addStock(o.name,q,o.cost/Math.max(1,o.qty));
     stockAdd(o.name,q,true);G.arrived.push({name:o.name,qty:q,cost:o.cost,lost:o.qty-q});
     overflowAdd(o.name,o.qty-q,o.cost/Math.max(1,o.qty),true);   // 放不下的：旬末看有沒有朋友代放（07zz_friends.js）
@@ -393,19 +393,30 @@ function inspection(){
   }
   return NEWS('inspection.3');
 }
-/** 事件：政敵拿你和交好官員（好感 ≥30）的往來做文章，他受你牽連遭申斥：好感扣七成（可能成仇），官職不變；好感見底時可能把罪責推給你。 */
+/** 事件：政敵拿你和交好官員（好感 ≥30）的往來做文章，他受你牽連遭申斥：好感扣三成，官職不變；並要你三旬內進獻「壓驚錢」（索賄的承諾，可照辦或告發）。
+ *  逾期沒給：好感再扣三成；扣完低於 10 時照 ODDS.fallScapegoat 把罪責推給你（peopleTick 的 fallLate，第三百五十五節）。 */
 function officialFall(){
   const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30&&!n.ronin);   // 自己扶持的浪人官員不受牽連
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
-  const loss=Math.round(r.aff*0.7);setAff(r,r.aff-(loss));                    // 受你牽連遭申斥：好感扣七成（可能因此成仇）；官職不變
+  const loss=Math.round(r.aff*ODDS.fall.cut);setAff(r,r.aff-(loss));         // 受你牽連遭申斥：好感扣三成；官職不變
   const nm=nameOf(n.cid);logRel(n.cid,MSG('log.fall',{d:loss}));
+  if(r.promises.some(p=>p.kind==='tribute'&&!p.done))return NEWS('officialFall.3',{nm});   // 已有沒付的索賄：只扣好感
+  const amt=giftGoldCost(n.pos.rank);
+  r.promises.push({kind:'tribute',fall:true,text:MSG('promise.fall',{n:nm,a:amt*BRIBE_RATE}),due:G.turn+3,amount:amt,done:false,by:'official'});
+  logRel(n.cid,MSG('log.fallAsk',{a:amt*BRIBE_RATE}));
+  queueFaceEvent({type:'extort',cid:n.cid,amt:amt*BRIBE_RATE,due:G.turn+3,fall:true});
+  return NEWS('officialFall.ask',{nm});
+}
+/** 政敵事件的壓驚錢逾期：好感再扣三成，見底時可能把罪責推給你。回傳旬報文字。 */
+function fallLate(cid,r){
+  const nm=nameOf(cid),loss=Math.round(r.aff*ODDS.fall.lateCut);setAff(r,r.aff-loss);logRel(cid,MSG('log.fallLate',{d:loss}));
   if(r.aff<10&&roll('fallScapegoat')){                             // 好感見底：為求自保，把罪責推到你頭上
     const fine=Math.round(Math.max(0,G.silver)*0.04);G.silver-=fine;loseFame('scapegoat');
-    G.life.scapegoat++;logRel(n.cid,MSG('log.scapegoat'));
+    G.life.scapegoat++;logRel(cid,MSG('log.scapegoat'));
     return NEWS('officialFall.2',{nm,fine:fmt(fine)});
   }
-  return NEWS('officialFall.3',{nm});
+  return NEWS('officialFall.late',{nm});
 }
 /** 事件：官員索賄，不理會會影響交情或衍生麻煩。 */
 function officialExtort(){

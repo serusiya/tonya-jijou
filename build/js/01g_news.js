@@ -51,6 +51,8 @@ const NEWS_TXT={
   /* —— officialFall —— */
   "officialFall.1":"📜【官場】三系官署人事微調，一批吏員調任他處。",
   "officialFall.2":"⚡【政爭】「{nm}」受你牽連遭上司申斥，為求自保把罪責推到你頭上：罰銀 {fine} 兩，知名度 -3。",
+  "officialFall.ask":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，要你送壓驚錢。（見筆記·往來實錄）",
+  "officialFall.late":"⚡【政爭】「{nm}」等不到你的壓驚錢，對你更加不滿。",
   "officialFall.3":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，對你頗有怨言。",
   "peopleMove.official":"📜【官員調任】「{out}」調往【{dest}】；「{in}」自【{from}】調來本城，接掌{post}。",
   "peopleMove.residence":"🏯【宅邸異動】{kind}「{out}」遷往【{dest}】；「{in}」自【{from}】遷入本城。",
@@ -115,6 +117,8 @@ const NEWS_TXT={
   "pt.done":"🎁【貴人訂貨】{g} × {q} 交到「{n}」府上，收 {a} 兩，知名度 +{f}。",
   "pt.fail":"🎁【貴人訂貨】答應「{n}」的 {g} × {q} 沒備齊（只有 {h}），失約，好感 -{a}。",
   "pt.bigRumor":"🎁【街談】聽說今年城裡的貴人們手頭寬裕，節禮要辦得格外體面。",
+  "rt.paidN":"🧺【零售】{w}上門抱怨{g}的貨色，賠了 {a} 兩了事。",
+  "rt.refusedN":"🧺【零售】{w}上門抱怨{g}的貨色，你沒理他；他逢人便說貴號的不是。",
   "gov.s.give":"🏯【官府注文】{g} × {q} 送到「{n}」那裡，收 {a} 兩，還剩 {l} 旬。",
   "gov.s.done":"🏯【官府注文】「{n}」的注文交完了：{g} × {q}，收 {a} 兩，好感 +{f}。",
   "gov.s.fail":"🏯【官府注文】這旬該交「{n}」的 {g} × {q}，只備得 {h}，收 {b} 兩，失約，好感 -{a}。",
@@ -187,8 +191,8 @@ const NEWS_TXT={
   "kind.1":"前往【{dest}】採買。{note}",
   "kind.2":"買入本業貨「{short}」{q} 單位，單價 {unit} 兩（約相場基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
   "kind.3":"看中「{short}」，但倉庫放不下，空手而回，委託金大多退還。",
-  "kind.4":"撿到便宜貨：「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
-  "kind.5":"看中便宜的「{short}」，但倉庫放不下，空手而回。",
+  "kind.4":"順手夾帶便宜的「{short}」{q} 單位，單價 {unit} 兩（約基準價的 {pf}），共 {cost} 兩；本月產地：{supply}。",
+  "kind.5":"看中便宜的「{short}」，但倉庫放不下，沒有帶回。",
   "kind.6":"🏴‍☠️ {mode}順手夾帶唐船私貨「{name}」{q} 單位（共 {cost} 兩）{got}，已偷偷存入密庫。要脫手請找闇商人，也要小心搜查。",
   "kind.7":"雜費與打點 {fee} 兩；委託金餘額退回 {refund} 兩。",
   "kind.8":"🚢【歸來】{mode}「{captName}」自【{dest}】{cross}{sea}。詳情見旬報。",
@@ -458,6 +462,15 @@ const NEWS_TXT={
   "bk.heir":"🏮【別家】「{b}」由「{n}」接手，照舊聽本家吩咐。",
   "kj.openN":"👑【帝都獻上】普請方的「{n}」大人上門：帝都有意廣蒐天下名品，各行的上等貨湊齊一組就能呈上。",
   "kj.giveN":"👑【帝都獻上】貴號向帝都呈上{s}的名品：{a}。",
+  "hb.payN":"🎆【川開】{f}出資 {a} 兩，七月中旬川開要放大花火。",
+  "hb.showN":"🎆【川開】【{c}】川開大花火，{f}出資 {a} 兩，夜空滿是煙火，全城出門看熱鬧（知名度 +{b}）。",
+  "hb.histN":"「{f}」出資 {a} 兩放川開大花火",
+  "villa.startN":"🏯【別邸】{f}請來工匠，在店頂加蓋一層別邸。",
+  "villa.reStartN":"🏯【別邸】{f}的店頂別邸又動工改建了。",
+  "villa.doneN":"🏯【別邸】{f}店頂的別邸落成，屋頂撒下年糕，街坊擠滿了門前。",
+  "villa.reN":"🏯【別邸】{f}的別邸改建完工（{a}），屋頂又撒了一回年糕。",
+  "villa.histN":"「{f}」在店頂加蓋別邸",
+  "villa.reHistN":"「{f}」改建店頂別邸",
   "kj.hist":"「{f}」向帝都獻上{s}的名品",
   "kj.newProd":"👑【帝都獻上】【{c}】開始出產{a}，說是帝都派人來教的。",
   "kj.m5N":"👑【帝都獻上】帝都回信：京畿的門向貴號敞開了。",
@@ -484,10 +497,10 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["hb.showN","villa.doneN","villa.reN","kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["kj.newProd","bk.dapan","dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["dp.stop1","dp.stop2","komon.judge","komon.gmOut","urge.kyusaiFail","heika.Fail","urge.fine","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };

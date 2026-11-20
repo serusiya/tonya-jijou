@@ -245,26 +245,26 @@ const DUTY_DESC={};RANKS.concat(SPECIAL).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e)).length;   // 關押中的店員不算（07zt_staffevents.js）
 const empsOf=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e));
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
-/** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算兩名番頭、兩名手代的加成；回傳商才，不在打工中回傳 null。 */
+/** 經營好手臨時打工（請託）：開口那一旬的結算裡，以他的商才算三名番頭的加成（進貨上限、進貨價；不算手代，第三百六十五節）；回傳商才，不在打工中回傳 null。 */
 const tempHelp=()=>G.tempHelp&&G.tempHelp.turn===G.turn?G.tempHelp.cs:null;
-/** 手代：出貨加成（最多 +4%）；臨時打工算兩名手代。 */
-function tellerBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:2*(0.005+0.01*t/100)))}
+/** 手代：出貨加成（最多 +4%）。 */
+function tellerBonus(){return Math.min(0.04,empsOf('clerk').reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0))}
+/** 番頭（含大番頭）：大盤進貨價折扣（最多 4%，算法同手代的出貨加成）；臨時打工算三名番頭（第三百六十五節）。 */
+function bantoBonus(noHelp){const t=noHelp?null:tempHelp();return Math.min(0.04,empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+0.005+0.01*statsOfEmp(e).commerce_skill/100,0)+(t===null?0:3*(0.005+0.01*t/100)))}
 /** 大盤進貨上限倍數（乘在「需求×市佔率＋參加協議者的協議配額」上）：基本 0.8，每名番頭依商才加成；大番頭也算一名番頭。 */
-const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:2*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算兩名番頭
+const buyLimitMult=()=>{const t=tempHelp();return ODDS.buyLimit.mult+empsOf('banto').concat(empsOf('chief')).reduce((a,e)=>a+ODDS.buyLimit.perBantou*(0.6+0.8*statsOfEmp(e).commerce_skill/100),0)+(t===null?0:3*ODDS.buyLimit.perBantou*(0.6+0.8*t/100))};   // 臨時打工算三名番頭
 /** 手代：穩定供貨線折減。 */
-const supplyCut=()=>1-Math.min(0.2,0.05*(nEmp('clerk')+(tempHelp()===null?0:2)));
+const supplyCut=()=>1-Math.min(0.2,0.05*nEmp('clerk'));   // 臨時打工不算手代，不動穩定供貨線（第三百六十五節）
 /** 手代第 5 名起照料庫存：每多一名，持有成本（損耗與倉儲保險）減 5%，最多減 30%。回傳乘數。
- *  差配人臨時打工頂替兩名手代的櫃上工作，空出的店裡手代去照料庫存：打工那一旬算「店裡手代＋2」（DESIGN_NOTES 第二百十三節）。
- *  損耗與倉儲保險在日期推進後才結算，所以上一旬（剛結束的那一旬）有人打工也算。 */
+ *  （原本差配人臨時打工算店裡手代＋2，第二百十三節；第三百六十五節起打工只算番頭，不影響照料庫存。） */
 const KEEP_FROM=4,KEEP_PER=0.05,KEEP_MAX=0.3;
-const keepHelp=()=>!!(G.tempHelp&&(G.tempHelp.turn===G.turn||G.tempHelp.turn===G.turn-1));
-const keeperN=help=>nEmp('clerk')+(help?2:0);
-const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN(keepHelp())-KEEP_FROM));
+const keeperN=()=>nEmp('clerk');   // 臨時打工不算手代（第三百六十五節）
+const keeperMul=()=>1-Math.min(KEEP_MAX,KEEP_PER*Math.max(0,keeperN()-KEEP_FROM));
 /** 相場面板：本旬有人打工時的說明（收入加成已滿就不寫收入；照料人數不到第 5 名就不寫損耗）。 */
 function tempHelpNote(){
   const t=tempHelp();if(t===null||!G.tempHelp)return '';
-  const inc=tellerBonus()-tellerBonus(true)>0.0001,keep=keeperN(true)>KEEP_FROM&&keeperN(false)-KEEP_FROM<KEEP_MAX/KEEP_PER;
-  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(inc?'mk.help.inc':'mk.help.buy'),b:keep?UT('mk.help.keep'):''});
+  const cheap=bantoBonus()-bantoBonus(true)>0.0001;
+  return UT('mk.help',{n:esc(G.tempHelp.name||nameOf(G.tempHelp.cid)),a:UT(cheap?'mk.help.cheap':'mk.help.buy'),b:''});
 }
 /** 大番頭：壓低其他店員私吞的係數。 */
 function guardF(e){
@@ -566,11 +566,15 @@ function resolveVoyage(s,log){
     const q=Math.max(0,Math.min(rint(K.carryMin,K.carryMax),CONTRA_CAP-contraQty(),Math.floor(spend/unit)));
     if(q>0){carry={it,q,cost:Math.round(unit*q)};spend-=carry.cost}
   }
-  let kind,note='';
+  let kind,note='';const VK=ODDS.voyageKind;let xc=false,xMoney=0;
   if(s.out&&!budget)kind='outOnly';                      // 卸留請負：只交貨、不採買
-  else if(ownP.length){kind=rnd()<ODDS.voyageKind.cross?'cross':'own';if(kind==='cross'&&!othP.length)kind='own'}
-  else{                                                 // 目的地沒有本業貨：八成空手而回，兩成改買他行貨（當地也沒有他行貨就空手）
-    kind=othP.length&&rnd()<ODDS.voyageKind.noOwnCross?'cross':'empty';
+  else{
+    xc=othP.length>0&&rnd()<VK.cross;                   // 夾帶他行貨（第三百五十三節）：兩成機率，最多用委託金與運量各兩成；不再整船改買他行貨
+    if(xc)xMoney=Math.floor(spend*VK.xShare);
+    if(ownP.length)kind='own';
+  }
+  if(!kind){                                            // 目的地沒有本業貨：夾帶到他行貨就帶回那一點（kind 記 cross），否則空手而回
+    kind=xc?'cross':'empty';
     note=buyout?UT('voy.buyoutNote',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM,s.buyoutRegion),crew:NM('crew',mode),result:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')}):UT('voy.resolveVoyage.4',{a:dest?dest.name:UT('voy.resolveVoyage'),b:NM('crew',mode),c:kind==='cross'?UT('voy.resolveVoyage.2'):UT('voy.resolveVoyage.3')});
   }
   const E={turn:G.turn,date:dateStr(),capt:s.captName,budget,kind,wreck,robbed,buyout,dest:dest?dest.name:'',mode,lines:[],items:[],fee};   // items：採買日誌表格（貨名、數量、總價、損失）
@@ -583,8 +587,8 @@ function resolveVoyage(s,log){
        剩下的錢與運量再依權重分給其他還能買的貨（直到錢、運量或倉位用完）。
        單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
     const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],si=originSupplyForShip(s,dest,n),pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.5,0.95)*(s.cheap?0.9:1)*originSupplyPrice(si);
-      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Math.max(0,itemCap(n)-(G.inv[n]||0)),q:0}});
-    let money=spend,load=1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);
+      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Infinity,q:0}});   // 不設單項上限，只受倉位 wh 限制（第三百五十一節）
+    let money=spend-xMoney,load=xc?1-VK.xLoad:1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);   // 夾帶他行貨時，先留出那份委託金與艙位
     const mix=makeVoyageMix(act);
     if(mix.kind!=='single')L.push(UT('voy.mix.'+mix.kind,{name:mix.main?mix.main.c.short:''}));
     for(let round=0;round<12&&act.length&&wh>0&&load>1e-6;round++){
@@ -604,10 +608,11 @@ function resolveVoyage(s,log){
     });
     if(bought+lost>0)L.push(wreck?NEWS('voy.resolveVoyage.5',{i:voyIcon(mode,robbed),a:wn,b:lost,c:bought}):NEWS('voy.resolveVoyage.6',{a:bought}));
     else L.push(NEWS('kind.3',{short:first.short}));
-  }else if(kind==='cross'){
+  }
+  if(xc&&(kind==='own'||kind==='cross')){              // 夾帶他行貨：委託金與運量各最多兩成
     const c=COMM_MAP[pick(othP)],si=originSupplyForShip(s,dest,c.name),pf=clamp(0.40-0.15*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.18,0.5)*(s.cheap?0.9:1)*originSupplyPrice(si),unit=c.base*pf;
     const room=Math.max(0,invCap()-invUsed());
-    const q=Math.max(0,Math.min(Math.floor(spend/unit),originSupplyCap(c.name,mode,si,s.supplyRank||1),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;E.lossVal=(E.lossVal||0)+(q-got)*c.base;
+    const q=Math.max(0,Math.min(Math.floor(xMoney/unit),Math.floor(capOf(c.name,mode)*VK.xLoad),originSupplyCap(c.name,mode,si,s.supplyRank||1),room)),got=Math.round(q*keep),cost=Math.round(unit*q);refund-=cost;E.lossVal=(E.lossVal||0)+(q-got)*c.base;
     if(q>0){G.xinv=G.xinv||{};G.xinv[c.name]=(G.xinv[c.name]||0)+got;
       const supply=originSupplyBand(si);L.push(NEWS('kind.4',{short:c.short,q,unit:fmt1(unit),pf:pc(pf),cost:fmt(cost),supply}));E.items.push({n:c.short,q,unit,cost,lost:q-got,supply});
       L.push(NEWS('voy.resolveVoyage.8',{a:((wreck?NEWS('voy.resolveVoyage.7',{i:voyIcon(mode,robbed),a:wn,b:q-got}):'')+got)}))}

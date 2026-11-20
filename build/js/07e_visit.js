@@ -25,7 +25,7 @@ function faceEventCard(e){
     line=UT('face.faceEventCard.2',{a:fmt(e.amt)});effect=UT('face.faceEventCard.3',{a:fmt(e.amt)});
   }else if(e.type==='extort'){
     if(!(R(e.cid).promises||[]).some(p=>!p.done&&p.kind==='tribute'&&p.by==='official'))return null;   // 已經付了或告發了
-    line=UT('face.faceEventCard.4',{a:fmt(e.amt)});effect=UT('face.faceEventCard.5');
+    line=UT(e.fall?'face.fall.line':'face.faceEventCard.4',{a:fmt(e.amt)});effect=UT('face.faceEventCard.5');
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="faceNext">'+UT('btn.extortOk')+'</button><button class="pixel-btn btn-sm btn-red" data-act="reportExtort" data-cid="'+e.cid+'" data-face="1">'+UT('btn.reportExtort')+'</button></div>';
   }else if(e.type==='inspect'){
     const I=G.inspect;if(!I||I.cid!==e.cid||I.turn!==e.turn)return null;
@@ -336,17 +336,19 @@ function battleStart(cid,giftKey){
   const mult=btMult(cid,giftKey),hit=!friend&&mult>=1;
   if(hit)r.verified=true;
   if(!friend&&g&&g.k==='plaque')G.life.charity++;
-  BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,
+  BT={cid,gift:giftKey,mult,hp:btHp(cid),dmg:0,round:0,spent:0,heat:false,done:false,hits:0,giftOk:friend||hit,
     open:btSay(cid,friend?'openFriend':hit?'openHit':'openMiss',{g:g?g.name:UT('bt.battleStart')}),line:''};
   BT.expect=btRollExpect(cid);BT.hint=btHint(cid,BT.expect);          // 開場就透露第一回合的期待
   musicWant('visit');                                   // 拜訪戰鬥換成《登門囃子》
   logRel(cid,friend?UT('bt.battleStart.2'):UT('bt.battleStart.5',{a:g?g.name:UT('bt.battleStart'),b:hit?UT('bt.battleStart.3'):UT('bt.battleStart.4')}));
   battleShow();
 }
+/** 臉紅程度（第三百四十三節）：送對禮物或好感 60 以上開場一階段，再猜中變二階段；送錯禮或公會長報告，猜中最多一階段。 */
+const btBlush=B=>B?(B.giftOk?1:0)+(B.hits>0?1:0):0;
 /** 對話框內容。 */
 function battleHtml(){
   const B=BT,cid=B.cid,t=btTiers(cid),left=3-B.round;
-  let h='<div style="display:flow-root">'+portraitHtml(cid,56,{blush:B.hits>=2?2:B.hits})+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
+  let h='<div style="display:flow-root">'+portraitHtml(cid,56,{blush:btBlush(B)})+'<div class="small">'+esc(B.open)+'</div>'+(B.line?'<div class="small" style="margin-top:6px;color:#6b4327">'+esc(B.line)+'</div>':'')+(B.hint?'<div class="small" style="margin-top:4px;color:#5b4a70">'+esc(B.hint)+'</div>':'')+'</div>';
   h+='<div class="tiny muted" style="margin-top:6px">'+(left>=3?UT('bt.battleHtml'):left===2?UT('bt.battleHtml.2'):UT('bt.battleHtml.3'))+(B.spent?UT('bt.battleHtml.4',{a:fmt(B.spent)}):'')+'</div>';
   if(B.ordRound!==B.round){B.ordRound=B.round;B.order=stressTier()>=1?shuffle([0,1,2]):[0,1,2]}   // 疲憊以上：每回合小中大的位置打亂（07zzi_stress.js）
   const LB=[UT('bt.battleHtml.5'),UT('bt.battleHtml.6'),UT('bt.battleHtml.7')];
@@ -391,7 +393,7 @@ function battleEnd(){
   const msg=UT('bt.msg',{a:win?btSay(cid,'win'):B.spent?btSay(cid,'lose'):TX('battle.chat'),b:gain})+friendTip(cid);   // 好感 100 的商人朋友講出官員軟肋（07zz_friends.js）
   const es=escortSettle(cid),side=es!==null?es:chanceMeetRoll(cid);   // 同行朋友引見（07zzb_escort.js）；沒有同行時擲拜訪巧遇（07zza_chancemeet.js）
   UI.render();refreshSheet();
-  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),side+requestHtml(cid,msg));return}
+  if(win&&n&&r.aff>=FRIEND_AFF&&reqList(cid).length){UI.showInfo(UT('bt.battleEnd.7',{a:nameOf(cid)}),side+requestHtml(cid,msg,btBlush(B)));return}
   if(side){UI.showInfo(UT('cm.title',{a:nameOf(cid)}),side+'<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+esc(msg)+'</div></div><button class="pixel-btn btn-sm" data-act="reqDone" style="margin-top:6px">'+UT('cm.ok')+'</button>');return}
   UI.hideInfo();toast(msg,4200);BT=null;
 }
@@ -428,9 +430,9 @@ function reqList(cid){
   const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 商人請託：調貨、銷貨、臨時打工、代售與脫手（07x_dealers.js）
   return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).filter(f=>!(f.apply&&favorSkip(f,n))).concat(foreignReg(n)?[]:specialList(cid));   // 外地官員沒有特殊請託
 }
-function requestHtml(cid,msg){
+function requestHtml(cid,msg,blush){   // blush：拜訪打穿後延續這一場的臉紅（第三百四十三節）
   const L=reqList(cid);
-  return '<div style="display:flow-root">'+portraitHtml(cid,56)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>f.info?'<div class="irow" style="margin-top:4px"><b class="small">'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc||'')+'</div></div>':'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
+  return '<div style="display:flow-root">'+portraitHtml(cid,56,blush?{blush}:undefined)+'<div class="notice tiny">'+UT('bt.requestHtml.2',{a:esc(msg),b:L.map(f=>f.info?'<div class="irow" style="margin-top:4px"><b class="small">'+esc(f.name)+'</b><div class="tiny muted">'+esc(f.desc||'')+'</div></div>':'<div class="irow" style="margin-top:4px"><div class="row"><b class="small">'+esc(f.name)+'</b><button class="pixel-btn btn-sm btn-gold" data-act="reqAsk" data-cid="'+cid+'" data-k="'+UT('bt.requestHtml',{a:f.k,b:esc(f.desc||'')})+'</div></div>').join('')});
 }
 ACT.reqDone=()=>{BT=null;UI.hideInfo()};
 /** 解仇：先挑一位仇人（在世的仇人都列出，不分城市）。 */
