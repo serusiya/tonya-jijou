@@ -1016,6 +1016,8 @@ const ODDS={
   ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、件數上限（本城每旬需求的幾倍，warCap）、最少件數、開價（依官階：基準價倍數，不低於平時牌價的幾倍；越高階越好，第三百五十一節）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:{4:[1.6,2.0],5:[2.0,2.4],6:[2.4,2.8]},warFloor:{4:1.2,5:1.5,6:1.8},warCap:12,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
+  ,hanabi:{name:'川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節）：大番頭提議的現款門檻、三檔出資、知名度（大事件）、七月中旬全城買氣加成',need:50000,cost:[1000,3000,5000],fame:[1,2,3],demand:[0.1,0.2,0.3]}
+  ,villa:{name:'別邸（07zzzzzzzzzzz_villa，第三百六十節）：興建與三次改建的現款門檻、每次費用、別邸設宴費用與好感倍數（依階段）、客人最低官階、外地遠國奉行所官員來的機率、整場風聲',need:[100000,150000,200000,250000],cost:8000,feast:[500,750,1000,1250],mult:[1,1.3,1.6,1.9],rank:4,far:0.1,heat:0.1}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
   ,goyo:{name:'帝都御用品（07zzzzzzz_kenjo，第三百三十四節）：最多選幾項、相場進貨上限（本城需求的幾成，再乘番頭加成）',max:2,buy:0.1}
   ,reassign:{name:'改派（07zz_reassign，第三百三十六節）：好感門檻、冷卻旬數、上岸直接當番頭所需年資；能力門檻沿用 enlist.stat',aff:50,cool:9,bantoTenure:24}
@@ -1643,6 +1645,16 @@ LINES.staffChat={
     kid:['「小的打小在店裡長大，這裡就是小的的家。」']
   }
 };
+/** 川開大花火（07zzzzzzzzzzzz_hanabi）：大番頭提議。 */
+LINES.hanabi={
+  ask:['東家，七月中旬就是川開了。今年要不要出資放幾發花火？煙火一亮，全城都知道是貴號出的錢。','川開將近，各家大戶都在籌花火的錢。貴號要不要也出一份？煙火一放，街上的人都出門了，買氣也跟著旺。']
+};
+/** 別邸（07zzzzzzzzzzz_villa）：大番頭建議、設宴開場、貴客的話。 */
+LINES.villa={
+  ask:['東家，帳上的銀子已經堆過十萬兩了。不如在店頂加蓋一層別邸，紙窗格子，往後招待高官也體面。','十萬兩擺在帳上不會生崽。小的斗膽建議，在店頂加蓋一層樓，請貴客上來飲宴。'],
+  open:['店頂別邸點起燈，紙窗一片金黃，貴客拾級而上。','席設三樓，推開格子窗看得見半座城，樓下市聲隱隱傳上來。'],
+  thank:['想不到鬧市裡還有這等清幽，貴號有心了。','在這上頭喝酒，連城樓都看得見，今晚痛快。','這間座敷布置得雅，改日本官再來叨擾。','酒好、景好、主人更好，這份情本官記下了。','難得一夜清閒，多謝款待。']
+};
 /** 貴人訂貨（07zzu_patron.js）：{g}＝貨名、{w}＝節慶或歲末。 */
 LINES.patron={
   official:['{w}要備些體面的禮，聽說貴號有好{g}，本官想訂一些。','{w}將至，府上要用{g}。交給貴號，本官放心。','這回{w}的節禮，就用貴號的{g}吧。價錢好說。'],
@@ -1927,6 +1939,38 @@ const UI_TXT={
   'visit.knockSecret':'叩、叩……',
   /* —— 頂欄、首頁、相場、商路、說明視窗（06_ui） —— */
   'top.age':'{n} {a} 歲',
+  /* 川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節） */
+  'hb.ask.t':'🎆 大番頭的建議',
+  'hb.ask.eff':'七月中旬川開，出資放花火：小檔知名度 +1、全城買氣 +10%；中檔 +2、+20%；大檔 +3、+30%。買氣只在放花火那一旬。',
+  'btn.hanabi.1':'小檔（{a} 兩）',
+  'btn.hanabi.2':'中檔（{a} 兩）',
+  'btn.hanabi.3':'大檔（{a} 兩）',
+  'btn.hanabiNo':'今年不辦',
+  /* 別邸（07zzzzzzzzzzz_villa，第三百六十節） */
+  'villa.ask.t':'🏯 大番頭的建議',
+  'villa.ask.eff':'在店頂加蓋一層紙窗格子樓當別邸，花 {c} 兩，施工一旬。往後可以在別邸設宴招待高官；不蓋的話，私宅頁也能隨時再蓋。',
+  'btn.villaBuild':'興建別邸（{c} 兩）',
+  'btn.villaRe':'改建（{c} 兩）',
+  'btn.villaLater':'再說吧',
+  'btn.villaNeed':'現款滿 {a} 兩才能動工',
+  'btn.villaFeast':'別邸設宴（{c} 兩·行動 1）',
+  'villa.card.t':'🏯 別邸',
+  'villa.card.none':'店頂還沒加蓋。蓋一層紙窗格子樓當別邸，往後可以請高官上來飲宴。',
+  'villa.card.work':'工匠正在店頂動工，下一旬落成。',
+  'villa.card.reWork':'別邸正在改建，下一旬完工。',
+  'villa.card.lv':'{a}。設宴一次請 {n} 位四階以上的官員，偶爾有外地的遠國奉行所官員同來；每旬一次，{c} 兩。',
+  'villa.card.build':'興建：{a}。現款滿 {need} 兩才能動工，花 {c} 兩。',
+  'villa.card.re':'下一次改建：{a}。現款滿 {need} 兩才能動工，花 {c} 兩。',
+  'villa.lv.1':'木格子別邸',
+  'villa.lv.2':'紅殼格子',
+  'villa.lv.3':'銀灰格子',
+  'villa.lv.4':'亮金格子',
+  'villa.bond':'別邸宴客',
+  'villa.log':'別邸設宴，好感 +{a}',
+  'villa.gain':'好感 +{a}',
+  'villa.fresh':'初次結識',
+  'villa.far':'外地',
+  'villa.result':'🏯 別邸設宴（{a} 位貴客）',
   /* 取得名號的演出（07zzzzzzzzzz_title，第三百五十六節）；{f}＝屋號 */
   'tt.kyo':'京商',
   'tt.kyo.why':'獻上五組，帝都回信嘉許，{f}從此名列京商。',
@@ -3210,6 +3254,9 @@ const UI_TXT={
   'spend.gmFine':'菓子折未報告罰款',
   'spend.gmLevy':'御用金',
   'spend.retail':'零售商賠償',
+  'spend.hanabi':'川開花火出資',
+  'spend.villa':'別邸工事',
+  'spend.villaFeast':'別邸設宴',
   'spend.gmMediate':'調停同業糾紛',
   'gmeet.meetTalkHtml':'仇人',
   'gmeet.meetTalkHtml.2':'同業',
@@ -4310,6 +4357,18 @@ function UT(key,vars){
  *  人物開口說的話在 01d_lines.js；按鈕與選項在 01e_ui_text.js；費用在 01b_costs.js。
  * ===================================================================== */
 const MSG_TXT={
+  /* —— 川開大花火（第三百六十四節） —— */
+  'hb.short':'現款不足，這一檔要 {a} 兩。',
+  'hb.paid':'出資 {a} 兩，七月中旬川開放花火。',
+  /* —— 別邸（07zzzzzzzzzzz_villa，第三百六十節） —— */
+  'villa.need':'現款要滿 {a} 兩才能動工。',
+  'villa.start':'工匠上了店頂，別邸下一旬落成。',
+  'villa.reStart':'別邸開始改建，下一旬完工。',
+  'villa.feastDone':'這一旬已經在別邸設過宴了。',
+  'villa.short':'現款不足，別邸設宴要 {a} 兩。',
+  'villa.none':'本城眼下沒有四階以上的官員請得來。',
+  'villa.fx':'貴客登上店頂別邸……',
+  'villa.fxTitle':'別邸設宴',
   /* —— buyGoods —— */
   'buyGoods.1':'請輸入進貨數量',
   'buyGoods.2':'倉庫容量不足（已存 {invUsed}，已下單待到貨 {pendingQty}，倉庫共可放 {invCap}）',
@@ -5328,6 +5387,15 @@ const NEWS_TXT={
   "bk.heir":"🏮【別家】「{b}」由「{n}」接手，照舊聽本家吩咐。",
   "kj.openN":"👑【帝都獻上】普請方的「{n}」大人上門：帝都有意廣蒐天下名品，各行的上等貨湊齊一組就能呈上。",
   "kj.giveN":"👑【帝都獻上】貴號向帝都呈上{s}的名品：{a}。",
+  "hb.payN":"🎆【川開】{f}出資 {a} 兩，七月中旬川開要放大花火。",
+  "hb.showN":"🎆【川開】【{c}】川開大花火，{f}出資 {a} 兩，夜空滿是煙火，全城出門看熱鬧（知名度 +{b}）。",
+  "hb.histN":"「{f}」出資 {a} 兩放川開大花火",
+  "villa.startN":"🏯【別邸】{f}請來工匠，在店頂加蓋一層別邸。",
+  "villa.reStartN":"🏯【別邸】{f}的店頂別邸又動工改建了。",
+  "villa.doneN":"🏯【別邸】{f}店頂的別邸落成，屋頂撒下年糕，街坊擠滿了門前。",
+  "villa.reN":"🏯【別邸】{f}的別邸改建完工（{a}），屋頂又撒了一回年糕。",
+  "villa.histN":"「{f}」在店頂加蓋別邸",
+  "villa.reHistN":"「{f}」改建店頂別邸",
   "kj.hist":"「{f}」向帝都獻上{s}的名品",
   "kj.newProd":"👑【帝都獻上】【{c}】開始出產{a}，說是帝都派人來教的。",
   "kj.m5N":"👑【帝都獻上】帝都回信：京畿的門向貴號敞開了。",
@@ -5354,7 +5422,7 @@ const NEWS_FMT={head:/^[^【]*【[^】]*】/,tagEnd:/^[^】]*】/,paren:/（[^�
  *  NEWS_HIDE：旬報「本旬大事」不重列（另有卡片或來訪視窗）。NEWS_MOVE：旬報優先列出的人事異動。
  *  NEWS_SEA／NEWS_LAND：忘年會上優先由船長／飛腳開口的話題。 */
 const NEWS_CAT={
-  firm:["kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
+  firm:["hb.showN","villa.doneN","villa.reN","kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["kj.newProd","bk.dapan","dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
   official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
@@ -5387,6 +5455,8 @@ const CHANGELOG=[
     '注文與卸留請負送貨出發時，回程委託金最多 5,000 兩，跟委託採買一樣。',
     '修正貴人訂貨的訂單說明裡出現亂碼文字的問題。',
     '定約掛賣設定更新：資產大了以後，三個方案的數量也會照多、中、少拉開，不再三檔差不多。',
+    '新增別邸：現款達十萬兩時，大番頭會建議在店頂加蓋一層紙窗格子樓；之後現款每多五萬兩可以再改建，格子由木色漸次換成紅、銀灰、亮金。別邸可以設宴招待四階以上的高官，偶爾有外地官員同來；設宴那一旬入夜，紙窗透出燈光人影。',
+    '新增川開大花火：現款達五萬兩時，大番頭每年七月上旬會提議出資放花火，分小、中、大三檔；七月中旬那一旬入夜放花火，檔次越高煙火越盛，知名度與全城買氣也加得越多。',
   ]},
   {date:'2026年11月19日',items:[
     '修正遠國奉行所的官職出缺後一直沒人補的問題：現在有缺就會補上新官。',
@@ -7778,6 +7848,7 @@ function drawScene(now){
   const dmy=daimyoScene();if(dmy)dmySync(now);                                        // 大名行列過境當旬（05g_daimyoscene.js）
   drawTree(c,12,58,season(),now);drawTree(c,308,62,season(),now);
   drawHouse(c,102,40,now,season());
+  villaDraw(c,now);                                                                    // 別邸、店面翻修、竹架、撒年糕（05i_villa）
   const slots=[[34,75],[226,75],[274,75]];
   for(let i=0;i<Math.min(G.wh.n,slots.length);i++){const [x,y]=slots[i];drawKura(c,x,y,i===0);}
   yardBack(c,now,dt);                                                                  // 焦痕與煙、烏鴉、貓（05h_yard）
@@ -7788,11 +7859,12 @@ function drawScene(now){
     drawPerson(c,e.x,e.y,Object.assign({frame:e.moving?e.frame:0,moving:e.moving,faceLeft:e.dir<0,pose:e.pose,pt:e.pt,bow:nod},L,{small:L.small||e.kind==='kid'&&e.age<12}));
     if(e.pose==='sweep')yardBroom(c,e);                                               // 冬天掃雪（05h_yard）
   }}));
-  yardPeople(now,dt).forEach(x=>list.push(x));                                        // 荷車、馬隊、飛腳（05h_yard）
+  yardPeople(now,dt).forEach(x=>list.push(x));
+  villaPeople(now).forEach(x=>list.push(x));                                          // 落成撒年糕的街坊（05i_villa）                                        // 荷車、馬隊、飛腳（05h_yard）
   if(fest){festPeople().forEach(x=>list.push(x));const m=festMikoshi(now,dt);if(m)list.push(m)}
   if(dmy)dmyPeople(now,dt).forEach(x=>list.push(x));
   list.sort((a,b)=>a.y-b.y).forEach(x=>x.draw(c));
-  drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);
+  drawFence(c);drawParts(c,now,dt);drawTint(c);if(fest)festTint(c);{const hb=hanabiLv();if(hb){c.fillStyle='#08102cd0';c.fillRect(0,0,320,180)}villaNight(c,now,hb);if(hb){hanabiDraw(c,now,hb);doorLanterns(c)}}   // 別邸夜宴、川開花火（05i_villa、05j_hanabi）
   // 庫存提示牌
   c.fillStyle='#1a1612cc';c.fillRect(2,166,96,12);c.fillStyle='#f4ece1';c.font='8px DotGothic16,monospace';c.textBaseline='top';
   c.fillText(UT('scene.store',{n:G.wh.n,u:invUsed(),c:invCap()}),5,168);
@@ -8696,6 +8768,96 @@ function shopProp(c,x,y,dir,prop){
   }})});
   return out;
 }}
+
+/* ═════ [05i_villa] ═════ */
+/* ======================= 別邸：店頂加蓋一層紙窗格子樓（第三百六十節） =======================
+ *  有別邸（G.villa.lv≥1）時，原本屋頂的上兩層屋瓦換成一層細木格子後面是紙窗的樓（參考金澤茶屋街二樓），有自己的瓦頂。
+ *  格子顏色照階段：1 木頭色 → 2 紅殼紅 → 3 銀灰 → 4 亮金（屋脊兩端加小金鯱）。
+ *  施工中（G.villa.work）搭竹架、兩名木匠在屋頂敲打；落成那一旬（joto）東家在屋頂撒年糕，門前街坊跳著接；
+ *  設宴那一旬（feastT）整個畫面轉成夜晚，紙窗透出金黃色的光與坐著的人影（villaNight，疊在色調之後）。 */
+const VILLA_FX={mochi:[],next:0};
+const VILLA_COL=[null,{f:'#7a5434',d:'#4b3428',l:'#9a7048',n:'#4b3020'},{f:'#a8322a',d:'#6e1f1a',l:'#c9524a',n:'#6e1f1a'},{f:'#8a9099',d:'#555b63',l:'#a9aeb5',n:'#4a4f56'},{f:'#f2c84b',d:'#b8862a',l:'#fff0a0',n:'#8a6420'}];
+/** 加蓋的那一層（x、y 同 drawHouse）。 */
+function villaStorey(c,x,y,lv){
+  const C=VILLA_COL[lv],tile='#26303a',tileHi='#3b4854';
+  R_(c,x+4,y-21,98,19,C.d);R_(c,x+6,y-19,94,15,'#efe6cf');
+  for(let i=0;i<32;i++)R_(c,x+6+i*3,y-19,1,15,C.f);
+  R_(c,x+6,y-19,94,1,C.d);R_(c,x+6,y-5,94,1,C.d);
+  [x+4,x+36,x+68,x+100].forEach(px=>R_(c,px,y-21,2,19,C.d));
+  R_(c,x+4,y-3,98,1,C.l);
+  R_(c,x-1,y-25,108,4,tile);R_(c,x+8,y-28,90,3,tile);R_(c,x+30,y-30,46,2,'#2b211d');
+  for(let i=0;i<18;i++)R_(c,x+i*6,y-25,1,4,tileHi);
+  if(lv>=4){R_(c,x+28,y-32,3,3,'#f2c84b');R_(c,x+75,y-32,3,3,'#f2c84b')}   // 金鯱
+  if(season()==='winter'){R_(c,x-1,y-26,108,1,'#fff');R_(c,x+8,y-29,90,1,'#fff')}
+}
+function villaDraw(c,t){
+  const V=G&&G.villa;if(!V)return;
+  const x=102,y=40,lv=V.lv||0;
+  if(lv>=1)villaStorey(c,x,y,lv);
+  const top=lv>=1?y-25:y-14;   // 屋頂上站人的高度
+  if(V.work){
+    [x-4,x+30,x+76,x+110].forEach(px=>R_(c,px,top-6,1,y+58-(top-6),'#b8a35c'));
+    [top-4,y+6,y+30].forEach(py=>R_(c,x-4,py,115,1,'#a8924f'));
+    drawPerson(c,x+34,top,{small:true,pose:'knock',pt:t,cloth:'#55606e',cloth2:'#e8dcc4',variant:1});
+    drawPerson(c,x+70,top,{small:true,pose:'knock',pt:t+250,cloth:'#6d5744',cloth2:'#e8dcc4',variant:2,faceLeft:true});
+    R_(c,x+30,y+56,14,3,'#a37b4f');R_(c,x+31,y+54,12,2,'#b98c5a');   // 木料
+  }
+  if(V.joto===G.turn&&!V.work&&lv>=1){
+    drawPerson(c,x+52,top,{small:true,pose:'wave',pt:t,cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true});
+    if(t>=VILLA_FX.next){VILLA_FX.mochi.push({x:x+52,y:top-14,vx:(Math.random()-0.5)*50,vy:-30-Math.random()*20,t0:t});VILLA_FX.next=t+260+Math.random()*300}
+    VILLA_FX.mochi=VILLA_FX.mochi.filter(m=>t-m.t0<2600);
+    VILLA_FX.mochi.forEach(m=>{const s=(t-m.t0)/1000,px=m.x+m.vx*s,py=m.y+m.vy*s+60*s*s;if(py<150)R_(c,px,py,2,2,'#fbf7ee')});
+  }
+}
+/** 設宴那一旬：轉成夜晚，紙窗透出金黃色的光與人影。畫在色調之後。 */
+function villaNight(c,t,dark){
+  const V=G&&G.villa;if(!V||!(V.lv>=1)||V.work||V.feastT!==G.turn)return;
+  const x=102,y=40,C=VILLA_COL[V.lv];
+  if(!dark){c.fillStyle='#08102ccc';c.fillRect(0,0,320,180)}   // 放花火的那一旬已經轉暗，不再疊一層
+  {const g=c.createRadialGradient(x+53,y-10,6,x+53,y-10,70);g.addColorStop(0,'#ffb43a55');g.addColorStop(1,'#ffb43a00');c.fillStyle=g;c.fillRect(x-30,y-50,170,90)}
+  R_(c,x+6,y-19,94,15,'#ffd35e');
+  for(let i=0;i<24;i++)R_(c,x+6+i*4,y-19,1,15,'#d9952e');
+  const n=Math.min(5,V.lv+1),GX=[13,31,49,67,85],sx='#5a3408';
+  for(let i=0;i<n;i++){const hx=x+GX[i]+Math.round(Math.sin(t/800+i*1.7)*1.5);R_(c,hx+2,y-17,5,5,sx);R_(c,hx+3,y-18,3,1,sx);R_(c,hx+1,y-12,7,1,sx);R_(c,hx,y-11,9,6,sx);R_(c,hx-1,y-8,11,3,sx);if(i%2)R_(c,hx+9,y-14+Math.round(Math.sin(t/300+i)),2,4,sx)}
+  R_(c,x+6,y-19,94,1,C.n);R_(c,x+6,y-5,94,1,C.n);[x+4,x+36,x+68,x+100].forEach(px=>R_(c,px,y-21,2,19,C.n));
+  if(!dark)doorLanterns(c);
+}
+/** 夜裡門口兩盞燈籠。 */
+function doorLanterns(c){const x=102,y=40;[[x+1,y+36],[x+105,y+36]].forEach(([lx,ly])=>{R_(c,lx,ly,5,8,'#ffb03a');c.fillStyle='#ffb03a33';c.beginPath();c.arc(lx+2.5,ly+4,11,0,6.3);c.fill()})}
+/** 落成那一旬門前的街坊（跳著接年糕）；畫進院子的人物排序。 */
+function villaPeople(now){
+  const V=G&&G.villa;if(!V||V.joto!==G.turn||V.work||!(V.lv>=1))return [];
+  const P=[[96,128],[110,134],[124,126],[140,132],[156,128],[170,135],[88,138]];
+  return P.map(([px,py],i)=>({y:py,draw:c=>drawPerson(c,px,py,{pose:'hop',pt:now+i*170,variant:i,faceLeft:i%2===0,small:i===3})}));
+}
+
+/* ═════ [05j_hanabi] ═════ */
+/* ======================= 川開大花火（第三百六十四節） =======================
+ *  放花火那一旬（hanabiLv()>0）整個畫面轉成夜晚；小＝主屋右側零星小花火，中＝左右兩側較大，大＝兩側加從左下發射、拖亮尾巴劃拋物線越過主屋、在右邊天空炸開的雙層大玉。 */
+const HB_FX={fw:[],sh:[],next:0,nextArc:0};
+const HB_COL=['#ff6b6b','#ffd166','#6bd3ff','#c77dff','#9cff6b','#ffffff'];
+function hbBurst(x,y,r,col,n,t0){HB_FX.fw.push({x,y,r,col,n,t0})}
+function hanabiDraw(c,now,lv){
+  const pk=()=>HB_COL[Math.floor(Math.random()*HB_COL.length)];
+  if(now>=HB_FX.next){
+    (lv===1?['R']:['L','R']).forEach(sd=>{if(Math.random()<0.8){const x=sd==='L'?20+Math.random()*70:230+Math.random()*70;hbBurst(x,12+Math.random()*30,lv>=2?20:13,pk(),lv>=2?16:11,now+Math.random()*400)}});
+    HB_FX.next=now+(lv===1?1500:lv===2?1000:800)+Math.random()*600;
+  }
+  if(lv>=3&&now>=HB_FX.nextArc){HB_FX.sh.push({t0:now,dur:1600,tx:200+Math.random()*90,ty:10+Math.random()*16,col:pk()});HB_FX.nextArc=now+2200+Math.random()*900}
+  HB_FX.sh=HB_FX.sh.filter(s=>{
+    const a=(now-s.t0)/s.dur;if(a>=1){hbBurst(s.tx,s.ty,34,s.col,26,now);hbBurst(s.tx,s.ty,18,'#fff6c0',14,now);return false}
+    const x0=10,y0=104,H=46;
+    for(let k=0;k<14;k++){const b=Math.max(0,a-k*0.015),xx=x0+(s.tx-x0)*b,yy=y0+(s.ty-y0)*b-H*Math.sin(Math.PI*b);c.globalAlpha=1-k/14;R_(c,xx,yy,k<2?2:1.5,k<2?2:1.5,k<2?'#fff':'#ffcf70')}
+    c.globalAlpha=1;return true;
+  });
+  HB_FX.fw=HB_FX.fw.filter(f=>now-f.t0<1800);
+  HB_FX.fw.forEach(f=>{
+    if(now<f.t0)return;const a=(now-f.t0)/1800,r=3+Math.min(1,a*2.2)*f.r;c.globalAlpha=Math.max(0,1-a);
+    for(let i=0;i<f.n;i++){const th=i/f.n*Math.PI*2;R_(c,f.x+Math.cos(th)*r,f.y+Math.sin(th)*r+a*a*10,1.5,1.5,f.col);if(f.r>20)R_(c,f.x+Math.cos(th)*r*0.6,f.y+Math.sin(th)*r*0.6+a*a*8,1,1,f.col)}
+    if(a<0.1){c.fillStyle=f.col+'44';c.beginPath();c.arc(f.x,f.y,f.r*0.8,0,6.3);c.fill()}
+    c.globalAlpha=1;
+  });
+}
 
 'use strict';
 /* ★檔案總覽：主介面（首頁、大盤、商路）
@@ -19999,6 +20161,137 @@ function titleNext(after){
   const f=INFO_AFTER;INFO_AFTER=null;_h.apply(this,arguments);   // 先關視窗，名號演完再接原本的後續
   titleNext(f);
 }}
+
+/* ═════ [07zzzzzzzzzzz_villa] ═════ */
+/* ======================= 別邸（店頂庭園）與店舖改建（第三百六十節） =======================
+ *  - 現款第一次達到 10 萬兩：大番頭上門建議興建（旬報後來訪）；不答應時私宅頁「設宴」上方常駐別邸卡。沒有大番頭也照樣出現卡。
+ *  - 興建與三次改建各 8,000 兩（現款）；門檻看按下時的現款：10 萬、15 萬、20 萬、25 萬。施工一旬，下一次推進落成，落成那一旬屋頂撒年糕。
+ *  - 別邸設宴：一旬一次、扣 1 行動；費用 500／750／1,000／1,250；本城四階以上官員隨機 1～4 位（不認識的當場結識），
+ *    約一成多來一位外地遠國奉行所官員（不佔名額）。好感每位 +4～8 乘倍數 1／1.3／1.6／1.9；整場風聲 +0.1。
+ *  - 遷居：別邸不能帶走，新城從頭來（大番頭會再建議）。
+ *  狀態 G.villa{lv,asked,seen,work:{lv,t},joto,feastT}；數值 ODDS.villa；文字 villa.*。畫面在 05_scene.js〔05i_villa〕。 */
+const VLO=()=>ODDS.villa;
+const villaS=()=>G.villa||(G.villa={lv:0,asked:false,seen:false,work:null,joto:-1,feastT:-1});
+const villaLv=()=>(G&&G.villa&&G.villa.lv)||0;
+const villaChief=()=>(G.emps||[]).find(e=>e.rank==='chief'&&!jailedEmp(e)&&!empLent(e));
+/** 下一階的門檻與費用；已到頂回傳 null。 */
+function villaNext(){const V=villaS(),O=VLO(),k=V.lv;if(k>=O.need.length)return null;return {lv:k+1,need:O.need[k],cost:O.cost}}
+const villaFeastCost=()=>VLO().feast[Math.max(0,villaLv()-1)];
+function villaTick(log){
+  if(!G||G.ended)return;
+  const V=villaS();
+  if(V.work&&G.turn>V.work.t){                     // 施工一旬後落成
+    V.lv=V.work.lv;V.work=null;V.joto=G.turn;
+    const t=NEWS(V.lv===1?'villa.doneN':'villa.reN',{f:moveYago(),a:UT('villa.lv.'+V.lv)});pushNews(t);log.push(t);
+    const ct=homeCity();G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS(V.lv===1?'villa.histN':'villa.reHistN',{f:moveYago()})});
+  }
+  if(G.silver>=VLO().need[0])V.seen=true;
+  if(!V.asked&&V.lv===0&&!V.work&&G.silver>=VLO().need[0]){const b=villaChief();if(b){V.asked=true;queueFaceEvent({type:'villaAsk',empId:b.id,turn:G.turn})}}
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);villaTick(log);return r}}
+FACE_TITLE.villaAsk='villa.ask.t';
+FACE_EXT.villaAsk=()=>{
+  const V=villaS();if(V.lv>0||V.work)return null;
+  return {line:TX('villa.ask'),effect:UT('villa.ask.eff',{c:fmt(VLO().cost)}),
+    buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="villaBuild" data-face="1">'+UT('btn.villaBuild',{c:fmt(VLO().cost)})+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.villaLater')+'</button></div>'};
+};
+ACT.villaBuild=el=>{
+  const V=villaS(),N=villaNext();if(!N||V.work)return;
+  if(G.silver<N.need){toast(MSG('villa.need',{a:fmt(N.need)}));return}
+  payPublic('spend.villa',N.cost);V.work={lv:N.lv,t:G.turn};V.seen=true;
+  pushNews(NEWS(N.lv===1?'villa.startN':'villa.reStartN',{f:moveYago()}));
+  sfx.coin();toast(MSG(N.lv===1?'villa.start':'villa.reStart'),4200);save();
+  if(el&&el.dataset.face)UI.hideInfo();
+  UI.render();sceneSync&&sceneSync(true);
+};
+/** 私宅頁「設宴」上方的別邸卡。 */
+function villaCard(){
+  const V=G&&G.villa;if(!V||(!V.seen&&!V.lv&&!V.work))return '';
+  const N=villaNext(),lv=V.lv;
+  let h='<div class="card"><b>'+UT('villa.card.t')+'</b>';
+  if(V.work)h+='<div class="tiny muted" style="margin-top:2px">'+UT(V.work.lv===1?'villa.card.work':'villa.card.reWork')+'</div>';
+  else if(!lv)h+='<div class="tiny muted" style="margin-top:2px">'+UT('villa.card.none')+'</div>';
+  else h+='<div class="tiny muted" style="margin-top:2px">'+UT('villa.card.lv',{a:UT('villa.lv.'+lv),n:lv,c:fmt(villaFeastCost())})+'</div>';
+  if(lv&&!V.work){
+    const done=V.feastT===G.turn;
+    h+='<button class="pixel-btn btn-sm btn-gold" style="margin-top:4px;width:100%" data-act="villaFeast"'+(done?' disabled':'')+'>'+(done?UT('btn.feastDone'):UT('btn.villaFeast',{c:fmt(villaFeastCost())}))+'</button>';
+  }
+  if(N&&!V.work){
+    const ok=G.silver>=N.need;
+    h+='<div class="tiny" style="margin-top:6px">'+UT(N.lv===1?'villa.card.build':'villa.card.re',{a:UT('villa.lv.'+N.lv),need:fmt(N.need),c:fmt(N.cost)})+'</div>'
+      +'<button class="pixel-btn btn-sm" style="margin-top:3px;width:100%" data-act="villaBuild"'+(ok?'':' disabled')+'>'+(ok?UT(N.lv===1?'btn.villaBuild':'btn.villaRe',{c:fmt(N.cost)}):UT('btn.villaNeed',{a:fmt(N.need)}))+'</button>';
+  }
+  return h+'</div>';
+}
+{const _b=banquetCard;banquetCard=function(){return villaCard()+_b.apply(this,arguments)}}
+/** 別邸設宴。 */
+ACT.villaFeast=()=>{
+  const V=villaS(),lv=V.lv;if(!lv||V.work)return;
+  if(V.feastT===G.turn){toast(MSG('villa.feastDone'));return}
+  const cost=villaFeastCost();if(G.silver<cost){toast(MSG('villa.short',{a:fmt(cost)}));return}
+  const pool=cityNpcs(G.cityId).filter(n=>n.role==='official'&&n.pos&&n.pos.court!=='region'&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!awayNow(n)&&!isEnemy(n.cid));
+  if(!pool.length){toast(MSG('villa.none'));return}
+  if(!spendAP())return;
+  V.feastT=G.turn;payPublic('spend.villaFeast',cost);addHeat(VLO().heat);
+  const guests=shuffle(pool.slice()).slice(0,lv);
+  if(chance(VLO().far)){const F=Object.values(G.world.npcs).filter(n=>foreignReg(n)&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!isEnemy(n.cid));if(F.length)guests.push(pick(F))}
+  const mult=VLO().mult[lv-1];
+  playFx('walk',MSG('villa.fx'),MSG('villa.fxTitle'),()=>{
+    let h='<div class="notice tiny">'+esc(TX('villa.open'))+'</div>';
+    const lines=shuffle(Ls('villa.thank').slice());
+    guests.forEach((n,k)=>{
+      const r=R(n.cid),far=foreignReg(n),gain=Math.max(1,Math.round(rint(ERRAND_GAIN[0],ERRAND_GAIN[1])*mult)),fresh=!r.bond;
+      if(fresh){r.bond={mult:0.8,label:UT('villa.bond'),introId:null};r.met=true;r.seen=true;if(!r.fameGot){r.fameGot=true;addFame(0.8)}}
+      addKnown(n.cid);setAff(r,clamp(r.aff+gain,0,100));logRel(n.cid,UT('villa.log',{a:gain}));
+      h+='<div class="card" style="display:flow-root">'+portraitHtml(n.cid,40)+'<b>'+esc(nameOf(n.cid))+'</b> <span class="tag gray">'+esc(posTitle(n))+'</span> <span class="tag red">'+UT('villa.gain',{a:gain})+'</span>'
+        +(fresh?' <span class="tag gold">'+UT('villa.fresh')+'</span>':'')+(far?' <span class="tag navy">'+UT('villa.far')+'</span>':'')
+        +'<div class="small" style="margin-top:3px">'+esc(lines[k%lines.length])+'</div></div>';
+    });
+    sfx.gift();save();UI.showInfo(UT('villa.result',{a:guests.length}),h);UI.render();sceneSync&&sceneSync(true);
+  },1000);
+};
+/* 遷居：別邸不能帶走，新城從頭來 */
+{const _m=moveClearCity;moveClearCity=function(){const r=_m.apply(this,arguments);G.villa=null;return r}}
+
+/* ═════ [07zzzzzzzzzzzz_hanabi] ═════ */
+/* ======================= 川開大花火（第三百五十九節第三段、第三百六十四節） =======================
+ *  - 每年七月上旬，現款 ≥ 5 萬兩、有大番頭時，大番頭在旬報後上門提議出資：小 1,000／中 3,000／大 5,000 兩，或不辦。沒有大番頭那一年不辦。
+ *  - 七月中旬放花火：知名度 +1／+2／+3（大事件），全城買氣 +10%／+20%／+30%（只那一旬，`sumoMult` 外層），瓦版、城史各一則。
+ *  - 畫面在 05_scene.js〔05j_hanabi〕：那一旬轉成夜晚；小＝主屋右側小花火，中＝兩側，大＝兩側加從左邊發射、拋物線到右邊炸開的大玉。
+ *  狀態 G.hanabi{y,lv,done}；數值 ODDS.hanabi；文字 hb.*。 */
+const HBO=()=>ODDS.hanabi;
+/** 本旬是放花火的那一旬：回傳檔次 1～3，沒有就 0。 */
+const hanabiLv=()=>{const H=G&&G.hanabi;return H&&H.y===G.year&&H.lv>0&&G.month===7&&G.cycle===2?H.lv:0};
+function hanabiTick(log){
+  if(!G||G.ended)return;
+  const H=G.hanabi;
+  if(G.month===7&&G.cycle===1&&G.silver>=HBO().need&&(!H||H.y!==G.year)){
+    const b=villaChief();G.hanabi={y:G.year,lv:0,done:false};
+    if(b)queueFaceEvent({type:'hanabiAsk',empId:b.id,turn:G.turn});
+  }
+  const lv=hanabiLv();
+  if(lv&&!G.hanabi.done){
+    G.hanabi.done=true;const ct=homeCity(),f=addFame(HBO().fame[lv-1],'major');
+    const t=NEWS('hb.showN',{f:moveYago(),c:ct.name,a:fmt(HBO().cost[lv-1]),b:f});pushNews(t);log.push(t);
+    G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS('hb.histN',{f:moveYago(),a:fmt(HBO().cost[lv-1])})});
+  }
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);hanabiTick(log);return r}}
+{const _s=sumoMult;sumoMult=function(c){const lv=hanabiLv();return _s.apply(this,arguments)*(lv?1+HBO().demand[lv-1]:1)}}   // 放花火那一旬全城買氣
+FACE_TITLE.hanabiAsk='hb.ask.t';
+FACE_EXT.hanabiAsk=()=>{
+  const H=G.hanabi;if(!H||H.y!==G.year||H.lv>0)return null;
+  const O=HBO(),btn=i=>{const ok=G.silver>=O.cost[i];return '<button class="pixel-btn btn-sm'+(i===2?' btn-gold':'')+'" data-act="hanabiPick" data-lv="'+(i+1)+'"'+(ok?'':' disabled')+'>'+UT('btn.hanabi.'+(i+1),{a:fmt(O.cost[i])})+'</button>'};
+  return {line:TX('hanabi.ask'),effect:UT('hb.ask.eff'),
+    buttons:'<div class="grid2">'+btn(0)+btn(1)+'</div><div class="grid2" style="margin-top:4px">'+btn(2)+'<button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.hanabiNo')+'</button></div>'};
+};
+ACT.hanabiPick=el=>{
+  const H=G.hanabi,lv=+el.dataset.lv,O=HBO();if(!H||H.y!==G.year||H.lv>0||!(lv>=1&&lv<=3))return;
+  const amt=O.cost[lv-1];if(G.silver<amt){toast(MSG('hb.short',{a:fmt(amt)}));return}
+  payPublic('spend.hanabi',amt);H.lv=lv;
+  pushNews(NEWS('hb.payN',{f:moveYago(),a:fmt(amt)}));
+  sfx.coin();toast(MSG('hb.paid',{a:fmt(amt)}),4200);save();UI.hideInfo();UI.render();
+};
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
