@@ -933,7 +933,7 @@ const ODDS={
   out:{name:'外城友人（07zzn_outfriend.js）：幾旬沒往來就淡忘、幾旬起標久未聯絡；牽線機率與起始好感、順道問候好感；寄信的送信費、好感增量、最多加到；作客與來訪的好感門檻；來訪機率、好感、減壓；作客的好感、減壓、經友人引見的機率、每旬路費（私房錢）、沒有大番頭時每旬短少的現款比例；注文的好感門檻、每旬出現機率、加價範圍（好感門檻～100）、幾旬內要出發、交齊加好感、失約扣好感；遠國奉行引薦的起始好感',meetP:0.25,meetAff:20,greetAff:5,letterFee:50,letterGain:[4,8],letterCap:60,visitAff:60,comeP:0.03,comeAff:3,comeRelief:5,tripAff:10,tripRelief:10,tripMeetP:0.3,tripGold:20,awayLoss:0.02,chumonAff:40,chumonP:0.10,chumonUp:[0.1,0.3],chumonTurns:6,chumonDone:5,chumonFail:20,introAff:40,forget:72,forgetWarn:54},
   kake:{name:'定約掛賣（07zzm_kake.js）：解鎖市佔、請託好感、主動上門的好感與機率、每旬標記人數、合約旬數、每張合約佔有效總資產、三個方案的數量與價格倍率、手付比例、不超過旅商身代的比例、每旬不超過單項庫存上限的比例、大單門檻（台詞用）；貸倒機率、番頭商才每幾點減多少、災情年倍數、旅商不在時的貸倒機率、貸倒扣好感；拖一季的機率（好感 60 時）與旬數；失約扣好感',unlock:0.10,aff:60,selfAff:100,selfP:0.03,marks:[3,5],turns:9,frac:1/9,plans:[{k:'lo',q:1.2,p:0.9},{k:'mid',q:1,p:0.95},{k:'hi',q:0.8,p:1}],dep:0.2,worthCap:0.3,capHalf:0.5,bigTotal:5000,bad:0.05,skillPer:20,skillCut:0.01,disasterX:2,goneBad:0.5,badAff:20,late:0.10,lateTurns:9,failAff:30,mining:{frac:1/5,worthCap:0.6}},
   evil:{name:'惡德（07zzl_tripev2.js；判定與懲罰見 ODDS.komon）：闕所、暗殺、放火、栽贓、打壓；失手或事敗的倍率',kessho:5,assassin:3,arson:3,frame:2,suppress:2,failMul:0.5},
-  heat:{name:'風聲來源（只算與官員的往來與勾結）：拜訪官員出過價（visit 一般與清官、visitGreedy 貪官）、寄信給貪官、一般請託開口、賣捌口利、吉原夜宴有役人入席；own＝勾結類請託各有自己的風聲、不另加；none＝不加風聲的請託（壓風聲與正當申報）',visit:0.1,visitGreedy:0.15,favor:0.1,sellAid:0.5,feast:0.5,own:['sellAid','rconsignSea','rconsignLand','rkokusho','suspend','rwreck','rrobbed'],none:['hush','kogi','rvisit','fireAid','cargoAid','theftAid']},
+  heat:{name:'風聲來源（只算與官員的往來與勾結）：拜訪官員出過價（visit 一般與清官、visitGreedy 貪官）、寄信給貪官、一般請託開口、賣捌口利、吉原夜宴有役人入席；own＝勾結類請託各有自己的風聲、不另加；none＝不加風聲的請託（壓風聲與正當申報）',visit:0.1,visitGreedy:0.15,favor:0.1,sellAid:0.5,feast:0.5,own:['sellAid','rconsignSea','rconsignLand','rkokusho','suspend','rwreck','rrobbed'],none:['hush','kogi','rvisit','fireAid','cargoAid','theftAid','rbuyRelief']},
   inspect:{name:'町奉行查貨（每旬）',base:0.30,perFame:0.25,min:0.05,max:0.30},
   regionRevoke:{name:'風聲≥5 時，巡見使吊銷許可（每旬）',p:0.03,heat:5},
   /* —— 走私 —— */
@@ -1016,6 +1016,7 @@ const ODDS={
   ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、件數上限（本城每旬需求的幾倍，warCap）、最少件數、開價（依官階：基準價倍數，不低於平時牌價的幾倍；越高階越好，第三百五十一節）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:{4:[1.6,2.0],5:[2.0,2.4],6:[2.4,2.8]},warFloor:{4:1.2,5:1.5,6:1.8},warCap:12,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
+  ,buyRelief:{name:'買付苦情（巡見使六階，第三百七十二節）：作用旬數、大口買付月份還能買到的份量（平常的幾成）、同一位巡見使的冷卻旬數',turns:18,share:1/3,cd:18}
   ,dline:{name:'產地直達線（07zzzzzzzzzzzzz_dline，第三百六十八節）：建立費、為期旬數、建立後幾旬開始送、每旬運量（海運上限的幾成）、運費加成、遇險（委託採買的幾成）、大口買付月份與凶作的份量倍數、連幾旬付不出就斷線',fee:5000,turns:36,wait:3,load:0.5,freight:0.1,risk:1/3,buyout:0.5,famine:0.5,failMax:2}
   ,mty:{name:'町年寄寄合（07zzzzzzzzzzzzzz_mty，第三百六十八節）：任命的名望階與淨資產、寄合月份（上旬）、決議作用旬數、運量倍數、遇險倍數、旅商人改投你那一邊的好感門檻與機率、連續缺席幾次卸任與扣的知名度、卸任後幾旬不再任命、引見時好感至少',tier:4,worth:100000,months:[2,5,8,11],turns:9,cap:1.2,riskCut:0.5,swayAff:60,sway:0.5,miss:3,missFame:3,cool:36,introAff:30}
   ,hanabi:{name:'川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節）：大番頭提議的現款門檻、三檔出資、知名度（大事件）、七月中旬全城買氣加成',need:50000,cost:[1000,3000,5000],fame:[1,2,3],demand:[0.1,0.2,0.3]}
@@ -2780,7 +2781,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但菓子折的得標金要分成三份，向三系的六階大人分頭報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
-  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為町年寄，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
+  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。受不了時可以當面向巡見使訴苦（買付苦情），他會下令那個地區半年內大盤不得買斷，還留三分之一給其他商人。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為町年寄，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。船長、飛腳到外地採買，有時會替你牽線認識當地的商人；這些外城友人見不到面，平日靠書信往來（每封用一次行動），交情深了可以寫信探聽他那個地區下一次的大口買付，也可以去他那裡作客（寄信、作客都在主畫面的「外城出遊」），他也會來訪，或來信訂貨，請你派人整批送去。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
@@ -4364,6 +4365,10 @@ const UI_TXT={
   'fav.rlineSea.d':'長期借用此地區的船隊，替你的產地直達線走海路。只能當面請託。',
   'fav.rlineLand':'專線御免（道中）',
   'fav.rlineLand.d':'長期借用此地區的驛路，替你的產地直達線走陸路。只能當面請託。',
+  'fav.rbuyRelief':'買付苦情',
+  'fav.rbuyRelief.d':'向巡見使哭訴大盤霸道、把產地買斷。他下令此地區 {n} 旬內大盤收購不得買斷，逢大口買付照樣派得出人，本業貨還能買到平常的三分之一。只能當面請託。',
+  'br.card.t':'⚖️ 買付苦情',
+  'br.card.row':'【{r}】大口買付不得買斷，還剩 {n} 旬',
   'dl.ask.t':'🚚 大番頭的建議',
   'dl.ask.eff':'在本地區以外挑一處產地，拿齊那個地區的四張許可，花 {a} 兩打點沿路，就能拉一條直達線，每旬固定送貨。之後在商路頁上方設定。',
   'dl.renew.t':'🚚 直達線滿一年',
@@ -5060,6 +5065,7 @@ const MSG_TXT={
   'avAdd.noTb':'沒有{r}，排不了自動排程。',
   'avAdd.ok':'{crew}「{n}」排進自動排程：每旬往【{c}】，委託金 {b} 兩。',
   'avDel.ok':'{n}的排程取消了，回來後聽你吩咐。',
+  'br.grant':'巡見使下令：【{r}】{n} 旬內大盤收購不得買斷，要留三分之一給其他商人。',
   'dl.built':'直達線打點好了，往【{c}】的人已經出發，{n} 旬後開始送貨。',
   'dl.same':'這一條就是現在跑的線。',
   'dl.renewed':'【{c}】的直達線續了一年。',
@@ -5557,6 +5563,8 @@ const NEWS_TXT={
   "av.broke":"{i}【自動排程】現款付不出{n}往【{c}】的委託金 {b} 兩，這一旬沒出發，排程取消。",
   "av.pause":"{i}【自動排程】{r}不在，這一路的排程暫停。",
   "av.resume":"{i}【自動排程】{r}又在店裡了，這一路的排程照常。",
+  "br.grantN":"⚖️【巡見使】巡見使下令【{r}】{n} 旬內大盤收購不得買斷，須留三分之一給其他商人。",
+  "kind.relief":"【{region}】{month}正逢大口買付，但巡見使有令不得買斷，還留了三分之一給其他商人。",
   "dl.buildN":"🚚【直達線】{f}打通沿路關係，拉了一條從【{c}】來的產地直達線。",
   "dl.arrive":"🚚【直達線】從【{c}】送到 {w}，付 {a} 兩。",
   "dl.wreck":"🚚【直達線】從【{c}】來的貨路上遇險，{w} 都沒了；這一趟不付錢。",
@@ -5629,6 +5637,8 @@ const CHANGELOG=[
     '新增町年寄：名望四階、身家十萬兩起由町奉行所任命。每季召開寄合，與兩位旅商人議定下一季加強海路或陸路、打擊海賊山賊或防火防盜，還能結識路過的外地奉行所高官、當面請託。',
     '新增產地直達線：船長、飛腳都雇滿後，大番頭會建議在外地拉一條直達線，拿齊產地地區的四張許可（其中兩張要當面向外地高官請託）就能建立，每旬固定送貨進倉。',
     '委託採買設定更新：同一個月去同一座城，只有買到貨的商隊才會讓後去的人可買量打折，空手回來的不算。',
+    '新增巡見使請託「買付苦情」：當面向巡見使訴苦後，他所在的地區半年內大盤收購不得買斷，逢大口買付照樣能派人，還能買到平常三分之一的本業貨。',
+    '町年寄設定更新：寄合列席與路過來訪的外地官員，也會有六階的高官。',
     '修改背景資料',
   ]},
   {date:'2026年11月20日',items:[
@@ -8985,7 +8995,7 @@ function shopProp(c,x,y,dir,prop){
  *  有別邸（G.villa.lv≥1）時，原本屋頂的上兩層屋瓦換成一層細木格子後面是紙窗的樓（參考金澤茶屋街二樓），有自己的瓦頂。
  *  格子顏色照階段：1 木頭色 → 2 紅殼紅 → 3 銀灰 → 4 亮金（屋脊兩端加小金鯱）。
  *  施工中（G.villa.work）搭竹架、兩名木匠在屋頂敲打；落成那一旬（joto）東家在屋頂撒年糕，門前街坊跳著接；
- *  設宴那一旬（feastT）整個畫面轉成夜晚，紙窗透出金黃色的光與坐著的人影（villaNight，疊在色調之後）。 */
+ *  設宴之後、還沒再扣行動之前（feastT、feastAp，第三百七十一節）整個畫面轉成夜晚，紙窗透出金黃色的光與坐著的人影（villaNight，疊在色調之後）。 */
 const VILLA_FX={mochi:[],next:0};
 const VILLA_COL=[null,{f:'#7a5434',d:'#4b3428',l:'#9a7048',n:'#4b3020'},{f:'#a8322a',d:'#6e1f1a',l:'#c9524a',n:'#6e1f1a'},{f:'#8a9099',d:'#555b63',l:'#a9aeb5',n:'#4a4f56'},{f:'#f2c84b',d:'#b8862a',l:'#fff0a0',n:'#8a6420'}];
 /** 加蓋的那一層（x、y 同 drawHouse）。 */
@@ -9020,9 +9030,11 @@ function villaDraw(c,t){
     VILLA_FX.mochi.forEach(m=>{const s=(t-m.t0)/1000,px=m.x+m.vx*s,py=m.y+m.vy*s+60*s*s;if(py<150)R_(c,px,py,2,2,'#fbf7ee')});
   }
 }
-/** 設宴那一旬：轉成夜晚，紙窗透出金黃色的光與人影。畫在色調之後。 */
+/** 晚宴畫面：設宴那一旬、而且之後還沒再扣行動（第三百七十一節；舊存檔沒有 feastAp 時整旬都是）。 */
+function villaFeastOn(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.feastT===G.turn&&(V.feastAp===undefined||G.ap===V.feastAp))}
+/** 晚宴畫面：轉成夜晚，紙窗透出金黃色的光與人影。畫在色調之後。 */
 function villaNight(c,t,dark){
-  const V=G&&G.villa;if(!V||!(V.lv>=1)||V.work||V.feastT!==G.turn)return;
+  const V=G&&G.villa;if(!villaFeastOn())return;
   const x=102,y=40,C=VILLA_COL[V.lv];
   if(!dark){c.fillStyle='#08102ccc';c.fillRect(0,0,320,180)}   // 放花火的那一旬已經轉暗，不再疊一層
   {const g=c.createRadialGradient(x+53,y-10,6,x+53,y-10,70);g.addColorStop(0,'#ffb43a55');g.addColorStop(1,'#ffb43a00');c.fillStyle=g;c.fillRect(x-30,y-50,170,90)}
@@ -9036,7 +9048,7 @@ function villaNight(c,t,dark){
 /** 夜裡門口兩盞燈籠。 */
 function doorLanterns(c){const x=102,y=40;[[x+1,y+36],[x+105,y+36]].forEach(([lx,ly])=>{R_(c,lx,ly,5,8,'#ffb03a');c.fillStyle='#ffb03a33';c.beginPath();c.arc(lx+2.5,ly+4,11,0,6.3);c.fill()})}
 /** 別邸夜宴那一旬、又沒放花火：天黑了，院子和街上只留保鏢巡視（最多兩名；沒僱保鏢就沒人）。 */
-function villaQuiet(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.feastT===G.turn&&!(typeof hanabiLv==='function'&&hanabiLv()))}
+function villaQuiet(){return villaFeastOn()&&!(typeof hanabiLv==='function'&&hanabiLv())}
 /** 落成那一旬門前的街坊（跳著接年糕）；畫進院子的人物排序。 */
 function villaPeople(now){
   const V=G&&G.villa;if(!V||V.joto!==G.turn||V.work||!(V.lv>=1))return [];
@@ -11035,7 +11047,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch,auto){
   if(mode==='land'){if(G.flags.horse>0)d--;if(G.flags.road)d--;d=Math.max(1,d)}
   if(!free)payPublic('spend.voyage|'+dest.id,budget);
   const bo=buyoutSnapshot(dest);
-  G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:destId,mode,eta:d,eta0:d,risk:voyRisk(cap,d,mode)*(mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1),feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:budget,budget,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,buyout:bo.hit,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:true,unl:unloadProds(destId)});
+  G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:destId,mode,eta:d,eta0:d,risk:voyRisk(cap,d,mode)*(mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1),feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:budget,budget,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,buyout:bo.hit,buyRelief:!!bo.relief,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:true,unl:unloadProds(destId)});
   return {ok:true,msg:MSG('sendVoyage.ok',{crew:NM('crew',mode),name:cap.name,budget:fmt(budget),dest:dest.name,d})};
 }
 /** 歸來結算。 */
@@ -11045,7 +11057,8 @@ function resolveVoyage(s,log){
   if(s.rankLate&&!(s.supplyRank>0))s.supplyRank=originTripRank(s.origId,s.supplyY,s.supplyM);   // 順位在歸來時才定（第三百七十節）
   let took=false;                                       // 這一趟在當地買到貨（本業或夾帶的他行貨）
   const prod=(dest?[...new Set(cityProdsBase(dest).concat(s.unl||[]))]:[]).filter(n=>COMM_MAP[n]);   // 國中物卸留以出發旬判定（s.unl）
-  const ownP=buyout?[]:prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
+  const relief=buyout&&!!s.buyRelief;                    // 買付苦情：大盤不能買斷，本業貨還有平常的三分之一（第三百七十二節）
+  const ownP=buyout&&!relief?[]:prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
   const fee=Math.round(budget*voyFee(Math.max(1,s.eta0||4))*(s.feeMul||1));
   let spend=Math.floor((budget-fee)*clamp(0.78+0.18*cs/100+(rnd()-0.5)*0.06,0.7,0.98));
   let carry=null;                                       // 唐物藥種夾帶：先從委託金留出這筆錢，再做主要採買
@@ -11071,13 +11084,14 @@ function resolveVoyage(s,log){
   let refund=budget-fee,income=0;
   const L=E.lines,pc=x=>Math.round(x*100)+'%',wn=wreck?(robbed&&mode==='sea'?UT('voy.wnPirate'):mode==='sea'?UT('voy.wn'):UT('voy.wn.2')):'';
   L.push(s.out?NEWS('r4.out.head',{dest:E.dest,b:budget?UT('r4.out.headBuy'):''})+note:NEWS('kind.1',{dest:E.dest,note}));
+  if(relief&&kind==='own')L.push(NEWS('kind.relief',{region:REG_NAME(s.buyoutRegion),month:buyoutMonth(s.buyoutM,s.buyoutRegion)}));
   if(s.out)income+=outboundSettle(s,E,log);             // 卸留請負：去程遇險、交貨領錢（07zz_regfavor4.js）
   if(kind==='own'&&ownP.length){
     /* 同一地產好幾樣本業貨時多半偏重或集中採買，只有少數均衡；某樣碰到產地貨源、庫存上限或倉位而買不滿，
        剩下的錢與運量再依權重分給其他還能買的貨（直到錢、運量或倉位用完）。
        單趟運量以「裝載比例」計：每樣貨用掉 數量÷該貨單趟上限 的船艙（或馬背）。 */
     const its=shuffle(ownP).map(n=>{const c=COMM_MAP[n],si=originSupplyForShip(s,dest,n),pf=clamp(0.80-0.30*cs/100+(rnd()-0.5)*ODDS.originSupply.priceJitter,0.5,0.95)*(s.cheap?0.9:1)*originSupplyPrice(si);
-      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:originSupplyCap(n,mode,si,s.supplyRank||1),room:Infinity,q:0}});   // 不設單項上限，只受倉位 wh 限制（第三百五十一節）
+      return {n,c,si,pf,unit:c.base*pf,cp:capOf(n,mode),src:Math.floor(originSupplyCap(n,mode,si,s.supplyRank||1)*(relief?ODDS.buyRelief.share:1)),room:Infinity,q:0}});   // 不設單項上限，只受倉位 wh 限制（第三百五十一節）
     let money=spend-xMoney,load=xc?1-VK.xLoad:1,wh=Math.max(0,invCap()-invUsed()),act=its.filter(x=>x.room>0&&x.src>0);   // 夾帶他行貨時，先留出那份委託金與艙位
     const mix=makeVoyageMix(act);
     if(mix.kind!=='single')L.push(UT('voy.mix.'+mix.kind,{name:mix.main?mix.main.c.short:''}));
@@ -11266,12 +11280,14 @@ function buyoutKnown(rid,y,m){
   const B=buyoutEnsure();return !!(B&&B.y===y&&B.known[rid]&&B.known[rid][m]);
 }
 const buyoutKnownNow=rid=>buyoutActive(rid,G.year,G.month,G.cycle)&&buyoutKnown(rid,G.year,G.month);
-const buyoutDepartureBlocked=dest=>!!(dest&&buyoutKnownNow(dest.region_id));
+const buyoutDepartureBlocked=dest=>!!(dest&&buyoutKnownNow(dest.region_id)&&!buyReliefOn(dest.region_id));   // 買付苦情期間照樣能派人（第三百七十二節）
 /** 出發時把判定固著在船隊上，之後跨月也不改變結果。 */
 function buyoutSnapshot(dest){
   const y=G.year,m=G.month,rid=dest.region_id;
-  return {hit:buyoutActive(rid,y,m,G.cycle),y,m,rid};
+  return {hit:buyoutActive(rid,y,m,G.cycle),y,m,rid,relief:buyReliefOn(rid)};
 }
+/** 買付苦情（第三百七十二節）：巡見使下令大盤不能買斷，這個地區還在期限內就回 true。G.buyRelief={地區:到期的旬}。 */
+function buyReliefOn(rid){return !!(G&&G.buyRelief&&G.buyRelief[rid]>G.turn)}
 /** 返航或探聽時揭露；返航若已跨年，只保留在日誌，不回寫新年度排程。 */
 function buyoutDiscover(y,rid,m){
   const B=buyoutEnsure();if(!B||B.y!==y||!buyoutActive(rid,y,m))return false;
@@ -16136,7 +16152,7 @@ ACT.ujGo=()=>{
   const st=statsOfEmp(cap),risk=voyRisk(cap,d,J.mode)*(J.mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1);
   const bo=buyoutSnapshot(ct);
   G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:ct.id,mode:J.mode,eta:d,eta0:d,risk,riskGo:risk,feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:b,budget:b,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,
-    buyout:bo.hit,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:b>0,unl:unloadProds(ct.id),out:{name:J.name,q,unit,job:J.id}});
+    buyout:bo.hit,buyRelief:!!bo.relief,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:b>0,unl:unloadProds(ct.id),out:{name:J.name,q,unit,job:J.id}});
   UI.s.uj={};save();
   playFx(J.mode==='sea'?'boat':'cart',MSG('voyage.depart'),ct.name,()=>{toast(MSG('r4.ujGo',{n:cap.name,g:COMM_MAP[J.name].short,q,c:ct.name,d}),4200);UI.render()},1000);
 };
@@ -18400,7 +18416,7 @@ ACT.cmGo=el=>{
   const st=statsOfEmp(cap),risk=voyRisk(cap,d,o.mode)*(o.mode==='sea'&&G.flags.escort>0?ODDS.voyageRisk.escortMul:1);
   const bo=buyoutSnapshot(ct);
   G.ships.push({id:G.turn+'_'+Math.floor(rnd()*1e5),entrust:true,origId:ct.id,mode:o.mode,eta:d,eta0:d,risk,riskGo:risk,feeMul:(G.flags.taxfree>0?0.5:1)*(1-Math.min(0.3,0.1*(G.flags.charter||0))),cheap:G.flags.cheap>0,cost:b,budget:b,start:G.turn,capt:cap.id,captName:cap.name,cs:st.commerce_skill,ca:st.audacity_courage,
-    buyout:bo.hit,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:b>0,unl:unloadProds(ct.id),out:{name:o.name,q:o.qty,unit,chumon:o.id}});
+    buyout:bo.hit,buyRelief:!!bo.relief,buyoutY:bo.y,buyoutM:bo.m,buyoutRegion:bo.rid,supplyY:G.year,supplyM:G.month,supplyRank:0,rankLate:b>0,unl:unloadProds(ct.id),out:{name:o.name,q:o.qty,unit,chumon:o.id}});
   o.sent=true;delete (UI.s.cm||{})[o.id];save();
   playFx(o.mode==='sea'?'boat':'cart',MSG('voyage.depart'),ct.name,()=>{toast(UT('cm.go',{n:cap.name,g:COMM_MAP[o.name].short,q:o.qty,c:ct.name,d}),4200);UI.render()},1000);
 };
@@ -20514,7 +20530,7 @@ function titleNext(after){
  *  - 別邸設宴：一旬一次、扣 1 行動；費用 500／750／1,000／1,250；本城四階以上官員隨機 1～4 位（不認識的當場結識），
  *    約一成多來一位外地遠國奉行所官員（不佔名額）。好感每位 +4～8 乘倍數 1／1.3／1.6／1.9；整場風聲 +0.1。
  *  - 遷居：別邸不能帶走，新城從頭來（大番頭會再建議）。
- *  狀態 G.villa{lv,asked,seen,work:{lv,t},joto,feastT}；數值 ODDS.villa；文字 villa.*。畫面在 05_scene.js〔05i_villa〕。 */
+ *  狀態 G.villa{lv,asked,seen,work:{lv,t},joto,feastT,feastAp}；數值 ODDS.villa；文字 villa.*。畫面在 05_scene.js〔05i_villa〕。 */
 const VLO=()=>ODDS.villa;
 const villaS=()=>G.villa||(G.villa={lv:0,asked:false,seen:false,work:null,joto:-1,feastT:-1});
 const villaLv=()=>(G&&G.villa&&G.villa.lv)||0;
@@ -20577,7 +20593,7 @@ ACT.villaFeast=()=>{
   const pool=cityNpcs(G.cityId).filter(n=>n.role==='official'&&n.pos&&n.pos.court!=='region'&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!awayNow(n)&&!isEnemy(n.cid));
   if(!pool.length){toast(MSG('villa.none'));return}
   if(!spendAP())return;
-  V.feastT=G.turn;payPublic('spend.villaFeast',cost);addHeat(VLO().heat);
+  V.feastT=G.turn;V.feastAp=G.ap;payPublic('spend.villaFeast',cost);   // feastAp：設宴後剩的行動點數；再扣行動，晚宴畫面就結束（第三百七十一節）addHeat(VLO().heat);
   const guests=shuffle(pool.slice()).slice(0,lv);
   if(chance(VLO().far)){const F=Object.values(G.world.npcs).filter(n=>foreignReg(n)&&n.pos.rank>=VLO().rank&&alive(n.cid)&&!jailed(n)&&!isEnemy(n.cid));if(F.length)guests.push(pick(F))}
   const mult=VLO().mult[lv-1];
@@ -20846,11 +20862,11 @@ function mtyGuard(){const E=mtyEffNow();return !!(E&&E.sec==='fire')}
 const mtyNow=()=>{const M=G&&G.mty;return M&&M.on&&M.mt&&M.mt.t===G.turn?M.mt:null};
 /** 兩位旅商人席次：本城身代最高的兩位。 */
 const mtySeats=()=>cityNpcs(G.cityId).filter(n=>n.role==='guest'&&alive(n.cid)&&!n.hired&&!jailed(n)).sort((a,b)=>bzWorth(b.cid)-bzWorth(a.cid)).slice(0,2).map(n=>n.cid);
-/** 遠國奉行所四、五階官員。 */
-const mtyOffs=(local,rank)=>Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&alive(n.cid)&&!jailed(n)&&(local?regOfNpc(n)===homeRegion():regOfNpc(n)!==homeRegion())&&(rank?n.pos.rank===rank:n.pos.rank>=4&&n.pos.rank<=5));
+/** 遠國奉行所四到六階官員。 */
+const mtyOffs=(local,rank)=>Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&alive(n.cid)&&!jailed(n)&&(local?regOfNpc(n)===homeRegion():regOfNpc(n)!==homeRegion())&&(rank?n.pos.rank===rank:n.pos.rank>=4&&n.pos.rank<=6));   // 四到六階（第三百七十二節起含六階）
 /** 建立本旬寄合：本地區一位、外地同階兩位（不同地區）。 */
 function mtyNew(log){
-  const M=mtyS(),R0=shuffle([4,5]);let local=null,far=[];
+  const M=mtyS(),R0=shuffle([4,5,6]);let local=null,far=[];
   for(const rk of R0){
     const L=mtyOffs(true,rk),F=shuffle(mtyOffs(false,rk)),seen=new Set(),F2=F.filter(n=>{const r=regOfNpc(n);if(seen.has(r))return false;seen.add(r);return true});
     if(L.length&&F2.length>=2){local=pick(L).cid;far=F2.slice(0,2).map(n=>n.cid);break}
@@ -21016,6 +21032,28 @@ function mtyCard(){
   return h;
 }
 {const _r=SHEETS.regional;SHEETS.regional=function(){const o=_r.apply(this,arguments);o.html=mtyCard()+o.html;return o}}
+
+/* ═════ [07zzzzzzzzzzzzzzz_buyrelief] ═════ */
+/* ======================= 買付苦情（第三百七十二節） =======================
+ *  - 巡見使（六階）的一般請託：好感 60、打勝、只能當面開口（外地巡見使要靠町年寄寄合引見或路過來訪），好感 −10，不收錢、不加風聲；同一位巡見使冷卻十八旬。
+ *  - 效果：巡見使所在的地區十八旬內，大口買付不能買斷：已知正逢買付照樣能派人，本業貨的可買量是平常的三分之一（07i_voyage 的 resolveVoyage）。
+ *  - 不管大盤制裁的封鎖（停貨二），也不影響直達線（逢買付照舊送一半）。
+ *  狀態 G.buyRelief={地區:到期的旬}；數值 ODDS.buyRelief；文字 fav.rbuyRelief、br.*。 */
+REG_FAVORS.push({k:'rbuyRelief',rank:6,cd:ODDS.buyRelief.cd,faceOnly:true,pos:['reg_10']});
+REG_FAVORS.filter(f=>f.k==='rbuyRelief').forEach(f=>{f.name=UT('fav.rbuyRelief');f.desc=UT('fav.rbuyRelief.d',{n:ODDS.buyRelief.turns})});
+REG_FAVOR.rbuyRelief=n=>{
+  const rid=regOfNpc(n);G.buyRelief=G.buyRelief||{};G.buyRelief[rid]=Math.max(G.buyRelief[rid]||0,G.turn+ODDS.buyRelief.turns);
+  const t=NEWS('br.grantN',{r:REG_NAME(rid),n:ODDS.buyRelief.turns});pushNews(t);
+  return MSG('br.grant',{r:REG_NAME(rid),n:ODDS.buyRelief.turns});
+};
+/** 遠國奉行所面板頂端：還在期限內的買付苦情。 */
+function buyReliefCard(){
+  const B=G&&G.buyRelief;if(!B)return '';
+  const L=Object.entries(B).filter(([r,t])=>t>G.turn);if(!L.length)return '';
+  return '<div class="card" style="background:#eef2f8"><b class="small">'+UT('br.card.t')+'</b>'+L.map(([r,t])=>'<div class="tiny">'+UT('br.card.row',{r:esc(REG_NAME(r)),n:t-G.turn})+'</div>').join('')+'</div>';
+}
+{const _r=SHEETS.regional;SHEETS.regional=function(){const o=_r.apply(this,arguments);o.html=buyReliefCard()+o.html;return o}}
+
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
