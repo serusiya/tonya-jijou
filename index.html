@@ -419,7 +419,7 @@ const IMG_KOMON="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAQABAAD/2wBDACgcHiMe
  * ===================================================================== */
 const NAMES={
   /* 店員職位（晉升階梯＋專職） */
-  rank:{apprentice:'丁稚',clerk:'手代',banto:'番頭',chief:'大番頭',captain:'船長',courier:'飛腳',guard:'保鏢'},
+  rank:{apprentice:'丁稚',clerk:'手代',banto:'番頭',chief:'大番頭',captain:'船長',courier:'飛腳',guard:'保鏢',landBanto:'陸運番頭',seaBanto:'海運番頭'},
   /* 季節、旬 */
   season:{spring:'春',summer:'夏',autumn:'秋',winter:'冬'},
   cycle:['上旬','中旬','下旬'],
@@ -892,7 +892,7 @@ const ODDS={
   rivalShip:{name:'同業每旬實際出貨（隨機波動與超賣）／相場進貨係數（參加協議者享聯合採購價；未參加者照市價）',base:0.58,otherShare:0.005,lo:0.7,hi:1.1,normalPow:4,overP:0.1,overRival:0.05,mulMin:1.8,mulMax:2.6,news:0.4,buyMult:0.93},
   priceWin:{name:'收市價計算視窗（旬數）：必需品快漲快跌，奢侈品最慢',staple:3,normal:6,luxury:9},
   fest:{name:'節慶當旬需求倍率（一般貨／節慶搶手貨）',all:2,hot:2.5},
-  enlist:{name:'延攬熟人：各職階所需好感、各職能力下限、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,chief:80},stat:{clerk:{commerce_skill:40},banto:{commerce_skill:50},chief:{commerce_skill:50,integrity_loyalty:40},courier:{diplomacy_charm:50},captain:{audacity_courage:50},guard:{audacity_courage:50,integrity_loyalty:45}},   // stat：延攬各職的能力下限（比物色寬）
+  enlist:{name:'延攬熟人：各職階所需好感、各職能力下限、介紹人交情扣減、婉拒扣好感（07zz_enlist.js）',aff:{clerk:50,captain:50,courier:50,guard:50,banto:65,landBanto:65,seaBanto:65,chief:80},stat:{clerk:{commerce_skill:40},banto:{commerce_skill:50},landBanto:{commerce_skill:50},seaBanto:{commerce_skill:50},chief:{commerce_skill:50,integrity_loyalty:40},courier:{diplomacy_charm:50},captain:{audacity_courage:50},guard:{audacity_courage:50,integrity_loyalty:45}},   // stat：延攬各職的能力下限（比物色寬）
   introMin:1,introMax:2,refuse:2},
   drift:{name:'另謀高就：本城沒見過面的人才多於保留數時，每旬一人搬到別的城的機率',p:0.35,keep:12},
   roleShift:{name:'職業調整：每季第一旬，本城低於基本數的身分從多出的身分轉入一人（只轉沒見過面、手帳沒有的人）',base:{broker:2,guest:6,manager:4}},
@@ -1016,6 +1016,8 @@ const ODDS={
   ,gov:{name:'官府注文（07zzv_govorder.js，只給礦產）：官員好感門檻、最低官階；平時小單每旬上門機率、總值、旬數、牌價加成、可訂的貨（依官署）、交完好感；軍需大單每次軍需有人開口的機率、一年最多幾張、每張總值（依官階 4～6）、件數上限（本城每旬需求的幾倍，warCap）、最少件數、開價（依官階：基準價倍數，不低於平時牌價的幾倍；越高階越好，第三百五十一節）、交貨期限（旬）、交齊好感與知名度；失約扣好感',aff:60,rank:4,smallP:0.12,smallVal:[2000,5000],smallTurns:[3,4],smallMarkup:1.2,smallGoods:{administration:['prod_0402','prod_0401','prod_0406'],finance:['prod_0401','prod_0404']},smallAff:5,warP:0.5,warPerYear:2,warVal:{4:[8000,15000],5:[15000,25000],6:[25000,40000]},warMin:5,warPrice:{4:[1.6,2.0],5:[2.0,2.4],6:[2.4,2.8]},warFloor:{4:1.2,5:1.5,6:1.8},warCap:12,warTurns:[4,6],warAff:10,warFame:2,failAff:30}
   ,dapan:{name:'大盤制裁（07zzzz_dapan，第三百二十八節）：開局幾旬後開始判定、觸發市佔、連續穩定出貨幾旬、敲打與每段停貨的旬數、敲打答應時出貨上限（穩定供貨線的幾成）、謝禮（少賣那兩成貨值的幾成）、收手要連續幾旬、解除後冷卻旬數；停貨二大口買付的相鄰地區',after:72,share:0.25,streak:9,turns:9,cap:0.8,cut:0.2,gift:0.5,calm:3,cool:36,adj:{reg_north:['reg_east','reg_west','reg_central'],reg_east:['reg_south','reg_central','reg_north'],reg_west:['reg_north','reg_central','reg_south'],reg_south:['reg_east','reg_central','reg_west'],reg_central:['reg_north','reg_east','reg_west','reg_south']}}
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
+  ,dline:{name:'產地直達線（07zzzzzzzzzzzzz_dline，第三百六十八節）：建立費、為期旬數、建立後幾旬開始送、每旬運量（海運上限的幾成）、運費加成、遇險（委託採買的幾成）、大口買付月份與凶作的份量倍數、連幾旬付不出就斷線',fee:5000,turns:36,wait:3,load:0.5,freight:0.1,risk:1/3,buyout:0.5,famine:0.5,failMax:2}
+  ,mty:{name:'町年寄寄合（07zzzzzzzzzzzzzz_mty，第三百六十八節）：任命的名望階與淨資產、寄合月份（上旬）、決議作用旬數、運量倍數、遇險倍數、旅商人改投你那一邊的好感門檻與機率、連續缺席幾次卸任與扣的知名度、卸任後幾旬不再任命、引見時好感至少',tier:4,worth:100000,months:[2,5,8,11],turns:9,cap:1.2,riskCut:0.5,swayAff:60,sway:0.5,miss:3,missFame:3,cool:36,introAff:30}
   ,hanabi:{name:'川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節）：大番頭提議的現款門檻、三檔出資、知名度（大事件）、七月中旬全城買氣加成',need:50000,cost:[1000,3000,5000],fame:[1,2,3],demand:[0.1,0.2,0.3]}
   ,villa:{name:'別邸（07zzzzzzzzzzz_villa，第三百六十節）：興建與三次改建的現款門檻、每次費用、別邸設宴費用與好感倍數（依階段）、客人最低官階、外地遠國奉行所官員來的機率、整場風聲',need:[100000,150000,200000,250000],cost:8000,feast:[500,750,1000,1250],mult:[1,1.3,1.6,1.9],rank:4,far:0.1,heat:0.1}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
@@ -1572,6 +1574,18 @@ const LINES={
     reqLine:['來信收悉。你我相隔兩地，有什麼事，信裡直說無妨。','書狀已讀。若有需要本官照應之處，回信說明便是。','承蒙來函。路遠不便相見，所託之事，本官酌情辦理。']
   }
 };
+/** 產地直達線（第三百六十八節）：大番頭的建議與續約。 */
+LINES.dline={
+  ask:['東家，船長、飛腳都雇滿了。不如在外地挑一處產地，打通沿路關係，拉一條直達線，每旬固定送貨來，省得一趟一趟派人。','船隊馬幫都齊了，光靠委託採買太可惜。小的想替店裡在外地拉一條產地直達線，東家意下如何？'],
+  renew:['【{c}】那條直達線滿一年了。路都熟了，續下去不用再花打點的錢，要續嗎？','直達線跑滿一年，【{c}】那頭的人問還做不做。東家一句話，小的就去回覆。']
+};
+/** 町年寄寄合（第三百六十八節）：列席官員、旅商人、路過來訪的外地官員。 */
+LINES.mty={
+  open:['今日請諸位來，是要議一議下一季城裡的事。各位都是城裡有頭有臉的人，有話直說。','奉行大人託本官聽取町人的意見。運輸、治安兩件，諸位先議，議定了本官照辦。'],
+  seat:['貨要進得來、出得去，城才活得下去。','這一季外頭風浪不小，得好好議一議。','難得坐在一起，有話就攤開說吧。','城裡的事，咱們做買賣的最清楚。'],
+  intro:['這兩位是外地奉行所的大人，這幾日正好路過本城。往後各位到他們那頭做生意，也有個照應。','今日還有兩位遠客：外地奉行所的大人。趁這機會認識認識，日後好說話。'],
+  visit:['路過貴地，聽說你是此地的町年寄，特來拜會。這幾日都在城裡，有事可以來找本官。','公務路過，順道來看看。這一旬本官歇在奉行所，要談什麼，登門便是。']
+};
 const _lineAt=path=>path.split('.').reduce((o,k)=>o&&o[k],LINES);
 /** 取一句台詞（陣列則隨機挑一句），並代入 {佔位}。 */
 function TX(path,vars){
@@ -1772,7 +1786,7 @@ const UI_TXT={
   'btn.recruitFull':'店裡沒有空缺',
   'btn.enlist':'延攬為{r}',
   'btn.enlistOpen':'延攬{r}',
-  'enl.block':'<div class="card"><b class="small">🤝 延攬熟人</b><div class="tiny muted">跟人物熟了以後，可以請介紹人出面作保，延攬他到店裡任職。說合禮金 {a}·介紹人交情 -1～2·行動 1 點。好感手代、船長、飛腳、保鏢 ≥ 50，番頭 ≥ 65，大番頭 ≥ 80；不夠會被婉拒。能力要求比物色寬，熟人只要有幾分本事就能延攬。</div><div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:4px">{b}</div></div>',
+  'enl.block':'<div class="card"><b class="small">🤝 延攬熟人</b><div class="tiny muted">跟人物熟了以後，可以請介紹人出面作保，延攬他到店裡任職。說合禮金 {a}·介紹人交情 -1～2·行動 1 點。好感手代、船長、飛腳、保鏢 ≥ 50，番頭、陸運番頭、海運番頭 ≥ 65，大番頭 ≥ 80；不夠會被婉拒。能力要求比物色寬，熟人只要有幾分本事就能延攬。</div><div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:4px">{b}</div></div>',
   'enl.noVacancy':'<span class="tiny muted">店裡沒有空缺</span>',
   'enl.sheetTitle':'🤝 延攬{r}',
   'enl.sheetLead':'本城已結識、適任{r}的人，依好感排列。好感 ≥ {n} 才會答應；不夠會婉拒，好感 -2。評價以星數表示，未必準確。',
@@ -2622,7 +2636,7 @@ const UI_TXT={
   'reg.s.3':'無',
   'reg.l':'通用',
   'reg.REG_FAVORS':'陸運通行手形',
-  'reg.REG_FAVORS.2':'馬幫可通行本地區關所。',
+  'reg.REG_FAVORS.2':'馬幫可通行此地區關所；外地的也能寫書狀求。',
   'reg.REG_FAVORS.3':'入津御免',
   'reg.REG_FAVORS.4':'船隊可進本地區各港。',
   'reg.REG_FAVORS.5':'傳馬優先',
@@ -2766,11 +2780,11 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但菓子折的得標金要分成三份，向三系的六階大人分頭報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
-  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。',
+  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月派太多人去同一城，後去的人就買得少。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為町年寄，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。船長、飛腳到外地採買，有時會替你牽線認識當地的商人；這些外城友人見不到面，平日靠書信往來（每封用一次行動），交情深了可以寫信探聽他那個地區下一次的大口買付，也可以去他那裡作客（寄信、作客都在主畫面的「外城出遊」），他也會來訪，或來信訂貨，請你派人整批送去。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
-  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿；手代顧店頭，出貨價好一些；番頭管採購，能向相場多進貨；大番頭總管全店，還會替你問候人脈。船長、飛腳負責商路，保鏢守倉庫、護你出門。手代、番頭與船長、飛腳可以互相改派，船長的船跟著人走。店員會長進，也會動手腳，偶爾還會惹上麻煩；平常待他們好，比事後查帳有用：交情淺時給點零用錢，交情深了要常找來閒聊，閒聊時也會聊起以前的事；真正的心腹，閒聊時才會說出肯替你做的事。每種人手都只能先雇一名，要多雇，得先向官府申請許可；熟識的人才，也可以請介紹人作保延攬進店。',
+  'wiki.WIKI_GUIDE.14':'丁稚替你跑腿；手代顧店頭，出貨價好一些；番頭管採購，能向相場多進貨；大番頭總管全店，還會替你問候人脈。船長、飛腳負責商路，陸運、海運番頭替你排定他們的行程，保鏢守倉庫、護你出門。手代、番頭與船長、飛腳可以互相改派，船長的船跟著人走。店員會長進，也會動手腳，偶爾還會惹上麻煩；平常待他們好，比事後查帳有用：交情淺時給點零用錢，交情深了要常找來閒聊，閒聊時也會聊起以前的事；真正的心腹，閒聊時才會說出肯替你做的事。每種人手都只能先雇一名，要多雇，得先向官府申請許可；熟識的人才，也可以請介紹人作保延攬進店。',
   'wiki.WIKI_GUIDE.15':'🏛️ 官府',
   'wiki.WIKI_GUIDE.16':'城裡的官員分普請方、勘定方、吟味方三系，上面還有管整個地區的遠國奉行所。倉地、船株、人別帳、商株、海陸運入許可，都要經他們點頭；三系的資格要從低階官員辦起，一級一級往上，高官不越級。交情夠深，還能請他們幫忙：倉庫失火、遭竊，或貨在路上出事，當旬可以申報；高官更能替你開立新町、發專賣株、暫扣同業的株札，甚至把同業判闕所。官員各有性格與弱點，有人好打點，也有人會反過來勒索。',
   'wiki.WIKI_GUIDE.17':'🏮 節慶',
@@ -2898,7 +2912,7 @@ const UI_TXT={
   'lic.grantLic.2':'船長名額增為 {a} 名，一名船長帶一艘船。',
   'lic.grantLic.3':'飛腳名額增為 {a} 名，一名飛腳帶一支馬幫。',
   'lic.grantLic.4':'保鏢名額增為 {a} 名。',
-  'lic.grantLic.5':'手代可雇 {a} 名，番頭 {b} 名。',
+  'lic.grantLic.5':'手代可雇 {a} 名，番頭 {b} 名{c}。',
   'lic.tradeFavorName':'商株御免：{a}',
   'lic.tradeLockMsg':'四',
   'lic.tradeLockMsg.2':'三',
@@ -2910,7 +2924,7 @@ const UI_TXT={
   'lic.licCard.2':'船長 {a} 人',
   'lic.licCard.3':'飛腳 {a} 人',
   'lic.licCard.4':'保鏢 {a} 人',
-  'lic.licCard.5':'手代 {a} 人·番頭 {b} 人',
+  'lic.licCard.5':'手代 {a} 人·番頭 {b} 人{c}',
   'lic.licCard.6':'可以買賣',
   'lic.licCard.7':'御赦免狀',
   'lic.licCard.8':'{a} 張',
@@ -4340,7 +4354,135 @@ const UI_TXT={
   're.no.busy':'人在外頭，回來再說',
   're.no.tenure':'番頭要任職滿 {n} 旬',
   're.no.silver':'現款不夠造船',
-  're.wage':'月例 {a} 兩／旬'
+  're.wage':'月例 {a} 兩／旬',
+  're.no.auto':'排在自動排程裡，先取消排程',
+  're.no.dline':'佔在直達線上，換人或解約後再說',
+  /* 產地直達線（第三百六十八節） */
+  'spend.dline':'直達線打點',
+  'spend.dlineGoods':'直達線貨款',
+  'fav.rlineSea':'專線御免（船手）',
+  'fav.rlineSea.d':'長期借用此地區的船隊，替你的產地直達線走海路。只能當面請託。',
+  'fav.rlineLand':'專線御免（道中）',
+  'fav.rlineLand.d':'長期借用此地區的驛路，替你的產地直達線走陸路。只能當面請託。',
+  'dl.ask.t':'🚚 大番頭的建議',
+  'dl.ask.eff':'在本地區以外挑一處產地，拿齊那個地區的四張許可，花 {a} 兩打點沿路，就能拉一條直達線，每旬固定送貨。之後在商路頁上方設定。',
+  'dl.renew.t':'🚚 直達線滿一年',
+  'dl.renew.eff':'續約不用再付錢，【{c}】那條線再跑 {n} 旬；不續就停。',
+  'btn.dlLook':'去商路頁看看',
+  'btn.dlLater':'再說吧',
+  'btn.dlRenew':'續約一年',
+  'btn.dlStop':'不續了',
+  'dl.title':'🚚 產地直達線',
+  'dl.lead':'大番頭替你在外地拉一條直達線：建立費 {a} 兩，佔一名船長與一名飛腳，{n} 旬後開始每旬送一次，約半船；貨款到貨時照產地價加一成運費付現款。要有產地所在地區的四張許可。',
+  'dl.route':'【{c}】{v}→ 本店，經【{p}】上岸',
+  'dl.via':'陸路到【{p}】出海 ',
+  'dl.crew':'船長 {a}·飛腳 {b}',
+  'dl.wait':'還要 {n} 旬開始送貨',
+  'dl.left':'一年期還剩 {n} 旬',
+  'dl.last':'上一趟：{w}，付了 {a} 兩',
+  'dl.lastLost':'上一趟遇險，{w} 都沒了，沒付錢',
+  'dl.lastUnpaid':'上一趟付不出 {a} 兩，貨退回去了',
+  'dl.item':'{g} × {q}',
+  'dl.pickLead':'選一處本地區以外的產地（四張許可都齊了才能建立）：',
+  'dl.inland':'內陸',
+  'dl.pm.0':'入津',
+  'dl.pm.1':'通行',
+  'dl.pm.2':'船手',
+  'dl.pm.3':'道中',
+  'dl.noCand':'本地區以外沒有出產本業日常貨的城。',
+  'dl.cancelAsk':'解約後船長、飛腳回到店裡，建立費不退。確定嗎？',
+  'btn.dlPick':'挑選產地',
+  'btn.dlChange':'換產地',
+  'btn.dlHide':'收起',
+  'btn.dlCancel':'解約',
+  'btn.dlCancelYes':'解約',
+  'btn.dlCancelNo':'不解約',
+  'btn.dlBuild':'拉一條到【{c}】的直達線（{a} 兩）',
+  'btn.dlRebuild':'改到【{c}】（重付 {a} 兩）',
+  'dl.no.chief':'沒有大番頭，直達線拉不起來。',
+  'dl.no.city':'先挑一處產地',
+  'dl.no.permit':'【{r}】的四張許可還沒拿齊',
+  'dl.no.capt':'沒有空閒的船長',
+  'dl.no.cour':'沒有空閒的飛腳',
+  'dl.no.silver':'現款不到 {a} 兩',
+  'yard.dl':'直送',
+  /* 町年寄（第三百六十八節） */
+  'top.j.mty':'町年寄',
+  'tt.mty':'町年寄',
+  'tt.mty.why':'名望與身家都到了，町奉行所任命{f}為本城町年寄。',
+  'tt.mty.eff':'每季寄合議定運輸與治安，還能結識外地奉行所的高官。連續三次缺席就卸任；當上公會長要辭去。',
+  'mty.go':'前往町會所……',
+  'mty.go2':'町年寄寄合',
+  'mty.home':'🏮 町年寄寄合（本旬召開）',
+  'mty.home.sub':'議定下一季的運輸與治安，結識外地高官',
+  'mty.home.att':'寄合進行中，點此回到町會所',
+  'mty.home.done':'🏮 本旬寄合已散會',
+  'mty.sheet':'🏮 町年寄寄合',
+  'mty.notNow':'<div class="notice">本旬沒有寄合。</div>',
+  'mty.step.0':'列席',
+  'mty.step.1':'運輸',
+  'mty.step.2':'治安',
+  'mty.step.3':'引見',
+  'mty.step.4':'散會',
+  'mty.s0':'遠國奉行所的三位大人列席，聽取町年寄的意見。三位町年寄每題各一票，議定下一季（下個月上旬起三個月）的事。',
+  'mty.s1':'第一題：下一季加強哪一路的運輸？',
+  'mty.s2':'第二題：下一季治安先顧哪一頭？兩樣都只顧到你自己的店與你派出去的人。',
+  'mty.s3':'本地的大人把兩位外地奉行所的大人介紹給大家。這一旬他們留在城裡，可以照一般拜訪登門。',
+  'mty.s4':'議定了：下一季{a}、{b}。',
+  'mty.opt.sea':'加強海路',
+  'mty.opt.land':'加強陸路',
+  'mty.opt.pirate':'打擊海賊山賊',
+  'mty.opt.fire':'城內防火防盜',
+  'mty.optd.sea':'海運運量 +20%',
+  'mty.optd.land':'陸運運量 +20%',
+  'mty.optd.pirate':'委託採買、外運、直達線遇險減半',
+  'mty.optd.fire':'你的倉庫、店舖不失火、不遭竊',
+  'mty.swayNote':'好感 ≥ {a} 的町年寄，有機會改投你那一邊。',
+  'mty.youVote':'你：{a}',
+  'mty.seatVote':'{n}：{a}',
+  'mty.seatSway':'{n}：{a}（看在交情上改投你這邊）',
+  'mty.win':'決議：{a}',
+  'mty.winTie':'票數相同，抽籤決定：{a}',
+  'mty.seatsHead':'町年寄',
+  'mty.seatTag':'旅商人·好感 {a}',
+  'mty.noSeats':'城裡沒有旅商人入席，由你一人議定。',
+  'mty.offTag':'{r}·{p}',
+  'mty.noFar':'這次沒有外地的大人列席。',
+  'mty.bond':'寄合引見',
+  'mty.log.intro':'町年寄寄合上經人引見',
+  'btn.mtyOpen':'開議',
+  'btn.mtyNext':'下一步',
+  'btn.mtyEnd':'散會',
+  'mty.visit.t':'🏮 外地大人來訪',
+  'mty.visit.eff':'這一旬他歇在城裡，可以到遠國奉行所面板登門拜訪（送禮、請託）；過了這一旬就回去了。',
+  'mty.card.t':'🏮 町年寄',
+  'mty.card.seats':'同席：{a}',
+  'mty.card.none':'（沒有旅商人）',
+  'mty.card.eff':'本季決議：{a}、{b}（還剩 {n} 旬）',
+  'mty.card.noEff':'本季沒有寄合決議。',
+  'mty.card.next':'下次寄合：{m} 月上旬',
+  'mty.card.miss':'·已連續缺席 {n} 次（{m} 次卸任）',
+  'mty.here.t':'🏮 這一旬在城裡的外地大人',
+  'mty.here.d':'過了這一旬就回去了，之後只能寫信。',
+  /* 海陸運自動排程（第三百六十七節） */
+  'duty.landBanto':'管陸路：可以把飛腳排進自動排程，回來就照原樣再出發，不必親自到碼頭交代。不管相場進貨，也不接掛賣、注文。',
+  'duty.seaBanto':'管海路：可以把船長排進自動排程，回來就照原樣再出海，不必親自到碼頭交代。不管相場進貨，也不接掛賣、注文。',
+  'lic.tbGrant':'，{r} {n} 名',
+  'lic.tbCard':'·{r} {n} 人',
+  'btn.avAdd':'{i} 加入自動排程',
+  'btn.avDel':'取消排程',
+  'av.title.land':'🐎 陸路自動排程',
+  'av.title.sea':'⛵ 海路自動排程',
+  'av.lead':'{r}{n}照看：排進來的{c}每旬自動出發，回來後下一旬再走，不扣行動。',
+  'av.pause':'{r}不在，這一區暫停；補上人後恢復。',
+  'av.empty':'還沒排人。在上面選好{c}、目的地與委託金，按「加入自動排程」。',
+  'av.row':'{i} {n} → {c}（{d} 旬）',
+  'av.rowSub':'{b} 兩·{s}',
+  'av.st.out':'在途中，還要 {n} 旬',
+  'av.st.home':'在店裡待發',
+  'av.why.jail':'人在牢裡',
+  'av.why.away':'人受了傷或借給了別人',
+  'av.why.noOwn':'【{c}】已不出產本業貨'
 };
 /** 取按鈕／選項文字，並代入 {變數}。 */
 function UT(key,vars){
@@ -4914,7 +5056,14 @@ const MSG_TXT={
   'gy.ok':'御用品：{a}。',
   're.done':'{n}改當{r}。',
   're.doneShip':'{n}改當{r}，造了一艘船（{a} 兩）。',
-  're.doneDock':'{n}上岸改當{r}，船留在碼頭。'
+  're.doneDock':'{n}上岸改當{r}，船留在碼頭。',
+  'avAdd.noTb':'沒有{r}，排不了自動排程。',
+  'avAdd.ok':'{crew}「{n}」排進自動排程：每旬往【{c}】，委託金 {b} 兩。',
+  'avDel.ok':'{n}的排程取消了，回來後聽你吩咐。',
+  'dl.built':'直達線打點好了，往【{c}】的人已經出發，{n} 旬後開始送貨。',
+  'dl.same':'這一條就是現在跑的線。',
+  'dl.renewed':'【{c}】的直達線續了一年。',
+  'dl.stopped':'直達線停了，船長、飛腳回到店裡。'
 };
 /** 取訊息並代入 {變數}。 */
 function MSG(key,vars){
@@ -5398,7 +5547,34 @@ const NEWS_TXT={
   "kj.hist":"「{f}」向帝都獻上{s}的名品",
   "kj.newProd":"👑【帝都獻上】【{c}】開始出產{a}，說是帝都派人來教的。",
   "kj.m5N":"👑【帝都獻上】帝都回信：京畿的門向貴號敞開了。",
-  "kj.m8N":"👑【帝都獻上】天下各行的名品都已到齊，帝都記下了貴號之名。"
+  "kj.m8N":"👑【帝都獻上】天下各行的名品都已到齊，帝都記下了貴號之名。",
+  "av.go":"{i}【自動排程】{n}往【{c}】出發，委託金 {b} 兩。",
+  "av.wait":"{i}【自動排程】【{c}】正逢大口買付，{n}留在店裡，等過了這段再走。",
+  "av.skip":"{i}【自動排程】{n}這一旬沒出發：{w}。",
+  "av.broke":"{i}【自動排程】現款付不出{n}往【{c}】的委託金 {b} 兩，這一旬沒出發，排程取消。",
+  "av.pause":"{i}【自動排程】{r}不在，這一路的排程暫停。",
+  "av.resume":"{i}【自動排程】{r}又在店裡了，這一路的排程照常。",
+  "dl.buildN":"🚚【直達線】{f}打通沿路關係，拉了一條從【{c}】來的產地直達線。",
+  "dl.arrive":"🚚【直達線】從【{c}】送到 {w}，付 {a} 兩。",
+  "dl.wreck":"🚚【直達線】從【{c}】來的貨路上遇險，{w} 都沒了；這一趟不付錢。",
+  "dl.unpaid":"🚚【直達線】從【{c}】送來的貨要 {a} 兩，現款不夠，這一旬沒收；再付不出就斷線。",
+  "dl.noGoods":"🚚【直達線】【{c}】這一旬沒有本業能賣的日常貨，沒有送。",
+  "dl.full":"🚚【直達線】倉裡放不下，【{c}】的貨這一旬沒收。",
+  "dl.end.unpaid":"🚚【直達線】連兩旬付不出貨款，【{c}】的直達線斷了，建立費也不退。",
+  "dl.end.chief":"🚚【直達線】大番頭不在了，【{c}】的直達線沒人打理，停了。",
+  "dl.end.crew":"🚚【直達線】沒有空閒的{r}頂上，【{c}】的直達線停了。",
+  "dl.end.expire":"🚚【直達線】【{c}】的直達線滿一年沒有續約，停了。",
+  "dl.end.stop":"🚚【直達線】【{c}】的直達線滿一年，不續了。",
+  "dl.end.cancel":"🚚【直達線】【{c}】的直達線解約了，建立費不退。",
+  "dl.permitSea":"取得【{r}】的專線御免（船手），船隊可長期替直達線走海路。",
+  "dl.permitLand":"取得【{r}】的專線御免（道中），驛路可長期替直達線走陸路。",
+  "mty.appointN":"🏮【町年寄】町奉行所任命{f}為【{c}】町年寄，每季列席寄合。",
+  "mty.meetN":"🏮【町年寄】本旬召開町年寄寄合，遠國奉行所的大人列席。",
+  "mty.resN":"🏮【町年寄】寄合議定：下一季{a}、{b}。",
+  "mty.absentN":"🏮【町年寄】你沒出席寄合，照另兩位町年寄的意思議定（已連續缺席 {n} 次，{m} 次就卸任）。",
+  "mty.quit.miss":"🏮【町年寄】連續缺席寄合，町奉行所免去你的町年寄（知名度 −{a}）。",
+  "mty.quit.gm":"🏮【町年寄】當上公會長，辭去町年寄。",
+  "mty.visitN":"🏮【町年寄】{r}的{p}{n}路過本城，這一旬歇在城裡。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -5445,6 +5621,10 @@ const CHANGELOG=[
   {date:'2026年11月21日',items:[
     '店員設定更新：番頭（含大番頭）會壓低向大盤進貨的價錢，最多低 4%，跟手代提高出貨價對齊。',
     '請託設定更新：差配人來店裡臨時打工改算三名番頭，進貨上限提高、進貨價略降；不再頂替手代，已排好的出貨量不會因此變成超額。',
+    '人別帳設定更新：四級起番頭可雇三名；五級可雇陸運番頭、六級再雇海運番頭。',
+    '新增海陸運自動排程：有了陸運番頭或海運番頭，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自到碼頭交代；現款不夠時那一筆排程取消。',
+    '新增町年寄：名望四階、身家十萬兩起由町奉行所任命。每季召開寄合，與兩位旅商人議定下一季加強海路或陸路、打擊海賊山賊或防火防盜，還能結識路過的外地奉行所高官、當面請託。',
+    '新增產地直達線：船長、飛腳都雇滿後，大番頭會建議在外地拉一條直達線，拿齊產地地區的四張許可（其中兩張要當面向外地高官請託）就能建立，每旬固定送貨進倉。',
     '修改背景資料',
   ]},
   {date:'2026年11月20日',items:[
@@ -6404,6 +6584,7 @@ function officialExtort(){
 }
 /** 事件：盜賊潛入倉庫（保鏢可降低損失）。 */
 function thieves(){
+  if(mtyGuard())return null;                      // 町年寄寄合決議防火防盜的那一季：盜賊不上門（第三百六十八節）
   if(guardCount()>=2&&roll('thiefRepel'))return NEWS('thieves.1');
   const loss=Math.min(invUsed(),Math.max(1,Math.round(invUsed()*0.05)));
   const keys=Object.keys(G.inv).filter(k=>G.inv[k]>0);if(!keys.length)return null;
@@ -6450,7 +6631,7 @@ function invUpkeep(log){
   // 火災：易燃品（油、硫磺、樟腦、木、炭）
   let flam=0;Object.keys(G.inv).forEach(n=>{if(COMM_MAP[n].flam)flam+=G.inv[n]});
   if(flam>0){
-    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1)*regT('fire');   // 北境失火減半，與火除地相乘   // 每位仇人 +2% 縱火；火除地拜領後減半
+    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1)*regT('fire')*(mtyGuard()?0:1);   // 町年寄寄合決議防火防盜的那一季不失火（第三百六十八節）   // 北境失火減半，與火除地相乘   // 每位仇人 +2% 縱火；火除地拜領後減半
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       let val=0;Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l;val+=l*marketQuote(n)});
@@ -6475,8 +6656,9 @@ function holdTick(log){
     const p=clamp(q*listValue(n)/H.riskDiv,0,H.riskMax)*(1-Math.min(0.4,H.guardCut*guardCount()));
     if(p>0&&chance(p)){
       const l=Math.max(1,Math.floor(q*(H.lossMin+rnd()*(H.lossMax-H.lossMin))));
+      const hk=1+Math.floor(rnd()*3);if(hk===1&&mtyGuard())return;   // 防火防盜那一季倉庫不失竊（第三百六十八節）
       stockTake(n,l,false);sfx.bad();
-      const hk=1+Math.floor(rnd()*3);if(hk===1){consoleNote('theft');lossNote('theft',l*marketQuote(n),{n,q:l})}
+      if(hk===1){consoleNote('theft');lossNote('theft',l*marketQuote(n),{n,q:l})}
       const t=NEWS('holdTheft.'+hk,{name:COMM_MAP[n].short,l});pushNews(t);log.push(t);
     }
   });
@@ -6648,7 +6830,7 @@ const CAP_LAND={heavy:30,normal:50,light:80},CAP_SEA={heavy:120,normal:150,light
 /** 貨物重量等級：奢侈品輕巧、必需品與礦木笨重、其餘一般。 */
 function weightClass(name){const c=COMM_MAP[name];if(c.luxury)return 'light';if(c.staple||c.sys==='mining'||c.sys==='timber')return 'heavy';return 'normal'}
 /** 某物品某運輸方式的單趟運量上限。 */
-function capOf(name,mode){const w=weightClass(name);return mode==='sea'?Math.round(CAP_SEA[w]*regT('sea')):Math.round(CAP_LAND[w]*roadMult()*regT('land'))}   // 西道海運、東海道陸運 1.4 倍（第三百一十四節；與開闢道路相乘）   // 開闢道路：本地區陸運運量加倍，產地可買量跟著加倍（07zzp_works.js）
+function capOf(name,mode){const w=weightClass(name),m=typeof mtyCapMul==='function'?mtyCapMul(mode):1;return mode==='sea'?Math.round(CAP_SEA[w]*regT('sea')*m):Math.round(CAP_LAND[w]*roadMult()*regT('land')*m)}   // 西道海運、東海道陸運 1.4 倍（第三百一十四節；與開闢道路相乘）   // 開闢道路：本地區陸運運量加倍，產地可買量跟著加倍（07zzp_works.js）
 /** 運輸許可：海運需該地區的進港泊位許可、陸路需本地區的關所通行手形（遠國奉行所核發）。 */
 const permitOf=(mode,ct)=>mode==='sea'?(ct?seaPermitFor(ct):anySea()):landPermit();
 /** 船長/飛腳的膽識與商才換算成遇險率倍數（0.7～1.3）。 */
@@ -6746,6 +6928,7 @@ function advanceTurn(){
   yamiDeliver(log);                               // 闇商代出（07zzq_urge.js）
   autoShip(log);
   if(TURNRP)TURNRP.honjin=hj;
+  autoVoyTick(log);                               // 運輸番頭的自動排程：出貨之後、大盤進貨之前出發（07ic_autovoy，第三百六十七節）
   autoBuy(log);
   snapMarket();                                   // 日期前進前，記下本旬的收市價、需求與出貨（節慶看本旬日期）
   G.turn++;G.cycle++;let newYear=false;
@@ -7137,6 +7320,12 @@ const RANK_SKIM_BASE={apprentice:1,clerk:4,banto:10,chief:25,captain:6,courier:3
 /** 專職（船長、飛腳、保鏢）：不在晉升階梯，供商路派用與護衛。 */
 const SPECIAL=['captain','courier','guard'];
 Object.assign(RANK_WAGE,{captain:10,courier:6,guard:8});Object.assign(RANK_SKIM,{captain:0.5,courier:0.4,guard:0.2});
+/** 運輸番頭（第三百六十七節）：陸運番頭、海運番頭。專管海陸運的自動排程，不在晉升階梯、不佔番頭名額、沒有番頭加成、不接訂單；
+ *  僱用、薪水、好感、私吞、捲款潛逃都比照番頭。 */
+const TBANTO=['landBanto','seaBanto'];
+/** 運輸番頭管的運輸方式，與反查。 */
+const TB_MODE={landBanto:'land',seaBanto:'sea'},MODE_TB={land:'landBanto',sea:'seaBanto'};
+TBANTO.forEach(k=>{RANK_WAGE[k]=RANK_WAGE.banto;RANK_SKIM[k]=RANK_SKIM.banto;RANK_SKIM_BASE[k]=RANK_SKIM_BASE.banto});
 /** 專職說明（表格檔 duty.<職位>）。 */
 const SPECIAL_DESC={};SPECIAL.forEach(k=>SPECIAL_DESC[k]=UT('duty.'+k));
 /** 運輸方式對應的專職：sea→captain、land→courier。 */
@@ -7174,7 +7363,7 @@ function empTick(log){
       e.skim+=amt;G.silver-=amt;
     }
     if(e.kakeIn)e.kakeIn=0;
-    if((e.rank==='chief'||e.rank==='banto')&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*fleeMul(e)))){
+    if((e.rank==='chief'||e.rank==='banto'||TBANTO.includes(e.rank))&&((e.fleeAt!==undefined&&G.turn>=e.fleeAt)||s.betrayal_risk>=75&&s.integrity_loyalty<=40&&chance(ODDS.flee.p*fleeMul(e)))){
       const take=Math.round(Math.max(0,G.silver)*0.3);G.silver-=take;rm.push(e);
       const t=NEWS('empTick.1',{rank:rankName(e.rank),name:e.name,take:fmt(take)});pushNews(t);log.push(t);sfx.bad();
     }
@@ -7193,14 +7382,14 @@ function fireEmp(id){
 function slotFree(rank){return G.emps.filter(e=>e.rank===rank).length<slotCap(rank)}
 /** 名冊的角色代號 → 可聘職位；丁稚只由 hireApprentice 另行招收。 */
 const EMP_SUITABLE=[
-  ['manager',['clerk','banto','chief']],
-  ['rival',['clerk','banto']],
+  ['manager',['clerk','banto','chief','landBanto','seaBanto']],
+  ['rival',['clerk','banto','landBanto','seaBanto']],
   ['guest',['clerk']],
   ['broker',['clerk','courier']],
   ['smuggler',['captain']],
   ['guard',['guard']]
 ];
-const RECRUIT_RANKS=['clerk','banto','chief','captain','courier','guard'];
+const RECRUIT_RANKS=['clerk','banto','chief','landBanto','seaBanto','captain','courier','guard'];
 /** 人物依名冊角色可擔任的所有職位（固定依介面順序回傳）。 */
 function suitableEmpRanks(cid){
   const c=CH(cid);if(!c)return [];
@@ -7211,7 +7400,8 @@ function suitableEmpRanks(cid){
 /** 套用介紹人可引薦的店內最高職階；專職不受店內職階上下限影響。 */
 function candidateHireRanks(cid,maxRank){
   const maxI=Math.max(1,RANKS.indexOf(maxRank));
-  return suitableEmpRanks(cid).filter(r=>SPECIAL.includes(r)||(RANKS.indexOf(r)>=1&&RANKS.indexOf(r)<=maxI));
+  const ix=r=>TBANTO.includes(r)?RANKS.indexOf('banto'):RANKS.indexOf(r);   // 運輸番頭比照番頭
+  return suitableEmpRanks(cid).filter(r=>SPECIAL.includes(r)||(ix(r)>=1&&ix(r)<=maxI));
 }
 /** 依引薦分數決定可聘到的最高職階；具名成人最低從手代起聘。 */
 function maxRankFor(score){return score>=2.5?'chief':score>=1.5?'banto':'clerk'}
@@ -7261,7 +7451,7 @@ function hireCandidate(cid,rank){
   if(!G.recruit||!G.recruit.cands.includes(cid))return {ok:false,msg:MSG('hireCandidate.4')};
   if(!candidateHireRanks(cid,G.recruit.rank).includes(rank))return {ok:false,msg:MSG('hireCandidate.3',{rank:rankName(rank)})};
   if(!slotFree(rank))return {ok:false,msg:MSG('slotFull',{rank:rankName(rank)})};
-  const ri=RANKS.indexOf(rank),max=RANKS.indexOf(G.recruit?G.recruit.rank:'apprentice');
+  const ri=RANKS.indexOf(TBANTO.includes(rank)?'banto':rank),max=RANKS.indexOf(G.recruit?G.recruit.rank:'apprentice');
   if(!SPECIAL.includes(rank)&&ri>max)return {ok:false,msg:MSG('hireCandidate.1',{rank:rankName(G.recruit.rank)})};
   const {wage,fee,ship}=hireFee(cid,rank);
   if(G.silver<fee+ship)return {ok:false,msg:ship?MSG('hireCandidate.shipShort',{c:fmt(fee+ship),ship:fmt(ship)}):shortMsg('hireMonths',wage)};
@@ -7281,7 +7471,7 @@ function hireApprentice(){
 /** 升遷（需任職滿 24 旬；專職不可升遷）。 */
 function promoteEmp(id){
   const e=G.emps.find(x=>x.id===id);if(!e)return {ok:false};
-  if(SPECIAL.includes(e.rank))return {ok:false,msg:MSG('promote.special',{rank:rankName(e.rank)})};
+  if(SPECIAL.includes(e.rank)||TBANTO.includes(e.rank))return {ok:false,msg:MSG('promote.special',{rank:rankName(e.rank)})};
   const i=RANKS.indexOf(e.rank);if(i>=3)return {ok:false,msg:MSG('promoteEmp.1')};
   const nr=RANKS[i+1];
   if(G.turn-(e.promotedAt!==undefined?e.promotedAt:e.since)<24)return {ok:false,msg:MSG('promoteEmp.2')};   // 年資（e.since）不因升遷重算，升遷間隔看上次升遷
@@ -7575,6 +7765,8 @@ const RANK_LOOK={
   apprentice:{cloth:'#7087a0',cloth2:'#c8d4df',small:true},
   clerk:{cloth:'#755235',cloth2:'#e8dcc4',bundle:'#9a754a'},
   banto:{cloth:'#274b7a',cloth2:'#e8dcc4'},
+  landBanto:{cloth:'#2f5a3a',cloth2:'#e8dcc4',hat:'#8a6a3a'},   // 陸運番頭、海運番頭（第三百六十七節）
+  seaBanto:{cloth:'#1f4f68',cloth2:'#e8dcc4',hat:'#20232a'},
   chief:{cloth:'#53306f',cloth2:'#e5a93b',abacus:true},
   captain:{cloth:'#1f6070',cloth2:'#e8dcc4',hat:'#20232a',sword:true},
   courier:{cloth:'#4f7a3a',cloth2:'#e8dcc4',hat:'#8a6a3a',bundle:'#9b6b3f'},
@@ -7757,7 +7949,7 @@ function sceneSync(force){
   const old={};SCENE.ents.forEach(e=>old[e.id]=e);
   const out=[];const keep=(kind,id,extra)=>{const e=old[id]||newEnt(kind,id,extra);Object.assign(e,extra||{});out.push(e);return e};
   /* 每種職位、每類家人只畫一人（不畫主角）；點選時才從同類中隨機挑一名（見 sceneMember） */
-  [...RANKS,...SPECIAL].forEach((rk,i)=>{if(!G.emps.some(e=>e.rank===rk))return;const x={rank:rk,label:UT('scene.rankTag',{r:rankName(rk)}),patrol:i,group:'emp'};if(rk==='guard')x.spd=16;keep('emp','rank_'+rk,x)});
+  [...RANKS,...SPECIAL,...TBANTO].forEach((rk,i)=>{if(!G.emps.some(e=>e.rank===rk))return;const x={rank:rk,label:UT('scene.rankTag',{r:rankName(rk)}),patrol:i,group:'emp'};if(rk==='guard')x.spd=16;keep('emp','rank_'+rk,x)});
   if(G.family.spouse)keep('wife','wife',{label:UT('scene.wife',{n:G.family.spouse.name}),spd:6,group:'wife'});
   if((G.family.conc||[]).length)keep('wife','conc',{label:roleName('concubine'),spd:6,group:'conc'});
   if(G.family.kids.length){const k=G.family.kids[0],a=kidAge(k);keep('kid','kids',{label:UT('scene.kid',{n:k.name,s:kidStage(a)}),spd:14,age:a,girl:k.gender==='f',group:'kid'})}
@@ -7767,7 +7959,7 @@ function sceneSync(force){
 function pickIdlePose(e){
   if(e.kind==='kid')return Math.random()<0.65?'hop':'look';
   if(e.kind==='guard'||e.rank==='guard'||e.rank==='captain')return 'guard';
-  if(e.rank==='chief'||e.rank==='banto')return Math.random()<0.7?'abacus':'look';
+  if(e.rank==='chief'||e.rank==='banto'||TBANTO.includes(e.rank))return Math.random()<0.7?'abacus':'look';
   if(e.rank==='apprentice'&&season()==='winter'&&Math.random()<0.6)return 'sweep';   // 冬天掃雪（05h_yard）
   if(e.rank==='courier'||e.rank==='apprentice')return Math.random()<0.6?'wipe':'look';
   if(e.rank==='clerk')return Math.random()<0.5?'hold':'look';
@@ -8145,7 +8337,7 @@ const PT_COURT={administration:'#304f72',finance:'#8b6729',judiciary:'#5c496f'};
 const PT_CLOTH={
   rival:'#70452f',manager:'#36576b',official:'#343f58',smuggler:'#405544',guard:'#34363b',
   broker:'#665c50',guest:'#78604a',oiran:'#9e3f43',captain:'#315b68',courier:'#4d683d',
-  apprentice:'#566c45',clerk:'#3f6172',banto:'#674b38',chief:'#253f58'
+  apprentice:'#566c45',clerk:'#3f6172',banto:'#674b38',chief:'#253f58',landBanto:'#4d5a3a',seaBanto:'#34566b'
 };
 const PT_BG=['#d9cfb9','#d2c7ae','#ddd3bf','#cfc5b1'];
 const PT_SKIN=[
@@ -8599,7 +8791,9 @@ function yardPlan(){
   const land=(G.ships||[]).some(s=>s.mode==='land'&&s.eta===s.eta0);
   const letter=Object.values(G.rel||{}).some(r=>r&&r.ltrT===G.turn);
   const fire=G.fireT!=null&&G.turn-G.fireT<=1;
-  return {inN:yardTier(inV),outN:yardTier(outV),land,letter,fire};
+  const mLand=mtyCapMul('land')>1,mSea=mtyCapMul('sea')>1;   // 町年寄寄合加強陸路：馬隊多跑；加強海路：船貨多進倉（第三百六十八節）
+  const dl=!!(G.dline&&G.dline.lastT===G.turn);   // 產地直達線送到：插「直送」小旗的馬隊
+  return {inN:Math.max(yardTier(inV),mSea?1:0),outN:yardTier(outV),land:land||mLand,letter,fire,dl,patrol:mtyGuard()};
 }
 /** 人足的外觀（藍半纏、頭巾）。 */
 const YARD_LOOK={cloth:'#3e5f7c',cloth2:'#e8dcc4',pants:'#2b2a2a',obi:'#c8b48a',variant:3};
@@ -8612,10 +8806,10 @@ function yardCart(flow,idx,delay){
 /** 推進荷車、馬隊、飛腳。 */
 function yardStep(now,dt){
   const P=YARD.plan,calm=!(typeof daimyoScene==='function'&&daimyoScene()),fest=typeof festScene==='function'&&festScene();
-  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500;YARD.nextShop=now+2000;YARD.gap=0}
-  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null;YARD.shop=[]}
+  if(G.turn!==YARD.turn){YARD.turn=G.turn;YARD.nextCart=now+1500;YARD.nextHorse=now+3000;YARD.nextRunner=now+2500;YARD.nextShop=now+2000;YARD.nextDl=now+1000;YARD.nextPatrol=now+5000;YARD.gap=0}
+  if(!calm){YARD.carts=[];YARD.horses=[];YARD.runner=null;YARD.shop=[];YARD.patrol=null}
   /* 一次只演一組路過的人（第三百五十節）：荷車、零售商、馬隊、飛腳輪流；院子空下來稍等一下，再挑等最久的那一組上場 */
-  const busy=YARD.carts.length||YARD.horses.length||YARD.runner||(YARD.shop||[]).length;
+  const busy=YARD.carts.length||YARD.horses.length||YARD.runner||(YARD.shop||[]).length||YARD.patrol;
   if(busy)YARD.gap=now+1500;
   if(calm&&P&&!busy&&now>=(YARD.gap||0)){
     const cand=[];
@@ -8623,6 +8817,8 @@ function yardStep(now,dt){
     if(P.outN&&now>=YARD.nextShop)cand.push(['shop',YARD.nextShop]);
     if(P.land&&now>=YARD.nextHorse)cand.push(['horse',YARD.nextHorse]);
     if(P.letter&&now>=YARD.nextRunner)cand.push(['runner',YARD.nextRunner]);
+    if(P.dl&&now>=(YARD.nextDl||0))cand.push(['dl',YARD.nextDl||0]);
+    if(P.patrol&&now>=(YARD.nextPatrol||0))cand.push(['patrol',YARD.nextPatrol||0]);
     cand.sort((a,b)=>a[1]-b[1]);const g=cand.length?cand[0][0]:null;
     if(g==='cart'){
       const flows=[];if(P.inN)flows.push('in');if(P.outN)flows.push('out');
@@ -8631,6 +8827,8 @@ function yardStep(now,dt){
     }else if(g==='shop'){shopSpawn(Math.min(3,P.outN));YARD.nextShop=now+(14000+Math.random()*8000)*(fest?0.7:1)}
     else if(g==='horse'){YARD.horses=[{x:150,y:146,k:0},{x:128,y:147,k:1}];YARD.nextHorse=now+40000+Math.random()*15000}
     else if(g==='runner'){YARD.runner={x:126,y:114,seg:0,frame:0,ft:0};YARD.nextRunner=now+30000+Math.random()*10000}
+    else if(g==='dl'){YARD.horses=[{x:-24,y:146,k:0,flag:true},{x:-46,y:147,k:1}];YARD.nextDl=now+35000+Math.random()*15000}   // 直達線的馬隊從左邊進來、穿過院子
+    else if(g==='patrol'){YARD.patrol={x:354,y:152,frame:0,ft:0};YARD.nextPatrol=now+30000+Math.random()*12000}   // 防火防盜：火消巡過
   }
   YARD.carts.forEach(c=>{
     if(c.wait>0){c.wait-=dt;return}
@@ -8643,6 +8841,7 @@ function yardStep(now,dt){
   YARD.carts=YARD.carts.filter(c=>!c.done);
   YARD.horses.forEach(h=>{h.x+=14*dt/1000;h.ft=(h.ft||0)+dt;if(h.ft>200){h.ft=0;h.frame=(h.frame||0)+1}});
   YARD.horses=YARD.horses.filter(h=>h.x<380);
+  const pt=YARD.patrol;if(pt){pt.x-=16*dt/1000;pt.ft+=dt;if(pt.ft>220){pt.ft=0;pt.frame++}if(pt.x<-20)YARD.patrol=null}
   const r=YARD.runner;
   if(r){const v=55*dt/1000;if(r.seg===0){r.y+=v;if(r.y>=156){r.y=156;r.seg=1}}else r.x-=v;r.ft+=dt;if(r.ft>90){r.ft=0;r.frame++}if(r.x<-20)YARD.runner=null}
 }
@@ -8677,6 +8876,8 @@ function yardHorseDraw(c,h){
   R_(c,x-8,y-11,17,6,'#7a4a2a');R_(c,x+8,y-14,3,6,'#7a4a2a');R_(c,x+10,y-15,4,3,'#7a4a2a');R_(c,x+12,y-14,1,1,'#1a1612');
   R_(c,x-9,y-11,2,4,'#3b2a1c');R_(c,x+7,y-15,2,4,'#3b2a1c');                   // 尾、鬃
   R_(c,x-6,y-15,12,4,'#c9a46a');R_(c,x-6,y-13,12,1,'#7a5a32');R_(c,x-7,y-11,3,4,'#b08a52');R_(c,x+5,y-11,3,4,'#b08a52');   // 貨包
+  if(h.flag){R_(c,x-4,y-27,1,12,'#3b2a1c');R_(c,x-3,y-27,9,7,'#f4ece1');R_(c,x-3,y-27,9,1,'#b3261e');R_(c,x-3,y-21,9,1,'#b3261e');   // 「直送」小旗
+    c.save();c.fillStyle='#b3261e';c.font='bold 4px serif';c.textBaseline='top';c.fillText(UT('yard.dl'),x-3,y-26);c.restore()}
 }
 /** 冬天掃雪的掃帚與雪花（畫在丁稚身上）。 */
 function yardBroom(c,e){
@@ -8725,6 +8926,7 @@ function yardPeople(now,dt){
     drawPerson(c,k.x-k.dir*15,k.y,Object.assign({},o,{variant:5}));
   }})});
   YARD.horses.forEach(h=>out.push({y:h.y,draw:c=>{yardHorseDraw(c,h);if(h.k===0)drawPerson(c,h.x+18,h.y,Object.assign({frame:h.frame||0,moving:true},YARD_LOOK,{hat:'#8a6a3a'}))}}));
+  const pt=YARD.patrol;if(pt)out.push({y:pt.y,draw:c=>{drawPerson(c,pt.x,pt.y,Object.assign({frame:pt.frame,moving:true,faceLeft:true},YARD_LOOK,{cloth:'#7a2a1e',hat:'#20232a',variant:2}));R_(c,Math.round(pt.x)-8,Math.round(pt.y)-14,4,5,'#f0c060');R_(c,Math.round(pt.x)-8,Math.round(pt.y)-14,4,1,'#3b2a1c')}});   // 火消夜回：提燈籠
   const r=YARD.runner;if(r)out.push({y:r.y,draw:c=>drawPerson(c,r.x,r.y,Object.assign({frame:r.frame,moving:true,faceLeft:r.seg===1},RANK_LOOK.courier,{variant:7}))});
   return out;
 }
@@ -8921,6 +9123,7 @@ function topTagsHtml(gap=true){
   if(typeof kyoOn==='function'&&kyoOn())K.push(UT('top.t.kyo'));
   if((G.dpTitle||0)>=2)T.push(UT('top.t.gou'));else if((G.dpTitle||0)>=1)T.push(UT('top.t.big'));
   if(typeof gmIsMe==='function'&&gmIsMe())J.push(UT('top.j.gm'));
+  if(typeof mtyOn==='function'&&mtyOn())J.push(UT('top.j.mty'));   // 町年寄（第三百六十八節）
   const L=K.map(t=>[t,TITLE_COL.kyo]).concat(T.map(t=>[t,TITLE_COL.red]),J.map(t=>[t,TITLE_COL.green]));
   if(!L.length)return '';
   return L.map(([t,c])=>'<span style="color:'+c+'">'+esc(t)+'</span>').join(gap?'<span style="display:inline-block;width:0.35em"></span>':'');
@@ -9164,12 +9367,14 @@ function renderRoutes(){
   if(!anySea()&&!landPermit())h+='<div class="notice tiny">'+UT('rt.needPermit')+'</div>';
   if(G.ships.length){h+='<div class="small bold">'+UT('rt.outTitle')+'</div>'+G.ships.map(s=>'<div class="card"><div class="row"><b class="small">'+UT(s.mode==='land'?'rt.outLand':'rt.outSea',{n:esc(s.captName)})+'</b><span class="tag '+(s.eta<=1?'green':'gray')+'">'+UT('rt.left',{n:s.eta})+'</span></div><div class="tiny muted">'+(s.out?UT('rt.outSubOut',{c:esc(CITY(s.origId).name),g:COMM_MAP[s.out.name].short,q:s.out.q,b:fmt(s.budget)}):UT('rt.outSub',{c:esc(CITY(s.origId).name),b:fmt(s.budget),w:NM('crew',s.mode==='land'?'land':'sea')}))+'</div></div>').join('')}
   else h+='<div class="notice">'+UT('rt.noneOut')+'</div>';
+  h+=dlCard();                                     // 產地直達線（07o_industry.js〔07zzzzzzzzzzzzz_dline〕）
   h+='<hr class="sep"><div class="small bold">'+UT('rt.entrust')+'</div><div style="margin:4px 0">'+['sea','land'].map(m=>'<span class="pill '+(R_.mode===m?'on':'')+'" data-act="rMode" data-m="'+m+'">'+UT(m==='sea'?'opt.modeSea':'opt.modeLand')+'</span>').join('')+'</div>';
   h+=voyCapCard(R_.mode==='land'?'land':'sea');    // 本業貨一趟能運多少（07i_voyage.js）
   h+=ujobCard();                                   // 卸留請負的外運（07zz_regfavor4.js）
   h+=chumonCard();                                 // 外城友人的注文（07zzn_outfriend.js）
   h+=voyagePanel();
   h+=voyQueueCard();
+  h+=avCard();                                     // 陸路、海路自動排程（07b_trade.js〔07ic_autovoy〕）
   h+=VOY_NOTE;VOY_NOTE='';                         // 順序：加入出運清單 → 一起出發 → 長說明
   h+=voyLogCard();
   h+='<hr class="sep"><div class="tiny muted">'+UT('rt.foot')+'</div></div>';
@@ -9679,12 +9884,13 @@ function renderEstate(){
   h+=UT('ppl.renderEstate.13');
   // 夥計
   h+=UT('ppl.renderEstate.14');
-  h+='<div class="notice tiny">'+RANKS.concat(['guard']).map(k=>'• <b>'+UT('ppl.renderEstate.15',{a:rankName(k),b:DUTY_DESC[k]})).join('<br>')+'</div>';
-  h+=SPECIAL.filter(k=>k!=='captain'&&k!=='courier').concat(RANKS.slice().reverse()).map(rk=>{
+  const tbShow=TBANTO.filter(k=>slotCap(k)>0||G.emps.some(e=>e.rank===k));   // 運輸番頭：人別帳五級起才列（第三百六十七節）
+  h+='<div class="notice tiny">'+RANKS.concat(tbShow,['guard']).map(k=>'• <b>'+UT('ppl.renderEstate.15',{a:rankName(k),b:DUTY_DESC[k]})).join('<br>')+'</div>';
+  h+=['guard','chief','banto'].concat(TBANTO,['clerk','apprentice']).map(rk=>{
     const ls=G.emps.filter(e=>e.rank===rk);
     return ls.map(e=>{
       if(e.flag&&!e.caught)e.caught=e.flag;                                  // 舊存檔：已查出的私吞改為待處置
-      return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+UT('ppl.renderEstate.17',{a:portraitEmp(e,56),b:rankName(e.rank),c:esc(e.name)})+'</b> '+staffTags(e)+'<div class="tiny muted">'+UT('ppl.renderEstate.18',{a:e.cid?'':UT('ppl.renderEstate.16'),b:e.wage,c:staffTenure(e),d:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='chief'&&!SPECIAL.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+reBtn(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
+      return '<div class="card '+(e.caught?'warn':'')+'" style="display:flow-root">'+UT('ppl.renderEstate.17',{a:portraitEmp(e,56),b:rankName(e.rank),c:esc(e.name)})+'</b> '+staffTags(e)+'<div class="tiny muted">'+UT('ppl.renderEstate.18',{a:e.cid?'':UT('ppl.renderEstate.16'),b:e.wage,c:staffTenure(e),d:ratingStars(e.cid||statsOfEmp(e))})+'</div></div>'+empAffHtml(e)+'<div class="row" style="margin-top:3px;justify-content:flex-start;gap:4px;flex-wrap:wrap">'+auditBtns(e)+(e.rank!=='chief'&&!SPECIAL.includes(e.rank)&&!TBANTO.includes(e.rank)?'<button class="pixel-btn btn-sm btn-green" data-act="promote" data-id="'+e.id+'">'+UT('btn.promote')+'</button>':'')+reBtn(e)+staffChatBtn(e)+'<button class="pixel-btn btn-sm" data-act="fire" data-id="'+e.id+'">'+UT('btn.fire')+'</button></div></div>';
     }).join('');
   }).join('');
   const apBtn=' '+UT('ppl.apprenticeBtn',{a:UT('btn.apprentice',{c:costBtn('apprentice')})});   // 招丁稚放在物色右邊
@@ -10506,7 +10712,7 @@ const confessP=loyal=>clamp(ODDS.confess.base-loyal/ODDS.confess.loyalDiv,ODDS.c
  * - 點畫面中的人：閒聊／店員流言／外人流言（免費探聽性向），同一人一旬最多兩種內容。 */
 /* ======================= 04b 店員職能 ======================= */
 /** 各職位的職能一句話。 */
-const DUTY_DESC={};RANKS.concat(SPECIAL).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));   // 說明文字在 01e_ui_text.js（duty.*）
+const DUTY_DESC={};RANKS.concat(SPECIAL,TBANTO).forEach(k=>DUTY_DESC[k]=UT('duty.'+k));   // 說明文字在 01e_ui_text.js（duty.*）
 const nEmp=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e)).length;   // 關押中的店員不算（07zt_staffevents.js）
 const empsOf=rk=>G.emps.filter(e=>e.rank===rk&&!jailedEmp(e));
 const avgSt=(rk,k)=>{const l=empsOf(rk);return l.length?l.reduce((a,e)=>a+statsOfEmp(e)[k],0)/l.length:50};
@@ -10734,10 +10940,12 @@ const MODE_RANK={sea:'captain',land:'courier'};
 const voyQ=()=>G.voyQueue||(G.voyQueue=[]);
 /** 清單裡已排的委託金合計。 */
 const voyQTotal=()=>voyQ().reduce((a,q)=>a+q.budget,0);
-/** 空閒的船長／飛腳：不在採買、走私途中；inclQ＝連已排進出運清單的也算（出發時用）。 */
-const idleCaptains=(mode,inclQ)=>{
+/** 空閒的船長／飛腳：不在採買、走私途中；inclQ＝連已排進出運清單的也算（出發時用）；inclAuto＝連排進自動排程的也算（自動出發用，第三百六十七節）。 */
+const idleCaptains=(mode,inclQ,inclAuto)=>{
   const used=new Set(G.ships.map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));
   if(!inclQ)voyQ().forEach(q=>used.add(q.capt));
+  if(!inclAuto)(G.autoVoy||[]).forEach(a=>used.add(a.capt));   // 排進自動排程的人不出現在一般派遣
+  if(G.dline&&G.dline.city){used.add(G.dline.capt);used.add(G.dline.cour)}   // 佔在產地直達線上的船長、飛腳（第三百六十八節）
   return G.emps.filter(e=>e.rank===MODE_RANK[mode]&&!used.has(e.id)&&!jailedEmp(e)&&!empLent(e));
 };
 /** 清掉已失效的清單項目（人已離職，或已被派去走私）。 */
@@ -10796,17 +11004,18 @@ function destList(mode,full){
     own:cityProds(ct).filter(n=>own.has(n)&&COMM_MAP[n]),oth:cityProds(ct).filter(n=>!all.has(n)&&COMM_MAP[n]),blocked:buyoutDepartureBlocked(ct)}))
     .sort((x,y)=>x.blocked-y.blocked||(y.own.length>0)-(x.own.length>0)||x.d-y.d||y.own.length-x.own.length);
 }
-/** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）；batch＝出運清單一起出發（行動點數由 vGoAll 統一扣一次）。 */
-function sendVoyage(captId,budget,destId,mode,free,batch){
+/** 出發：扣委託金與 1 行動點數；free＝開局贈送（兩者都不扣）；batch＝出運清單一起出發（行動點數由 vGoAll 統一扣一次）；
+ *  auto＝運輸番頭的自動排程（不扣行動、不看你自己的傷勢，第三百六十七節；呼叫時 batch 也帶 true）。 */
+function sendVoyage(captId,budget,destId,mode,free,batch,auto){
   mode=mode||'sea';
   if(!free&&banditBlocks(mode))return {ok:false,msg:UT('bandit.notice.'+mode,{n:banditLeft()})};   // 本地區賊亂（07zv_bandit.js）
-  const cap=idleCaptains(mode,true).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:NM('crew',mode)})};
+  const cap=idleCaptains(mode,true,auto).find(e=>e.id===captId);if(!cap)return {ok:false,msg:MSG('sendVoyage.2',{mode:NM('crew',mode)})};
   const dest=CITY(destId),dl=destList(mode,true).find(x=>x.ct.id===destId);if(!dest||!dl)return {ok:false,msg:MSG('sendVoyage.3')};
   if(!free&&!permitOf(mode,dest))return {ok:false,msg:MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))})};
   if(buyoutDepartureBlocked(dest))return {ok:false,msg:MSG('sendVoyage.buyout',{REG_NAME:REG_NAME(dest.region_id),month:buyoutMonth(G.month,dest.region_id)})};
   budget=Math.floor(budget);if(!(budget>=100))return {ok:false,msg:MSG('sendVoyage.5')};
   if(!free&&G.silver<budget)return {ok:false,msg:MSG('sendVoyage.6',{budget:fmt(budget)})};
-  if(!free&&(G.injured||0)>0)return {ok:false,msg:MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured})};
+  if(!free&&!auto&&(G.injured||0)>0)return {ok:false,msg:MSG(hurtKey('sendVoyage.hurt'),{injured:G.injured})};
   if(!free&&!batch&&apLeft()<=0)return {ok:false,msg:MSG('sendVoyage.ap')};   // 委託採買要親自到碼頭交代：扣 1 行動點數（開局贈送的那趟不扣；出運清單一起出發只扣一次）
   if(!free&&!batch){G.ap--;updateAP()}
   const st=statsOfEmp(cap);let d=dl.d;
@@ -10819,7 +11028,7 @@ function sendVoyage(captId,budget,destId,mode,free,batch){
 }
 /** 歸來結算。 */
 function resolveVoyage(s,log){
-  const mode=s.mode,cs=s.cs||50,budget=s.budget||0,back=!(s.out&&!budget),robbed=back&&banditRobs(mode),wreck=back&&(robbed||chance(s.risk)),keep=wreck?0.3:1;   // 卸留請負空手回來（委託金 0）時回程不擲   // 本地區賊亂期間回程一律被劫（07zv_bandit.js）
+  const mode=s.mode,cs=s.cs||50,budget=s.budget||0,back=!(s.out&&!budget),robbed=back&&banditRobs(mode),wreck=back&&(robbed||chance(s.risk*mtyRiskMul())),keep=wreck?0.3:1;   // 卸留請負空手回來（委託金 0）時回程不擲   // 本地區賊亂期間回程一律被劫（07zv_bandit.js）
   const dest=CITY(s.origId),own=ownNameSet(),all=ownNameSet(),buyout=!!s.buyout;
   const prod=(dest?[...new Set(cityProdsBase(dest).concat(s.unl||[]))]:[]).filter(n=>COMM_MAP[n]);   // 國中物卸留以出發旬判定（s.unl）
   const ownP=buyout?[]:prod.filter(n=>own.has(n)),othP=prod.filter(n=>!all.has(n));
@@ -10928,6 +11137,7 @@ function voyagePanel(){
   {const n=originTripUsed(R_.dest)+voyQ().filter(q=>q.dest===R_.dest).length;if(n)h+='<div class="notice tiny">'+UT('voy.repeatWarn',{n})+'</div>'}
   VOY_NOTE='<div class="notice tiny">'+UT('voy.voyagePanel.18',{a:NM('crew',mode),b:G.sysKey==='medicine'?UT('voy.voyagePanel.17'):''});   // 長說明放到出運清單之後（renderRoutes）
   h+=UT('voy.voyagePanel.19',{a:UT('btn.vAdd')})+'</button></div>';
+  if(tbOn(mode))h+='<div style="text-align:right;margin-top:4px"><button class="pixel-btn" data-act="avAdd">'+UT('btn.avAdd',{i:MODE_ICON[mode]})+'</button></div>';   // 有運輸番頭時多一顆「加入自動排程」（第三百六十七節）
   return h;
 }
 /** 本業貨一趟能運多少（運量說明，第二百七十一節）：依海運或陸運列出每項本業貨的輕重與件數。 */
@@ -11225,6 +11435,8 @@ const regOfNpc=n=>CITY(n.cityId).region_id;
 function regionHeld(key,n){
   const P=permitsOf(),rid=regOfNpc(n);
   if(key==='rport')return !!(P.sea.all||P.sea[rid]);
+  if(key==='rlineSea')return !!(P.lineS&&P.lineS[rid]);       // 專線御免（第三百六十八節）
+  if(key==='rlineLand')return !!(P.lineL&&P.lineL[rid]);
   if(key==='rpass')return !!(P.land.all||P.land[rid]);
   if(key==='rshuin')return !!P.sea.all;
   if(key==='rroad')return !!G.flags.road;
@@ -11326,6 +11538,93 @@ function appsCard(){
     return '<div class="row small" style="margin-top:4px"><span>'+esc(A.name)+'<div class="tiny muted">'+UT('reg.appsCard',{a:esc(nameOf(A.cid)),b:A.left});
   }).join('')+(C.length?UT('reg.cdHead')+C.map(x=>UT('reg.cdRow',{a:esc(x.name),b:esc(x.who),c:x.left})).join(''):'')})+'</div>';
 }
+
+/* ═════ [07ic_autovoy] ═════ */
+'use strict';
+/* ======================= 海陸運自動排程（第三百六十七節） =======================
+ * - 人別帳五級可僱陸運番頭、六級再加海運番頭（07e_visit.js 的 LIC.staff）。有那一位時，商路頁委託採買表單多一顆「加入自動排程」。
+ * - 排程 G.autoVoy=[{id,capt,mode,dest,budget}]（用到才建立）：每次推進一旬（advanceTurn 的 autoShip 之後），在店裡的人照設定自動出發，
+ *   不扣行動點數、不經出運清單、不看你自己的傷勢；回來後下一旬再出發，直到玩家「取消排程」。
+ * - 沒錢：那一旬不出發、旬報一行，排程取消。已知目的地正逢大口買付：留在店裡等。其他派不出去（受傷、下獄、被借走、許可沒了、
+ *   目的城不再出產本業貨、賊亂、大盤封鎖等）：那一旬跳過、旬報寫原因，排程保留。
+ * - 對應的運輸番頭不在（離職、下獄、過世）時那一區暫停，補上人後恢復。
+ * - 排進排程的船長、飛腳不出現在一般派遣、走私的可選名單，也不能改派（07h_staff.js〔07zz_reassign〕）；遷居時清掉（07m_works.js 的 moveClearCity）。 */
+const avList=()=>G.autoVoy||(G.autoVoy=[]);
+/** 某位船長／飛腳的排程（沒有回 null）。 */
+const avOf=id=>(G&&G.autoVoy||[]).find(a=>a.capt===id)||null;
+/** 管這一路的運輸番頭（不在店裡或下獄回 null）。 */
+const tbOf=mode=>(G.emps||[]).find(e=>e.rank===MODE_TB[mode]&&!jailedEmp(e))||null;
+const tbOn=mode=>!!tbOf(mode);
+/** 清掉失效的排程：人已離職，或已改派成別的職位。 */
+function avPrune(){if(!G.autoVoy)return;G.autoVoy=G.autoVoy.filter(a=>G.emps.some(e=>e.id===a.capt&&e.rank===MODE_RANK[a.mode]))}
+/** 這個人是不是正在外頭（採買、送貨、走私途中）。 */
+const avOut=id=>G.ships.some(s=>s.capt===id)||(G.smug||[]).some(v=>v.capt===id);
+/** 每旬：排程裡在店裡的人自動出發。 */
+function autoVoyTick(log){
+  avPrune();const L=G.autoVoy;if(!L||!L.length)return;
+  G.avPause=G.avPause||{};
+  const say=(k,v,news)=>{const t=NEWS(k,v);if(news)pushNews(t);log.push(t)};
+  ['land','sea'].forEach(mode=>{
+    const rows=L.filter(a=>a.mode===mode);if(!rows.length){delete G.avPause[mode];return}
+    const icon=MODE_ICON[mode];
+    if(!tbOn(mode)){                                    // 運輸番頭不在：這一區暫停（只在開始暫停那一旬寫一行）
+      if(!G.avPause[mode]){G.avPause[mode]=true;say('av.pause',{i:icon,r:rankName(MODE_TB[mode])},true)}
+      return;
+    }
+    if(G.avPause[mode]){delete G.avPause[mode];say('av.resume',{i:icon,r:rankName(MODE_TB[mode])})}
+    rows.forEach(a=>{
+      if(avOut(a.capt))return;                          // 還在路上：回來後下一旬再走
+      const e=G.emps.find(x=>x.id===a.capt),ct=CITY(a.dest),v={i:icon,n:e?e.name:'',c:ct?ct.name:'',b:fmt(a.budget)};
+      if(!e||!ct)return;
+      if(jailedEmp(e)){say('av.skip',Object.assign(v,{w:UT('av.why.jail')}),true);return}
+      if(empLent(e)){say('av.skip',Object.assign(v,{w:UT('av.why.away')}),true);return}
+      if(buyoutDepartureBlocked(ct)){say('av.wait',v);return}   // 已知正逢大口買付：留在店裡，這段期間過了再走
+      const dl=destList(mode,true).find(x=>x.ct.id===a.dest);
+      if(dl&&!dl.own.length){say('av.skip',Object.assign(v,{w:UT('av.why.noOwn',{c:ct.name})}),true);return}
+      if(G.silver<a.budget){G.autoVoy=G.autoVoy.filter(x=>x!==a);say('av.broke',v,true);return}   // 沒錢：這一旬不出發，排程取消
+      const r=sendVoyage(a.capt,a.budget,a.dest,mode,false,true,true);
+      if(r.ok)say('av.go',v);else say('av.skip',Object.assign(v,{w:String(r.msg||'').replace(/[。！]$/,'')}),true);
+    });
+  });
+}
+/** 商路頁：出運清單下方的陸路、海路自動排程兩區（有運輸番頭或有排程時才出現）。 */
+function avCard(){
+  if(!G)return '';avPrune();
+  const a=homeCity();let h='';
+  ['land','sea'].forEach(mode=>{
+    const tb=tbOf(mode),rows=(G.autoVoy||[]).filter(x=>x.mode===mode);
+    if(!tb&&!rows.length)return;
+    h+='<div class="card" style="background:#f3f7ee"><b class="small">'+UT('av.title.'+mode)+'</b>';
+    h+='<div class="tiny muted">'+(tb?UT('av.lead',{r:rankName(MODE_TB[mode]),n:esc(tb.name),c:NM('crew',mode)}):UT('av.pause',{r:rankName(MODE_TB[mode])}))+'</div>';
+    if(!rows.length)h+='<div class="tiny muted" style="margin-top:4px">'+UT('av.empty',{c:NM('crew',mode)})+'</div>';
+    h+=rows.map((x,i)=>{
+      const e=G.emps.find(y=>y.id===x.capt),ct=CITY(x.dest),s=G.ships.find(y=>y.capt===x.capt);
+      const st=s?UT('av.st.out',{n:s.eta}):UT('av.st.home');
+      return '<div style="margin-top:4px;padding-top:4px'+(i?';border-top:1px dashed #b5a98f':'')+'"><div class="row small" style="gap:6px;align-items:flex-start"><span>'+UT('av.row',{i:MODE_ICON[mode],n:esc(e?e.name:'？'),c:esc(ct?ct.name:'？'),d:ct?distTurns(a,ct,mode):'?'})+'</span><button class="pixel-btn btn-sm" style="flex:none" data-act="avDel" data-id="'+x.id+'">'+UT('btn.avDel')+'</button></div><div class="tiny">'+UT('av.rowSub',{b:fmt(x.budget),s:st})+'</div></div>';
+    }).join('');
+    h+='</div>';
+  });
+  return h;
+}
+/** 加入自動排程（不扣行動點數、不扣錢）：檢查人、目的地、許可、委託金。 */
+ACT.avAdd=()=>{
+  const R_=UI.s.route,mode=R_.mode;
+  if(!tbOn(mode)){toast(MSG('avAdd.noTb',{r:rankName(MODE_TB[mode])}));return}
+  const cap=idleCaptains(mode).find(e=>e.id===R_.capt);
+  if(!cap){toast(MSG('sendVoyage.2',{mode:NM('crew',mode)}));return}
+  const dest=CITY(R_.dest);if(!dest||!destList(mode,true).some(x=>x.ct.id===R_.dest)){toast(MSG('sendVoyage.3'));return}
+  if(!permitOf(mode,dest)){toast(MSG('sendVoyage.4',{REG_NAME:REG_NAME(dest.region_id),sea:(mode==='sea'?UT('voy.sendVoyage'):UT('voy.sendVoyage.2'))}),4200);return}
+  const b=Math.floor(R_.budget||0);if(!(b>=100)){toast(MSG('sendVoyage.5'));return}
+  if(b>G.silver){toast(MSG('sendVoyage.6',{budget:fmt(b)}));return}
+  avList().push({id:'av'+G.turn+'_'+cap.id,capt:cap.id,mode,dest:dest.id,budget:b});sfx.tap();
+  toast(MSG('avAdd.ok',{crew:NM('crew',mode),n:cap.name,c:dest.name,b:fmt(b)}),4200);UI.render();
+};
+/** 取消排程：那個人回到沒有排程的狀態（在途中的照常回來）。 */
+ACT.avDel=el=>{
+  const x=(G.autoVoy||[]).find(a=>a.id===el.dataset.id);if(!x)return;
+  const e=G.emps.find(y=>y.id===x.capt);G.autoVoy=G.autoVoy.filter(a=>a!==x);sfx.tap();
+  toast(MSG('avDel.ok',{n:e?e.name:''}));UI.render();
+};
 
 /* ═════ [07l_flower] ═════ */
 /* ======================= 吉原花街：夜宴、指名名伶、贖身成側室 =======================
@@ -11549,7 +11848,7 @@ ACT.fireDock=el=>{ACT.fire(el);if(!G.emps.some(x=>x.id===el.dataset.id))refreshS
 /* ---------- 船長走私資格 ---------- */
 /** 空閒且好感滿格的船長。 */
 function smugCaptain(){
-  const used=new Set(G.ships.filter(s=>s.mode==='sea').map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));(G.voyQueue||[]).forEach(q=>used.add(q.capt));   // 已排進出運清單的船長不派去走私
+  const used=new Set(G.ships.filter(s=>s.mode==='sea').map(s=>s.capt));(G.smug||[]).forEach(v=>used.add(v.capt));(G.voyQueue||[]).forEach(q=>used.add(q.capt));(G.autoVoy||[]).forEach(a=>used.add(a.capt));if(G.dline&&G.dline.city)used.add(G.dline.capt);   // 已排進出運清單、自動排程、直達線的船長不派去走私
   return G.emps.find(e=>e.rank==='captain'&&empAff(e)>=100&&!used.has(e.id)&&!empLent(e)&&!jailedEmp(e))||null;
 }
 
@@ -12358,7 +12657,7 @@ const LIC={
   ship:{name:UT('lic.LIC.2'),caps:[1,1,2,3,4,5,6]},
   horse:{name:UT('lic.LIC.3'),caps:[1,1,2,3,4,5,6]},
   guard:{name:UT('lic.LIC.4'),caps:[1,1,2,3,4,5,6]},
-  staff:{name:UT('lic.LIC.5'),caps:[{clerk:1,banto:1},{clerk:1,banto:1},{clerk:3,banto:1},{clerk:4,banto:2},{clerk:6,banto:2},{clerk:8,banto:3},{clerk:10,banto:3}]}
+  staff:{name:UT('lic.LIC.5'),caps:[{clerk:1,banto:1},{clerk:1,banto:1},{clerk:3,banto:1},{clerk:4,banto:2},{clerk:6,banto:3},{clerk:8,banto:3,landBanto:1},{clerk:10,banto:3,landBanto:1,seaBanto:1}]}   // 四級番頭 3（原 2）；五級起陸運番頭、六級再加海運番頭（第三百六十七節）
 };
 const LIC_MAX=6;
 const LIC_RANK_NAME=NAMES.licRank;
@@ -12380,8 +12679,11 @@ function slotCap(rank){
   if(rank==='captain')return LIC.ship.caps[licLv('ship')];
   if(rank==='courier')return LIC.horse.caps[licLv('horse')];
   if(rank==='guard')return LIC.guard.caps[licLv('guard')];
+  if(TBANTO.includes(rank))return LIC.staff.caps[licLv('staff')][rank]||0;   // 運輸番頭：五級起才有
   return LIC.staff.caps[licLv('staff')][rank]||1;
 }
+/** 人別帳的運輸番頭名額文字（沒有就空字串）；key＝lic.tbGrant 或 lic.tbCard。 */
+const staffTbTxt=(key,lv)=>TBANTO.map(k=>{const n=LIC.staff.caps[lv][k]||0;return n?UT(key,{r:rankName(k),n}):''}).join('');
 /** 取得許可：等級取較高者，回傳敘事訊息。 */
 function grantLic(k,rank){
   const L=licOf(),lv=licGrantLv(rank);L[k]=Math.max(L[k]||0,lv);
@@ -12389,7 +12691,7 @@ function grantLic(k,rank){
   if(k==='ship')return UT('lic.grantLic.2',{a:slotCap('captain')});
   if(k==='horse')return UT('lic.grantLic.3',{a:slotCap('courier')});
   if(k==='guard')return UT('lic.grantLic.4',{a:slotCap('guard')});
-  const s=LIC.staff.caps[licLv('staff')];return UT('lic.grantLic.5',{a:s.clerk,b:s.banto});
+  const s=LIC.staff.caps[licLv('staff')];return UT('lic.grantLic.5',{a:s.clerk,b:s.banto,c:staffTbTxt('lic.tbGrant',licLv('staff'))});
 }
 
 /* ---------- 交易許可：本業最貴的兩項貨 ---------- */
@@ -12471,7 +12773,7 @@ function licCard(){
   if(licLv('ship')>0)rows.push([nm('ship'),UT('lic.licCard.2',{a:slotCap('captain')})]);
   if(licLv('horse')>0)rows.push([nm('horse'),UT('lic.licCard.3',{a:slotCap('courier')})]);
   if(licLv('guard')>0)rows.push([nm('guard'),UT('lic.licCard.4',{a:slotCap('guard')})]);
-  if(licLv('staff')>0){const s=LIC.staff.caps[licLv('staff')];rows.push([nm('staff'),UT('lic.licCard.5',{a:s.clerk,b:s.banto})])}
+  if(licLv('staff')>0){const s=LIC.staff.caps[licLv('staff')];rows.push([nm('staff'),UT('lic.licCard.5',{a:s.clerk,b:s.banto,c:staffTbTxt('lic.tbCard',licLv('staff'))})])}
   lockedTrade().slice().reverse().forEach(n=>{if((G.trade||[]).includes(n))rows.push([UT('lic.tradeFavorName',{a:COMM_MAP[n].short}),UT('lic.licCard.6')])});
   if((G.lessen||0)>0)rows.push([UT('lic.licCard.7'),UT('lic.licCard.8',{a:G.lessen})]);
   return UT('lic.licCard.10',{a:rows.length?rows.map(([k,v])=>licRow(esc(k),esc(v))).join(''):UT('lic.licCard.9')})+'</div>';
@@ -12712,7 +13014,7 @@ function specialList(cid){
 /** 這次可開口的請託：一般請託＋好感 100 的特殊請託。 */
 function reqList(cid){
   const n=npc(cid);if(!n)return [];if(!n.pos)return dealerReqs(cid);   // 商人請託：調貨、銷貨、臨時打工、代售與脫手（07x_dealers.js）
-  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).filter(f=>!(f.apply&&favorSkip(f,n))).concat(foreignReg(n)?[]:specialList(cid));   // 外地官員沒有特殊請託
+  return favorList(cid).filter(f=>n.pos.rank>=f.rank&&!(f.apply&&(favorDone(f,n)||favorPending(f)))&&!(f.once&&regionHeld(f.k,n))&&!(f.k==='lessen'&&(G.lessen||0)>0)).filter(f=>!(f.apply&&favorSkip(f,n))).filter(f=>!(f.faceOnly&&foreignReg(n))).concat(farReg(n)?[]:specialList(cid));   // 外地官員沒有特殊請託；只能當面的請託不能寫信求（第三百六十八節）
 }
 function requestHtml(cid,msg,blush){   // blush：拜訪打穿後延續這一場的臉紅（第三百四十三節）
   const L=reqList(cid);
@@ -12754,7 +13056,7 @@ ACT.reqAsk=el=>{
  *    不足時以交情最高的熟人補到 2～3 人）。坐不滿的坐墊留空。
  *  - 效果：宴席費每人 5 兩（現款）；出席友人好感 +2、出席店員好感 +3。主角遠島中則停辦。 */
 const PARTY_SEATS=30,PARTY_FEE=5,PARTY_FRIEND_AFF=80,PARTY_GAIN={friend:2,staff:3};
-const PARTY_EMP_SEAT={chief:8800,banto:8400,captain:8000,courier:7900,guard:7800,clerk:7600,apprentice:7200};
+const PARTY_EMP_SEAT={chief:8800,banto:8400,landBanto:8300,seaBanto:8300,captain:8000,courier:7900,guard:7800,clerk:7600,apprentice:7200};
 /** 忘年會座次：家人居前，其次是高位官員與核心員工，其他熟人依好感排列。 */
 function partySeatImportance(a){
   if(a.kind==='wife')return 10000;
@@ -12786,7 +13088,7 @@ function yearEndParty(log){
   if(G.family.spouse)att.push({kind:'wife',label:UT('party.yearEndParty',{a:G.family.spouse.name}),look:{cloth:'#c46a8a',cloth2:'#e0b030',woman:true}});
   if((G.family.conc||[]).length){const x=pick(G.family.conc);att.push({kind:'conc',cid:x.cid,label:UT('party.yearEndParty.2',{a:x.name}),look:{cloth:'#d46a9a',cloth2:'#f0c040',woman:true}})}
   if(G.family.kids.length){const k=pick(G.family.kids);att.push({kind:'kid',label:UT('party.yearEndParty.3',{a:k.name}),look:{cloth:k.gender==='f'?'#e07a9a':'#5a9bd0',cloth2:'#f4ece1',small:true,noKnot:true}})}
-  const staff=[];[...RANKS,...SPECIAL].forEach(rk=>{const l=G.emps.filter(e=>e.rank===rk);if(l.length){const e=pick(l);staff.push(e);att.push({kind:'emp',rank:rk,empId:e.id,cid:e.cid||null,label:UT('party.yearEndParty.4',{a:rankName(rk),b:e.name}),look:RANK_LOOK[rk]||RANK_LOOK['clerk']})}});
+  const staff=[];[...RANKS,...SPECIAL,...TBANTO].forEach(rk=>{const l=G.emps.filter(e=>e.rank===rk);if(l.length){const e=pick(l);staff.push(e);att.push({kind:'emp',rank:rk,empId:e.id,cid:e.cid||null,label:UT('party.yearEndParty.4',{a:rankName(rk),b:e.name}),look:RANK_LOOK[rk]||RANK_LOOK['clerk']})}});
   const room=PARTY_SEATS-att.length;
   const ok=cid=>{const n=npc(cid),r=G.rel[cid];return n&&r&&r.bond&&alive(cid)&&n.cityId===G.cityId&&!(touring(n)&&!tourHere(n,12))&&!isEnemy(cid)&&!G.emps.some(e=>e.cid===cid)&&n.role!=='oiran'};
   let friends=shuffle(Object.keys(G.rel).filter(cid=>ok(cid)&&G.rel[cid].aff>=PARTY_FRIEND_AFF)).filter(()=>chance(0.85)).slice(0,room);
@@ -13167,6 +13469,7 @@ const VO_WORDS={
 /** 道謝的母音序列（收到零用錢），尾音上揚。 */
 const VO_THX={apprentice:'aiao',clerk:'ooie',banto:'aiao',chief:'uo',captain:'oaa',courier:'aiai',guard:'uo',wife:'aiao',conc:'ooie',kidS:'aaa',kidL:'aiao'};
 const VO_STERN=['chief','guard'];
+TBANTO.forEach(k=>{VO_SPK[k]=VO_SPK.banto;VO_WORDS[k]=VO_WORDS.banto;VO_THX[k]=VO_THX.banto});   // 運輸番頭的嗓子比照番頭
 function voSeedR(seed){let x=0;for(const c of String(seed))x=(x*31+c.charCodeAt(0))>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let t=x;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 /** 某人的嗓子：role 決定類別，seed 決定個人差異；female 時音高與口腔改用女聲。 */
 function voVoice(role,seed,female){
@@ -15004,7 +15307,15 @@ ACT.branchRefuse=()=>{
  * 船跟著人：第一次當船長付造船費，之後 e.ship=true，上岸再調回不用再付。年資（since）照算，改派不算升遷。 */
 const RE_FROM_IN=['clerk','banto'],RE_FROM_DOCK=['captain','courier'];
 /** 這個人能改派到哪些職位（不論條件是否滿足）。 */
-const reTargets=e=>RE_FROM_IN.includes(e.rank)?RE_FROM_DOCK:RE_FROM_DOCK.includes(e.rank)?RE_FROM_IN:[];
+const reTargets=e=>{
+  let L=RE_FROM_IN.includes(e.rank)?RE_FROM_DOCK.slice():RE_FROM_DOCK.includes(e.rank)?RE_FROM_IN.slice():[];
+  /* 運輸番頭（第三百六十七節）：番頭可改當陸運、海運番頭；船長可上岸當海運番頭、飛腳當陸運番頭；運輸番頭可改回番頭 */
+  if(e.rank==='banto')L=L.concat(TBANTO);
+  if(e.rank==='captain')L.push('seaBanto');
+  if(e.rank==='courier')L.push('landBanto');
+  if(TBANTO.includes(e.rank))L=['banto'];
+  return L;
+};
 /** 有沒有自己的船。 */
 const reHasShip=e=>!!e.ship||e.rank==='captain';
 /** 人在外頭：在途採買、走私、出運清單、借出、受傷、入獄。 */
@@ -15019,10 +15330,12 @@ function reBlock(e,rk){
   const O=ODDS.reassign,s=statsOfEmp(e),need=(ODDS.enlist.stat||{})[rk]||{};
   if(e.reT!==undefined&&G.turn-e.reT<O.cool)return UT('re.no.cool',{n:O.cool-(G.turn-e.reT)});
   if(reBusy(e))return UT('re.no.busy');
+  if(avOf(e.id))return UT('re.no.auto');                // 排在自動排程裡：先取消排程（第三百六十七節）
+  if(G.dline&&G.dline.city&&(G.dline.capt===e.id||G.dline.cour===e.id))return UT('re.no.dline');   // 佔在直達線上（第三百六十八節）
   if(empAff(e)<O.aff)return UT('re.no.aff',{v:O.aff});
   if(!slotFree(rk))return UT('re.no.slot',{r:rankName(rk)});
   for(const [k,v] of Object.entries(need))if((s[k]||0)<v)return UT('re.no.stat',{s:statName(k),v});
-  if(rk==='banto'&&RE_FROM_DOCK.includes(e.rank)&&G.turn-e.since<O.bantoTenure)return UT('re.no.tenure',{n:O.bantoTenure});
+  if((rk==='banto'||TBANTO.includes(rk))&&RE_FROM_DOCK.includes(e.rank)&&G.turn-e.since<O.bantoTenure)return UT('re.no.tenure',{n:O.bantoTenure});
   if(rk==='captain'&&!reHasShip(e)&&G.silver<shipCost())return UT('re.no.silver');
   return '';
 }
@@ -15052,7 +15365,7 @@ ACT.reGo=el=>{
   if(from==='captain')e.ship=true;
   if(rk==='captain')e.ship=true;
   e.rank=rk;e.wage=reWage(e,rk);e.reT=G.turn;
-  if(RE_FROM_IN.includes(rk))e.promotedAt=G.turn;                 // 上岸後下一次升遷從改派起算
+  if(RE_FROM_IN.includes(rk)||TBANTO.includes(rk))e.promotedAt=G.turn;                 // 上岸後下一次升遷從改派起算
   if(!msg)msg=from==='captain'?MSG('re.doneDock',{n:e.name,r:rankName(rk)}):MSG('re.done',{n:e.name,r:rankName(rk)});
   if(G.voyQueue)voyQPrune();
   UI.hideInfo();toast(msg,3600);sfx.coin();UI.render();refreshSheet();
@@ -15093,7 +15406,7 @@ function enlistFitRanks(cid){
   return RECRUIT_RANKS.filter(rk=>T[rk]&&Object.entries(T[rk]).every(([k,v])=>(s[k]||0)>=v));
 }
 /** 私宅的延攬區塊：說明＋各有空缺職位的按鈕（大番頭、番頭、手代、船長、飛腳、保鏢）。 */
-const ENLIST_ORDER=['chief','banto','clerk','captain','courier','guard'];
+const ENLIST_ORDER=['chief','banto','landBanto','seaBanto','clerk','captain','courier','guard'];
 function enlistBlockHtml(){
   const ks=ENLIST_ORDER.filter(slotFree);
   const btn=ks.map(rk=>'<button class="pixel-btn btn-sm" data-act="enlistOpen" data-rk="'+rk+'">'+UT('btn.enlistOpen',{r:rankName(rk)})+'</button>').join(' ');
@@ -15579,7 +15892,10 @@ ACT.letterReq=el=>{
  *     推進時（自動出貨之前）從庫存送出，照當旬市價加兩成入帳；不算本城出貨。送不足＝失約：有多少送多少，好感 −30、知名度 −1，合約結束。
  *  數值 ODDS.regConsign、ODDS.honjin；文字 rfav.*（01e、01f、01g）。狀態 G.consign（在途）、G.honjin（合約）、G.regOffer（本旬開價）。 */
 /** 這位遠國奉行所官員是不是外地的（不在本店所在地區）。 */
-const foreignReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion());
+/** 外地官員只能寫信；町年寄寄合引見、擔任町年寄時路過來訪的外地官員，那一旬在城裡，照一般拜訪（第三百六十八節的 mtyHere）。 */
+const foreignReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion()&&!(typeof mtyHere==='function'&&mtyHere(n.cid)));
+/** 不論在不在城裡，是不是外地遠國奉行所的官員（特殊請託照舊不給外地官員）。 */
+const farReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion());
 const localReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)===homeRegion());
 /** 本店能辦哪一種捎帶：港口城→官船；非港口城或水陸要衝→官荷。 */
 const consignSeaOk=()=>canSea(homeCity());
@@ -15806,7 +16122,7 @@ ACT.ujGo=()=>{
 /** 歸來時（resolveVoyage 呼叫）：去程遇險、交貨領錢。回傳入帳金額，說明寫進採買日誌。 */
 function outboundSettle(s,E,log){
   const O=s.out,c=COMM_MAP[O.name],J=G.ujob&&G.ujob.id===O.job?G.ujob:null;
-  const robbed=banditRobs(s.mode),go=robbed||chance(s.riskGo||s.risk||0);
+  const robbed=banditRobs(s.mode),go=robbed||chance((s.riskGo||s.risk||0)*mtyRiskMul());
   const lost=go?Math.round(O.q*ODDS.unloadJob.lossRate):0,got=O.q-lost,pay=Math.round(got*c.base*ODDS.unloadJob.payRate);
   if(J)J.done+=got;
   E.lines.push(NEWS('r4.out.line',{g:c.short,q:O.q,got,lost:lost?UT('r4.out.lost',{n:lost}):'',a:fmt(pay)}));
@@ -18071,7 +18387,7 @@ ACT.cmGo=el=>{
 {const _os=outboundSettle;outboundSettle=function(s,E,log){
   const O=s.out;if(!O||!O.chumon)return _os.apply(this,arguments);
   const K=OF(),c=COMM_MAP[O.name],o=chumonList().find(x=>x.id===O.chumon);
-  const robbed=banditRobs(s.mode),go=robbed||chance(s.riskGo||s.risk||0);
+  const robbed=banditRobs(s.mode),go=robbed||chance((s.riskGo||s.risk||0)*mtyRiskMul());
   const lost=go?Math.round(O.q*ODDS.unloadJob.lossRate):0,got=O.q-lost,pay=Math.round(got*(o?o.unit:marketQuote(O.name)));
   if(o){G.chumon=chumonList().filter(x=>x!==o);
     if(got>0&&G.rel[o.cid]){const r=R(o.cid);setAff(r,clamp(r.aff+K.chumonDone,0,100));logRel(o.cid,UT('of.log.cm',{q:got,g:K.chumonDone}))}}
@@ -18617,7 +18933,7 @@ function yamiDeliver(log){
  * - 狀態：G.move、G.moveLast（上次抵達的旬，冷卻 108 旬＝三年，第三百二十五節）。數值 ODDS.move；文字 mv.*（01e）、新聞 mv.*（01g）。 */
 const MVO=()=>ODDS.move;
 const moving=()=>!!(G&&G.move);
-const MV_RANKS=['chief','banto','clerk','apprentice','captain','courier','guard'];
+const MV_RANKS=['chief','banto','landBanto','seaBanto','clerk','apprentice','captain','courier','guard'];
 /** 這座城可以開哪些行業（不產該行業的本業貨）。 */
 const moveSysOK=(ct,k)=>!commsOfSys(k).some(c=>cityRaw(ct).includes(c.name));
 const moveSysList=ct=>SYS.filter(s=>s.key!==absentSys()&&moveSysOK(ct,s.key)).map(s=>s.key);   // 魚屋與醬漬問屋不能互轉（第三百零二節）
@@ -18839,6 +19155,7 @@ function moveClearCity(){
   G.bz=[];G.bzBuy={};G.bzShow=false;G.rvLot=null;G.rivalHeirs=[];
   G.gm=null;G.gmDue=null;G.gmLevy=null;G.gmArb=null;G.guild=null;
   G.urge=null;G.yami=null;G.urgeCall=null;G.riotLog=null;G.urgePend=null;G.popDown=0;G.lastGap=null;G.citySatLast=null;G.newTown=null;
+  G.autoVoy=null;                                 // 自動排程跟著舊城的許可與目的地，遷居時清掉（第三百六十七節）
   G.recruit=null;G.inspect=null;G.raidNote=null;G.tempHelp=null;G.swapOffer=null;G.lendOffer=null;G.stashOffer=null;G.xoffer=null;
   G.sumo=null;G.rushLot=null;G.rushBust=null;G.faceEvents=[];G.homeEvents=[];
 }
@@ -20299,6 +20616,385 @@ ACT.hanabiPick=el=>{
   pushNews(NEWS('hb.payN',{f:moveYago(),a:fmt(amt)}));
   sfx.coin();toast(MSG('hb.paid',{a:fmt(amt)}),4200);save();UI.hideInfo();UI.render();
 };
+
+/* ═════ [07zzzzzzzzzzzzz_dline] ═════ */
+/* ======================= 產地直達線（第三百五十九節第一段、第三百六十三節；上線見第三百六十八節） =======================
+ *  - 船長、飛腳都僱到許可上限時，大番頭在旬報後上門建議一次；之後商路頁（委託採買上方）常駐直達線卡。要有大番頭；大番頭不在了線就停。
+ *  - 只能選本店所在地區以外的產地（港口、內陸都可以），要有那個地區的四張許可：入津御免、陸運通行手形（書狀可求）、
+ *    專線御免·船手（船手頭四階）、專線御免·道中（道中奉行五階），後兩張只能當面請託（外地高官要靠町年寄寄合的引見或路過來訪）。
+ *  - 建立 5,000 兩，佔一名船長與一名飛腳（大番頭挑膽識高的），一個月後開始送，每旬一次約半船；為期一年，期滿大番頭來問續約（不另付錢）。
+ *  - 價錢：當旬產地價加一成運費，到貨時付現款；付不出那一旬不收，連兩旬付不出就斷線。倉位不夠只收放得下的。奢侈品不送。
+ *  - 遇險約為委託採買的三分之一（看船長、飛腳的膽識），出事那一旬的貨沒了、不付錢。產地地區的大口買付月份只送一半；凶作減半，豐產便宜。
+ *  - 不算向大盤進貨，大盤停貨照送。同一時間一條線。遷居時結束，新城條件符合時大番頭再建議。
+ *  狀態 G.dline{asked,city,t0,start,until,capt,cour,miss,renew,last,lastT}；數值 ODDS.dline；文字 dl.*。 */
+const DLO=()=>ODDS.dline;
+const dlS=()=>G.dline||(G.dline={asked:false,city:null});
+const dlOn=()=>!!(G&&G.dline&&G.dline.city);
+const dlChief=()=>(G.emps||[]).find(e=>e.rank==='chief')||null;
+/** 船長、飛腳都僱到許可上限（各至少一名）。 */
+const dlCrewFull=()=>{const c=G.emps.filter(e=>e.rank==='captain').length,f=G.emps.filter(e=>e.rank==='courier').length;return c>0&&f>0&&c>=slotCap('captain')&&f>=slotCap('courier')};
+/** 某地區的四張許可：[入津御免, 陸運通行手形, 專線御免·船手, 專線御免·道中]。 */
+function dlPermits(rid){const P=permitsOf();return [!!(P.sea.all||P.sea[rid]),!!(P.land.all||P.land[rid]),!!(P.lineS&&P.lineS[rid]),!!(P.lineL&&P.lineL[rid])]}
+/** 某城直達線會送的貨：本業可交易的必需品、一般品。 */
+const dlGoods=ct=>cityProds(ct).filter(n=>COMM_MAP[n]&&COMM_MAP[n].sys===G.sysKey&&!COMM_MAP[n].luxury&&tradeOK(n));
+/** 一個地區裡的港口（首府優先）。 */
+function dlPortOf(rid,near){const L=CITIES.filter(c=>c.region_id===rid&&canSea(c));if(!L.length)return null;if(near)return L.slice().sort((a,b)=>distKm(a,near)-distKm(b,near))[0];const cap=capitalOf(rid);return L.includes(cap)?cap:L[0]}
+/** 路線：產地的出海港、本店這頭的上岸港、海上旬數、產地是不是內陸。 */
+function dlRoute(ct){
+  const home=homeCity(),inland=!canSea(ct),from=inland?dlPortOf(ct.region_id,ct):ct,to=canSea(home)?home:dlPortOf(home.region_id,home);
+  return {inland,from,to,d:from&&to?distTurns(from,to,'sea'):4};
+}
+/** 可選的產地：本地區以外、這一局啟用、有本業日常貨的城。 */
+const dlCands=()=>CITIES.filter(c=>c.region_id!==homeRegion()&&c.id!==G.cityId&&dlGoods(c).length).sort((a,b)=>dlPermits(b.region_id).filter(Boolean).length-dlPermits(a.region_id).filter(Boolean).length||a.region_id.localeCompare(b.region_id)||dlGoods(b).length-dlGoods(a).length);
+/** 大番頭挑的人：空閒、沒排自動排程，膽識高的優先。 */
+const dlPick=mode=>idleCaptains(mode).slice().sort((a,b)=>statsOfEmp(b).audacity_courage-statsOfEmp(a).audacity_courage)[0]||null;
+/** 建立時的阻擋理由（可以時回空字串）。 */
+function dlBlock(ct){
+  if(!dlChief())return UT('dl.no.chief');
+  if(!ct)return UT('dl.no.city');
+  if(!dlPermits(ct.region_id).every(Boolean))return UT('dl.no.permit',{r:REG_NAME(ct.region_id)});
+  const D=dlS(),keepC=D.city?D.capt:null,keepF=D.city?D.cour:null;   // 換產地：原本那兩位接著跑
+  if(!keepC&&!dlPick('sea'))return UT('dl.no.capt');
+  if(!keepF&&!dlPick('land'))return UT('dl.no.cour');
+  if(G.silver<DLO().fee)return UT('dl.no.silver',{a:fmt(DLO().fee)});
+  return '';
+}
+/** 結束直達線（船長、飛腳放回）。why：寫進旬報的原因鍵（沒有就不寫）。 */
+function dlEnd(why,log,v){
+  const D=dlS(),ct=CITY(D.city);D.city=null;D.capt=D.cour=null;D.renew=false;D.miss=0;
+  if(why){const t=NEWS('dl.end.'+why,Object.assign({c:ct?ct.name:''},v||{}));pushNews(t);if(log)log.push(t)}
+}
+/** 建立（或換產地）。 */
+function dlBuild(cid,prev){
+  const ct=CITY(cid),why=dlBlock(ct);if(why)return {ok:false,msg:why};
+  const D=dlS(),O=DLO();
+  const ok=(id,rk)=>id&&G.emps.some(e=>e.id===id&&e.rank===rk)?id:null;
+  let capt=ok(prev&&prev.capt,'captain'),cour=ok(prev&&prev.cour,'courier');
+  if(!capt)capt=dlPick('sea').id;if(!cour)cour=dlPick('land').id;
+  payPublic('spend.dline',O.fee);
+  Object.assign(D,{city:ct.id,t0:G.turn,start:G.turn+O.wait,until:G.turn+O.wait+O.turns,capt,cour,miss:0,renew:false,last:null,lastT:null,asked:true});
+  pushNews(NEWS('dl.buildN',{f:moveYago(),c:ct.name}));
+  save();return {ok:true,msg:MSG('dl.built',{c:ct.name,n:O.wait})};
+}
+/** 這一旬送貨。 */
+function dlDeliver(log){
+  const D=dlS(),O=DLO(),ct=CITY(D.city);if(!ct)return;
+  const cap=G.emps.find(e=>e.id===D.capt),cour=G.emps.find(e=>e.id===D.cour),R0=dlRoute(ct);
+  if(!cap||!cour)return;
+  const goods=dlGoods(ct);
+  if(!goods.length){const t=NEWS('dl.noGoods',{c:ct.name});pushNews(t);log.push(t);return}
+  const cs=statsOfEmp(cour).commerce_skill;
+  const its=goods.map(n=>{const c=COMM_MAP[n],si=originSupplyIndex(ct.id,n,G.year,G.month),pf=clamp(0.80-0.30*cs/100,0.5,0.95)*originSupplyPrice(si);return {n,c,si,pf,unit:c.base*pf*(1+O.freight)}});
+  makeVoyageMix(its);
+  let load=O.load;if(buyoutActive(ct.region_id,G.year,G.month,G.cycle))load*=O.buyout;   // 產地地區的大口買付：只送一半
+  let room=Math.max(0,invCap()-invUsed()-pendingQty());
+  its.sort((a,b)=>b.w-a.w).forEach(x=>{x.q=Math.max(0,Math.min(room,Math.floor(load*x.w*CAP_SEA[weightClass(x.n)]*(x.si<0.75?O.famine:1))));room-=x.q});   // 凶作份量減半
+  const L=its.filter(x=>x.q>0);if(!L.length){const t=NEWS('dl.full',{c:ct.name});pushNews(t);log.push(t);return}
+  const risk=clamp((voyRisk(cap,R0.d,'sea')+(R0.inland?voyRisk(cour,1,'land'):0))*O.risk*mtyRiskMul(),0,0.5);
+  const what=L.map(x=>UT('dl.item',{g:x.c.short,q:x.q})).join(NAMES_SEP);
+  if(chance(risk)){
+    D.last={t:G.turn,lost:true,what};const t=NEWS('dl.wreck',{c:ct.name,w:what});pushNews(t);log.push(t);
+    lossNote('cargo',L.reduce((a,x)=>a+x.q*marketQuote(x.n),0));return;
+  }
+  const cost=Math.round(L.reduce((a,x)=>a+x.q*x.unit,0));
+  if(G.silver<cost){
+    D.miss=(D.miss||0)+1;D.last={t:G.turn,unpaid:true,what,cost};
+    if(D.miss>=O.failMax){dlEnd('unpaid',log);return}
+    const t=NEWS('dl.unpaid',{c:ct.name,a:fmt(cost)});pushNews(t);log.push(t);return;
+  }
+  payPublic('spend.dlineGoods',cost);D.miss=0;
+  L.forEach(x=>{addStock(x.n,x.q,x.unit);stockAdd(x.n,x.q,false)});
+  D.last={t:G.turn,what,cost};D.lastT=G.turn;
+  const t=NEWS('dl.arrive',{c:ct.name,w:what,a:fmt(cost)});log.push(t);
+}
+/** 每旬：大番頭的建議、送貨、期滿續約、人手檢查。 */
+function dlTick(log){
+  if(!G||G.ended)return;
+  const D=dlS();
+  if(!D.city){
+    if(!D.asked&&dlChief()&&dlCrewFull()){const b=dlChief();if(!jailedEmp(b)&&!empLent(b)){D.asked=true;queueFaceEvent({type:'dlAsk',empId:b.id,turn:G.turn})}}
+    return;
+  }
+  if(!dlChief()){dlEnd('chief',log);return}
+  ['capt','cour'].forEach(k=>{                     // 佔線的人離職、改派：大番頭改派空閒的人頂上，沒人就斷線
+    const want=k==='capt'?'captain':'courier';if(!D.city)return;
+    if(G.emps.some(e=>e.id===D[k]&&e.rank===want))return;
+    const p=dlPick(k==='capt'?'sea':'land');if(p)D[k]=p.id;else dlEnd('crew',log,{r:rankName(want)});
+  });
+  if(!D.city)return;
+  if(G.turn>=D.until){
+    if(!D.renew){D.renew=true;const b=dlChief();queueFaceEvent({type:'dlRenew',empId:b.id,turn:G.turn});return}
+    dlEnd('expire',log);return;                    // 問過了卻沒續約
+  }
+  if(G.turn>=D.start)dlDeliver(log);
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);dlTick(log);return r}}
+/* 大番頭的建議與續約（旅報後來訪） */
+FACE_TITLE.dlAsk='dl.ask.t';FACE_TITLE.dlRenew='dl.renew.t';
+FACE_EXT.dlAsk=()=>{if(dlOn())return null;return {line:TX('dline.ask'),effect:UT('dl.ask.eff',{a:fmt(DLO().fee)}),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="dlGoRoutes">'+UT('btn.dlLook')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.dlLater')+'</button></div>'}};
+FACE_EXT.dlRenew=()=>{const D=dlS();if(!D.city||!D.renew)return null;const ct=CITY(D.city);
+  return {line:TX('dline.renew',{c:ct.name}),effect:UT('dl.renew.eff',{c:ct.name,n:DLO().turns}),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="dlRenew" data-v="1">'+UT('btn.dlRenew')+'</button><button class="pixel-btn btn-sm" data-act="dlRenew" data-v="0">'+UT('btn.dlStop')+'</button></div>'}};
+ACT.dlGoRoutes=()=>{UI.hideInfo();setTimeout(()=>{if(!$('#info-bd').classList.contains('hidden'))return;UI.go('routes')},0)};
+ACT.dlRenew=el=>{
+  const D=dlS();if(!D.city||!D.renew)return UI.hideInfo();
+  if(el.dataset.v==='1'){D.until=G.turn+DLO().turns;D.renew=false;toast(MSG('dl.renewed',{c:CITY(D.city).name}),4200);sfx.coin()}
+  else{dlEnd('stop');toast(MSG('dl.stopped'),3600)}
+  save();UI.hideInfo();UI.render();
+};
+/** 商路頁：直達線卡（建議過、或已有線時才出現）。 */
+function dlCard(){
+  if(!G)return '';const D=dlS();if(!D.asked&&!D.city)return '';
+  const O=DLO(),b=dlChief();let h='<div class="card" style="background:#f6efe2"><b class="small">'+UT('dl.title')+'</b>';
+  if(D.city){
+    const ct=CITY(D.city),R0=dlRoute(ct),cap=G.emps.find(e=>e.id===D.capt),cour=G.emps.find(e=>e.id===D.cour);
+    h+='<div class="small" style="margin-top:3px">'+UT('dl.route',{c:esc(ct.name),p:esc(R0.to?R0.to.name:homeCity().name),v:R0.inland?UT('dl.via',{p:esc(R0.from?R0.from.name:'')}):''})+'</div>';
+    h+='<div class="tiny muted">'+UT('dl.crew',{a:esc(cap?cap.name:'？'),b:esc(cour?cour.name:'？')})+'</div>';
+    h+='<div class="tiny">'+(G.turn<D.start?UT('dl.wait',{n:D.start-G.turn}):UT('dl.left',{n:Math.max(0,D.until-G.turn)}))+'</div>';
+    if(D.last)h+='<div class="tiny" style="margin-top:2px">'+(D.last.lost?UT('dl.lastLost',{w:esc(D.last.what)}):D.last.unpaid?UT('dl.lastUnpaid',{a:fmt(D.last.cost)}):UT('dl.last',{w:esc(D.last.what),a:fmt(D.last.cost)}))+'</div>';
+  }else h+='<div class="tiny muted" style="margin-top:2px">'+UT('dl.lead',{a:fmt(O.fee),n:O.wait})+'</div>';
+  if(!b){h+='<div class="notice tiny">'+UT('dl.no.chief')+'</div></div>';return h}
+  const open=!!UI.s.dlOpen;
+  h+='<div class="row" style="justify-content:flex-start;gap:4px;margin-top:4px">'
+    +'<button class="pixel-btn btn-sm'+(D.city?'':' btn-gold')+'" data-act="dlToggle">'+UT(open?'btn.dlHide':D.city?'btn.dlChange':'btn.dlPick')+'</button>'
+    +(D.city?'<button class="pixel-btn btn-sm btn-red" data-act="dlCancel">'+UT('btn.dlCancel')+'</button>':'')+'</div>';
+  if(D.city&&UI.s.dlCancelArm)h+='<div class="notice tiny">'+UT('dl.cancelAsk')+'</div><div class="grid2"><button class="pixel-btn btn-sm btn-red" data-act="dlCancelYes">'+UT('btn.dlCancelYes')+'</button><button class="pixel-btn btn-sm" data-act="dlCancelNo">'+UT('btn.dlCancelNo')+'</button></div>';
+  if(open){
+    const L=dlCands(),sel=UI.s.dlSel&&L.some(c=>c.id===UI.s.dlSel)?UI.s.dlSel:null;
+    h+='<div class="tiny muted" style="margin-top:4px">'+UT('dl.pickLead')+'</div>';
+    h+=L.slice(0,14).map(ct=>{
+      const P=dlPermits(ct.region_id),R0=dlRoute(ct),ok=P.every(Boolean);
+      return '<div class="mkt-row '+(ct.id===sel?'on':'')+'" data-act="dlSel" data-id="'+ct.id+'"'+(ok?'':' style="opacity:.6"')+'><div><b class="small">'+esc(ct.name)+'</b> <span class="tag green">'+esc(ct.region_name)+'</span>'+(R0.inland?' <span class="tag gray">'+UT('dl.inland')+'</span>':'')
+        +'<div class="tiny muted">'+dlGoods(ct).slice(0,3).map(n=>esc(COMM_MAP[n].short)).join(NAMES_SEP)+'</div></div><div class="tiny" style="text-align:right">'+P.map((x,i)=>(x?'✅':'⬜')+UT('dl.pm.'+i)).join('<br>')+'</div></div>';
+    }).join('')||'<div class="notice tiny">'+UT('dl.noCand')+'</div>';
+    if(sel){const why=dlBlock(CITY(sel));h+='<button class="pixel-btn'+(why?'':' btn-gold')+'" style="width:100%;margin-top:6px;padding:8px"'+(why?' disabled':'')+' data-act="dlBuild" data-id="'+sel+'">'+(why?esc(why):UT(D.city?'btn.dlRebuild':'btn.dlBuild',{c:esc(CITY(sel).name),a:fmt(O.fee)}))+'</button>'}
+  }
+  return h+'</div>';
+}
+ACT.dlToggle=()=>{UI.s.dlOpen=!UI.s.dlOpen;UI.s.dlCancelArm=false;renderRoutes()};
+ACT.dlSel=el=>{UI.s.dlSel=el.dataset.id;renderRoutes()};
+ACT.dlBuild=el=>{
+  const D=dlS(),was=D.city;
+  if(was&&was===el.dataset.id){toast(MSG('dl.same'));return}
+  const why=dlBlock(CITY(el.dataset.id));if(why){toast(why,3600);renderRoutes();return}
+  const prev=was?{capt:D.capt,cour:D.cour}:null;
+  if(was)dlEnd(null);                              // 換產地：舊線當場結束，新線重付建立費（原本那兩位接著跑）
+  const r=dlBuild(el.dataset.id,prev);
+  if(!r.ok){toast(r.msg,3600);renderRoutes();return}
+  UI.s.dlOpen=false;UI.s.dlSel=null;sfx.coin();toast(r.msg,4200);UI.render();
+};
+ACT.dlCancel=()=>{UI.s.dlCancelArm=true;renderRoutes()};
+ACT.dlCancelNo=()=>{UI.s.dlCancelArm=false;renderRoutes()};
+ACT.dlCancelYes=()=>{UI.s.dlCancelArm=false;if(!dlOn())return;dlEnd('cancel');toast(MSG('dl.stopped'),3600);sfx.tap();UI.render()};
+/* 遷居：直達線結束，新城條件符合時大番頭再建議 */
+{const _m=moveClearCity;moveClearCity=function(){const r=_m.apply(this,arguments);G.dline=null;return r}}
+/* 專線御免：外地船手頭（四階）、道中奉行（五階）只能當面請託 */
+REG_FAVORS.push(
+  {k:'rlineSea',rank:4,once:true,faceOnly:true,pos:['reg_05'],avail:n=>regOfNpc(n)!==homeRegion()},
+  {k:'rlineLand',rank:5,once:true,faceOnly:true,pos:['reg_07'],avail:n=>regOfNpc(n)!==homeRegion()}
+);
+REG_FAVORS.filter(f=>f.k==='rlineSea'||f.k==='rlineLand').forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
+REG_FAVOR.rlineSea=n=>{const P=permitsOf();P.lineS=P.lineS||{};P.lineS[regOfNpc(n)]=true;return NEWS('dl.permitSea',{r:REG_NAME(regOfNpc(n))})};
+REG_FAVOR.rlineLand=n=>{const P=permitsOf();P.lineL=P.lineL||{};P.lineL[regOfNpc(n)]=true;return NEWS('dl.permitLand',{r:REG_NAME(regOfNpc(n))})};
+
+/* ═════ [07zzzzzzzzzzzzzz_mty] ═════ */
+/* ======================= 町年寄寄合（第三百六十二、三百六十三節；上線見第三百六十八節） =======================
+ *  - 任命：名望四階、資產（淨資產）十萬兩以上，由町奉行所任命（名號演出，頂部欄綠色「町年寄」）。公會長任內不任命；當選公會長就自動辭去。
+ *    連續三次缺席寄合就卸任（知名度 −3），一年內不再任命。
+ *  - 三席：你，加上本城身代最高的兩位旅商人（每次寄合照當下的身代排名）。
+ *  - 寄合：每季一次，2、5、8、11 月上旬；進場扣 1 行動（比照公會例會）。決定下一季（下個月上旬起九旬）：
+ *    一、運輸：加強海路或加強陸路（運量 +20%）；二、治安：打擊海賊山賊（委託採買、外運、直達線遇險減半）或防火防盜（你的倉庫不失火、不遭竊、盜賊不上門）；
+ *    三、引見：兩位列席的外地遠國奉行所官員，你當場結識，那一旬留在城裡可以照一般拜訪登門。
+ *  - 表決：三人每題一票；旅商人海運多投海路、陸運多投陸路（內陸城一律投陸路）；上一季船貨遇險多投打擊海賊山賊，失火失竊多投防火防盜。
+ *    好感 60 以上的旅商人有機會改投你那一邊。缺席：照兩位旅商人的票，不同就抽籤；引見也錯過。
+ *  - 擔任期間每季有一位外地遠國奉行所四、五階官員路過本城上門（季內隨機一旬），那一旬可以當面拜訪他一次。
+ *  狀態 G.mty{on,t,miss,off,mt,eff,here,vq,evq}；數值 ODDS.mty；文字 mty.*。 */
+const MTYO=()=>ODDS.mty;
+const mtyS=()=>G.mty||(G.mty={on:false,miss:0});
+function mtyOn(){return !!(G&&G.mty&&G.mty.on)}
+/** 這位外地官員這一旬在城裡（寄合引見、路過來訪）。 */
+function mtyHere(cid){const H=G&&G.mty&&G.mty.here;return !!(H&&H.t===G.turn&&H.cids.includes(cid))}
+/** 本季寄合決議（沒有或不在期間回 null）。 */
+function mtyEffNow(){const E=G&&G.mty&&G.mty.eff;return E&&G.turn>=E.from&&G.turn<E.until?E:null}
+/** 運量倍數（加強海路／陸路）。 */
+function mtyCapMul(mode){const E=mtyEffNow();return E&&E.trans===mode?ODDS.mty.cap:1}
+/** 遇險倍數（打擊海賊山賊）。 */
+function mtyRiskMul(){const E=mtyEffNow();return E&&E.sec==='pirate'?ODDS.mty.riskCut:1}
+/** 防火防盜：只作用在你自己的倉庫與店舖。 */
+function mtyGuard(){const E=mtyEffNow();return !!(E&&E.sec==='fire')}
+/** 本旬的寄合（沒有回 null）。 */
+const mtyNow=()=>{const M=G&&G.mty;return M&&M.on&&M.mt&&M.mt.t===G.turn?M.mt:null};
+/** 兩位旅商人席次：本城身代最高的兩位。 */
+const mtySeats=()=>cityNpcs(G.cityId).filter(n=>n.role==='guest'&&alive(n.cid)&&!n.hired&&!jailed(n)).sort((a,b)=>bzWorth(b.cid)-bzWorth(a.cid)).slice(0,2).map(n=>n.cid);
+/** 遠國奉行所四、五階官員。 */
+const mtyOffs=(local,rank)=>Object.values(G.world.npcs).filter(n=>n.pos&&n.pos.court==='region'&&alive(n.cid)&&!jailed(n)&&(local?regOfNpc(n)===homeRegion():regOfNpc(n)!==homeRegion())&&(rank?n.pos.rank===rank:n.pos.rank>=4&&n.pos.rank<=5));
+/** 建立本旬寄合：本地區一位、外地同階兩位（不同地區）。 */
+function mtyNew(log){
+  const M=mtyS(),R0=shuffle([4,5]);let local=null,far=[];
+  for(const rk of R0){
+    const L=mtyOffs(true,rk),F=shuffle(mtyOffs(false,rk)),seen=new Set(),F2=F.filter(n=>{const r=regOfNpc(n);if(seen.has(r))return false;seen.add(r);return true});
+    if(L.length&&F2.length>=2){local=pick(L).cid;far=F2.slice(0,2).map(n=>n.cid);break}
+  }
+  if(!local){const L=mtyOffs(true),F=shuffle(mtyOffs(false));local=L.length?pick(L).cid:null;far=F.slice(0,2).map(n=>n.cid)}
+  M.mt={t:G.turn,att:false,step:0,local,far,seats:mtySeats(),res:{},done:false,talk:{}};
+  const t=NEWS('mty.meetN');pushNews(t);log.push(t);
+}
+/** 旅商人怎麼投。k：trans（sea／land）、sec（pirate／fire）。 */
+function mtySeatVote(cid,k){
+  if(k==='trans'){if(!canSea(homeCity()))return 'land';return seeded('mtyT'+cid)()<0.5?'sea':'land'}
+  const E=mtyS().evq||{},w=E.wreck||0,f=E.fire||0;
+  if(w>f)return 'pirate';if(f>w)return 'fire';
+  return seeded('mtyS'+cid+G.turn)()<0.5?'pirate':'fire';
+}
+/** 一題表決：me＝你的票（缺席為 null）。好感 60 以上的旅商人有機會改投你那一邊。 */
+function mtyDecide(M,k,me){
+  const O=MTYO(),votes=M.seats.map(cid=>{let v=mtySeatVote(cid,k),sw=false;if(me&&v!==me&&R(cid).aff>=O.swayAff&&chance(O.sway)){v=me;sw=true}return {cid,v,sw}});
+  const all=votes.map(x=>x.v).concat(me?[me]:[]),opts=k==='trans'?['sea','land']:['pirate','fire'],n0=all.filter(v=>v===opts[0]).length,n1=all.length-n0;
+  const tie=n0===n1,win=n0>n1?opts[0]:n1>n0?opts[1]:(chance(0.5)?opts[0]:opts[1]);
+  M.res[k]={me,votes,win,tie};return M.res[k];
+}
+/** 兩題都決定了：下一季生效（下個月上旬起九旬），旬報、瓦版各一則。 */
+function mtyFinalize(M,log){
+  if(M.fin||!M.res.trans||!M.res.sec)return;M.fin=true;
+  const S=mtyS(),O=MTYO();S.eff={from:M.t+3,until:M.t+3+O.turns,trans:M.res.trans.win,sec:M.res.sec.win};S.evq={};
+  const t=NEWS('mty.resN',{a:UT('mty.opt.'+S.eff.trans),b:UT('mty.opt.'+S.eff.sec)});pushNews(t);if(log)log.push(t);
+}
+/** 引見：兩位外地官員當場結識，這一旬留在城裡。 */
+function mtyIntro(M){
+  if(M.introDone)return;M.introDone=true;
+  M.far.forEach(cid=>{
+    const r=R(cid);addKnown(cid);r.met=true;r.seen=true;
+    if(!r.bond){r.bond={mult:0.8,label:UT('mty.bond'),introId:null};setAff(r,Math.max(r.aff,MTYO().introAff));if(!r.fameGot){r.fameGot=true;addFame(0.8)}}
+    logRel(cid,UT('mty.log.intro'));
+  });
+  mtyHereAdd(M.far);
+}
+function mtyHereAdd(L){const S=mtyS();if(!S.here||S.here.t!==G.turn)S.here={t:G.turn,cids:[]};L.forEach(c=>{if(!S.here.cids.includes(c))S.here.cids.push(c)})}
+/** 卸任。 */
+function mtyQuit(why,log){
+  const S=mtyS();S.on=false;S.mt=null;S.off=G.turn;
+  if(why==='miss')setFame((G.fame||0)-MTYO().missFame);
+  const t=NEWS('mty.quit.'+why,{a:MTYO().missFame});pushNews(t);if(log)log.push(t);
+}
+/** 每旬（日期前進後）：任命、建立寄合、每季的外地官員來訪。 */
+function mtyTick(log){
+  if(!G||G.ended)return;
+  const O=MTYO(),gm=typeof gmIsMe==='function'&&gmIsMe();
+  if(!mtyOn()){
+    const S=G.mty;if(gm||(S&&S.off!=null&&G.turn-S.off<O.cool))return;
+    if(fameTier()>=O.tier&&netWorth()>=O.worth){
+      const N=mtyS();N.on=true;N.t=G.turn;N.miss=0;N.mt=null;N.vq=null;titleGain('mty');
+      const t=NEWS('mty.appointN',{f:moveYago(),c:homeCity().name});pushNews(t);log.push(t);sfx.fanfare();
+    }else return;
+  }
+  if(gm){mtyQuit('gm',log);return}
+  const S=mtyS();
+  if(O.months.includes(G.month)&&G.cycle===1&&!(S.mt&&S.mt.t===G.turn))mtyNew(log);
+  let V=S.vq;
+  if(!V||G.turn>=V.end){const rem=(3-((G.month-1)%3))*3-(G.cycle-1);V=S.vq={end:G.turn+rem,at:G.turn+rint(0,Math.max(0,rem-1)),done:false}}
+  if(!V.done&&G.turn>=V.at){
+    V.done=true;const L=mtyOffs(false).filter(n=>!isEnemy(n.cid)&&!mtyHere(n.cid));
+    if(L.length){const n=pick(L);mtyHereAdd([n.cid]);addKnown(n.cid);queueFaceEvent({type:'mtyVisit',cid:n.cid,turn:G.turn});
+      const t=NEWS('mty.visitN',{n:nameOf(n.cid),p:posTitle(n),r:REG_NAME(regOfNpc(n))});pushNews(t);log.push(t)}
+  }
+}
+{const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);mtyTick(log);return r}}
+/* 推進一旬、出貨之前：本旬寄合沒走完就照旅商人的票自動決議；缺席記一次 */
+{const _m=meetingAuto;meetingAuto=function(log){
+  const M=mtyNow();
+  if(M&&!M.done){
+    const S=mtyS();
+    if(!M.res.trans)mtyDecide(M,'trans',null);if(!M.res.sec)mtyDecide(M,'sec',null);
+    mtyFinalize(M,log);M.done=true;
+    if(!M.att){S.miss=(S.miss||0)+1;const t=NEWS('mty.absentN',{n:S.miss,m:MTYO().miss});pushNews(t);log.push(t);if(S.miss>=MTYO().miss)mtyQuit('miss',log)}
+  }
+  return _m.apply(this,arguments);
+}}
+/* 公會長就任：自動辭去町年寄 */
+{const _g=gmInstall;gmInstall=function(k){if(k==='me'&&mtyOn())mtyQuit('gm');return _g.apply(this,arguments)}}
+/* 記下上一季城裡的船貨遇險與失火失竊（旅商人投票用） */
+function mtyEv(k){if(mtyOn()){const E=mtyS().evq||(mtyS().evq={});E[k]=(E[k]||0)+1}}
+{const _l=lossNote;lossNote=function(kind){if(kind==='cargo')mtyEv('wreck');else if(kind==='fire'||kind==='theft')mtyEv('fire');return _l.apply(this,arguments)}}
+{const _h=rivalEventHook;rivalEventHook=function(n,good,bad){if(!good&&bad==='wreck')mtyEv('wreck');else if(!good&&(bad==='fire'||bad==='theft'))mtyEv('fire');return _h.apply(this,arguments)}}
+/* 名號與頂部欄 */
+TITLE_KIND.mty='green';
+/* ---------- 畫面 ---------- */
+GO_INFO.yoriai=[UT('mty.go'),UT('mty.go2')];
+/** 主畫面的寄合按鈕（排在例會按鈕之上）。 */
+function mtyHomeHtml(){
+  const M=mtyNow();if(!M)return '';
+  if(M.done)return '<button class="pixel-btn" style="width:100%;margin-top:6px" disabled>'+UT('mty.home.done')+'</button>';
+  return '<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="mtyGo">'+UT('mty.home')+'<div class="tiny">'+UT(M.att?'mty.home.att':'mty.home.sub')+'</div></button>';
+}
+{const _m=meetHomeHtml;meetHomeHtml=function(){return mtyHomeHtml()+_m.apply(this,arguments)}}
+ACT.mtyGo=()=>{
+  const M=mtyNow();if(!M||M.done)return;
+  if(M.att){UI.openSheet('yoriai');return}
+  if(apLeft()<=0){toast(MSG('go.2'));return}
+  if(injuredBlock())return;
+  const amb=rollAmbush();if(amb&&amb.abort)return;
+  const enc=amb?null:rollEncounter();
+  const go=()=>{if(!spendAP())return;M.att=true;mtyS().miss=0;goTo('yoriai')};
+  if(enc){showEncounter(enc,go);return}
+  go();
+};
+/** 一位與會者的小卡。 */
+function mtyPerson(cid,tag,line){const n=npc(cid);return '<div class="card" style="display:flow-root;margin:3px 0">'+portraitHtml(cid,40)+'<b>'+esc(nameOf(cid))+'</b> <span class="tag gray">'+esc(tag)+'</span>'+(line?'<div class="small" style="margin-top:3px">'+esc(line)+'</div>':'')+'</div>'}
+const mtyOffTag=cid=>{const n=npc(cid);return n&&n.pos?UT('mty.offTag',{r:REG_NAME(regOfNpc(n)),p:posTitle(n)}):''};
+/** 台詞存在本場（關掉再開不重抽）。 */
+function mtyLine(M,key,path,vars){M.talk=M.talk||{};if(M.talk[key]===undefined)M.talk[key]=TX(path,vars);return M.talk[key]}
+SHEETS.yoriai=()=>{
+  const M=mtyNow();
+  if(!M||!M.att)return {title:UT('mty.sheet'),html:UT('mty.notNow')};
+  const steps=[UT('mty.step.0'),UT('mty.step.1'),UT('mty.step.2'),UT('mty.step.3'),UT('mty.step.4')],cur=M.step;
+  let h='<div class="chevs">'+steps.map((s,i)=>'<span class="chev '+(cur===i?'on':cur>i?'done':'todo')+(i===0?' first':'')+'"><i>'+s+'</i></span>').join('')+'</div>';
+  const next=k=>'<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="mtyStep">'+UT(k)+'</button>';
+  const vbtn=(k,v)=>'<button class="pixel-btn btn-sm" style="flex:1" data-act="mtyVote" data-k="'+k+'" data-v="'+v+'">'+UT('mty.opt.'+v)+'<div class="tiny">'+UT('mty.optd.'+v)+'</div></button>';
+  const tally=k=>{const X=M.res[k];return '<div class="card tiny">'+(X.me?UT('mty.youVote',{a:UT('mty.opt.'+X.me)})+'<br>':'')+X.votes.map(x=>UT(x.sw?'mty.seatSway':'mty.seatVote',{n:esc(nameOf(x.cid)),a:UT('mty.opt.'+x.v)})).join('<br>')+'<div class="small" style="margin-top:4px"><b>'+UT(X.tie?'mty.winTie':'mty.win',{a:UT('mty.opt.'+X.win)})+'</b></div></div>'};
+  if(cur===0){
+    h+='<div class="notice tiny">'+UT('mty.s0')+'</div>';
+    if(M.local)h+=mtyPerson(M.local,mtyOffTag(M.local),mtyLine(M,'open','mty.open'));
+    M.far.forEach(c=>h+=mtyPerson(c,mtyOffTag(c)));
+    h+='<div class="tiny muted bold" style="margin:6px 0 2px;text-align:center">'+UT('mty.seatsHead')+'</div>';
+    h+=M.seats.length?M.seats.map((c,i)=>mtyPerson(c,UT('mty.seatTag',{a:Math.round(R(c).aff)}),mtyLine(M,'seat'+i,'mty.seat'))).join(''):'<div class="notice tiny">'+UT('mty.noSeats')+'</div>';
+    h+=next('btn.mtyOpen');
+  }else if(cur===1||cur===2){
+    const k=cur===1?'trans':'sec',opts=k==='trans'?['sea','land']:['pirate','fire'];
+    h+='<div class="notice tiny">'+UT('mty.s'+cur)+'</div>';
+    if(!M.res[k])h+='<div class="row" style="gap:6px;margin-top:4px">'+opts.map(v=>vbtn(k,v)).join('')+'</div>'+(M.seats.length?'<div class="tiny muted" style="margin-top:4px">'+UT('mty.swayNote',{a:MTYO().swayAff})+'</div>':'');
+    else h+=tally(k)+next('btn.mtyNext');
+  }else if(cur===3){
+    mtyIntro(M);
+    h+='<div class="notice tiny">'+UT('mty.s3')+'</div>';
+    if(M.local&&M.far.length)h+='<div class="small" style="margin:4px 0">'+esc(mtyLine(M,'intro','mty.intro'))+'</div>';
+    h+=M.far.map(c=>personBlock(c,'yamen')).join('')||'<div class="notice tiny">'+UT('mty.noFar')+'</div>';
+    h+=next('btn.mtyNext');
+  }else{
+    const E=mtyS().eff;
+    h+='<div class="notice tiny">'+UT('mty.s4',{a:UT('mty.opt.'+E.trans),b:UT('mty.opt.'+E.sec)})+'</div>';
+    h+='<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="mtyEnd">'+UT('btn.mtyEnd')+'</button>';
+  }
+  return {title:UT('mty.sheet'),html:h};
+};
+ACT.mtyStep=()=>{const M=mtyNow();if(!M)return;if((M.step===1&&!M.res.trans)||(M.step===2&&!M.res.sec))return;M.step=Math.min(4,M.step+1);sfx.step();refreshSheet();UI.render()};
+ACT.mtyVote=el=>{const M=mtyNow();if(!M||M.res[el.dataset.k])return;mtyDecide(M,el.dataset.k,el.dataset.v);mtyFinalize(M,null);sfx.step();save();refreshSheet()};
+ACT.mtyEnd=()=>{const M=mtyNow();if(!M)return;M.done=true;save();UI.closeSheet();UI.render()};
+/* 外地官員路過來訪（旅報後） */
+FACE_TITLE.mtyVisit='mty.visit.t';
+FACE_EXT.mtyVisit=e=>{if(!mtyHere(e.cid))return null;return {line:TX('mty.visit'),effect:UT('mty.visit.eff')}};
+/** 遠國奉行所面板頂端：町年寄的席次與本季決議、這一旬在城裡的外地官員。 */
+function mtyCard(){
+  if(!G)return '';const S=G.mty;let h='';
+  if(mtyOn()){
+    const E=mtyEffNow(),nx=MTYO().months.map(m=>m).find(m=>m>G.month||(m===G.month&&G.cycle===1))||MTYO().months[0];
+    h+='<div class="card" style="background:#eef5ee"><b class="small">'+UT('mty.card.t')+'</b><div class="tiny muted">'+UT('mty.card.seats',{a:mtySeats().map(c=>esc(nameOf(c))).join(NAMES_SEP)||UT('mty.card.none')})+'</div>'
+      +'<div class="tiny">'+(E?UT('mty.card.eff',{a:UT('mty.opt.'+E.trans),b:UT('mty.opt.'+E.sec),n:E.until-G.turn}):UT('mty.card.noEff'))+'</div>'
+      +'<div class="tiny muted">'+UT('mty.card.next',{m:nx})+((S.miss||0)>0?UT('mty.card.miss',{n:S.miss,m:MTYO().miss}):'')+'</div></div>';
+  }
+  const H=S&&S.here;
+  if(H&&H.t===G.turn&&H.cids.length)h+='<div class="card" style="background:#fff8eb"><b class="small">'+UT('mty.here.t')+'</b><div class="tiny muted">'+UT('mty.here.d')+'</div></div>'+H.cids.filter(c=>alive(c)).map(c=>personBlock(c,'yamen')).join('');
+  return h;
+}
+{const _r=SHEETS.regional;SHEETS.regional=function(){const o=_r.apply(this,arguments);o.html=mtyCard()+o.html;return o}}
 
 'use strict';
 /* ★檔案總覽：啟動與全域事件
