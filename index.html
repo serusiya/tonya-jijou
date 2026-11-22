@@ -884,6 +884,7 @@ const ODDS={
   officialTransfer:{name:'本城官員與外地官員互調（每旬）',p:0.10},
   residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）',p:0.10},
   fallScapegoat:{name:'官員受你牽連（好感<10）把罪責推給你',p:0.6},
+  extortExp:{name:'官員索賄（含壓驚錢）開口後幾旬沒付就作廢、好感扣幾成（第三百八十一節）',turns:9,cut:0.3},
   fall:{name:'政敵拿你與交好官員的往來做文章（第三百五十五節）：當下好感扣幾成；壓驚錢逾期再扣幾成',cut:0.3,lateCut:0.3},
   thiefRepel:{name:'盜賊夜探，保鏢≥2 名當場擊退',p:0.7},
   /* —— 市場·治安 —— */
@@ -2113,6 +2114,7 @@ const UI_TXT={
   'mk.lock.burst':'買家上門了，停賣中。',
   'mk.lock.chip':'<i class="tiny" style="color:#6b6370">·停</i>',
   'mk.units':'{n} 單位',
+  'mk.trade.goyoLine':'帝都御用：不受協議約束·進貨上限 {n}',
   'mk.trade.quota':'協議配額 {q}（{s}）·穩定供貨線 {l}',
   'mk.trade.closeRange':'預估收市價 {p}',
   'mk.trade.bkDisc':'別家折扣 {p}%。',
@@ -4854,6 +4856,7 @@ const MSG_TXT={
   'log.inspection':'中央巡按突查，因與你往來受牽連，彼此交情受損。',
   'log.fall':'受你牽連遭上司申斥，好感 -{d}。',
   'log.fallAsk':'要你三旬內進獻壓驚錢 {a} 兩。',
+  'log.extortExp':'等了九旬不見錢，不再提了，好感 -{d}。',
   'log.fallLate':'等不到壓驚錢，好感 -{d}。',
   'promise.fall':'「{n}」替你挨了上司的罵，暗示三旬內需進獻壓驚錢 {a} 兩',
   'log.scapegoat':'為求自保，把罪責推到你頭上。',
@@ -5141,6 +5144,7 @@ const NEWS_TXT={
   "peopleMove.residence":"🏯【宅邸異動】{kind}「{out}」遷往【{dest}】；「{in}」自【{from}】遷入本城。",
   /* —— officialExtort —— */
   "officialExtort.1":"📜【官場】近日官員多有請託，皆言「些許心意即可」。",
+  "officialExtort.expire":"📜【官場】「{nm}」等了九旬不見你的錢，不再提了，對你冷淡許多。",
   "officialExtort.2":"🤝【索賄】官員「{n}」暗示需再「表示心意」，不然恐生變數。（見筆記·往來實錄）",
   /* —— thieves —— */
   "thieves.1":"🛡️【治安】盜賊夜探倉庫，被保鏢當場擊退。",
@@ -5616,7 +5620,7 @@ const NEWS_CAT={
   firm:["hb.showN","villa.doneN","villa.reN","kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["kj.newProd","bk.dapan","dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","officialExtort.expire","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["dp.stop1","dp.stop2","komon.judge","komon.gmOut","urge.kyusaiFail","heika.Fail","urge.fine","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -5638,6 +5642,9 @@ const CHANGELOG=[
     '委託採買設定更新：帝都御用品也當成本業貨，可以直接派船長、飛腳到產地採買；一樣會遇到大口買付。',
     '大工程設定更新：國產取立與城代家老的新町取立，成功後改為知名度 +20，不再鎖住知名度與名望階；舊存檔的鎖定一併取消。',
     '知名度設定更新：知名度 125 以下的加分不再打折；大事件（含名伶贖身）不論知名度多少都照原值加。',
+    '官場設定更新：五、六階官員巡迴在外時，不會受政敵攻擊牽連，也不會來要壓驚錢。',
+    '官場設定更新：官員索賄（含壓驚錢）開口九旬後還沒付就作廢，好感扣三成，之後可能再來索賄。',
+    '介面調整：帝都御用品的相場卡改寫「不受協議約束」，參加協議時也不再出現超賣警告。',
   ]},
   {date:'2026年11月21日',items:[
     '店員設定更新：番頭（含大番頭）會壓低向大盤進貨的價錢，最多低 4%，跟手代提高出貨價對齊。',
@@ -6574,7 +6581,7 @@ function inspection(){
 /** 事件：政敵拿你和交好官員（好感 ≥30）的往來做文章，他受你牽連遭申斥：好感扣三成，官職不變；並要你三旬內進獻「壓驚錢」（索賄的承諾，可照辦或告發）。
  *  逾期沒給：好感再扣三成；扣完低於 10 時照 ODDS.fallScapegoat 把罪責推給你（peopleTick 的 fallLate，第三百五十五節）。 */
 function officialFall(){
-  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30&&!n.ronin);   // 自己扶持的浪人官員不受牽連
+  const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30&&!n.ronin&&!awayNow(n));   // 自己扶持的浪人官員不受牽連；巡迴在外的官員不受牽連（第三百八十節）
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
   const loss=Math.round(r.aff*ODDS.fall.cut);setAff(r,r.aff-(loss));         // 受你牽連遭申斥：好感扣三成；官職不變
@@ -7313,6 +7320,9 @@ function peopleTick(log){
   peopleMoveTick(log);
   Object.entries(G.rel).forEach(([cid,r])=>{
     r.promises.forEach(p=>{
+      if(!p.done&&p.kind==='tribute'&&p.by==='official'&&G.turn>=p.due-3+ODDS.extortExp.turns){   // 索賄（含壓驚錢）開口九旬後作廢：好感扣三成，不推罪（第三百八十一節）
+        p.done=true;p.expired=true;const loss=Math.round(r.aff*ODDS.extortExp.cut);setAff(r,r.aff-loss);logRel(cid,MSG('log.extortExp',{d:loss}));
+        const t=NEWS('officialExtort.expire',{nm:nameOf(cid)});pushNews(t);log.push(t);return}
       if(!p.done&&G.turn>p.due&&!p.late&&p.fall){p.late=true;const t=fallLate(cid,r);pushNews(t);log.push(t);return}   // 政敵事件的壓驚錢逾期（第三百五十五節）
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;setAff(r,Math.max(0,r.aff-10));logRel(cid,MSG('log.late',{t:p.text}));const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
@@ -9299,7 +9309,7 @@ function shipPlanTotals(){let q=0,rev=0;mkTrade().forEach(c=>{const v=planOf(c.n
 function tradeCard(name){
   const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=riotLevelLive();
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
-  h+='<div class="tiny muted" style="margin:4px 0">'+UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)+(typeof bekkeOn==='function'&&bekkeOn()?UT('mk.trade.lineBk'):'')})+'</div>'+kakeHeldNote(name);
+  h+='<div class="tiny muted" style="margin:4px 0">'+(isGoyo(name)?UT('mk.trade.goyoLine',{n:buyLimit(name)}):UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)+(typeof bekkeOn==='function'&&bekkeOn()?UT('mk.trade.lineBk'):'')}))+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
   h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1||shipLocked(name)||sakeBanned(name)||!tradeOK(name)?'disabled':'')+'></div>','slider-ship',have<1||ship<=0||shipLocked(name)||sakeBanned(name)||!tradeOK(name),have<1||ship>=have||shipLocked(name)||sakeBanned(name)||!tradeOK(name));
   h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';
@@ -9346,7 +9356,7 @@ function refreshTrade(){
 /** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
 function shipBarSync(){
   const el=$('#slider-ship'),bar=$('#q-over-bar'),tip=$('#q-over');if(!el)return;
-  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,q=guildMember()?quotaOf(UI.s.focus):Infinity,pc=x=>clamp(x/max*100,0,100);
+  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,q=guildMember()&&!isGoyo(UI.s.focus)?quotaOf(UI.s.focus):Infinity,pc=x=>clamp(x/max*100,0,100);
   const vp=pc(v),a=Math.min(vp,q===Infinity?100:pc(q)),over=q!==Infinity&&v>q;
   el.style.background='linear-gradient(to right,var(--red) 0 '+rangeAt(a)+',transparent '+rangeAt(a)+' '+rangeAt(vp)+','+RANGE_BG+' '+rangeAt(vp)+' 100%)';
   if(bar){bar.style.left=rangeAt(a);bar.style.width='calc((100% - '+RANGE_THUMB+'px) * '+((vp-a)/100).toFixed(4)+')';bar.style.display=over?'block':'none'}
