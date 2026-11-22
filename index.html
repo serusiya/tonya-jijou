@@ -5645,6 +5645,7 @@ const CHANGELOG=[
     '官場設定更新：五、六階官員巡迴在外時，不會受政敵攻擊牽連，也不會來要壓驚錢。',
     '官場設定更新：官員索賄（含壓驚錢）開口九旬後還沒付就作廢，好感扣三成，之後可能再來索賄。',
     '介面調整：帝都御用品的相場卡改寫「不受協議約束」，參加協議時也不再出現超賣警告。',
+    '店員設定更新：從丁稚做起（含寺中奉茶）的大番頭，不會因現金吃緊而捲款潛逃。',
   ]},
   {date:'2026年11月21日',items:[
     '店員設定更新：番頭（含大番頭）會壓低向大盤進貨的價錢，最多低 4%，跟手代提高出貨價對齊。',
@@ -7397,7 +7398,7 @@ function randStats(r){r=r||rnd;const g=()=>Math.round(25+r()*55);return {commerc
 function statsOfEmp(e){const b=e.cid?CH(e.cid).derived_stats:e.stats;if(!e.grow)return b;const o=Object.assign({},b);Object.entries(e.grow).forEach(([k,v])=>{o[k]=(o[k]||0)+v});return o}
 /** 聘用員工（建立員工紀錄，名冊人物會被標記為已聘並結識）。 */
 function hireEmp(cid,rank,free){
-  const e={id:'e'+G.turn+'_'+Math.floor(rnd()*1e6),cid:cid||null,rank,since:G.turn,skim:0,audited:G.turn,wage:RANK_WAGE[rank],aff:40};
+  const e={id:'e'+G.turn+'_'+Math.floor(rnd()*1e6),cid:cid||null,rank,rank0:rank,since:G.turn,skim:0,audited:G.turn,wage:RANK_WAGE[rank],aff:40};
   if(cid){e.name=nameOf(cid);addKnown(cid);const n=npc(cid);if(n)n.hired=true;const r=R(cid);r.met=true;if(!r.bond)r.bond={mult:1,label:UT('bond.hired'),introId:null};setAff(r,Math.max(r.aff,30))}
   else{const rd=seeded('ap'+G.turn+rnd());e.name=pick(KID_NAMES);e.stats=randStats(rd);e.age0=G.year-12}
   if(cid){const c=CH(cid).derived_stats.commerce_skill;e.wage=Math.round(RANK_WAGE[rank]*(0.8+c/150))}
@@ -10837,10 +10838,12 @@ function chiefTick(log){
 /** 人心不穩：大番頭累計賺得的意外之財超過當前現款（現金吃緊），下一旬必定捲款潛逃。 */
 function chiefUneasy(log){
   const b=empsOf('chief')[0];
-  if(!b||b.fleeAt!==undefined||!((b.wind||0)>Math.max(0,G.silver)))return;
+  if(!b||b.fleeAt!==undefined||chiefRoot(b)||!((b.wind||0)>Math.max(0,G.silver)))return;   // 從丁稚做起的大番頭不會因現金吃緊捲款（第三百八十二節）
   b.fleeAt=G.turn+1;
   const t=NEWS('chief.uneasy',{name:b.name});pushNews(t);log.push(t);
 }
+/** 從丁稚做起（含寺中奉茶）：雇進來時是丁稚。舊存檔沒有 rank0：寺中奉茶，或沒有名冊身分又升遷過的，都算（第三百八十二節甲案）。 */
+function chiefRoot(e){return !!e&&(e.origin==='tea'||(e.rank0!==undefined?e.rank0==='apprentice':(!e.cid&&!!e.homegrown)))}
 /** 意外之財：當前現款的 1～10%。 */
 function chiefWindfall(log){
   const C=ODDS.chief,amt=Math.round(Math.max(0,G.silver)*(C.windfallMin+rnd()*(C.windfallMax-C.windfallMin)));
@@ -14805,6 +14808,7 @@ function migrateSave(){
   if(!G.shipLock)G.shipLock={};                     // 停賣鎖（第二百九十九節）：舊存檔不預設鎖
   if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
   if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
+  (G.emps||[]).forEach(e=>{if(e.rank==='chief'&&e.fleeAt!==undefined&&chiefRoot(e))delete e.fleeAt});   // 從丁稚做起的大番頭：取消人心不穩的必走（第三百八十二節）
   G.fameFloor=0;                                     // 永久知名度下限：新町取立、國產取立不再鎖定（第三百七十八節），舊存檔一律收回
   if(!G.caughtLog)G.caughtLog={};
   if(!G.rec)recOf();                                 // 商號紀錄（旬報、番付、走勢）；舊存檔從現存的番付補起                    // 違約查獲的公開紀錄（公會長候選人用）
