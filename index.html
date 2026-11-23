@@ -1019,7 +1019,7 @@ const ODDS={
   ,bekke:{name:'別家（07zzzzz_bekke，第三百二十、三百三十一節）：開店要的市佔、大番頭任職旬數、現款；別家在協議裡時你向大盤進貨的折扣、向別家調貨的加價、別家收他行貨抽的一成（付你九成）',share:0.30,tenure:36,cash:30000,disc:0.96,rvMark:1.1,xCut:0.9}
   ,buyRelief:{name:'買付苦情（巡見使六階，第三百七十二節）：作用旬數、大口買付月份還能買到的份量（平常的幾成）、同一位巡見使的冷卻旬數',turns:18,share:1/3,cd:18}
   ,dline:{name:'產地直達線（07zzzzzzzzzzzzz_dline，第三百六十八節）：建立費、為期旬數、建立後幾旬開始送、每旬運量（海運上限的幾成）、運費加成、遇險（委託採買的幾成）、大口買付月份與凶作的份量倍數、連幾旬付不出就斷線',fee:5000,turns:36,wait:3,load:0.5,freight:0.1,risk:1/3,buyout:0.5,famine:0.5,failMax:2}
-  ,mty:{name:'町年寄寄合（07zzzzzzzzzzzzzz_mty，第三百六十八節）：任命的名望階與淨資產、寄合月份（上旬）、決議作用旬數、運量倍數、遇險倍數、旅商人改投你那一邊的好感門檻與機率、連續缺席幾次卸任與扣的知名度、卸任後幾旬不再任命、引見時好感至少',tier:4,worth:100000,months:[2,5,8,11],turns:9,cap:1.2,riskCut:0.5,swayAff:60,sway:0.5,miss:3,missFame:3,cool:36,introAff:30}
+  ,mty:{name:'年行司寄合（07zzzzzzzzzzzzzz_mty，第三百六十八節）：任命的名望階與淨資產、寄合月份（上旬）、決議作用旬數、運量倍數、遇險倍數、旅商人改投你那一邊的好感門檻與機率、連續缺席幾次卸任與扣的知名度、卸任後幾旬不再任命、引見時好感至少',tier:4,worth:100000,months:[2,5,8,11],turns:9,cap:1.2,riskCut:0.5,swayAff:60,sway:0.5,miss:3,missFame:3,cool:36,introAff:30}
   ,hanabi:{name:'川開大花火（07zzzzzzzzzzzz_hanabi，第三百六十四節）：大番頭提議的現款門檻、三檔出資、知名度（大事件）、七月中旬全城買氣加成',need:50000,cost:[1000,3000,5000],fame:[1,2,3],demand:[0.1,0.2,0.3]}
   ,villa:{name:'別邸（07zzzzzzzzzzz_villa，第三百六十節）：興建與三次改建的現款門檻、每次費用、別邸設宴費用與好感倍數（依階段）、客人最低官階、外地遠國奉行所官員來的機率、整場風聲',need:[100000,150000,200000,250000],cost:8000,feast:[500,750,1000,1250],mult:[1,1.3,1.6,1.9],rank:4,far:0.1,heat:0.1}
   ,kenjo:{name:'帝都獻上（07zzzzzzz_kenjo，第三百一十九、三百三十三節）：觸發的知名度、交滿幾組起每年正月新增珍品產地、交滿幾組可以遷居京畿',fame:150,newOrigin:4,kinki:5}
@@ -1581,12 +1581,12 @@ LINES.dline={
   ask:['東家，船長、飛腳都雇滿了。不如在外地挑一處產地，打通沿路關係，拉一條直達線，每旬固定送貨來，省得一趟一趟派人。','船隊馬幫都齊了，光靠委託採買太可惜。小的想替店裡在外地拉一條產地直達線，東家意下如何？'],
   renew:['【{c}】那條直達線滿一年了。路都熟了，續下去不用再花打點的錢，要續嗎？','直達線跑滿一年，【{c}】那頭的人問還做不做。東家一句話，小的就去回覆。']
 };
-/** 町年寄寄合（第三百六十八節）：列席官員、旅商人、路過來訪的外地官員。 */
+/** 年行司寄合（第三百六十八節）：列席官員、旅商人、路過來訪的外地官員。 */
 LINES.mty={
   open:['今日請諸位來，是要議一議下一季城裡的事。各位都是城裡有頭有臉的人，有話直說。','奉行大人託本官聽取町人的意見。運輸、治安兩件，諸位先議，議定了本官照辦。'],
   seat:['貨要進得來、出得去，城才活得下去。','這一季外頭風浪不小，得好好議一議。','難得坐在一起，有話就攤開說吧。','城裡的事，咱們做買賣的最清楚。'],
   intro:['這兩位是外地奉行所的大人，這幾日正好路過本城。往後各位到他們那頭做生意，也有個照應。','今日還有兩位遠客：外地奉行所的大人。趁這機會認識認識，日後好說話。'],
-  visit:['路過貴地，聽說你是此地的町年寄，特來拜會。這幾日都在城裡，有事可以來找本官。','公務路過，順道來看看。這一旬本官歇在奉行所，要談什麼，登門便是。']
+  visit:['路過貴地，聽說你是此地的年行司，特來拜會。這幾日都在城裡，有事可以來找本官。','公務路過，順道來看看。這一旬本官歇在奉行所，要談什麼，登門便是。']
 };
 const _lineAt=path=>path.split('.').reduce((o,k)=>o&&o[k],LINES);
 /** 取一句台詞（陣列則隨機挑一句），並代入 {佔位}。 */
@@ -2785,7 +2785,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但菓子折的得標金要分成三份，向三系的六階大人分頭報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
-  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月出發、去同一城的人太多，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。受不了時可以當面向巡見使訴苦（買付苦情），他會下令那個地區半年內出發的採買不受買斷，還留三分之一給其他商人。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為町年寄，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
+  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月出發、去同一城的人太多，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。受不了時可以當面向巡見使訴苦（買付苦情），他會下令那個地區半年內出發的採買不受買斷，還留三分之一給其他商人。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為年行司，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。船長、飛腳到外地採買，有時會替你牽線認識當地的商人；這些外城友人見不到面，平日靠書信往來（每封用一次行動），交情深了可以寫信探聽他那個地區下一次的大口買付，也可以去他那裡作客（寄信、作客都在主畫面的「外城出遊」），他也會來訪，或來信訂貨，請你派人整批送去。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
@@ -4417,25 +4417,25 @@ const UI_TXT={
   'dl.no.cour':'沒有空閒的飛腳',
   'dl.no.silver':'現款不到 {a} 兩',
   'yard.dl':'直送',
-  /* 町年寄（第三百六十八節） */
-  'top.j.mty':'町年寄',
-  'tt.mty':'町年寄',
-  'tt.mty.why':'名望與身家都到了，町奉行所任命{f}為本城町年寄。',
+  /* 年行司（第三百六十八節） */
+  'top.j.mty':'年行司',
+  'tt.mty':'年行司',
+  'tt.mty.why':'名望與身家都到了，町奉行所任命{f}為本城年行司。',
   'tt.mty.eff':'每季寄合議定運輸與治安，還能結識外地奉行所的高官。連續三次缺席就卸任；當上公會長要辭去。',
   'mty.go':'前往町會所……',
-  'mty.go2':'町年寄寄合',
-  'mty.home':'🏮 町年寄寄合（本旬召開）',
+  'mty.go2':'年行司寄合',
+  'mty.home':'🏮 年行司寄合（本旬召開）',
   'mty.home.sub':'議定下一季的運輸與治安，結識外地高官',
   'mty.home.att':'寄合進行中，點此回到町會所',
   'mty.home.done':'🏮 本旬寄合已散會',
-  'mty.sheet':'🏮 町年寄寄合',
+  'mty.sheet':'🏮 年行司寄合',
   'mty.notNow':'<div class="notice">本旬沒有寄合。</div>',
   'mty.step.0':'列席',
   'mty.step.1':'運輸',
   'mty.step.2':'治安',
   'mty.step.3':'引見',
   'mty.step.4':'散會',
-  'mty.s0':'遠國奉行所的三位大人列席，聽取町年寄的意見。三位町年寄每題各一票，議定下一季（下個月上旬起三個月）的事。',
+  'mty.s0':'遠國奉行所的三位大人列席，聽取年行司的意見。三位年行司每題各一票，議定下一季（下個月上旬起三個月）的事。',
   'mty.s1':'第一題：下一季加強哪一路的運輸？',
   'mty.s2':'第二題：下一季治安先顧哪一頭？兩樣都只顧到你自己的店與你派出去的人。',
   'mty.s3':'本地的大人把兩位外地奉行所的大人介紹給大家。這一旬他們留在城裡，可以照一般拜訪登門。',
@@ -4448,25 +4448,25 @@ const UI_TXT={
   'mty.optd.land':'這一季出發的陸運，運量 +20%',
   'mty.optd.pirate':'這一季出發的委託採買、外運與直達線，遇險減半',
   'mty.optd.fire':'你的倉庫、店舖不失火、不遭竊',
-  'mty.swayNote':'好感 ≥ {a} 的町年寄，有機會改投你那一邊。',
+  'mty.swayNote':'好感 ≥ {a} 的年行司，有機會改投你那一邊。',
   'mty.youVote':'你：{a}',
   'mty.seatVote':'{n}：{a}',
   'mty.seatSway':'{n}：{a}（看在交情上改投你這邊）',
   'mty.win':'決議：{a}',
   'mty.winTie':'票數相同，抽籤決定：{a}',
-  'mty.seatsHead':'町年寄',
+  'mty.seatsHead':'年行司',
   'mty.seatTag':'旅商人·好感 {a}',
   'mty.noSeats':'城裡沒有旅商人入席，由你一人議定。',
   'mty.offTag':'{r}·{p}',
   'mty.noFar':'這次沒有外地的大人列席。',
   'mty.bond':'寄合引見',
-  'mty.log.intro':'町年寄寄合上經人引見',
+  'mty.log.intro':'年行司寄合上經人引見',
   'btn.mtyOpen':'開議',
   'btn.mtyNext':'下一步',
   'btn.mtyEnd':'散會',
   'mty.visit.t':'🏮 外地大人來訪',
   'mty.visit.eff':'這一旬他歇在城裡，可以到遠國奉行所面板登門拜訪（送禮、請託）；過了這一旬就回去了。',
-  'mty.card.t':'🏮 町年寄',
+  'mty.card.t':'🏮 年行司',
   'mty.card.seats':'同席：{a}',
   'mty.card.none':'（沒有旅商人）',
   'mty.card.eff':'本季決議：{a}、{b}（還剩 {n} 旬）',
@@ -5588,13 +5588,13 @@ const NEWS_TXT={
   "dl.end.cancel":"🚚【直達線】【{c}】的直達線解約了，建立費不退。",
   "dl.permitSea":"取得【{r}】的專線御免（船手），船隊可長期替直達線走海路。",
   "dl.permitLand":"取得【{r}】的專線御免（道中），驛路可長期替直達線走陸路。",
-  "mty.appointN":"🏮【町年寄】町奉行所任命{f}為【{c}】町年寄，每季列席寄合。",
-  "mty.meetN":"🏮【町年寄】本旬召開町年寄寄合，遠國奉行所的大人列席。",
-  "mty.resN":"🏮【町年寄】寄合議定：下一季{a}、{b}。",
-  "mty.absentN":"🏮【町年寄】你沒出席寄合，照另兩位町年寄的意思議定（已連續缺席 {n} 次，{m} 次就卸任）。",
-  "mty.quit.miss":"🏮【町年寄】連續缺席寄合，町奉行所免去你的町年寄（知名度 −{a}）。",
-  "mty.quit.gm":"🏮【町年寄】當上公會長，辭去町年寄。",
-  "mty.visitN":"🏮【町年寄】{r}的{p}{n}路過本城，這一旬歇在城裡。"
+  "mty.appointN":"🏮【年行司】町奉行所任命{f}為【{c}】年行司，每季列席寄合。",
+  "mty.meetN":"🏮【年行司】本旬召開年行司寄合，遠國奉行所的大人列席。",
+  "mty.resN":"🏮【年行司】寄合議定：下一季{a}、{b}。",
+  "mty.absentN":"🏮【年行司】你沒出席寄合，照另兩位年行司的意思議定（已連續缺席 {n} 次，{m} 次就卸任）。",
+  "mty.quit.miss":"🏮【年行司】連續缺席寄合，町奉行所免去你的年行司（知名度 −{a}）。",
+  "mty.quit.gm":"🏮【年行司】當上公會長，辭去年行司。",
+  "mty.visitN":"🏮【年行司】{r}的{p}{n}路過本城，這一旬歇在城裡。"
 };
 /** 取新聞文字並代入 {變數}；同時記下「文字→新聞鍵」，讓旬報、大事簿依鍵分類（newsKey）。 */
 const NEWS_SEEN=new Map(),NEWS_RECENT=[];
@@ -5638,6 +5638,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月23日',items:[
+    '名稱調整：玩家擔任的「町年寄」改名「年行司」，寄合改稱「年行司寄合」；普請方的町年寄官員照舊。',
+  ]},
   {date:'2026年11月22日',items:[
     '委託採買設定更新：帝都御用品也當成本業貨，可以直接派船長、飛腳到產地採買；一樣會遇到大口買付。',
     '大工程設定更新：國產取立與城代家老的新町取立，成功後改為知名度 +20，不再鎖住知名度與名望階；舊存檔的鎖定一併取消。',
@@ -6618,7 +6621,7 @@ function officialExtort(){
 }
 /** 事件：盜賊潛入倉庫（保鏢可降低損失）。 */
 function thieves(){
-  if(mtyGuard())return null;                      // 町年寄寄合決議防火防盜的那一季：盜賊不上門（第三百六十八節）
+  if(mtyGuard())return null;                      // 年行司寄合決議防火防盜的那一季：盜賊不上門（第三百六十八節）
   if(guardCount()>=2&&roll('thiefRepel'))return NEWS('thieves.1');
   const loss=Math.min(invUsed(),Math.max(1,Math.round(invUsed()*0.05)));
   const keys=Object.keys(G.inv).filter(k=>G.inv[k]>0);if(!keys.length)return null;
@@ -6665,7 +6668,7 @@ function invUpkeep(log){
   // 火災：易燃品（油、硫磺、樟腦、木、炭）
   let flam=0;Object.keys(G.inv).forEach(n=>{if(COMM_MAP[n].flam)flam+=G.inv[n]});
   if(flam>0){
-    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1)*regT('fire')*(mtyGuard()?0:1);   // 町年寄寄合決議防火防盜的那一季不失火（第三百六十八節）   // 北境失火減半，與火除地相乘   // 每位仇人 +2% 縱火；火除地拜領後減半
+    const F_=ODDS.fire,p0=F_.base*(1+flam/F_.flamDiv)*(season()==='winter'?F_.winter:1)*(1-Math.min(0.4,F_.guardCut*guardCount()))+ENEMY_FIRE*enemyCount(),p=p0*(G.flags.firebreak?0.5:1)*regT('fire')*(mtyGuard()?0:1);   // 年行司寄合決議防火防盜的那一季不失火（第三百六十八節）   // 北境失火減半，與火除地相乘   // 每位仇人 +2% 縱火；火除地拜領後減半
     if(chance(p)){
       const f=chance(ODDS.fire.heavyP)?ODDS.fire.heavy:ODDS.fire.light;let tot=0;
       let val=0;Object.keys(G.inv).forEach(n=>{const c=COMM_MAP[n];const l=Math.floor(G.inv[n]*(c.flam?f:f*0.4));stockTake(n,l,false);tot+=l;val+=l*marketQuote(n)});
@@ -8845,7 +8848,7 @@ function yardPlan(){
   const land=(G.ships||[]).some(s=>s.mode==='land'&&s.eta===s.eta0);
   const letter=Object.values(G.rel||{}).some(r=>r&&r.ltrT===G.turn);
   const fire=G.fireT!=null&&G.turn-G.fireT<=1;
-  const mLand=mtyCapMul('land')>1,mSea=mtyCapMul('sea')>1;   // 町年寄寄合加強陸路：馬隊多跑；加強海路：船貨多進倉（第三百六十八節）
+  const mLand=mtyCapMul('land')>1,mSea=mtyCapMul('sea')>1;   // 年行司寄合加強陸路：馬隊多跑；加強海路：船貨多進倉（第三百六十八節）
   const dl=!!(G.dline&&G.dline.lastT===G.turn);   // 產地直達線送到：插「直送」小旗的馬隊
   return {inN:Math.max(yardTier(inV),mSea?1:0),outN:yardTier(outV),land:land||mLand,letter,fire,dl,patrol:mtyGuard()};
 }
@@ -9179,7 +9182,7 @@ function topTagsHtml(gap=true){
   if(typeof kyoOn==='function'&&kyoOn())K.push(UT('top.t.kyo'));
   if((G.dpTitle||0)>=2)T.push(UT('top.t.gou'));else if((G.dpTitle||0)>=1)T.push(UT('top.t.big'));
   if(typeof gmIsMe==='function'&&gmIsMe())J.push(UT('top.j.gm'));
-  if(typeof mtyOn==='function'&&mtyOn())J.push(UT('top.j.mty'));   // 町年寄（第三百六十八節）
+  if(typeof mtyOn==='function'&&mtyOn())J.push(UT('top.j.mty'));   // 年行司（第三百六十八節）
   const L=K.map(t=>[t,TITLE_COL.kyo]).concat(T.map(t=>[t,TITLE_COL.red]),J.map(t=>[t,TITLE_COL.green]));
   if(!L.length)return '';
   return L.map(([t,c])=>'<span style="color:'+c+'">'+esc(t)+'</span>').join(gap?'<span style="display:inline-block;width:0.35em"></span>':'');
@@ -11189,7 +11192,7 @@ function resolveVoyage(s,log){
   const t=NEWS('kind.8',{mode:NM('crew',mode),captName:s.captName,dest:E.dest,cross:(kind==='outOnly'?UT('r4.out.back'):kind==='own'?UT('voy.t'):kind==='cross'?UT('voy.t.2'):UT('voy.t.3')),sea:(wreck&&kind!=='empty'?UT('voy.t.6',{a:robbed&&mode==='sea'?UT('voy.tPirate'):mode==='sea'?UT('voy.t.4'):UT('voy.t.5')}):'')});
   pushNews(t);log.push(t);sfx.coin();addFame(0.3);
 }
-/* 歸來結算時，町年寄寄合的運量與遇險倍數照出發時記下的算（第三百七十六節）；VOY_S＝正在結算的那一趟 */
+/* 歸來結算時，年行司寄合的運量與遇險倍數照出發時記下的算（第三百七十六節）；VOY_S＝正在結算的那一趟 */
 var VOY_S=null;
 {const _rv=resolveVoyage;resolveVoyage=function(s){VOY_S=s;try{return _rv.apply(this,arguments)}finally{VOY_S=null}}}
 /* ---------- 商路畫面 ---------- */
@@ -15979,7 +15982,7 @@ ACT.letterReq=el=>{
  *     推進時（自動出貨之前）從庫存送出，照當旬市價加兩成入帳；不算本城出貨。送不足＝失約：有多少送多少，好感 −30、知名度 −1，合約結束。
  *  數值 ODDS.regConsign、ODDS.honjin；文字 rfav.*（01e、01f、01g）。狀態 G.consign（在途）、G.honjin（合約）、G.regOffer（本旬開價）。 */
 /** 這位遠國奉行所官員是不是外地的（不在本店所在地區）。 */
-/** 外地官員只能寫信；町年寄寄合引見、擔任町年寄時路過來訪的外地官員，那一旬在城裡，照一般拜訪（第三百六十八節的 mtyHere）。 */
+/** 外地官員只能寫信；年行司寄合引見、擔任年行司時路過來訪的外地官員，那一旬在城裡，照一般拜訪（第三百六十八節的 mtyHere）。 */
 const foreignReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion()&&!(typeof mtyHere==='function'&&mtyHere(n.cid)));
 /** 不論在不在城裡，是不是外地遠國奉行所的官員（特殊請託照舊不給外地官員）。 */
 const farReg=n=>!!(n&&n.pos&&n.pos.court==='region'&&regOfNpc(n)!==homeRegion());
@@ -20717,7 +20720,7 @@ ACT.hanabiPick=el=>{
 /* ======================= 產地直達線（第三百五十九節第一段、第三百六十三節；上線見第三百六十八節） =======================
  *  - 船長、飛腳都僱到許可上限時，大番頭在旬報後上門建議一次；之後商路頁（委託採買上方）常駐直達線卡。要有大番頭；大番頭不在了線就停。
  *  - 只能選本店所在地區以外的產地（港口、內陸都可以），要有那個地區的四張許可：入津御免、陸運通行手形（書狀可求）、
- *    專線御免·船手（船手頭四階）、專線御免·道中（道中奉行五階），後兩張只能當面請託（外地高官要靠町年寄寄合的引見或路過來訪）。
+ *    專線御免·船手（船手頭四階）、專線御免·道中（道中奉行五階），後兩張只能當面請託（外地高官要靠年行司寄合的引見或路過來訪）。
  *  - 建立 5,000 兩，佔一名船長與一名飛腳（大番頭挑膽識高的），一個月後開始送，每旬一次約半船；為期一年，期滿大番頭來問續約（不另付錢）。
  *  - 價錢：當旬產地價加一成運費，到貨時付現款；付不出那一旬不收，連兩旬付不出就斷線。倉位不夠只收放得下的。奢侈品不送。
  *  - 遇險約為委託採買的三分之一（看船長、飛腳的膽識），出事那一旬的貨沒了、不付錢。產地地區的大口買付月份只送一半；凶作減半，豐產便宜。
@@ -20893,8 +20896,8 @@ REG_FAVOR.rlineSea=n=>{const P=permitsOf();P.lineS=P.lineS||{};P.lineS[regOfNpc(
 REG_FAVOR.rlineLand=n=>{const P=permitsOf();P.lineL=P.lineL||{};P.lineL[regOfNpc(n)]=true;return NEWS('dl.permitLand',{r:REG_NAME(regOfNpc(n))})};
 
 /* ═════ [07zzzzzzzzzzzzzz_mty] ═════ */
-/* ======================= 町年寄寄合（第三百六十二、三百六十三節；上線見第三百六十八節） =======================
- *  - 任命：名望四階、資產（淨資產）十萬兩以上，由町奉行所任命（名號演出，頂部欄綠色「町年寄」）。公會長任內不任命；當選公會長就自動辭去。
+/* ======================= 年行司寄合（第三百六十二、三百六十三節；上線見第三百六十八節） =======================
+ *  - 任命：名望四階、資產（淨資產）十萬兩以上，由町奉行所任命（名號演出，頂部欄綠色「年行司」）。公會長任內不任命；當選公會長就自動辭去。
  *    連續三次缺席寄合就卸任（知名度 −3），一年內不再任命。
  *  - 三席：你，加上本城身代最高的兩位旅商人（每次寄合照當下的身代排名）。
  *  - 寄合：每季一次，2、5、8、11 月上旬；進場扣 1 行動（比照公會例會）。決定下一季（下個月上旬起九旬）：
@@ -21005,7 +21008,7 @@ function mtyTick(log){
   }
   return _m.apply(this,arguments);
 }}
-/* 公會長就任：自動辭去町年寄 */
+/* 公會長就任：自動辭去年行司 */
 {const _g=gmInstall;gmInstall=function(k){if(k==='me'&&mtyOn())mtyQuit('gm');return _g.apply(this,arguments)}}
 /* 記下上一季城裡的船貨遇險與失火失竊（旅商人投票用） */
 function mtyEv(k){if(mtyOn()){const E=mtyS().evq||(mtyS().evq={});E[k]=(E[k]||0)+1}}
@@ -21077,7 +21080,7 @@ ACT.mtyEnd=()=>{const M=mtyNow();if(!M)return;M.done=true;save();UI.closeSheet()
 /* 外地官員路過來訪（旅報後） */
 FACE_TITLE.mtyVisit='mty.visit.t';
 FACE_EXT.mtyVisit=e=>{if(!mtyHere(e.cid))return null;return {line:TX('mty.visit'),effect:UT('mty.visit.eff')}};
-/** 遠國奉行所面板頂端：町年寄的席次與本季決議、這一旬在城裡的外地官員。 */
+/** 遠國奉行所面板頂端：年行司的席次與本季決議、這一旬在城裡的外地官員。 */
 function mtyCard(){
   if(!G)return '';const S=G.mty;let h='';
   if(mtyOn()){
@@ -21094,7 +21097,7 @@ function mtyCard(){
 
 /* ═════ [07zzzzzzzzzzzzzzz_buyrelief] ═════ */
 /* ======================= 買付苦情（第三百七十二節） =======================
- *  - 巡見使（六階）的一般請託：好感 60、打勝、只能當面開口（外地巡見使要靠町年寄寄合引見或路過來訪），好感 −10，不收錢、不加風聲；同一位巡見使冷卻十八旬。
+ *  - 巡見使（六階）的一般請託：好感 60、打勝、只能當面開口（外地巡見使要靠年行司寄合引見或路過來訪），好感 −10，不收錢、不加風聲；同一位巡見使冷卻十八旬。
  *  - 效果：巡見使所在的地區十八旬內，大口買付不能買斷：已知正逢買付照樣能派人，本業貨的可買量是平常的三分之一（07i_voyage 的 resolveVoyage）。
  *  - 不管大盤制裁的封鎖（停貨二），也不影響直達線（逢買付照舊送一半）。
  *  狀態 G.buyRelief={地區:到期的旬}；數值 ODDS.buyRelief；文字 fav.rbuyRelief、br.*。 */
