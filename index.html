@@ -882,7 +882,7 @@ const ODDS={
   eventRate:{name:'每旬隨機事件發生率',p:0.75},
   eventW:{name:'當季事件抽選權重（相對值）',fire:3,famine:2,harvest:2,typhoon:2,plague:2,military:2,sword:2,flower:2,dump:2,boom:2,inspect:2,fall:1.5,greed:1.5,thief:1.2,renqing:1.2},
   officialTransfer:{name:'本城官員與外地官員互調（每旬）',p:0.10},
-  residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）',p:0.10},
+  residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）；好感 ≥ keepAff 的本城熟人不搬走（第三百八十八節）',p:0.10,keepAff:60},
   fallScapegoat:{name:'官員受你牽連（好感<10）把罪責推給你',p:0.6},
   extortExp:{name:'官員索賄（含壓驚錢）開口後幾旬沒付就作廢、好感扣幾成（第三百八十一節）',turns:9,cut:0.3},
   fall:{name:'政敵拿你與交好官員的往來做文章（第三百五十五節）：當下好感扣幾成；壓驚錢逾期再扣幾成',cut:0.3,lateCut:0.3},
@@ -2048,6 +2048,8 @@ const UI_TXT={
   'help.log':'去他店裡幫忙，得謝禮 {a} 兩。',
   'help.used':'這一旬已經去別人店裡幫過忙了。',
   'help.offNote':'城裡的人都認識你，不能再扮成雜工賺外快了。',
+  'mk.trade.overDp':'⚠ 超出答應大盤的八成 {n} 件，季末謝禮會落空。',
+  'mk.trade.dpCap':'<br>答應大盤：這一季每旬出貨收在 {n} 以內',
   'mk.trade.over':'⚠ 超出協議配額 {n} 件，可能被查獲。',
   'mk.leadNormal':'本期「維持」：參加協議者各自以穩定供應量{r}為配額；同業不會補足你少出的貨。',
   'mk.leadNormalNone':'本期「維持」；你未參加協議，出貨不受配額限制，預設照穩定供貨線。',
@@ -2934,6 +2936,7 @@ const UI_TXT={
   'lic.licCard.7':'御赦免狀',
   'lic.licCard.8':'{a} 張',
   'lic.licCard.9':'<div class="tiny muted" style="margin-top:2px">尚未取得任何資格。資格要從低階官員辦起，一級一級往上申請。</div>',
+  'lic.licCard.fire':'倉庫失火的機會永久減半',
   'lic.licCard.10':'<div class="card"><b class="small">📜 已取得的資格</b>{a}',
   'lic.regLicCard':'朱印狀',
   'lic.regLicCard.2':'各地區港口',
@@ -4471,6 +4474,7 @@ const UI_TXT={
   'mty.card.none':'（沒有旅商人）',
   'mty.card.eff':'本季決議：{a}、{b}（還剩 {n} 旬）',
   'mty.card.noEff':'本季沒有寄合決議。',
+  'mty.card.nextEff':'<br>下季決議：{a}、{b}（{m} 月上旬起）',
   'mty.card.next':'下次寄合：{m} 月上旬',
   'mty.card.miss':'·已連續缺席 {n} 次（{m} 次卸任）',
   'mty.here.t':'🏮 這一旬在城裡的外地大人',
@@ -5640,6 +5644,9 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
 const CHANGELOG=[
   {date:'2026年11月23日',items:[
     '名稱調整：玩家擔任的「町年寄」改名「年行司」，寄合改稱「年行司寄合」；普請方的町年寄官員照舊。',
+    '人物設定更新：本城好感 60 以上的熟人（含闇商人）不會再被換到外地。',
+    '修正：年行司寄合議定新決議後，上一季的決議會提早消失；現在照常生效到月底，年行司卡片也會列出下季決議。',
+    '介面調整：火除地拜領會列在已取得的資格；答應大盤敲打後，出貨拉霸會比照協議配額標出八成上限。',
   ]},
   {date:'2026年11月22日',items:[
     '委託採買設定更新：帝都御用品也當成本業貨，可以直接派船長、飛腳到產地採買；一樣會遇到大口買付。',
@@ -7306,8 +7313,9 @@ function peopleMoveTick(log){
   if(roll('residenceTransfer')){
     const employed=n=>n.hired||(G.emps||[]).some(e=>e.cid===n.cid);
     const movable=n=>n.role!=='official'&&n.role!=='oiran'&&n.role!=='guard'&&n.role!=='rival'&&!introOf(n.cid)&&!employed(n)&&alive(n.cid);
+    const keep=n=>n.cityId===G.cityId&&G.rel[n.cid]&&G.rel[n.cid].aff>=ODDS.residenceTransfer.keepAff;   // 交情深的本城熟人不搬走（第三百八十八節）
     const foreign=Object.values(G.world.npcs).filter(n=>n.cityId!==G.cityId&&movable(n));
-    const local=resident().filter(movable).filter(n=>foreign.some(x=>x.role===n.role));
+    const local=resident().filter(movable).filter(n=>!keep(n)).filter(n=>foreign.some(x=>x.role===n.role));
     if(local.length){
       const out=pick(local),incoming=pick(foreign.filter(n=>n.role===out.role)),foreignId=incoming.cityId;
       out.cityId=foreignId;incoming.cityId=G.cityId;
@@ -9313,7 +9321,7 @@ function shipPlanTotals(){let q=0,rev=0;mkTrade().forEach(c=>{const v=planOf(c.n
 function tradeCard(name){
   const c=COMM_MAP[name],m=G.mk[name],have=kakeFree(name),ship=UI.s.ship,bq=buyPlanOf(name),bmax=maxBuy(name,true),quota=quotaOf(name),buy=unitBuyCost(name),q=quoteSale(name,ship),idx=riotLevelLive();
   let h='<div class="card" id="trade-card"><div class="row"><b class="small">'+UT('mk.trade.title',{n:esc(c.short)})+'</b><span class="tiny muted" style="text-align:right">'+UT('mk.trade.cap',{u:invUsed(),c:invCap()})+'</span></div>';
-  h+='<div class="tiny muted" style="margin:4px 0">'+(isGoyo(name)?UT('mk.trade.goyoLine',{n:buyLimit(name)}):UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)+(typeof bekkeOn==='function'&&bekkeOn()?UT('mk.trade.lineBk'):'')}))+'</div>'+kakeHeldNote(name);
+  h+='<div class="tiny muted" style="margin:4px 0">'+(isGoyo(name)?UT('mk.trade.goyoLine',{n:buyLimit(name)}):UT('mk.trade.quota',{q:quota,s:UT('mk.trade.stance.'+G.cartel.state),l:supplyLine(name)+(typeof bekkeOn==='function'&&bekkeOn()?UT('mk.trade.lineBk'):'')}))+((typeof dpKnockCap==='function'&&dpKnockCap(name)<Infinity)?UT('mk.trade.dpCap',{n:dpKnockCap(name)}):'')+'</div>'+kakeHeldNote(name);
   h+='<div style="border-top:1px dashed #b5a98f;padding-top:4px"><div class="row"><b class="small">'+UT('mk.trade.ship')+'</b><b id="q-q" style="color:#9b2c3a">'+UT('mk.units',{n:ship})+'</b></div>';
   h+=stepRow('<div class="qwrap" style="flex:1;min-width:0"><i class="qover" id="q-over-bar"></i><input id="slider-ship" class="qslider" type="range" min="0" max="'+Math.max(1,have)+'" value="'+ship+'" step="1" '+(have<1||shipLocked(name)||sakeBanned(name)||!tradeOK(name)?'disabled':'')+'></div>','slider-ship',have<1||ship<=0||shipLocked(name)||sakeBanned(name)||!tradeOK(name),have<1||ship>=have||shipLocked(name)||sakeBanned(name)||!tradeOK(name));
   h+='<div class="tiny" id="q-over" style="color:#b3261e;font-weight:bold"></div>';
@@ -9360,11 +9368,11 @@ function refreshTrade(){
 /** 出貨拉霸的配額色（樣式見 rangeFill）：配額以內紅色，超出的那一段黑色閃爍，下方一行小字（只在參加協議時；第二百八十六節）。 */
 function shipBarSync(){
   const el=$('#slider-ship'),bar=$('#q-over-bar'),tip=$('#q-over');if(!el)return;
-  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,q=guildMember()&&!isGoyo(UI.s.focus)?quotaOf(UI.s.focus):Infinity,pc=x=>clamp(x/max*100,0,100);
+  const max=Math.max(1,+el.max),v=el.disabled?0:+el.value,qg=guildMember()&&!isGoyo(UI.s.focus)?quotaOf(UI.s.focus):Infinity,qd=typeof dpKnockCap==='function'?dpKnockCap(UI.s.focus):Infinity,q=Math.min(qg,qd),pc=x=>clamp(x/max*100,0,100);
   const vp=pc(v),a=Math.min(vp,q===Infinity?100:pc(q)),over=q!==Infinity&&v>q;
   el.style.background='linear-gradient(to right,var(--red) 0 '+rangeAt(a)+',transparent '+rangeAt(a)+' '+rangeAt(vp)+','+RANGE_BG+' '+rangeAt(vp)+' 100%)';
   if(bar){bar.style.left=rangeAt(a);bar.style.width='calc((100% - '+RANGE_THUMB+'px) * '+((vp-a)/100).toFixed(4)+')';bar.style.display=over?'block':'none'}
-  {const t=over?UT('mk.trade.over',{n:v-q}):'';if(tip&&tip.textContent!==t)tip.textContent=t}   // 內容沒變就不寫，免得觸發拉霸上色的監看（rangeFillAll）
+  {const t=over?UT(qd<qg?'mk.trade.overDp':'mk.trade.over',{n:v-q}):'';if(tip&&tip.textContent!==t)tip.textContent=t}   // 內容沒變就不寫，免得觸發拉霸上色的監看（rangeFillAll）
 }
 const updateQuote=refreshTrade;
 /** 單項出貨設定（滑桿用）。 */
@@ -12866,6 +12874,7 @@ function licCard(){
   if(licLv('staff')>0){const s=LIC.staff.caps[licLv('staff')];rows.push([nm('staff'),UT('lic.licCard.5',{a:s.clerk,b:s.banto,c:staffTbTxt('lic.tbCard',licLv('staff'))})])}
   lockedTrade().slice().reverse().forEach(n=>{if((G.trade||[]).includes(n))rows.push([UT('lic.tradeFavorName',{a:COMM_MAP[n].short}),UT('lic.licCard.6')])});
   if((G.lessen||0)>0)rows.push([UT('lic.licCard.7'),UT('lic.licCard.8',{a:G.lessen})]);
+  if(G.flags&&G.flags.firebreak)rows.push([UT('fav.firebreak'),UT('lic.licCard.fire')]);   // 火除地拜領（第三百九十節）
   return UT('lic.licCard.10',{a:rows.length?rows.map(([k,v])=>licRow(esc(k),esc(v))).join(''):UT('lic.licCard.9')})+'</div>';
 }
 /** 遠國奉行所核發的資格：上級資格取代下級（朱印狀取代各地海運泊位許可、五街道通行狀取代陸運通行手形）；限期的方便另列剩餘旬數。 */
@@ -19890,6 +19899,13 @@ function pickleTick(log){
  *  狀態：G.dapan{st,n,acc,kept,gift,all,calm,streak,cool,blk,pen}；名號 G.dpTitle（1 大商、2 豪商）。數值 ODDS.dapan、COSTS.dapan*；文字 dp.*。
  * ===================================================================== */
 const DPO=()=>ODDS.dapan;
+/** 答應大盤敲打期間，單項本業貨每旬的出貨上限（穩定供貨線的八成，在協議裡取配額與八成較低者）；不適用時回傳 Infinity（第三百九十節：比照協議配額顯示在出貨拉霸）。季末判定仍照全部貨值合計。 */
+function dpKnockCap(name){
+  const D=G&&G.dapan;if(!D||D.st!=='knock'||!D.acc)return Infinity;
+  const c=COMM_MAP[name];if(!c||c.luxury||c.sys!==G.sysKey||(typeof isGoyo==='function'&&isGoyo(name))||tradeGrace(name))return Infinity;
+  const l=supplyLine(name);if(!(l>0))return Infinity;
+  const v=DPO().cap*l;return Math.floor(guildMember()?Math.min(quotaOf(name),v):v);
+}
 const dpS=()=>G.dapan||(G.dapan={st:null,n:0,streak:0,cool:0});
 const dpSt=()=>(G&&G.dapan&&G.dapan.st)||null;
 /** 大盤不賣你貨（停貨一、停貨二、永久停貨）。 */
@@ -20906,14 +20922,17 @@ REG_FAVOR.rlineLand=n=>{const P=permitsOf();P.lineL=P.lineL||{};P.lineL[regOfNpc
  *  - 表決：三人每題一票；旅商人海運多投海路、陸運多投陸路（內陸城一律投陸路）；上一季船貨遇險多投打擊海賊山賊，失火失竊多投防火防盜。
  *    好感 60 以上的旅商人有機會改投你那一邊。缺席：照兩位旅商人的票，不同就抽籤；引見也錯過。
  *  - 擔任期間每季有一位外地遠國奉行所四、五階官員路過本城上門（季內隨機一旬），那一旬可以當面拜訪他一次。
- *  狀態 G.mty{on,t,miss,off,mt,eff,here,vq,evq}；數值 ODDS.mty；文字 mty.*。 */
+ *  狀態 G.mty{on,t,miss,off,mt,eff,next,here,vq,evq}；數值 ODDS.mty；文字 mty.*。 */
 const MTYO=()=>ODDS.mty;
 const mtyS=()=>G.mty||(G.mty={on:false,miss:0});
 function mtyOn(){return !!(G&&G.mty&&G.mty.on)}
 /** 這位外地官員這一旬在城裡（寄合引見、路過來訪）。 */
 function mtyHere(cid){const H=G&&G.mty&&G.mty.here;return !!(H&&H.t===G.turn&&H.cids.includes(cid))}
 /** 本季寄合決議（沒有或不在期間回 null）。 */
-function mtyEffNow(){const E=G&&G.mty&&G.mty.eff;return E&&G.turn>=E.from&&G.turn<E.until?E:null}
+/** 生效中的寄合決議。下季已議定的決議放 next，到了開始那一旬才換上來（第三百八十九節：新決議不再蓋掉還在生效的上一季）。 */
+function mtyEffNow(){const S=G&&G.mty;if(!S)return null;if(S.next&&G.turn>=S.next.from){S.eff=S.next;S.next=null}const E=S.eff;return E&&G.turn>=E.from&&G.turn<E.until?E:null}
+/** 已議定、還沒開始的下季決議。 */
+function mtyNextEff(){mtyEffNow();const N=G&&G.mty&&G.mty.next;return N&&G.turn<N.from?N:null}
 /** 運量倍數（加強海路／陸路）。 */
 function mtyCapMul(mode){if(typeof VOY_S!=='undefined'&&VOY_S&&VOY_S.mtyCap!==undefined)return VOY_S.mode===mode?VOY_S.mtyCap:1;const E=mtyEffNow();return E&&E.trans===mode?ODDS.mty.cap:1}   // 歸來結算時照出發時記下的（第三百七十六節）
 /** 遇險倍數（打擊海賊山賊）。 */
@@ -20954,8 +20973,8 @@ function mtyDecide(M,k,me){
 /** 兩題都決定了：下一季生效（下個月上旬起九旬），旬報、瓦版各一則。 */
 function mtyFinalize(M,log){
   if(M.fin||!M.res.trans||!M.res.sec)return;M.fin=true;
-  const S=mtyS(),O=MTYO();S.eff={from:M.t+3,until:M.t+3+O.turns,trans:M.res.trans.win,sec:M.res.sec.win};S.evq={};
-  const t=NEWS('mty.resN',{a:UT('mty.opt.'+S.eff.trans),b:UT('mty.opt.'+S.eff.sec)});pushNews(t);if(log)log.push(t);
+  const S=mtyS(),O=MTYO();mtyEffNow();S.next={from:M.t+3,until:M.t+3+O.turns,trans:M.res.trans.win,sec:M.res.sec.win};S.evq={};   // 放進下季，不蓋掉生效中的上一季
+  const t=NEWS('mty.resN',{a:UT('mty.opt.'+S.next.trans),b:UT('mty.opt.'+S.next.sec)});pushNews(t);if(log)log.push(t);
 }
 /** 引見：兩位外地官員當場結識，這一旬留在城裡。 */
 function mtyIntro(M){
@@ -21068,7 +21087,7 @@ SHEETS.yoriai=()=>{
     h+=M.far.map(c=>personBlock(c,'yamen')).join('')||'<div class="notice tiny">'+UT('mty.noFar')+'</div>';
     h+=next('btn.mtyNext');
   }else{
-    const E=mtyS().eff;
+    const E=mtyS().next||mtyS().eff;
     h+='<div class="notice tiny">'+UT('mty.s4',{a:UT('mty.opt.'+E.trans),b:UT('mty.opt.'+E.sec)})+'</div>';
     h+='<button class="pixel-btn btn-gold" style="width:100%;margin-top:6px" data-act="mtyEnd">'+UT('btn.mtyEnd')+'</button>';
   }
@@ -21086,7 +21105,7 @@ function mtyCard(){
   if(mtyOn()){
     const E=mtyEffNow(),nx=MTYO().months.map(m=>m).find(m=>m>G.month||(m===G.month&&G.cycle===1))||MTYO().months[0];
     h+='<div class="card" style="background:#eef5ee"><b class="small">'+UT('mty.card.t')+'</b><div class="tiny muted">'+UT('mty.card.seats',{a:mtySeats().map(c=>esc(nameOf(c))).join(NAMES_SEP)||UT('mty.card.none')})+'</div>'
-      +'<div class="tiny">'+(E?UT('mty.card.eff',{a:UT('mty.opt.'+E.trans),b:UT('mty.opt.'+E.sec),n:E.until-G.turn}):UT('mty.card.noEff'))+'</div>'
+      +'<div class="tiny">'+(E?UT('mty.card.eff',{a:UT('mty.opt.'+E.trans),b:UT('mty.opt.'+E.sec),n:E.until-G.turn}):UT('mty.card.noEff'))+(mtyNextEff()?UT('mty.card.nextEff',{a:UT('mty.opt.'+mtyNextEff().trans),b:UT('mty.opt.'+mtyNextEff().sec),m:((G.month)%12)+1}):'')+'</div>'
       +'<div class="tiny muted">'+UT('mty.card.next',{m:nx})+((S.miss||0)>0?UT('mty.card.miss',{n:S.miss,m:MTYO().miss}):'')+'</div></div>';
   }
   const H=S&&S.here;
