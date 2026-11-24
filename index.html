@@ -5386,6 +5386,9 @@ const NEWS_TXT={
   /* —— 浪人頭 —— */
   "ronin.rescue":"⚔️【遇襲】途中遭人埋伏，浪人「{n}」路過拔刀相助，賊人四散，你毫髮無傷。",
   "ronin.appoint":"🏯【出仕】浪人「{n}」謀得官職，出任{p}；原任「{o}」調往{c}。",
+  "ronin.follow":"🏯【調任】「{n}」隨你的門路調任本城{p}；原任「{o}」調往{c}。",
+  "ronin.followNo":"🏯【調任】「{n}」隨你的門路調任本城{p}。",
+  "ronin.followAll":"🗡️【浪人】你認識的浪人頭也跟著來到本城。",
   "ronin.promote":"🏯【升官】「{n}」升任{p}；原任「{o}」調往{c}。",
   /* —— 暖簾分 —— */
   "branch.open":"🏮【暖簾分】大番頭「{n}」離店自立，開設「{b}」。",
@@ -5624,7 +5627,7 @@ const NEWS_CAT={
   firm:["hb.showN","villa.doneN","villa.reN","kj.openN","kj.giveN","kj.m5N","kj.m8N","bk.open","bk.heir","dp.big","dp.gou","of.forget","mv.agree","mv.cancel","mv.void.dead","mv.void.jail","mv.void.enemy","mv.void.gone","mv.expire","mv.lastTurn","mv.arrive","mv.arriveSys","mv.yearRoad","mv.gmOut","of.meet","kake.unlock","kake.unlockMine","branch.open","branch.closed","relief.soup","sev.quit","sev.poached","newGame.1","chief.uneasy","empTick.1","charity.1","smugTick.5","enemy.introQuit"],
   market:["kj.newProd","bk.dapan","dp.knock","dp.knockOk","dp.knockEnd","dp.nudge","dp.fail","dp.calm","dp.settleN","dp.kogiN","sumo.open","sumo.open0","daimyo.pass","rival.heir","rival.heirF","rivalDump","luxDry","luxBurst","setEv.3","setEv.6","setEv.8","setEv.9","rival.good","rival.bad","rival.bad.fire","rival.bad.theft","rival.bad.wreck"],
   disaster:["bandit.home.sea","bandit.home.land","bandit.smugRobbed","holdTheft.1","holdTheft.2","holdTheft.3","setEv.1","setEv.2","setEv.4","setEv.5","thieves.2","invUpkeep.1","riot.1","arson.1"],
-  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","officialExtort.expire","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
+  official:["fast.start","fast.end","sake.banStart","sake.banEnd","works.roadOk","urge.start","urge.call","urge.take","urge.popUp","heika.call","heika.take","heika.DoneAll","heika.others","urge.kyusaiDoneAll","urge.popOthers","urge.auto","heika.Done","heika.calm","heika.public","urge.end","urge.push","urge.refuse","urge.kyusaiDone","works.portOk","works.kokuOk","extort.report.fall","extort.report.stay","ronin.appoint","ronin.follow","ronin.followNo","ronin.promote","bandit.quelled.sea","bandit.quelled.land","relief.import","relief.build","inspection.2","inspection.3","officialFall.1","officialFall.2","officialFall.3","officialFall.ask","officialFall.late","officialExtort.expire","peopleMove.official","officialExtort.1","regionTick.1","appGrant.1","tribute.ok","tribute.fail"],
   trouble:["dp.stop1","dp.stop2","komon.judge","komon.gmOut","urge.kyusaiFail","heika.Fail","urge.fine","urge.yamiCaught","komon.rumor","komon.rumor.near","cm.fail","kake.fail","kake.fail.banto","kake.bad.half","kake.bad.all","rush.fineNews","artisan.fail","escort.risk","sev.creditor","officialExtort.2","evalCartel.1","evalCartel.2","smugTick.2","smugTick.3","smugTick.4","exileTick.1","exileTick.2","exileTick.3","assassinate.1","scheme.frame","scheme.suppress"],
   family:["wife.left","wife.bullyOut","marry.1","yearTick.2","yearTick.3","yearTick.4","yearTick.5","yearTick.6","ransom.1"]
 };
@@ -5647,6 +5650,7 @@ const CHANGELOG=[
     '人物設定更新：本城好感 60 以上的熟人（含闇商人）不會再被換到外地。',
     '修正：年行司寄合議定新決議後，上一季的決議會提早消失；現在照常生效到月底，年行司卡片也會列出下季決議。',
     '介面調整：火除地拜領會列在已取得的資格；答應大盤敲打後，出貨拉霸會比照協議配額標出八成上限。',
+    '浪人設定更新：遷居時，自己扶持的浪人官員會憑你的門路調任新城同一階，交情與升官進度保留；認識的浪人頭也一起搬來。',
   ]},
   {date:'2026年11月22日',items:[
     '委託採買設定更新：帝都御用品也當成本業貨，可以直接派船長、飛腳到產地採買；一樣會遇到大口買付。',
@@ -14821,6 +14825,7 @@ function migrateSave(){
   if(G.guide===undefined)G.guide=null;              // 開業指引：舊存檔不帶（第二百八十三節）
   if(!G.diff)G.diff='hard';                          // 難度（第二百八十二節）：舊存檔照原本的九成，算困難
   (G.emps||[]).forEach(e=>{if(e.rank==='chief'&&e.fleeAt!==undefined&&chiefRoot(e))delete e.fleeAt});   // 從丁稚做起的大番頭：取消人心不穩的必走（第三百八十二節）
+  if(G.ronin&&(G.ronin.ids||[]).some(c=>npc(c)&&npc(c).cityId!==G.cityId)&&typeof roninFollow==='function')roninFollow(t=>pushNews(t));   // 舊存檔搬過家：浪人補跟過來（第三百九十一節）
   G.fameFloor=0;                                     // 永久知名度下限：新町取立、國產取立不再鎖定（第三百七十八節），舊存檔一律收回
   if(!G.caughtLog)G.caughtLog={};
   if(!G.rec)recOf();                                 // 商號紀錄（旬報、番付、走勢）；舊存檔從現存的番付補起                    // 違約查獲的公開紀錄（公會長候選人用）
@@ -15197,6 +15202,7 @@ function roninTick(log){
   const R_=RONIN(),O=ODDS.ronin;R_.ask=null;
   R_.ids=R_.ids.filter(c=>npc(c)&&alive(c));if(!R_.ids.length)return;
   let cid=null,amt=0;
+  if(R_.ids.some(c=>npc(c).cityId!==G.cityId))return;   // 保險：認識的浪人不在本城時不上門（遷居時已一起搬來，第三百九十一節）
   const off=R_.official&&roninOfficial(R_.official)?R_.official:null,rk=off?npc(off).pos.rank:0;
   /* 全部浪人共用一個機率：查貨機率乘 3/4 的（當官者官階）次方；擲中時輪流上門，當官者到四階退出名單 */
   const L=R_.ids.filter(c=>!(c===off&&rk>=4));
@@ -15211,13 +15217,23 @@ function roninCard(e){
   return {line:TX(off?'ronin.lineOfficial':'ronin.line'),effect:UT(k,{a:fmt(A.amt)}),
     buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="roninGive" '+(G.silver<A.amt?'disabled':'')+'>'+UT('btn.roninGive',{c:coinHtml('silver',A.amt)})+'</button><button class="pixel-btn btn-sm" data-act="roninNo">'+UT('btn.roninNo')+'</button></div>'};
 }
+/** 遷居（第三百九十一節甲案）：自己扶持的浪人官員憑你的門路調任新城同一系、同一階（原任調往外地），交情與升官進度保留；其他認識的浪人頭也一起搬來。put：寫旬報。 */
+function roninFollow(put){
+  const R_=G.ronin;if(!R_)return;R_.ask=null;
+  R_.ids=R_.ids.filter(c=>npc(c)&&alive(c));if(!R_.ids.length)return;
+  let other=false;
+  R_.ids.forEach(c=>{const n=npc(c);if(n.cityId===G.cityId)return;
+    if(roninOfficial(c)){const from=CITY(n.cityId).name,s=roninSeat(c,n.pos.court,n.pos.rank);put(s.old?NEWS('ronin.follow',{n:nameOf(c),p:s.title,o:nameOf(s.old),c:s.far}):NEWS('ronin.followNo',{n:nameOf(c),p:s.title}));logRel(c,MSG('log.transferIn',{c:from,p:s.title}))}
+    else{n.cityId=G.cityId;other=true}});
+  if(other)put(NEWS('ronin.followAll'));
+}
 /** 把浪人安插到某一階（原本坐那一階的人調往外地）。 */
 function roninSeat(cid,court,rank){
   const n=npc(cid),p=posPick(court,rank);
   const old=Object.values(G.world.npcs).find(x=>x.cid!==cid&&x.cityId===G.cityId&&x.pos&&x.pos.court===court&&x.pos.rank===rank&&alive(x.cid));
   let far='';
   if(old){const others=CITIES.filter(c=>c.id!==G.cityId);const to=pick(others);old.cityId=to.id;far=to.name;logRel(old.cid,MSG('log.transferOut',{c:to.name}))}
-  n.role='official';n.pos={court,rank,posId:p.id};n.ronin=true;
+  n.role='official';n.pos={court,rank,posId:p.id};n.ronin=true;n.cityId=G.cityId;   // 安插、升官都在你住的城（第三百九十一節）
   const r=R(cid);r.lockAff=true;setAff(r,100);
   return {old:old?old.cid:null,far,title:p.title};
 }
@@ -19221,7 +19237,7 @@ function moveDepart(sysKey,takeIds){
   G.supplySeed=hashStr('originSupply|'+G.rs+'|'+G.cityId+'|'+G.turn);
   G.cityPopulation=parseInt(dest.population,10)||0;
   moveTopUp(dest.id);
-  officialMigrate();officialsOf(G.cityId).forEach(n=>addKnown(n.cid));
+  officialMigrate();if(typeof roninFollow==='function')roninFollow(put);officialsOf(G.cityId).forEach(n=>addKnown(n.cid));   // 浪人官員跟著調任（第三百九十一節）
   {const r=R(friend);r.lockAff=true;setAff(r,100);r.out=false;r.met=true;r.seen=true;r.bond=Object.assign({},r.bond||{mult:1},{label:UT('mv.bond'),introId:null});addKnown(friend);G.intros=[{cid:friend}];G.introId=friend;logRel(friend,UT('mv.log.arrive'))}
   G.cartel={state:'pledged',comp:65,sanction:0,cheated:0,bond:costOf('guildBond'),pot:0,policy:chance(ODDS.guildPolicy.normal)?'normal':'restrict'};   // 友人代墊訂約金（同開局）
   G.mk={};initMarket();shipLockInit();             // 新城：停賣鎖重來，本業奢侈品預設停賣（第二百九十九節）
