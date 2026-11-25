@@ -885,7 +885,7 @@ const ODDS={
   residenceTransfer:{name:'名門宅邸人物與外地同身分人物互換（每旬）；好感 ≥ keepAff 的本城熟人不搬走（第三百八十八節）',p:0.10,keepAff:60},
   fallScapegoat:{name:'官員受你牽連（好感<10）把罪責推給你',p:0.6},
   extortExp:{name:'官員索賄（含壓驚錢）開口後幾旬沒付就作廢、好感扣幾成（第三百八十一節）',turns:9,cut:0.3},
-  fall:{name:'政敵拿你與交好官員的往來做文章（第三百五十五節）：當下好感扣幾成；壓驚錢逾期再扣幾成',cut:0.3,lateCut:0.3},
+  fall:{name:'政敵拿你與交好官員的往來做文章（第三百五十五、三百九十五節）：先要壓驚錢，逾期不給好感扣幾成（lateCut）；他已有沒付的索賄、開不了口時直接扣幾成（cut）',cut:0.4,lateCut:0.4},
   thiefRepel:{name:'盜賊夜探，保鏢≥2 名當場擊退',p:0.7},
   /* —— 市場·治安 —— */
   fire:{name:'倉庫火災（易燃品）',base:0.012,flamDiv:200,winter:1.8,guardCut:0.1,heavy:0.6,light:0.35,heavyP:0.5},
@@ -1578,7 +1578,7 @@ const LINES={
 };
 /** 產地直達線（第三百六十八節）：大番頭的建議與續約。 */
 LINES.dline={
-  ask:['東家，船長、飛腳都雇滿了。不如在外地挑一處產地，打通沿路關係，拉一條直達線，每旬固定送貨來，省得一趟一趟派人。','船隊馬幫都齊了，光靠委託採買太可惜。小的想替店裡在外地拉一條產地直達線，東家意下如何？'],
+  ask:['東家，【{r}】的入津與通行都拿到了。不如把船和馬幫搭在一起，在那頭挑一處產地拉條直達線，每旬固定送貨來，省得一趟一趟派人。','【{r}】的海路陸路都打通了，光靠委託採買太可惜。小的想讓船和馬幫接力，替店裡拉一條產地直達線，東家意下如何？'],
   renew:['【{c}】那條直達線滿一年了。路都熟了，續下去不用再花打點的錢，要續嗎？','直達線跑滿一年，【{c}】那頭的人問還做不做。東家一句話，小的就去回覆。']
 };
 /** 年行司寄合（第三百六十八節）：列席官員、旅商人、路過來訪的外地官員。 */
@@ -2794,7 +2794,7 @@ const UI_TXT={
   'wiki.WIKI_GUIDE.7':'⚖️ 問屋公會（株仲間）',
   'wiki.WIKI_GUIDE.8':'城裡的問屋都是公會的人。公會底下有一份「聯合採購與出貨協議」：參加的人向相場進貨比較便宜、能多進一些，但出貨要守配額，超量被查到就會被聯合斷貨、訂約金作廢。不在協議裡（沒參加，或違約被抓）的人遭同業排擠：同業不肯調貨，仲買人、旅商人收你的貨也會壓價。城裡人口連月減少、你的生意又做得夠大時，巡察使會到例會督促：見得到他的，可以接下官府的「御救販售」照數補貨；相熟的闇商人這時也肯替你把配額以外的貨私下放出去，只是被同業看穿就算違約。\n例會在三、六、九、十二月的上旬召開，要親自出席。會上先表態參加或退出協議，再投票決定這期要「維持」還是「減供」，最後競標「菓子折」。菓子折名義上是相場答謝公會的點心禮，人人都知道盒底那層是給誰的。\n每年三月的例會先改選公會長，本城每家問屋都能投票。當上公會長，名望視同四階，但菓子折的得標金要分成三份，向三系的六階大人分頭報告，還要評理同業糾紛、安排幕府攤派；違約被查到就得下台。',
   'wiki.WIKI_GUIDE.9':'🚢 商路與委託採買',
-  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月出發、去同一城的人太多，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。受不了時可以當面向巡見使訴苦（買付苦情），他會下令那個地區半年內出發的採買不受買斷，還留三分之一給其他商人。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。船長、飛腳都雇滿後，大番頭會建議在外地拉一條產地直達線，每旬固定送貨；要有產地地區的入津、通行與兩張專線御免，專線御免只能當面向外地的船手頭、道中奉行開口。名望四階、身家十萬兩後會被任命為年行司，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
+  'wiki.WIKI_GUIDE.10':'派船長走海路、飛腳走陸路，帶著委託金到外地產地採買，價錢比相場便宜得多。要去的地區得先有入津御免或關所通行手形。帶回什麼，由受託人看當地物產與行情決定。產地每月有豐有歉，同一個月出發、去同一城的人太多，後去的人就買得少；空手回來的不算。每季各地區會有一個月「大口買付」，那個月出發的人買不到本業貨；平常要等人回來才知道，也可以向仲買人或交情深的外城友人探聽。受不了時可以當面向巡見使訴苦（買付苦情），他會下令那個地區半年內出發的採買不受買斷，還留三分之一給其他商人。路上有海難與山賊。商路頁頂端的地圖畫著各地航路，出門在外的人會在上面來回。人別帳拿到五級可僱陸運番頭、六級再僱海運番頭；有了他們，飛腳、船長可以排進自動排程，每旬照設定自動出發，不必親自交代。拿到外地某個地區的入津御免與關所通行手形後，大番頭會建議把船和馬幫接起來，在那頭拉一條產地直達線，每旬固定送貨。名望四階、身家十萬兩後會被任命為年行司，每季寄合議定下一季的運輸與治安，也是結識外地高官的門路。',
   'wiki.WIKI_GUIDE.11':'🤝 人脈',
   'wiki.WIKI_GUIDE.12':'官員、同業、名士、花魁，都要一次次登門結識；沒有介紹人貿然拜訪，常吃閉門羹。每次見面都是一場攻心：挑一份投其所好的禮，再看對方臉色表示心意。交情到了 60 就是自己人，官員才肯聽你開口請託。請託要用掉人情，承諾過的事要兌現。登門時偶爾會巧遇別的客人，交情深的朋友也會託你引見官員。名聲越響，越見得到大人物；名聲響徹全城以後，要靠大事才能更上一層。闇商人和浪人不掛招牌，只能在花街或路上碰見。每季最後一旬，瓦版會印出本城的商人番付：身代看家底，名望看名聲，同業與旅商一起排，各取前十名；歷期番付可在筆記的「紀錄」翻看；先擠進榜內，再往大關爬。另有一些花邊八卦，真真假假；同業、旅商見了你，也會拿來說上幾句。把他行貨賣給旅商，他轉手賺的錢也會把他往番付上推。船長、飛腳到外地採買，有時會替你牽線認識當地的商人；這些外城友人見不到面，平日靠書信往來（每封用一次行動），交情深了可以寫信探聽他那個地區下一次的大口買付，也可以去他那裡作客（寄信、作客都在主畫面的「外城出遊」），他也會來訪，或來信訂貨，請你派人整批送去。',
   'wiki.WIKI_GUIDE.13':'👥 店員',
@@ -2896,6 +2896,7 @@ const UI_TXT={
   'face.faceEventCard.3':'現款增加 {a} 兩。',
   'face.faceEventCard.4':'近來替商家辦事不容易。三旬之內送來 {a} 兩，我自然記得你的心意。',
   'face.fall.line':'這回替你挨了上頭的罵，還在查著呢。總得有點表示：三旬之內送 {a} 兩來壓壓驚。',
+  'face.fall.effect':'已記下承諾；到期前可在人物筆記中交付。三旬內沒送，他對你的交情會大打折扣。也可以告發他：不必給錢、官場風聲 −2，但從此結仇。',
   'face.faceEventCard.5':'已記下承諾；到期前可在人物筆記中交付。也可以告發他：不必給錢、官場風聲 −2，但從此結仇。',
   'btn.extortOk':'照辦（之後再送）',
   'btn.reportExtort':'告發',
@@ -4377,16 +4378,12 @@ const UI_TXT={
   /* 產地直達線（第三百六十八節） */
   'spend.dline':'直達線打點',
   'spend.dlineGoods':'直達線貨款',
-  'fav.rlineSea':'專線御免（船手）',
-  'fav.rlineSea.d':'長期借用此地區的船隊，替你的產地直達線走海路。只能當面請託。',
-  'fav.rlineLand':'專線御免（道中）',
-  'fav.rlineLand.d':'長期借用此地區的驛路，替你的產地直達線走陸路。只能當面請託。',
   'fav.rbuyRelief':'買付苦情',
   'fav.rbuyRelief.d':'向巡見使哭訴大盤霸道、把產地買斷。他下令此地區 {n} 旬內大盤收購不得買斷：這段期間出發的採買，逢大口買付照樣派得出人，本業貨還能買到平常的三分之一。只能當面請託。',
   'br.card.t':'⚖️ 買付苦情',
   'br.card.row':'【{r}】大口買付不得買斷（這段期間出發的採買），還剩 {n} 旬',
   'dl.ask.t':'🚚 大番頭的建議',
-  'dl.ask.eff':'在本地區以外挑一處產地，拿齊那個地區的四張許可，花 {a} 兩打點沿路，就能拉一條直達線，每旬固定送貨。之後在商路頁上方設定。',
+  'dl.ask.eff':'在已拿到入津御免與通行手形的外地挑一處產地，花 {a} 兩打點沿路，船和馬幫接力拉一條直達線，每旬固定送貨。之後在商路頁上方設定。',
   'dl.renew.t':'🚚 直達線滿一年',
   'dl.renew.eff':'續約不用再付錢，【{c}】那條線再跑 {n} 旬；不續就停。',
   'btn.dlLook':'去商路頁看看',
@@ -4394,7 +4391,7 @@ const UI_TXT={
   'btn.dlRenew':'續約一年',
   'btn.dlStop':'不續了',
   'dl.title':'🚚 產地直達線',
-  'dl.lead':'大番頭替你在外地拉一條直達線：建立費 {a} 兩，佔一名船長與一名飛腳，{n} 旬後開始每旬送一次，約半船；貨款到貨時照產地價加一成運費付現款。要有產地所在地區的四張許可。',
+  'dl.lead':'大番頭替你在外地拉一條直達線：建立費 {a} 兩，佔一名船長與一名飛腳，{n} 旬後開始每旬送一次，約半船；貨款到貨時照產地價加一成運費付現款。要有產地所在地區的入津御免與通行手形。',
   'dl.route':'【{c}】{v}→ 本店，經【{p}】上岸',
   'dl.via':'陸路到【{p}】出海 ',
   'dl.crew':'船長 {a}·飛腳 {b}',
@@ -4404,12 +4401,10 @@ const UI_TXT={
   'dl.lastLost':'上一趟遇險，{w} 都沒了，沒付錢',
   'dl.lastUnpaid':'上一趟付不出 {a} 兩，貨退回去了',
   'dl.item':'{g} × {q}',
-  'dl.pickLead':'選一處本地區以外的產地（四張許可都齊了才能建立）：',
+  'dl.pickLead':'選一處本地區以外的產地（入津、通行都齊了才能建立）：',
   'dl.inland':'內陸',
   'dl.pm.0':'入津',
   'dl.pm.1':'通行',
-  'dl.pm.2':'船手',
-  'dl.pm.3':'道中',
   'dl.noCand':'本地區以外沒有出產本業日常貨的城。',
   'dl.cancelAsk':'解約後船長、飛腳回到店裡，建立費不退。確定嗎？',
   'btn.dlPick':'挑選產地',
@@ -4422,7 +4417,7 @@ const UI_TXT={
   'btn.dlRebuild':'改到【{c}】（重付 {a} 兩）',
   'dl.no.chief':'沒有大番頭，直達線拉不起來。',
   'dl.no.city':'先挑一處產地',
-  'dl.no.permit':'【{r}】的四張許可還沒拿齊',
+  'dl.no.permit':'【{r}】的入津御免或通行手形還沒拿到',
   'dl.no.capt':'沒有空閒的船長',
   'dl.no.cour':'沒有空閒的飛腳',
   'dl.no.silver':'現款不到 {a} 兩',
@@ -5149,8 +5144,8 @@ const NEWS_TXT={
   /* —— officialFall —— */
   "officialFall.1":"📜【官場】三系官署人事微調，一批吏員調任他處。",
   "officialFall.2":"⚡【政爭】「{nm}」受你牽連遭上司申斥，為求自保把罪責推到你頭上：罰銀 {fine} 兩，知名度 -3。",
-  "officialFall.ask":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，要你送壓驚錢。（見筆記·往來實錄）",
-  "officialFall.late":"⚡【政爭】「{nm}」等不到你的壓驚錢，對你更加不滿。",
+  "officialFall.ask":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，要你三旬內送壓驚錢，不然交情要大打折扣。（見筆記·往來實錄）",
+  "officialFall.late":"⚡【政爭】「{nm}」等不到你的壓驚錢，對你大為不滿。",
   "officialFall.3":"⚡【政爭】政敵拿你與「{nm}」的往來大做文章，{nm}受你牽連遭上司申斥，對你頗有怨言。",
   "peopleMove.official":"📜【官員調任】「{out}」調往【{dest}】；「{in}」自【{from}】調來本城，接掌{post}。",
   "peopleMove.residence":"🏯【宅邸異動】{kind}「{out}」遷往【{dest}】；「{in}」自【{from}】遷入本城。",
@@ -5601,8 +5596,6 @@ const NEWS_TXT={
   "dl.end.expire":"🚚【直達線】【{c}】的直達線滿一年沒有續約，停了。",
   "dl.end.stop":"🚚【直達線】【{c}】的直達線滿一年，不續了。",
   "dl.end.cancel":"🚚【直達線】【{c}】的直達線解約了，建立費不退。",
-  "dl.permitSea":"取得【{r}】的專線御免（船手），船隊可長期替直達線走海路。",
-  "dl.permitLand":"取得【{r}】的專線御免（道中），驛路可長期替直達線走陸路。",
   "mty.appointN":"🏮【年行司】町奉行所任命{f}為【{c}】年行司，每季列席寄合。",
   "mty.meetN":"🏮【年行司】本旬召開年行司寄合，遠國奉行所的大人列席。",
   "mty.resN":"🏮【年行司】寄合議定：下一季{a}、{b}。",
@@ -5654,6 +5647,8 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  * ===================================================================== */
 const CHANGELOG=[
   {date:'2026年11月25日',items:[
+    '官場設定更新：政敵攻擊交好官員時，對方先開口要壓驚錢，三旬內不給才扣好感四成。',
+    '產地直達線設定更新：拿到外地一個地區的入津御免與通行手形，大番頭就會建議把船和馬幫接起來；只要這兩張許可，不必再求專線御免。',
     '難度設定更新：遊戲中可以在設定畫面隨時切換簡易、一般、困難。',
     '委託採買介面調整：目的地不再只列前十個，改分「有本業貨」「沒有本業貨」兩區，後者預設收起。',
     '修改背景資料',
@@ -6612,16 +6607,15 @@ function officialFall(){
   const offs=officialsOf(G.cityId).filter(n=>R(n.cid).aff>=30&&!n.ronin&&!awayNow(n));   // 自己扶持的浪人官員不受牽連；巡迴在外的官員不受牽連（第三百八十節）
   if(!offs.length)return NEWS('officialFall.1');
   const n=pick(offs);const r=R(n.cid);
-  const loss=Math.round(r.aff*ODDS.fall.cut);setAff(r,r.aff-(loss));         // 受你牽連遭申斥：好感扣三成；官職不變
-  const nm=nameOf(n.cid);logRel(n.cid,MSG('log.fall',{d:loss}));
-  if(r.promises.some(p=>p.kind==='tribute'&&!p.done))return NEWS('officialFall.3',{nm});   // 已有沒付的索賄：只扣好感
+  const nm=nameOf(n.cid);                         // 受你牽連遭申斥（官職不變）：先跟你要壓驚錢，不給才扣好感（第三百九十五節）
+  if(r.promises.some(p=>p.kind==='tribute'&&!p.done)){const loss=Math.round(r.aff*ODDS.fall.cut);setAff(r,r.aff-loss);logRel(n.cid,MSG('log.fall',{d:loss}));return NEWS('officialFall.3',{nm})}   // 已有沒付的索賄：開不了口，直接扣好感
   const amt=giftGoldCost(n.pos.rank);
   r.promises.push({kind:'tribute',fall:true,text:MSG('promise.fall',{n:nm,a:amt*BRIBE_RATE}),due:G.turn+3,amount:amt,done:false,by:'official'});
   logRel(n.cid,MSG('log.fallAsk',{a:amt*BRIBE_RATE}));
   queueFaceEvent({type:'extort',cid:n.cid,amt:amt*BRIBE_RATE,due:G.turn+3,fall:true});
   return NEWS('officialFall.ask',{nm});
 }
-/** 政敵事件的壓驚錢逾期：好感再扣三成，見底時可能把罪責推給你。回傳旬報文字。 */
+/** 政敵事件的壓驚錢逾期：好感扣四成，見底時可能把罪責推給你；這筆承諾就此了結（第三百九十五節）。回傳旬報文字。 */
 function fallLate(cid,r){
   const nm=nameOf(cid),loss=Math.round(r.aff*ODDS.fall.lateCut);setAff(r,r.aff-loss);logRel(cid,MSG('log.fallLate',{d:loss}));
   if(r.aff<10&&roll('fallScapegoat')){                             // 好感見底：為求自保，把罪責推到你頭上
@@ -7352,7 +7346,7 @@ function peopleTick(log){
       if(!p.done&&p.kind==='tribute'&&p.by==='official'&&G.turn>=p.due-3+ODDS.extortExp.turns){   // 索賄（含壓驚錢）開口九旬後作廢：好感扣三成，不推罪（第三百八十一節）
         p.done=true;p.expired=true;const loss=Math.round(r.aff*ODDS.extortExp.cut);setAff(r,r.aff-loss);logRel(cid,MSG('log.extortExp',{d:loss}));
         const t=NEWS('officialExtort.expire',{nm:nameOf(cid)});pushNews(t);log.push(t);return}
-      if(!p.done&&G.turn>p.due&&!p.late&&p.fall){p.late=true;const t=fallLate(cid,r);pushNews(t);log.push(t);return}   // 政敵事件的壓驚錢逾期（第三百五十五節）
+      if(!p.done&&G.turn>p.due&&!p.late&&p.fall){p.late=true;p.done=true;p.expired=true;const t=fallLate(cid,r);pushNews(t);log.push(t);return}   // 政敵事件的壓驚錢逾期（第三百五十五節）
       if(!p.done&&G.turn>p.due&&!p.late){p.late=true;setAff(r,Math.max(0,r.aff-10));logRel(cid,MSG('log.late',{t:p.text}));const t=NEWS('peopleTick.1',{cid:nameOf(cid)});pushNews(t);log.push(t)}
     });
   });
@@ -11565,8 +11559,6 @@ const regOfNpc=n=>CITY(n.cityId).region_id;
 function regionHeld(key,n){
   const P=permitsOf(),rid=regOfNpc(n);
   if(key==='rport')return !!(P.sea.all||P.sea[rid]);
-  if(key==='rlineSea')return !!(P.lineS&&P.lineS[rid]);       // 專線御免（第三百六十八節）
-  if(key==='rlineLand')return !!(P.lineL&&P.lineL[rid]);
   if(key==='rpass')return !!(P.land.all||P.land[rid]);
   if(key==='rshuin')return !!P.sea.all;
   if(key==='rroad')return !!G.flags.road;
@@ -12738,7 +12730,7 @@ function faceEventCard(e){
     line=UT('face.faceEventCard.2',{a:fmt(e.amt)});effect=UT('face.faceEventCard.3',{a:fmt(e.amt)});
   }else if(e.type==='extort'){
     if(!(R(e.cid).promises||[]).some(p=>!p.done&&p.kind==='tribute'&&p.by==='official'))return null;   // 已經付了或告發了
-    line=UT(e.fall?'face.fall.line':'face.faceEventCard.4',{a:fmt(e.amt)});effect=UT('face.faceEventCard.5');
+    line=UT(e.fall?'face.fall.line':'face.faceEventCard.4',{a:fmt(e.amt)});effect=UT(e.fall?'face.fall.effect':'face.faceEventCard.5');
     buttons='<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="faceNext">'+UT('btn.extortOk')+'</button><button class="pixel-btn btn-sm btn-red" data-act="reportExtort" data-cid="'+e.cid+'" data-face="1">'+UT('btn.reportExtort')+'</button></div>';
   }else if(e.type==='inspect'){
     const I=G.inspect;if(!I||I.cid!==e.cid||I.turn!==e.turn)return null;
@@ -20781,9 +20773,10 @@ ACT.hanabiPick=el=>{
 
 /* ═════ [07zzzzzzzzzzzzz_dline] ═════ */
 /* ======================= 產地直達線（第三百五十九節第一段、第三百六十三節；上線見第三百六十八節） =======================
- *  - 船長、飛腳都僱到許可上限時，大番頭在旬報後上門建議一次；之後商路頁（委託採買上方）常駐直達線卡。要有大番頭；大番頭不在了線就停。
- *  - 只能選本店所在地區以外的產地（港口、內陸都可以），要有那個地區的四張許可：入津御免、陸運通行手形（書狀可求）、
- *    專線御免·船手（船手頭四階）、專線御免·道中（道中奉行五階），後兩張只能當面請託（外地高官要靠年行司寄合的引見或路過來訪）。
+ *  - 外地某個地區的入津御免與陸運通行手形都拿到、店裡有船長也有飛腳時，大番頭在旬報後上門建議一次（第三百九十六節）；
+ *    之後商路頁（委託採買上方）常駐直達線卡。要有大番頭；大番頭不在了線就停。
+ *  - 只能選本店所在地區以外的產地（港口、內陸都可以），要有那個地區的入津御免與陸運通行手形（書狀可求）；
+ *    原本另要的兩張專線御免（船手頭、道中奉行）已取消（第三百九十六節）。
  *  - 建立 5,000 兩，佔一名船長與一名飛腳（大番頭挑膽識高的），一個月後開始送，每旬一次約半船；為期一年，期滿大番頭來問續約（不另付錢）。
  *  - 價錢：當旬產地價加一成運費，到貨時付現款；付不出那一旬不收，連兩旬付不出就斷線。倉位不夠只收放得下的。奢侈品不送。
  *  - 遇險約為委託採買的三分之一（看船長、飛腳的膽識），出事那一旬的貨沒了、不付錢。產地地區的大口買付月份只送一半；凶作減半，豐產便宜。
@@ -20793,10 +20786,12 @@ const DLO=()=>ODDS.dline;
 const dlS=()=>G.dline||(G.dline={asked:false,city:null});
 const dlOn=()=>!!(G&&G.dline&&G.dline.city);
 const dlChief=()=>(G.emps||[]).find(e=>e.rank==='chief')||null;
-/** 船長、飛腳都僱到許可上限（各至少一名）。 */
-const dlCrewFull=()=>{const c=G.emps.filter(e=>e.rank==='captain').length,f=G.emps.filter(e=>e.rank==='courier').length;return c>0&&f>0&&c>=slotCap('captain')&&f>=slotCap('courier')};
-/** 某地區的四張許可：[入津御免, 陸運通行手形, 專線御免·船手, 專線御免·道中]。 */
-function dlPermits(rid){const P=permitsOf();return [!!(P.sea.all||P.sea[rid]),!!(P.land.all||P.land[rid]),!!(P.lineS&&P.lineS[rid]),!!(P.lineL&&P.lineL[rid])]}
+/** 店裡有船長也有飛腳（各至少一名，大番頭才想得到把兩者搭起來）。 */
+const dlCrewHas=()=>G.emps.some(e=>e.rank==='captain')&&G.emps.some(e=>e.rank==='courier');
+/** 某地區的兩張許可：[入津御免, 陸運通行手形]（第三百九十六節起不再要專線御免）。 */
+function dlPermits(rid){const P=permitsOf();return [!!(P.sea.all||P.sea[rid]),!!(P.land.all||P.land[rid])]}
+/** 第一個兩張許可都齊的外地地區（大番頭建議時提到；沒有回 null）。 */
+const dlReadyRegion=()=>(REG_LIST.map(r=>r.id).find(rid=>rid!==homeRegion()&&dlPermits(rid).every(Boolean)&&CITIES.some(c=>c.region_id===rid&&dlGoods(c).length)))||null;
 /** 某城直達線會送的貨：本業可交易的必需品、一般品。 */
 const dlGoods=ct=>cityProds(ct).filter(n=>COMM_MAP[n]&&COMM_MAP[n].sys===G.sysKey&&!COMM_MAP[n].luxury&&tradeOK(n));
 /** 一個地區裡的港口（首府優先）。 */
@@ -20874,7 +20869,7 @@ function dlTick(log){
   if(!G||G.ended)return;
   const D=dlS();
   if(!D.city){
-    if(!D.asked&&dlChief()&&dlCrewFull()){const b=dlChief();if(!jailedEmp(b)&&!empLent(b)){D.asked=true;queueFaceEvent({type:'dlAsk',empId:b.id,turn:G.turn})}}
+    if(!D.asked&&dlChief()&&dlCrewHas()&&dlReadyRegion()){const b=dlChief();if(!jailedEmp(b)&&!empLent(b)){D.asked=true;queueFaceEvent({type:'dlAsk',empId:b.id,turn:G.turn})}}
     return;
   }
   if(!dlChief()){dlEnd('chief',log);return}
@@ -20893,7 +20888,7 @@ function dlTick(log){
 {const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);dlTick(log);return r}}
 /* 大番頭的建議與續約（旅報後來訪） */
 FACE_TITLE.dlAsk='dl.ask.t';FACE_TITLE.dlRenew='dl.renew.t';
-FACE_EXT.dlAsk=()=>{if(dlOn())return null;return {line:TX('dline.ask'),effect:UT('dl.ask.eff',{a:fmt(DLO().fee)}),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="dlGoRoutes">'+UT('btn.dlLook')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.dlLater')+'</button></div>'}};
+FACE_EXT.dlAsk=()=>{if(dlOn())return null;const rid=dlReadyRegion();return {line:TX('dline.ask',{r:rid?REG_NAME(rid):''}),effect:UT('dl.ask.eff',{a:fmt(DLO().fee)}),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="dlGoRoutes">'+UT('btn.dlLook')+'</button><button class="pixel-btn btn-sm" data-act="faceNext">'+UT('btn.dlLater')+'</button></div>'}};
 FACE_EXT.dlRenew=()=>{const D=dlS();if(!D.city||!D.renew)return null;const ct=CITY(D.city);
   return {line:TX('dline.renew',{c:ct.name}),effect:UT('dl.renew.eff',{c:ct.name,n:DLO().turns}),buttons:'<div class="grid2"><button class="pixel-btn btn-sm btn-gold" data-act="dlRenew" data-v="1">'+UT('btn.dlRenew')+'</button><button class="pixel-btn btn-sm" data-act="dlRenew" data-v="0">'+UT('btn.dlStop')+'</button></div>'}};
 ACT.dlGoRoutes=()=>{UI.hideInfo();setTimeout(()=>{if(!$('#info-bd').classList.contains('hidden'))return;UI.go('routes')},0)};
@@ -20949,14 +20944,7 @@ ACT.dlCancelNo=()=>{UI.s.dlCancelArm=false;renderRoutes()};
 ACT.dlCancelYes=()=>{UI.s.dlCancelArm=false;if(!dlOn())return;dlEnd('cancel');toast(MSG('dl.stopped'),3600);sfx.tap();UI.render()};
 /* 遷居：直達線結束，新城條件符合時大番頭再建議 */
 {const _m=moveClearCity;moveClearCity=function(){const r=_m.apply(this,arguments);G.dline=null;return r}}
-/* 專線御免：外地船手頭（四階）、道中奉行（五階）只能當面請託 */
-REG_FAVORS.push(
-  {k:'rlineSea',rank:4,once:true,faceOnly:true,pos:['reg_05'],avail:n=>regOfNpc(n)!==homeRegion()},
-  {k:'rlineLand',rank:5,once:true,faceOnly:true,pos:['reg_07'],avail:n=>regOfNpc(n)!==homeRegion()}
-);
-REG_FAVORS.filter(f=>f.k==='rlineSea'||f.k==='rlineLand').forEach(f=>{f.name=UT('fav.'+f.k);f.desc=UT('fav.'+f.k+'.d')});
-REG_FAVOR.rlineSea=n=>{const P=permitsOf();P.lineS=P.lineS||{};P.lineS[regOfNpc(n)]=true;return NEWS('dl.permitSea',{r:REG_NAME(regOfNpc(n))})};
-REG_FAVOR.rlineLand=n=>{const P=permitsOf();P.lineL=P.lineL||{};P.lineL[regOfNpc(n)]=true;return NEWS('dl.permitLand',{r:REG_NAME(regOfNpc(n))})};
+/* 專線御免（外地船手頭、道中奉行的當面請託）已於第三百九十六節取消；舊存檔的 G.permits.lineS／lineL 留著不再使用。 */
 
 /* ═════ [07zzzzzzzzzzzzzz_mty] ═════ */
 /* ======================= 年行司寄合（第三百六十二、三百六十三節；上線見第三百六十八節） =======================
