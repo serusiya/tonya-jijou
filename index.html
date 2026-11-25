@@ -2431,6 +2431,8 @@ const UI_TXT={
   'diff.ratio.easy':'105%',
   'diff.ratio.normal':'100%',
   'diff.ratio.hard':'90%',
+  'set.diff.t':'<div class="card"><b class="small">⚖️ 難度</b><div class="row" style="gap:6px;margin-top:5px">',
+  'set.diff.d':'<div class="tiny muted" style="margin-top:4px">{a}隨時可以換，換了馬上照新的難度算。</div>',
   'start.diff.t':'<div class="hr-title" style="color:#e5a93b;margin-top:12px">② 選擇難度</div>',
   'start.diff.easy':'協議「維持」時配額寬鬆，守約也能穩穩供貨，名聲與市佔慢慢長。',
   'start.diff.normal':'協議「維持」時照配額出貨，剛好夠穩定供貨。',
@@ -2616,6 +2618,11 @@ const UI_TXT={
   'voy.voyagePanel.11':'<span class="muted">無本業貨</span>',
   'voy.voyagePanel.12':'{a} 旬·風險約 {b}',
   'voy.voyagePanel.13':'{a}<div class="muted">另有 {b} 種他行貨</div></div></div>',
+  'voy.grp.own':'<div class="tiny bold" style="margin:3px 0 2px">有本業貨（{n}）</div>',
+  'voy.grp.ownNone':'<div class="tiny muted" style="margin-bottom:4px">沒有出產本業貨的地方。</div>',
+  'voy.grp.oth':'<div class="mkt-row tiny bold" data-act="vOth" style="background:#efe6d6;margin-top:6px"><span>沒有本業貨（{n}）</span><span>{i}</span></div>',
+  'voy.grp.open':'▾ 收起',
+  'voy.grp.shut':'▸ 展開',
   'voy.voyagePanel.14':'<div class="small bold" style="margin-top:4px">📍 目的地</div>{a}',
   'voy.voyagePanel.15':'<div class="card"><div class="row"><b class="small">💰 委託金</b><b id="v-b" style="color:#9b2c3a">{a} 兩</b></div>',
   'voy.voyagePanel.16':'{a}<div class="row tiny muted"><span>100</span><span>雜費約 {b}',
@@ -4853,6 +4860,7 @@ const MSG_TXT={
   'party.effect':'宴席費 {cost} 兩。出席的友人 {f} 位好感 +{fg}，店員 {s} 位好感 +{sg}。',
   'turn.fx':'時節流轉……',
   /* —— 行動點數、費用不足 —— */
+  'setDiff.ok':'難度改為「{a}」。',
   'ap.out':'本旬行動次數已用完（{m}/{m}），請「推進一旬」。',
   'cost.shortSilver':'現款不足，「{n}」需 {a} 兩',
   'cost.shortGold':'私房錢不足，「{n}」需 {a} 兩（可按上方「＋」補充）',
@@ -5645,6 +5653,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月25日',items:[
+    '難度設定更新：遊戲中可以在設定畫面隨時切換簡易、一般、困難。',
+    '委託採買介面調整：目的地不再只列前十個，改分「有本業貨」「沒有本業貨」兩區，後者預設收起。',
+    '修改背景資料',
+  ]},
   {date:'2026年11月23日',items:[
     '名稱調整：玩家擔任的「町年寄」改名「年行司」，寄合改稱「年行司寄合」；普請方的町年寄官員照舊。',
     '人物設定更新：本城好感 60 以上的熟人（含闇商人）不會再被換到外地。',
@@ -9049,7 +9062,7 @@ function shopProp(c,x,y,dir,prop){
 /* ======================= 別邸：店頂加蓋一層紙窗格子樓（第三百六十節） =======================
  *  有別邸（G.villa.lv≥1）時，原本屋頂的上兩層屋瓦換成一層細木格子後面是紙窗的樓（參考金澤茶屋街二樓），有自己的瓦頂。
  *  格子顏色照階段：1 木頭色 → 2 紅殼紅 → 3 銀灰 → 4 亮金（屋脊兩端加小金鯱）。
- *  施工中（G.villa.work）搭竹架、兩名木匠在屋頂敲打；落成那一旬（joto）東家在屋頂撒年糕，門前街坊跳著接；
+ *  施工中（G.villa.work）搭竹架、兩名木匠在屋頂敲打；落成那一旬（joto）、還沒再扣行動之前（jotoAp，第三百九十二節）東家在屋頂撒年糕，門前街坊跳著接；
  *  設宴之後、還沒再扣行動之前（feastT、feastAp，第三百七十一節）整個畫面轉成夜晚，紙窗透出金黃色的光與坐著的人影（villaNight，疊在色調之後）。 */
 const VILLA_FX={mochi:[],next:0};
 const VILLA_COL=[null,{f:'#7a5434',d:'#4b3428',l:'#9a7048',n:'#4b3020'},{f:'#a8322a',d:'#6e1f1a',l:'#c9524a',n:'#6e1f1a'},{f:'#8a9099',d:'#555b63',l:'#a9aeb5',n:'#4a4f56'},{f:'#f2c84b',d:'#b8862a',l:'#fff0a0',n:'#8a6420'}];
@@ -9078,13 +9091,15 @@ function villaDraw(c,t){
     drawPerson(c,x+70,top,{small:true,pose:'knock',pt:t+250,cloth:'#6d5744',cloth2:'#e8dcc4',variant:2,faceLeft:true});
     R_(c,x+30,y+56,14,3,'#a37b4f');R_(c,x+31,y+54,12,2,'#b98c5a');   // 木料
   }
-  if(V.joto===G.turn&&!V.work&&lv>=1){
+  if(villaJotoOn()){
     drawPerson(c,x+52,top,{small:true,pose:'wave',pt:t,cloth:'#1e2d4a',cloth2:'#e8dcc4',gold:true});
     if(t>=VILLA_FX.next){VILLA_FX.mochi.push({x:x+52,y:top-14,vx:(Math.random()-0.5)*50,vy:-30-Math.random()*20,t0:t});VILLA_FX.next=t+260+Math.random()*300}
     VILLA_FX.mochi=VILLA_FX.mochi.filter(m=>t-m.t0<2600);
     VILLA_FX.mochi.forEach(m=>{const s=(t-m.t0)/1000,px=m.x+m.vx*s,py=m.y+m.vy*s+60*s*s;if(py<150)R_(c,px,py,2,2,'#fbf7ee')});
   }
 }
+/** 撒年糕：落成那一旬、而且之後還沒再扣行動（第三百九十二節；比照晚宴；舊存檔沒有 jotoAp 時整旬都是）。 */
+function villaJotoOn(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.joto===G.turn&&(V.jotoAp===undefined||G.ap===V.jotoAp))}
 /** 晚宴畫面：設宴那一旬、而且之後還沒再扣行動（第三百七十一節；舊存檔沒有 feastAp 時整旬都是）。 */
 function villaFeastOn(){const V=G&&G.villa;return !!(V&&V.lv>=1&&!V.work&&V.feastT===G.turn&&(V.feastAp===undefined||G.ap===V.feastAp))}
 /** 晚宴畫面：轉成夜晚，紙窗透出金黃色的光與人影。畫在色調之後。 */
@@ -9106,7 +9121,7 @@ function doorLanterns(c){const x=102,y=40;[[x+1,y+36],[x+105,y+36]].forEach(([lx
 function villaQuiet(){return villaFeastOn()&&!(typeof hanabiLv==='function'&&hanabiLv())}
 /** 落成那一旬門前的街坊（跳著接年糕）；畫進院子的人物排序。 */
 function villaPeople(now){
-  const V=G&&G.villa;if(!V||V.joto!==G.turn||V.work||!(V.lv>=1))return [];
+  if(!villaJotoOn())return [];
   const P=[[96,128],[110,134],[124,126],[140,132],[156,128],[170,135],[88,138]];
   return P.map(([px,py],i)=>({y:py,draw:c=>drawPerson(c,px,py,{pose:'hop',pt:now+i*170,variant:i,faceLeft:i%2===0,small:i===3})}));
 }
@@ -9165,7 +9180,7 @@ const SEASON_ICON={spring:'🌸',summer:'☀️',autumn:'🍁',winter:'❄️'};
 /* ---------- 切換分頁 ---------- */
 /** 切換主分頁並重繪。 */
 UI.go=function(tab){
-  UI.s.tab=tab;
+  UI.s.tab=tab;UI.s.route.oth=false;   // 委託採買目的地「沒有本業貨」那一區回到收合（第三百九十三節）
   ['home',...TAB_IDS].forEach(t=>$('#view-'+t).classList.toggle('hidden',t!==tab));
   $$('#bottom button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   UI.render();
@@ -9838,11 +9853,17 @@ SHEETS.city=()=>{
 ACT.cityInfo=()=>UI.openSheet('city');
 /** 選單面板（說明、存檔、規則摘要）。 */
 SHEETS.menu=()=>{
-  let h=audioSettingsHtml()+'<button class="pixel-btn" style="width:100%;margin-bottom:6px" data-act="exportSave">'+UT('btn.exportSave')+'</button><div class="tiny muted" style="margin:-2px 0 8px">'+esc(UT('txt.exportNote'))+'</div><button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
+  let h=audioSettingsHtml()+diffSettingsHtml()+'<button class="pixel-btn" style="width:100%;margin-bottom:6px" data-act="exportSave">'+UT('btn.exportSave')+'</button><div class="tiny muted" style="margin:-2px 0 8px">'+esc(UT('txt.exportNote'))+'</div><button class="pixel-btn btn-red" style="width:100%" data-act="newLife">'+UT('btn.newLife')+'</button>';
   h+=UT('ppl.menu');
   h+=UT('ppl.menu.2');
   return {title:UT('ppl.menu.3'),html:h};
 };
+/** 設定裡的難度（第三百九十四節）：三檔隨時可換，馬上照新的比例算協議配額與同業出貨。 */
+function diffSettingsHtml(){
+  if(!G)return '';const cur=diffNow();
+  return UT('set.diff.t')+['easy','normal','hard'].map(k=>'<button class="pixel-btn btn-sm '+(cur===k?'btn-gold':'')+'" data-act="setDiff" data-k="'+k+'" style="flex:1">'+NM('diff',k)+'</button>').join('')+'</div>'+UT('set.diff.d',{a:UT('start.diff.'+cur)})+'</div>';
+}
+ACT.setDiff=el=>{const k=el.dataset.k;if(!G||!ODDS.guildPolicy.diffNormal[k]||k===diffNow())return;G.diff=k;save();sfx.tap();toast(MSG('setDiff.ok',{a:NM('diff',k)}));refreshSheet();UI.render()};
 /** 開關音效。 */
 /** 放棄並重開。 */
 ACT.newLife=()=>{if(UI.s.sheetLock||confirm(UT('ppl.newLife'))){UI.s.sheetLock=false;UI.s.sheet=null;UI.s.startDeck=null;UI.s.startTier=0;UI.s.startSys=null;$('#sheet-bd').classList.add('hidden');clearSave();G=null;musicWant(null);UI.showStart()}};
@@ -11220,7 +11241,7 @@ function voyagePanel(){
   voyQPrune();
   const caps=idleCaptains(mode);
   if(!caps.length)return '<div class="notice">'+(idleCaptains(mode,true).length?UT('voy.voyagePanel.3',{a:NM('crew',mode)}):UT('voy.voyagePanel.4',{a:NM('crew',mode),b:NM('crew',mode)}))+'</div>';
-  const dl=destList(mode).slice(0,10),open=dl.filter(x=>!x.blocked);
+  const dl=destList(mode),open=dl.filter(x=>!x.blocked);   // 不再只列前十個；畫面分「有本業貨」「沒有本業貨」兩區（第三百九十三節）
   if(!dl.length)return '<div class="notice">'+(destList(mode,true).length?UT('voy.noPermitAll'):mode==='land'?UT('voy.voyagePanel.5'):UT('voy.voyagePanel.6'))+'</div>';
   if(!open.length)return UT('voy.buyoutAllBlocked',{region:REG_NAME(dl[0].ct.region_id),month:buyoutMonth(G.month,dl[0].ct.region_id)});
   if(!caps.some(e=>e.id===R_.capt))R_.capt=caps[0].id;
@@ -11231,7 +11252,12 @@ function voyagePanel(){
   R_.budget=clamp(Math.round((R_.budget||500)/50)*50,100,maxB);
   const cap=caps.find(e=>e.id===R_.capt);
   let h=UT('voy.h',{a:NM('crew',mode),b:caps.map(e=>'<span class="pill '+(e.id===R_.capt?'on':'')+'" data-act="vCapt" data-id="'+e.id+'">'+esc(e.name)+' '+ratingStars(e.cid||statsOfEmp(e))+'</span>').join('')})+'</div>';
-  h+=UT('voy.voyagePanel.14',{a:dl.map(x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="'+(x.blocked?'none':'vDest')+'" data-id="'+x.ct.id+'"'+(x.blocked?' style="opacity:.55"':'')+'><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(x.blocked?UT('voy.buyoutTag'):'')+'<div class="tiny muted">'+UT('voy.voyagePanel.12',{a:x.d,b:Math.round(voyRisk(cap,x.d,mode)*100)})+'%</div></div><div style="text-align:right" class="tiny">'+UT('voy.voyagePanel.13',{a:x.blocked?UT('voy.buyoutUnavailable'):x.own.length?UT('voy.voyagePanel.10',{a:esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join(UT('voy.voyagePanel.9'))),b:x.own.length>2?'…':''})+'</b>':UT('voy.voyagePanel.11'),b:x.oth.length})).join('')});
+  {const row=x=>'<div class="mkt-row '+(x.ct.id===R_.dest?'on':'')+'" data-act="'+(x.blocked?'none':'vDest')+'" data-id="'+x.ct.id+'"'+(x.blocked?' style="opacity:.55"':'')+'><div><b class="small">'+esc(x.ct.name)+'</b> <span class="tag green">'+esc(x.ct.region_name)+'</span>'+(x.blocked?UT('voy.buyoutTag'):'')+'<div class="tiny muted">'+UT('voy.voyagePanel.12',{a:x.d,b:Math.round(voyRisk(cap,x.d,mode)*100)})+'%</div></div><div style="text-align:right" class="tiny">'+UT('voy.voyagePanel.13',{a:x.blocked?UT('voy.buyoutUnavailable'):x.own.length?UT('voy.voyagePanel.10',{a:esc(x.own.slice(0,2).map(n=>COMM_MAP[n].short.slice(0,5)).join(UT('voy.voyagePanel.9'))),b:x.own.length>2?'…':''})+'</b>':UT('voy.voyagePanel.11'),b:x.oth.length});
+   const g1=dl.filter(x=>x.own.length),g2=dl.filter(x=>!x.own.length);
+   if(!R_.oth&&g2.some(x=>x.ct.id===R_.dest)){const f=g1.find(x=>!x.blocked);if(f)R_.dest=f.ct.id;else R_.oth=true}   // 選中的目的地在收合的那一區：改選第一個有本業貨的地方；沒有可去的就展開
+   const a=UT('voy.grp.own',{n:g1.length})+(g1.length?g1.map(row).join(''):UT('voy.grp.ownNone'))
+     +(g2.length?UT('voy.grp.oth',{n:g2.length,i:UT(R_.oth?'voy.grp.open':'voy.grp.shut')})+(R_.oth?g2.map(row).join(''):''):'');
+   h+=UT('voy.voyagePanel.14',{a})}
   h+=UT('voy.voyagePanel.15',{a:fmt(R_.budget)});
   h+=UT('voy.voyagePanel.16',{a:stepRow('<input id="slider-voy" type="range" min="100" max="'+maxB+'" step="50" value="'+R_.budget+'">','slider-voy',R_.budget<=100,R_.budget>=maxB),b:Math.round(voyFee((dl.find(x=>x.ct.id===R_.dest)||dl[0]).d)*100)})+'%</span><span>'+fmt(maxB)+'</span></div></div>';
   {const n=originTripUsed(R_.dest);if(n)h+='<div class="notice tiny">'+UT('voy.repeatWarn',{n})+'</div>'}
@@ -11267,6 +11293,8 @@ function voyLogCard(){
 }
 ACT.vLogToggle=()=>{UI.s.route.logOpen=!UI.s.route.logOpen;renderRoutes()};
 ACT.vCapt=el=>{UI.s.route.capt=el.dataset.id;renderRoutes()};
+/** 目的地「沒有本業貨」那一區展開／收合（第三百九十三節；只記在畫面上，換分頁後回到收合）。 */
+ACT.vOth=()=>{UI.s.route.oth=!UI.s.route.oth;renderRoutes()};
 ACT.vDest=el=>{const ct=CITY(el.dataset.id);if(!ct||buyoutDepartureBlocked(ct))return;UI.s.route.dest=el.dataset.id;renderRoutes()};
 CHG.rModeDummy=()=>{};
 /** 本旬出運清單：每列人名、目的地、旬數、委託金與取消鈕；底部合計與「全部出發」（只扣 1 行動點數）。 */
@@ -20636,7 +20664,7 @@ function villaTick(log){
   if(!G||G.ended)return;
   const V=villaS();
   if(V.work&&G.turn>V.work.t){                     // 施工一旬後落成
-    V.lv=V.work.lv;V.work=null;V.joto=G.turn;
+    V.lv=V.work.lv;V.work=null;V.joto=G.turn;delete V.jotoAp;   // jotoAp 在本旬壓力結算之後才記（stressTick 外層）
     const t=NEWS(V.lv===1?'villa.doneN':'villa.reN',{f:moveYago(),a:UT('villa.lv.'+V.lv)});pushNews(t);log.push(t);
     const ct=homeCity();G.cityHist=G.cityHist||{};(G.cityHist[ct.id]=G.cityHist[ct.id]||[]).push({year:G.year,title:NEWS(V.lv===1?'villa.histN':'villa.reHistN',{f:moveYago()})});
   }
@@ -20644,6 +20672,9 @@ function villaTick(log){
   if(!V.asked&&V.lv===0&&!V.work&&G.silver>=VLO().need[0]){const b=villaChief();if(b){V.asked=true;queueFaceEvent({type:'villaAsk',empId:b.id,turn:G.turn})}}
 }
 {const _k=kenjoTick;kenjoTick=function(log){const r=_k.apply(this,arguments);villaTick(log);return r}}
+/* 撒年糕只維持到下一次扣行動（第三百九十二節）：落成那一旬，等壓力把本旬行動點數壓好之後記下 jotoAp；
+   之後行動點數一少於它，撒年糕就結束（比照晚宴的 feastAp）。 */
+{const _s=stressTick;stressTick=function(log){const r=_s.apply(this,arguments);const V=G&&G.villa;if(V&&V.joto===G.turn&&V.jotoAp===undefined)V.jotoAp=G.ap;return r}}
 FACE_TITLE.villaAsk='villa.ask.t';
 FACE_EXT.villaAsk=()=>{
   const V=villaS();if(V.lv>0||V.work)return null;
