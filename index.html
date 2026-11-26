@@ -3477,7 +3477,7 @@ const UI_TXT={
   'fav.reliefImport':'緊急御免',
   'fav.reliefImport.d':'災情當旬：官府特許緊急進貨。本旬與下一旬，相場進貨上限加倍，漲價的貨照災前的價格進。',
   'fav.reliefBuild':'普請御用',
-  'fav.reliefBuild.d':'災情當旬：官府重建災區，用比市價高四成的價格，收購你倉裡的本業貨（每項最多約兩旬的量）。',
+  'fav.reliefBuild.d':'災情當旬：官府重建災區，用比市價高四成的價格，收購你倉裡的本業日常貨（每項最多約兩旬的量；奢侈品不收）。',
   'home.dis.fire':'🔥 大火之後',
   'home.dis.famine':'🌾 凶作',
   'home.dis.typhoon':'🌀 颱風過境',
@@ -4115,6 +4115,9 @@ const UI_TXT={
   'btn.ofLetterFull':'交情已深，要見面才行',
   'btn.ofLetterAway':'出門作客中',
   'btn.ofTrip':'下旬去作客（{n} 旬·{c}）',
+  'btn.ofTripCancel':'取消作客',
+  'of.trip.cancelOk':'跟「{n}」說臨時有事，這趟作客取消了；路費 {a} 兩退回私房錢。',
+  'of.log.tripCancel':'約好去作客，臨時有事取消了。',
   'of.letter.used':'這一旬已經寄過信給他了。',
   'of.letter.away':'正要出門作客，這段期間不寄信。',
   'of.letter.enemy':'已經成仇了。',
@@ -4129,7 +4132,7 @@ const UI_TXT={
   'of.trip.booked':'已和「{n}」約好：下旬動身，到【{c}】作客 {t} 旬，路費 {a} 兩（私房錢）。離家期間辦不了事，店裡照配額進出貨；有掛賣的話，記得先備足貨。',
   'top.away':'🧳 作客 {n} 旬',
   'trip.friend.low':'外城友人的交情還不夠深，他不會留你作客。先靠書信與順道問候把交情養起來。',
-  'trip.friend.away':'已約好下旬動身，到【{c}】找「{n}」作客 {t} 旬。',
+  'trip.friend.away':'已約好下旬動身，到【{c}】找「{n}」作客 {t} 旬；臨時有事，可在他的卡上取消。',
   'trip.friend.gone':'人在【{c}】「{n}」家作客，還有 {t} 旬回來。',
   'trip.friend.foot':'本旬約定，下旬動身；同地區一兩旬，外地三四旬。離家期間辦不了事，店裡照配額進出貨。',
   'of.come.t':'🏠 外城友人來訪',
@@ -4976,7 +4979,7 @@ const MSG_TXT={
   'relief.soup':'御救小屋搭起來了，災民排成長龍，全城都在談你的善舉。知名度 +{f}。',
   'relief.import':'緊急進貨的特許下來了：這兩旬向相場進貨，量可以加倍，價錢照災前算。知名度 +{f}。',
   'relief.build':'官府收走{g}，付了 {a} 兩。知名度 +{f}。',
-  'relief.buildNone':'倉裡沒有本業貨可以交給官府。',
+  'relief.buildNone':'倉裡沒有官府要的日常貨；奢侈品重建用不上。',
   'log.relief':'救濟「{f}」：{m}',
   /* —— 海賊山賊猖獗 —— */
   'bandit.quell.closed':'賊亂已經平息，用不著出兵了。',
@@ -5646,7 +5649,11 @@ const NEWS_HIDE_SET=new Set(NEWS_HIDE),NEWS_MOVE_SET=new Set(NEWS_MOVE),NEWS_SEA
  *  每次送出新版時，在最上面加一筆當天的更新內容；同一天併進同一筆。
  * ===================================================================== */
 const CHANGELOG=[
+  {date:'2026年11月26日',items:[
+    '外城友人設定更新：約好去作客之後，動身前可以在友人卡上取消，路費全數退回。',
+  ]},
   {date:'2026年11月25日',items:[
+    '救災設定更新：普請御用只收日常貨，奢侈品與帝都御用品都不收。',
     '官場設定更新：政敵攻擊交好官員時，對方先開口要壓驚錢，三旬內不給才扣好感四成。',
     '產地直達線設定更新：拿到外地一個地區的入津御免與通行手形，大番頭就會建議把船和馬幫接起來；只要這兩張許可，不必再求專線御免。',
     '難度設定更新：遊戲中可以在設定畫面隨時切換簡易、一般、困難。',
@@ -15098,9 +15105,9 @@ const blackMarketOpen=()=>!!(G&&(festActive()||disasterNow()));
 const reliefImportOn=()=>!!(G&&G.reliefBuy>G.turn);
 /** 緊急御免：漲價的貨照災前價格（不計事件倍率）。 */
 function reliefPrice(name){const m=G.mk[name];return m.ev>1?reliefQuote(name):null}
-/** 普請御用：官府收購的貨（每項本業貨最多約兩旬配額）。 */
+/** 普請御用：官府收購的貨（每項本業貨最多約兩旬配額）。救災只收必需品與一般品：本業奢侈品、帝都御用品都不收（第三百九十七節）。 */
 function reliefBuildLots(){
-  return tradeComms().map(c=>{const n=c.name,have=G.inv[n]||0,want=Math.max(1,Math.round(ODDS.relief.buildTurns*Math.max(quotaOf(n),supplyLine(n))));return {c,q:Math.min(have,want)}}).filter(x=>x.q>0);
+  return tradeComms().filter(c=>!c.luxury&&!isGoyo(c.name)).map(c=>{const n=c.name,have=G.inv[n]||0,want=Math.max(1,Math.round(ODDS.relief.buildTurns*Math.max(quotaOf(n),supplyLine(n))));return {c,q:Math.min(have,want)}}).filter(x=>x.q>0);
 }
 /** 執行救濟請託（doFavor 呼叫）；不扣好感。 */
 function doRelief(cid,n,r,f){
@@ -18406,6 +18413,15 @@ ACT.ofTrip=el=>{
   G.gold-=cost;G.away={cid,start:G.turn+1,len,until:G.turn+len,cost};
   toast(UT('of.trip.booked',{n:nameOf(cid),c:outCity(cid).name,t:len,a:fmt(cost)}),5200);sfx.step();UI.render();refreshSheet();
 };
+/** 已約好、還沒動身：可以取消（第三百九十八節）。 */
+const ofTripCancelable=cid=>!!(G.away&&G.away.cid===cid&&G.turn<G.away.start);
+/** 臨時有事，取消作客：路費全數退回私房錢，不扣好感。 */
+ACT.ofTripCancel=el=>{
+  const cid=el.dataset.cid;if(!ofTripCancelable(cid))return;
+  const A=G.away;G.gold=(G.gold||0)+(A.cost||0);G.away=null;
+  logRel(cid,UT('of.log.tripCancel'));
+  toast(UT('of.trip.cancelOk',{n:nameOf(cid),a:fmt(A.cost||0)}),4200);sfx.tap();save();UI.render();refreshSheet();
+};
 /** 出遊面板下半部：外城友人（分隔線、狀態列、地區頁籤、人物卡；DESIGN_NOTES 第二百四十四節）。 */
 function tripFriendCard(){
   const A=G.away,all=outFriends();
@@ -18427,7 +18443,8 @@ function outRowHtml(cid){
   const lb=intel?ofIntelBlock(cid):ofLetterBlock(cid),coin=coinHtml('silver',ofLetterCost(cid));
   const lt=lb==='of.letter.used'?UT('btn.ofLetterUsed'):lb==='of.letter.away'?UT('btn.ofLetterAway'):lb==='of.letter.enemy'?UT('btn.ofLetterEnemy'):intel?(lb?UT('btn.ofIntelOff'):UT('btn.ofIntel',{c:coin})):UT('btn.ofLetter',{c:coin});
   let h='<div class="row" style="justify-content:flex-start;gap:4px;flex-wrap:wrap;margin-top:5px"><button class="pixel-btn btn-sm" data-act="'+(intel?'ofIntel':'ofLetter')+'" data-cid="'+cid+'" '+(lb?'disabled':'')+'>'+lt+'</button>'
-    +'<button class="pixel-btn btn-sm btn-gold" data-act="ofTrip" data-cid="'+cid+'" '+(tb?'disabled':'')+'>'+UT('btn.ofTrip',{n:ofTripLen(cid),c:coinHtml('gold',ofTripCost(cid))})+'</button></div>';
+    +(ofTripCancelable(cid)?'<button class="pixel-btn btn-sm btn-red" data-act="ofTripCancel" data-cid="'+cid+'">'+UT('btn.ofTripCancel')+'</button></div>'   // 約好還沒動身：作客鈕換成取消鈕（第三百九十八節）
+      :'<button class="pixel-btn btn-sm btn-gold" data-act="ofTrip" data-cid="'+cid+'" '+(tb?'disabled':'')+'>'+UT('btn.ofTrip',{n:ofTripLen(cid),c:coinHtml('gold',ofTripCost(cid))})+'</button></div>');
   if(intel&&(lb==='of.intel.none'||lb==='of.intel.known')){const I=buyoutNextOf(outCity(cid).region_id);h+='<div class="tiny muted" style="margin-top:2px">'+UT(lb,{r:REG_NAME(outCity(cid).region_id),m:I?buyoutMonth(I.m,I.rid):''})+'</div>'}
   else if(intel&&!lb)h+='<div class="tiny muted" style="margin-top:2px">'+UT('of.intel.hint',{r:REG_NAME(outCity(cid).region_id)})+'</div>';
   if(tb&&tb!=='of.trip.busy')h+='<div class="tiny muted" style="margin-top:2px">'+UT(tb==='of.trip.need'?'of.card.low':tb,{a:fmt(ofTripCost(cid))})+'</div>';
